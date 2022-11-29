@@ -2,7 +2,7 @@ use std::io::Write;
 
 use logos::Logos;
 
-use ppl::*;
+use ppl::{*, syntax::ast::Literal};
 
 
 /// Read-Evaluate-Print Loop
@@ -16,9 +16,14 @@ fn repl() {
 		let mut input = String::new();
 		std::io::stdin().read_line(&mut input).unwrap();
 
-		let mut lexer = syntax::Token::lexer(&input);
-		let _ = lexer.next().unwrap();
-		evaluator.print_value(evaluator.evaluate_integer(lexer.slice()))
+		let input = input.trim();
+
+		let ast = input.parse::<Literal>().unwrap();
+		let value = evaluator.evaluate_literal(&ast);
+
+		if !value.is_none() {
+			println!("{}", value);
+		}
 	}
 }
 

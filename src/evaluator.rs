@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use rug;
 
 use crate::syntax::ast::Literal;
@@ -42,6 +44,15 @@ impl From<rug::Integer> for Value {
 	}
 }
 
+impl Display for Value {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Value::None => write!(f, "none"),
+			Value::Integer(value) => write!(f, "{}", value),
+		}
+	}
+}
+
 impl Evaluator {
 	/// Evaluate value for integer literal
 	pub fn evaluate_integer(&self, value: &str) -> rug::Integer {
@@ -64,22 +75,6 @@ impl Evaluator {
 		match literal {
 			Literal::None { offset: _ } => Value::None,
 			Literal::Integer { offset: _, value } => self.evaluate_integer(&value).into(),
-		}
-	}
-
-	/// Print value received from the evaluator
-	///
-	/// # Example
-	/// ```
-	/// use ppl::Evaluator;
-	///
-	/// let evaluator = Evaluator {};
-	/// evaluator.print_value(evaluator.evaluate_integer("42"));
-	/// ```
-	pub fn print_value<V: Into<Value>>(&self, value: V) {
-		match value.into() {
-			Value::None => println!("none"),
-			Value::Integer(value) => println!("{}", value),
 		}
 	}
 }

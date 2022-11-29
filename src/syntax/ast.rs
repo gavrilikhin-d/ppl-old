@@ -18,14 +18,17 @@ impl FromStr for Literal {
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		let mut lexer = Token::lexer(s);
 		let token = lexer.next().unwrap();
-		if lexer.next() != None {
-			return Err(());
-		}
-		match token {
+
+		let res = match token {
 			Token::None => Ok(Literal::None { offset: lexer.span().start }),
 			Token::Integer => Ok(Literal::Integer { offset: lexer.span().start, value: lexer.slice().to_string() }),
 			Token::Error => Err(()),
+		};
+
+		if lexer.next() != None {
+			return Err(());
 		}
+		res
 	}
 }
 
