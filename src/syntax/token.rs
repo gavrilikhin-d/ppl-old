@@ -20,6 +20,10 @@ pub enum Token
 	#[regex("[_a-zA-Z][_a-zA-Z0-9]*")]
 	Id,
 
+	/// "let" token
+	#[token("let")]
+	Let,
+
 	/// Error token
 	#[error]
 	Error
