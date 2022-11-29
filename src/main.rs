@@ -2,9 +2,8 @@ use std::io::Write;
 
 use logos::Logos;
 
-mod syntax;
-mod evaluator;
-use evaluator::Evaluator;
+use ppl::*;
+
 
 /// Read-Evaluate-Print Loop
 fn repl() {
