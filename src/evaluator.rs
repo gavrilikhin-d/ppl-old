@@ -54,11 +54,6 @@ impl Display for Value {
 }
 
 impl Evaluator {
-	/// Evaluate value for integer literal
-	pub fn evaluate_integer(&self, value: &str) -> rug::Integer {
-		rug::Integer::from_str_radix(value, 10).unwrap()
-	}
-
 	/// Evaluate value for literal
 	///
 	/// # Example
@@ -74,7 +69,7 @@ impl Evaluator {
 	pub fn evaluate_literal(&self, literal: &Literal) -> Value {
 		match literal {
 			Literal::None { offset: _ } => Value::None,
-			Literal::Integer { offset: _, value } => self.evaluate_integer(&value).into(),
+			Literal::Integer { offset: _, value } => Value::Integer(value.parse::<rug::Integer>().unwrap()),
 		}
 	}
 }
