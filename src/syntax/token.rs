@@ -4,6 +4,10 @@ use logos::Logos;
 #[derive(Logos, Debug, PartialEq)]
 pub enum Token
 {
+	/// None literal
+	#[token("none")]
+	None,
+
 	/// Integer literal
 	#[regex("[0-9]+")]
 	Integer,
@@ -11,6 +15,14 @@ pub enum Token
 	/// Error token
 	#[error]
 	Error
+}
+
+#[test]
+fn test_none() {
+	let mut lexer = Token::lexer("none");
+	assert_eq!(lexer.next(), Some(Token::None));
+	assert_eq!(lexer.span(), 0..4);
+	assert_eq!(lexer.next(), None);
 }
 
 #[test]
