@@ -12,6 +12,14 @@ pub enum Token
 	#[regex("[0-9]+")]
 	Integer,
 
+	/// Assign token
+	#[token("=")]
+	Assign,
+
+	/// Identifier
+	#[regex("[_a-zA-Z][_a-zA-Z0-9]*")]
+	Id,
+
 	/// Error token
 	#[error]
 	Error
@@ -31,6 +39,16 @@ fn test_integer() {
 	assert_eq!(lexer.next(), Some(Token::Integer));
 	assert_eq!(lexer.span(), 0..3);
 	assert_eq!(lexer.slice(), "123");
+
+	assert_eq!(lexer.next(), None);
+}
+
+#[test]
+fn test_identifier() {
+	let mut lexer = Token::lexer("abc123");
+	assert_eq!(lexer.next(), Some(Token::Id));
+	assert_eq!(lexer.span(), 0..6);
+	assert_eq!(lexer.slice(), "abc123");
 
 	assert_eq!(lexer.next(), None);
 }

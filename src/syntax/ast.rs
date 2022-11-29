@@ -22,7 +22,7 @@ impl FromStr for Literal {
 		let res = match token {
 			Token::None => Ok(Literal::None { offset: lexer.span().start }),
 			Token::Integer => Ok(Literal::Integer { offset: lexer.span().start, value: lexer.slice().to_string() }),
-			Token::Error => Err(()),
+			Token::Assign | Token::Id | Token::Error => Err(()),
 		};
 
 		if lexer.next() != None {
