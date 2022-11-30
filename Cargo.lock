@@ -3,6 +3,14 @@
 version = 3
 
 [[package]]
+name = "ast_derive"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "az"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -63,6 +71,7 @@ dependencies = [
 name = "ppl"
 version = "0.1.0"
 dependencies = [
+ "ast_derive",
  "logos",
  "rug",
 ]

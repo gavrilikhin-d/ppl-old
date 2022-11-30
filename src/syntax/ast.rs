@@ -2,6 +2,9 @@ use std::str::FromStr;
 use crate::syntax::Token;
 use logos::{Logos, Lexer};
 
+extern crate ast_derive;
+use ast_derive::AST;
+
 /// Trait for lexer to consume tokens
 trait Consume {
 	type Err;
@@ -31,7 +34,7 @@ trait Parse where Self: Sized {
 }
 
 /// AST for compile time known values
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, AST)]
 pub enum Literal {
 	/// None literal
 	None { offset: usize },
@@ -54,21 +57,6 @@ impl Parse for Literal {
 	}
 }
 
-impl FromStr for Literal {
-	type Err = ();
-
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let mut lexer = Token::lexer(s);
-
-		let res = Literal::parse(&mut lexer);
-
-		if lexer.next() != None {
-			return Err(());
-		}
-		res
-	}
-}
-
 /// Value at some offset
 #[derive(Debug, PartialEq)]
 pub struct WithOffset<T> {
@@ -79,7 +67,7 @@ pub struct WithOffset<T> {
 }
 
 /// Declaration of the variable
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, AST)]
 pub struct VariableDeclaration {
 	/// Name of variable
 	pub name: WithOffset<String>,
@@ -103,21 +91,6 @@ impl Parse for VariableDeclaration {
 		lexer.consume(Token::Assign)?;
 
 		Ok(VariableDeclaration { name: name, initializer: Literal::parse( lexer)? })
-	}
-}
-
-impl FromStr for VariableDeclaration {
-	type Err = ();
-
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let mut lexer = Token::lexer(s);
-
-		let res = Self::parse(&mut lexer);
-
-		if lexer.next() != None {
-			return Err(());
-		}
-		res
 	}
 }
 
