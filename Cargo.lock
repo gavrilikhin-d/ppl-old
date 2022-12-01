@@ -256,6 +256,7 @@ dependencies = [
  "logos",
  "miette",
  "rug",
+ "thiserror",
 ]
 
 [[package]]
