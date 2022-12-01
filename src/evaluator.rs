@@ -2,15 +2,10 @@ use std::fmt::Display;
 
 use rug;
 
-use crate::syntax::ast::Literal;
-
-/// Evaluator for PPL
-pub struct Evaluator {
-
-}
+use crate::syntax::ast::{Literal, Expression, VariableReference, Statement, Declaration};
 
 /// Value, that may be produced by the evaluator
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Value {
 	None,
 	Integer(rug::Integer),
@@ -53,7 +48,28 @@ impl Display for Value {
 	}
 }
 
+
+/// Evaluator for PPL
+pub struct Evaluator {
+	/// Declared variables
+	pub variables: std::collections::HashMap<String, Value>,
+}
+
 impl Evaluator {
+	/// Create new evaluator
+	///
+	/// # Example
+	/// ```
+	/// use ppl::evaluator::Evaluator;
+	///
+	/// let mut evaluator = Evaluator::new();
+	/// ```
+	pub fn new() -> Self {
+		Self {
+			variables: std::collections::HashMap::new(),
+		}
+	}
+
 	/// Evaluate value for literal
 	///
 	/// # Example
@@ -71,5 +87,57 @@ impl Evaluator {
 			Literal::None { offset: _ } => Value::None,
 			Literal::Integer { offset: _, value } => Value::Integer(value.parse::<rug::Integer>().unwrap()),
 		}
+	}
+
+	/// Evaluate value for expression
+	///
+	/// # Example
+	/// ```
+	/// use ppl::Evaluator;
+	/// use ppl::syntax::ast::Expression;
+	/// use ppl::syntax::ast::Literal;
+	/// use ppl::evaluator::Value;
+	///
+	/// let evaluator = Evaluator::new();
+	/// let expression = "42".parse::<Expression>().unwrap();
+	/// let value = evaluator.evaluate_expression(&expression).unwrap();
+	/// assert_eq!(value, Value::Integer(42.into()));
+	/// ```
+	pub fn evaluate_expression(&self, expr: &Expression) -> Result<Value, ()> {
+		Ok(match expr {
+			Expression::Literal(l) => self.evaluate_literal(l),
+			Expression::VariableReference(var) =>
+				self.variables.get(&var.name).ok_or(())?.to_owned()
+		})
+	}
+
+	/// Execute code for declaration
+	pub fn declare(&mut self, decl: &Declaration) -> Result<(), ()> {
+		match decl {
+			Declaration::Variable(var) => {
+				let value = self.evaluate_expression(&var.initializer)?;
+				self.variables.insert(var.name.value.clone(), value);
+				Ok(())
+			}
+		}
+	}
+
+	/// Execute statement
+	pub fn execute(&mut self, stmt: &Statement) -> Result<Option<Value>, ()> {
+		Ok(match stmt {
+			Statement::Expression(expr) =>
+				Some(self.evaluate_expression(expr)?),
+			Statement::Declaration(decl) => {
+				self.declare(decl)?;
+				None
+			}
+		})
+	}
+}
+
+impl Default for Evaluator {
+	/// Create new evaluator without variables
+	fn default() -> Self {
+		Self::new()
 	}
 }

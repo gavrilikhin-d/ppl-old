@@ -1,11 +1,11 @@
 use std::io::Write;
 
-use ppl::{*, syntax::ast::Literal};
+use ppl::{*, syntax::ast::Statement};
 
 
 /// Read-Evaluate-Print Loop
 fn repl() {
-	let evaluator = Evaluator {};
+	let mut evaluator = Evaluator::new();
 
 	loop {
 		print!(">>> ");
@@ -16,8 +16,12 @@ fn repl() {
 
 		let input = input.trim();
 
-		let ast = input.parse::<Literal>().unwrap();
-		let value = evaluator.evaluate_literal(&ast);
+		let ast = input.parse::<Statement>().unwrap();
+		let value = evaluator.execute(&ast).unwrap();
+
+		if value.is_none() { continue; }
+
+		let value = value.unwrap();
 
 		if !value.is_none() {
 			println!("{}", value);
