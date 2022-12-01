@@ -16,6 +16,19 @@ trait Consume {
 impl<'source> Consume for logos::Lexer<'source, Token> {
 	type Err = ();
 
+	/// Parse next token and check that it has specified type
+	///
+	/// # Example
+	/// ```
+	/// use ppl::syntax::Token;
+	/// use ppl::syntax::ast::Consume;
+	///
+	/// let mut lexer = ppl::syntax::lexer("42");
+	/// assert_eq!(lexer.consume(Token::Integer), Ok(()));
+	///
+	/// let mut lexer = ppl::syntax::lexer("42");
+	/// assert_eq!(lexer.consume(Token::Identifier), Err(()));
+	/// ```
 	fn consume(&mut self, token: Token) -> Result<(), Self::Err> {
 		if self.next() != Some(token) {
 			return Err(())
@@ -47,9 +60,12 @@ impl Parse for Literal {
 
 	/// Parse literal using lexer
 	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
-		let token = lexer.next().unwrap();
+		let token = lexer.next();
+		if token.is_none() {
+			return Err(())
+		}
 
-		match token {
+		match token.unwrap() {
 			Token::None => Ok(Literal::None { offset: lexer.span().start }),
 			Token::Integer => Ok(Literal::Integer { offset: lexer.span().start, value: lexer.slice().to_string() }),
 			Token::Assign | Token::Id | Token::Let | Token::Error => Err(()),
@@ -57,17 +73,51 @@ impl Parse for Literal {
 	}
 }
 
+/// AST for variable reference
+#[derive(Debug, PartialEq, AST)]
+pub struct VariableReference {
+	/// Offset of variable reference
+	pub offset: usize,
+	/// Name of variable
+	pub name: String,
+}
+
+impl Parse for VariableReference {
+	type Err = ();
+
+	/// Parse variable reference using lexer
+	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
+		lexer.consume(Token::Id)?;
+
+		let offset = lexer.span().start;
+		let name = lexer.slice().to_string();
+
+		Ok(VariableReference { offset, name })
+	}
+}
+
 /// Any PPL expression
 #[derive(Debug, PartialEq, AST)]
 pub enum Expression {
-	Literal(Literal)
+	Literal(Literal),
+	VariableReference(VariableReference),
 }
 
 impl Parse for Expression {
 	type Err = ();
 
+	/// Parse expression using lexer
 	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
-		Literal::parse(lexer).map(|literal| Expression::Literal(literal))
+		let mut copy = lexer.clone();
+		let token = copy.next();
+		if token.is_none() {
+			return Err(())
+		}
+		match token.unwrap() {
+			Token::None | Token::Integer => Ok(Expression::Literal(Literal::parse(lexer)?)),
+			Token::Id => Ok(Expression::VariableReference(VariableReference::parse(lexer)?)),
+			Token::Assign | Token::Let | Token::Error => Err(()),
+		}
 	}
 }
 
@@ -86,12 +136,13 @@ pub struct VariableDeclaration {
 	/// Name of variable
 	pub name: WithOffset<String>,
 	/// Initializer for variable
-	pub initializer: Literal,
+	pub initializer: Expression,
 }
 
 impl Parse for VariableDeclaration {
 	type Err = ();
 
+	/// Parse variable declaration using lexer
 	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
 		lexer.consume(Token::Let)?;
 
@@ -104,7 +155,12 @@ impl Parse for VariableDeclaration {
 
 		lexer.consume(Token::Assign)?;
 
-		Ok(VariableDeclaration { name: name, initializer: Literal::parse( lexer)? })
+		Ok(
+			VariableDeclaration {
+				name: name,
+				initializer: Expression::parse(lexer)?
+			}
+		)
 	}
 }
 
@@ -117,6 +173,7 @@ pub enum Declaration {
 impl Parse for Declaration {
 	type Err = ();
 
+	/// Parse declaration using lexer
 	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
 		VariableDeclaration::parse(lexer).map(|var| Declaration::Variable(var))
 	}
@@ -132,16 +189,17 @@ pub enum Statement {
 impl Parse for Statement {
 	type Err = ();
 
+	/// Parse statement using lexer
 	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
-		let mut pk = lexer.peekable();
-		let token = pk.peek();
+		let mut copy = lexer.clone();
+		let token = copy.next();
 		if token.is_none() {
 			return Err(())
 		}
 		match token.unwrap() {
 			Token::Let => Declaration::parse(lexer).map(|decl| Statement::Declaration(decl)),
-			Token::None | Token::Integer => Expression::parse(lexer).map(|expr| Statement::Expression(expr)),
-			Token::Assign | Token::Id | Token::Error => Err(()),
+			Token::None | Token::Integer | Token::Id  => Expression::parse(lexer).map(|expr| Statement::Expression(expr)),
+			Token::Assign | Token::Error => Err(()),
 		}
 	}
 }
@@ -165,7 +223,7 @@ fn test_variable_declaration() {
 		var,
 		VariableDeclaration {
 			name: WithOffset { offset: 4, value: "x".to_string(), },
-			initializer: Literal::Integer { offset: 8, value: "1".to_string() }
+			initializer: Literal::Integer { offset: 8, value: "1".to_string() }.into()
 		}
 	);
 }
