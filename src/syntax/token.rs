@@ -1,7 +1,7 @@
 use logos::Logos;
 
 /// The different kinds of tokens that can be lexed.
-#[derive(Logos, Debug, PartialEq)]
+#[derive(Logos, Debug, PartialEq, Clone)]
 pub enum Token
 {
 	/// None literal
