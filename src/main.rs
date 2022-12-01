@@ -1,7 +1,5 @@
 use std::io::Write;
 
-use logos::Logos;
-
 use ppl::{*, syntax::ast::Literal};
 
 

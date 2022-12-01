@@ -57,6 +57,20 @@ impl Parse for Literal {
 	}
 }
 
+/// Any PPL expression
+#[derive(Debug, PartialEq, AST)]
+pub enum Expression {
+	Literal(Literal)
+}
+
+impl Parse for Expression {
+	type Err = ();
+
+	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
+		Literal::parse(lexer).map(|literal| Expression::Literal(literal))
+	}
+}
+
 /// Value at some offset
 #[derive(Debug, PartialEq)]
 pub struct WithOffset<T> {
@@ -91,6 +105,44 @@ impl Parse for VariableDeclaration {
 		lexer.consume(Token::Assign)?;
 
 		Ok(VariableDeclaration { name: name, initializer: Literal::parse( lexer)? })
+	}
+}
+
+/// Any PPL declaration
+#[derive(Debug, PartialEq, AST)]
+pub enum Declaration {
+	Variable(VariableDeclaration)
+}
+
+impl Parse for Declaration {
+	type Err = ();
+
+	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
+		VariableDeclaration::parse(lexer).map(|var| Declaration::Variable(var))
+	}
+}
+
+/// Any PPL statement
+#[derive(Debug, PartialEq, AST)]
+pub enum Statement {
+	Declaration(Declaration),
+	Expression(Expression)
+}
+
+impl Parse for Statement {
+	type Err = ();
+
+	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
+		let mut pk = lexer.peekable();
+		let token = pk.peek();
+		if token.is_none() {
+			return Err(())
+		}
+		match token.unwrap() {
+			Token::Let => Declaration::parse(lexer).map(|decl| Statement::Declaration(decl)),
+			Token::None | Token::Integer => Expression::parse(lexer).map(|expr| Statement::Expression(expr)),
+			Token::Assign | Token::Id | Token::Error => Err(()),
+		}
 	}
 }
 
