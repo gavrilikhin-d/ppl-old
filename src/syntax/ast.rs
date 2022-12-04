@@ -4,43 +4,114 @@ use logos::{Logos, Lexer};
 
 extern crate ast_derive;
 use ast_derive::AST;
+use miette::{SourceSpan, Diagnostic};
 
 /// Trait for lexer to consume tokens
 pub trait Consume {
 	type Err;
 
-	/// Parse next token and check that it has specified type
-	fn consume(&mut self, token: Token) -> Result<(), Self::Err>;
+	/// Lex next token and check that it has specified type
+	fn consume(&mut self, token: Token) -> Result<(), Self::Err> {
+		self.consume_one_of(&[token]).map(|_| ())
+	}
+
+	/// Lex next token and check that it has one of the specified types
+	fn consume_one_of(&mut self, tokens: &[Token]) -> Result<Token, Self::Err>;
+}
+
+/// Diagnostic for unexpected token
+#[derive(thiserror::Error, Debug, Clone, Diagnostic, PartialEq)]
+#[error("unexpected token")]
+#[diagnostic(
+	code(lexer::unexpected_token),
+	help("expected one of {expected:?}, got {got:?}")
+)]
+pub struct UnexpectedToken {
+	/// Expected alternatives
+	pub expected: Vec<Token>,
+	/// Actual token
+	pub got: Token,
+
+	/// Span of the token
+	#[label]
+	pub at: SourceSpan
+}
+
+/// Diagnostic for missing token
+#[derive(thiserror::Error, Debug, Clone, Diagnostic, PartialEq)]
+#[error("missing one of {expected:?} tokens")]
+#[diagnostic(code(lexer::missing_token))]
+pub struct MissingToken {
+	/// Expected token
+	pub expected: Vec<Token>,
+
+	/// Where the token was expected
+	#[label]
+	pub at: SourceSpan
+}
+
+/// Possible lexer errors
+#[derive(thiserror::Error, Diagnostic, Debug, PartialEq)]
+pub enum LexerError {
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	UnexpectedToken(#[from] UnexpectedToken),
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	MissingToken(#[from] MissingToken)
 }
 
 impl<'source> Consume for logos::Lexer<'source, Token> {
-	type Err = ();
+	type Err = LexerError;
 
 	/// Parse next token and check that it has specified type
 	///
 	/// # Example
 	/// ```
 	/// use ppl::syntax::Token;
-	/// use ppl::syntax::ast::Consume;
+	/// use ppl::syntax::ast::{Consume, UnexpectedToken};
 	/// use logos::Logos;
 	///
 	/// let mut lexer = ppl::syntax::Token::lexer("42");
 	/// assert_eq!(lexer.consume(Token::Integer), Ok(()));
 	///
 	/// let mut lexer = ppl::syntax::Token::lexer("42");
-	/// assert_eq!(lexer.consume(Token::Id), Err(()));
+	/// assert_eq!(
+	/// 	lexer.consume(Token::Id),
+	/// 	Err(
+	/// 		UnexpectedToken {
+	/// 			expected: vec![Token::Id],
+	/// 			got: Token::Integer,
+	/// 			at: lexer.span().into()
+	/// 		}.into()
+	/// 	)
+	/// );
 	/// ```
-	fn consume(&mut self, token: Token) -> Result<(), Self::Err> {
-		if self.next() != Some(token) {
-			return Err(())
+	fn consume_one_of(&mut self, tokens: &[Token]) -> Result<Token, Self::Err> {
+		let token = self.next();
+		if token.is_none() {
+			return Err(MissingToken {
+				expected: tokens.to_owned(),
+				at: self.span().into()
+			}.into());
 		}
 
-		Ok(())
+		let token = token.unwrap();
+
+		if !tokens.contains(&token) {
+			return Err(UnexpectedToken {
+				expected: tokens.to_owned(),
+				got: token,
+				at: self.span().into()
+			}.into());
+		}
+
+		Ok(token)
 	}
 }
 
 /// Trait for parsing using lexer
-trait Parse where Self: Sized {
+pub trait Parse where Self: Sized {
 	type Err;
 
 	/// Parse starting from current lexer state
@@ -56,20 +127,52 @@ pub enum Literal {
 	Integer { offset: usize, value: String },
 }
 
+/// Diagnostic for missing expressions
+#[derive(thiserror::Error, Debug, Clone, Diagnostic, PartialEq)]
+#[error("missing expression")]
+#[diagnostic(
+	code(parser::missing_expression),
+)]
+pub struct MissingExpression {
+	/// Location, where expression was expected
+	#[label("here")]
+	pub at: SourceSpan
+}
+
+/// Possible parser errors
+#[derive(thiserror::Error, Diagnostic, Debug, PartialEq)]
+pub enum ParseError {
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	LexerError(#[from] LexerError),
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	MissingExpression(#[from] MissingExpression)
+}
+
+impl From<UnexpectedToken> for ParseError {
+	fn from(err: UnexpectedToken) -> Self {
+		ParseError::LexerError(err.into())
+	}
+}
+
+impl From<MissingToken> for ParseError {
+	fn from(err: MissingToken) -> Self {
+		ParseError::LexerError(err.into())
+	}
+}
+
 impl Parse for Literal {
-	type Err = ();
+	type Err = ParseError;
 
 	/// Parse literal using lexer
 	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
-		let token = lexer.next();
-		if token.is_none() {
-			return Err(())
-		}
+		let token = lexer.consume_one_of(&[Token::None, Token::Integer])?;
 
-		match token.unwrap() {
+		match token {
 			Token::None => Ok(Literal::None { offset: lexer.span().start }),
 			Token::Integer => Ok(Literal::Integer { offset: lexer.span().start, value: lexer.slice().to_string() }),
-			Token::Assign | Token::Id | Token::Let | Token::Error => Err(()),
+			Token::Assign | Token::Id | Token::Let | Token::Error => unreachable!("consume_one_of returned unexpected token"),
 		}
 	}
 }
@@ -84,7 +187,7 @@ pub struct VariableReference {
 }
 
 impl Parse for VariableReference {
-	type Err = ();
+	type Err = ParseError;
 
 	/// Parse variable reference using lexer
 	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
@@ -117,19 +220,26 @@ impl From<VariableReference> for Expression {
 }
 
 impl Parse for Expression {
-	type Err = ();
+	type Err = ParseError;
 
 	/// Parse expression using lexer
 	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
 		let mut copy = lexer.clone();
-		let token = copy.next();
-		if token.is_none() {
-			return Err(())
+		let token = copy.consume_one_of(
+			&[Token::None, Token::Integer, Token::Id]
+		);
+		if token.is_err() {
+			return Err(
+				MissingExpression {
+					at: copy.span().into()
+				}.into()
+			)
 		}
+
 		match token.unwrap() {
 			Token::None | Token::Integer => Ok(Expression::Literal(Literal::parse(lexer)?)),
 			Token::Id => Ok(Expression::VariableReference(VariableReference::parse(lexer)?)),
-			Token::Assign | Token::Let | Token::Error => Err(()),
+			Token::Assign | Token::Let | Token::Error => unreachable!("consume_one_of returned unexpected token"),
 		}
 	}
 }
@@ -153,7 +263,7 @@ pub struct VariableDeclaration {
 }
 
 impl Parse for VariableDeclaration {
-	type Err = ();
+	type Err = ParseError;
 
 	/// Parse variable declaration using lexer
 	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
@@ -184,7 +294,7 @@ pub enum Declaration {
 }
 
 impl Parse for Declaration {
-	type Err = ();
+	type Err = ParseError;
 
 	/// Parse declaration using lexer
 	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
@@ -200,19 +310,18 @@ pub enum Statement {
 }
 
 impl Parse for Statement {
-	type Err = ();
+	type Err = ParseError;
 
 	/// Parse statement using lexer
 	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
 		let mut copy = lexer.clone();
-		let token = copy.next();
-		if token.is_none() {
-			return Err(())
-		}
+		let token = copy.consume_one_of(
+			&[Token::None, Token::Integer, Token::Id, Token::Let]
+		);
 		match token.unwrap() {
 			Token::Let => Declaration::parse(lexer).map(|decl| Statement::Declaration(decl)),
 			Token::None | Token::Integer | Token::Id  => Expression::parse(lexer).map(|expr| Statement::Expression(expr)),
-			Token::Assign | Token::Error => Err(()),
+			Token::Assign | Token::Error => unreachable!("consume_one_of returned unexpected token"),
 		}
 	}
 }

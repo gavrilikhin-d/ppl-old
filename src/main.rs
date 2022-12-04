@@ -16,7 +16,15 @@ fn repl() {
 
 		let input = input.trim();
 
-		let ast = input.parse::<Statement>().unwrap();
+		let ast = input.parse::<Statement>();
+		if let Err(err) = ast {
+			println!(
+				"{:?}",
+				miette::Report::new(err).with_source_code(input.to_owned())
+			);
+			continue;
+		}
+		let ast = ast.unwrap();
 		let value = evaluator.execute(&ast).unwrap();
 
 		if value.is_none() { continue; }
