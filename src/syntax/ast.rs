@@ -6,7 +6,7 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 /// Trait for lexer to consume tokens
-trait Consume {
+pub trait Consume {
 	type Err;
 
 	/// Parse next token and check that it has specified type
@@ -22,12 +22,13 @@ impl<'source> Consume for logos::Lexer<'source, Token> {
 	/// ```
 	/// use ppl::syntax::Token;
 	/// use ppl::syntax::ast::Consume;
+	/// use logos::Logos;
 	///
-	/// let mut lexer = ppl::syntax::lexer("42");
+	/// let mut lexer = ppl::syntax::Token::lexer("42");
 	/// assert_eq!(lexer.consume(Token::Integer), Ok(()));
 	///
-	/// let mut lexer = ppl::syntax::lexer("42");
-	/// assert_eq!(lexer.consume(Token::Identifier), Err(()));
+	/// let mut lexer = ppl::syntax::Token::lexer("42");
+	/// assert_eq!(lexer.consume(Token::Id), Err(()));
 	/// ```
 	fn consume(&mut self, token: Token) -> Result<(), Self::Err> {
 		if self.next() != Some(token) {
@@ -101,6 +102,18 @@ impl Parse for VariableReference {
 pub enum Expression {
 	Literal(Literal),
 	VariableReference(VariableReference),
+}
+
+impl From<Literal> for Expression {
+	fn from(l: Literal) -> Self {
+		Expression::Literal(l)
+	}
+}
+
+impl From<VariableReference> for Expression {
+	fn from(v: VariableReference) -> Self {
+		Expression::VariableReference(v)
+	}
 }
 
 impl Parse for Expression {

@@ -77,7 +77,7 @@ impl Evaluator {
 	/// use ppl::Evaluator;
 	/// use ppl::syntax::ast::Literal;
 	///
-	/// let evaluator = Evaluator {};
+	/// let evaluator = Evaluator::new();
 	/// let literal = "none".parse::<Literal>().unwrap();
 	/// let value = evaluator.evaluate_literal(&literal);
 	///	assert!(value.is_none());
