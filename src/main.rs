@@ -14,7 +14,9 @@ fn repl() {
 		let mut input = String::new();
 		std::io::stdin().read_line(&mut input).unwrap();
 
-		let input = input.trim();
+		if input.trim().is_empty() {
+			continue;
+		}
 
 		let ast = input.parse::<Statement>();
 		if let Err(err) = ast {
