@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use logos::Logos;
 
 /// The different kinds of tokens that can be lexed.
@@ -28,4 +30,15 @@ pub enum Token
 	#[error]
 	#[regex("[ ]+", logos::skip)]
 	Error
+}
+
+impl Display for Token {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Token::None => write!(f, "'none'"),
+			Token::Assign => write!(f, "'='"),
+			Token::Let => write!(f, "'let'"),
+			_ => write!(f, "{:?}", self),
+		}
+	}
 }

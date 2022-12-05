@@ -162,7 +162,7 @@ impl Parse for Expression {
 		if token.is_err() {
 			return Err(
 				MissingExpression {
-					at: copy.span().into()
+					at: (copy.span().start, 1).into()
 				}.into()
 			)
 		}

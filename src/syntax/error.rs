@@ -45,12 +45,12 @@ impl Display for MissingToken {
 		debug_assert!(self.expected.len() > 0);
 
 		if self.expected.len() == 1 {
-			write!(f, "missing {:?}", self.expected[0])
+			write!(f, "missing {}", self.expected[0])
 		} else {
 			write!(f, "missing tokens: ")?;
 			self.expected
 				.iter()
-				.map(|token| format!("{:?}", token))
+				.map(|token| format!("{}", token))
 				.collect::<Vec<_>>()
 				.join(" | ")
 				.fmt(f)
@@ -60,7 +60,6 @@ impl Display for MissingToken {
 
 /// Diagnostic for unexpected token
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("unexpected {got:?}")]
 #[diagnostic(code(lexer::unexpected_token))]
 pub struct UnexpectedToken {
 	/// Expected alternatives
@@ -73,27 +72,21 @@ pub struct UnexpectedToken {
 	pub at: SourceSpan
 }
 
-impl UnexpectedToken {
-	fn help<'a>(&'a self) -> Option<Box<dyn Display + 'a>> {
-        debug_assert!(self.expected.len() > 0);
+impl Display for UnexpectedToken {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		debug_assert!(self.expected.len() > 0);
 
-		Some(
-			Box::new(
-				if self.expected.len() == 1 {
-					format!("expected {:?}", self.expected[0])
-				} else {
-					format!(
-						"expected tokens: {}",
-						self.expected
-							.iter()
-							.map(|token| format!("{:?}", token))
-							.collect::<Vec<_>>()
-							.join(" | ")
-					)
-				}
-			)
+		write!(
+			f,
+			"expected {}, got {}",
+			self.expected
+				.iter()
+				.map(|token| format!("{}", token))
+				.collect::<Vec<_>>()
+				.join(" | "),
+			self.got
 		)
-    }
+	}
 }
 
 
