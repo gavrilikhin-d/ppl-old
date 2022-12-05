@@ -26,9 +26,8 @@ fn impl_ast_macro(ast: &syn::DeriveInput) -> TokenStream {
 				let token = lexer.next();
 				if token != None {
 					return Err(
-						UnexpectedToken {
-							expected: vec![],
-							got: token.unwrap(),
+						ExtraToken {
+							token: token.unwrap(),
 							at: lexer.span().into()
 						}.into()
 					);

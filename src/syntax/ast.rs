@@ -4,7 +4,8 @@ use logos::{Logos, Lexer};
 
 extern crate ast_derive;
 use ast_derive::AST;
-use miette::{SourceSpan, Diagnostic};
+
+use crate::syntax::error::*;
 
 /// Trait for lexer to consume tokens
 pub trait Consume {
@@ -19,47 +20,6 @@ pub trait Consume {
 	fn consume_one_of(&mut self, tokens: &[Token]) -> Result<Token, Self::Err>;
 }
 
-/// Diagnostic for unexpected token
-#[derive(thiserror::Error, Debug, Clone, Diagnostic, PartialEq)]
-#[error("unexpected token")]
-#[diagnostic(
-	code(lexer::unexpected_token),
-	help("expected one of {expected:?}, got {got:?}")
-)]
-pub struct UnexpectedToken {
-	/// Expected alternatives
-	pub expected: Vec<Token>,
-	/// Actual token
-	pub got: Token,
-
-	/// Span of the token
-	#[label]
-	pub at: SourceSpan
-}
-
-/// Diagnostic for missing token
-#[derive(thiserror::Error, Debug, Clone, Diagnostic, PartialEq)]
-#[error("missing one of {expected:?} tokens")]
-#[diagnostic(code(lexer::missing_token))]
-pub struct MissingToken {
-	/// Expected token
-	pub expected: Vec<Token>,
-
-	/// Where the token was expected
-	#[label]
-	pub at: SourceSpan
-}
-
-/// Possible lexer errors
-#[derive(thiserror::Error, Diagnostic, Debug, PartialEq)]
-pub enum LexerError {
-	#[error(transparent)]
-	#[diagnostic(transparent)]
-	UnexpectedToken(#[from] UnexpectedToken),
-	#[error(transparent)]
-	#[diagnostic(transparent)]
-	MissingToken(#[from] MissingToken)
-}
 
 impl<'source> Consume for logos::Lexer<'source, Token> {
 	type Err = LexerError;
@@ -88,6 +48,8 @@ impl<'source> Consume for logos::Lexer<'source, Token> {
 	/// );
 	/// ```
 	fn consume_one_of(&mut self, tokens: &[Token]) -> Result<Token, Self::Err> {
+		debug_assert!(tokens.len() > 0);
+
 		let token = self.next();
 		if token.is_none() {
 			return Err(MissingToken {
@@ -99,6 +61,10 @@ impl<'source> Consume for logos::Lexer<'source, Token> {
 		let token = token.unwrap();
 
 		if !tokens.contains(&token) {
+			if token == Token::Error {
+				return Err(InvalidToken{at: self.span().into()}.into());
+			}
+
 			return Err(UnexpectedToken {
 				expected: tokens.to_owned(),
 				got: token,
@@ -125,41 +91,6 @@ pub enum Literal {
 	None { offset: usize },
 	/// Any precision decimal integer literal
 	Integer { offset: usize, value: String },
-}
-
-/// Diagnostic for missing expressions
-#[derive(thiserror::Error, Debug, Clone, Diagnostic, PartialEq)]
-#[error("missing expression")]
-#[diagnostic(
-	code(parser::missing_expression),
-)]
-pub struct MissingExpression {
-	/// Location, where expression was expected
-	#[label("here")]
-	pub at: SourceSpan
-}
-
-/// Possible parser errors
-#[derive(thiserror::Error, Diagnostic, Debug, PartialEq)]
-pub enum ParseError {
-	#[error(transparent)]
-	#[diagnostic(transparent)]
-	LexerError(#[from] LexerError),
-	#[error(transparent)]
-	#[diagnostic(transparent)]
-	MissingExpression(#[from] MissingExpression)
-}
-
-impl From<UnexpectedToken> for ParseError {
-	fn from(err: UnexpectedToken) -> Self {
-		ParseError::LexerError(err.into())
-	}
-}
-
-impl From<MissingToken> for ParseError {
-	fn from(err: MissingToken) -> Self {
-		ParseError::LexerError(err.into())
-	}
 }
 
 impl Parse for Literal {
@@ -318,6 +249,10 @@ impl Parse for Statement {
 		let token = copy.consume_one_of(
 			&[Token::None, Token::Integer, Token::Id, Token::Let]
 		);
+		if token.is_err() {
+			return Err(token.unwrap_err().into())
+		}
+
 		match token.unwrap() {
 			Token::Let => Declaration::parse(lexer).map(|decl| Statement::Declaration(decl)),
 			Token::None | Token::Integer | Token::Id  => Expression::parse(lexer).map(|expr| Statement::Expression(expr)),
