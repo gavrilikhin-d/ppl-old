@@ -9,6 +9,8 @@ use crate::syntax::error::*;
 
 use crate::syntax::token::Consume;
 
+use super::WithOffset;
+
 
 /// Trait for parsing using lexer
 pub trait Parse where Self: Sized {
@@ -45,10 +47,8 @@ impl Parse for Literal {
 /// AST for variable reference
 #[derive(Debug, PartialEq, AST)]
 pub struct VariableReference {
-	/// Offset of variable reference
-	pub offset: usize,
-	/// Name of variable
-	pub name: String,
+	/// Referenced variable name
+	pub name: WithOffset<String>
 }
 
 impl Parse for VariableReference {
@@ -61,7 +61,7 @@ impl Parse for VariableReference {
 		let offset = lexer.span().start;
 		let name = lexer.slice().to_string();
 
-		Ok(VariableReference { offset, name })
+		Ok(VariableReference { name: WithOffset { offset, value: name }})
 	}
 }
 
@@ -109,14 +109,7 @@ impl Parse for Expression {
 	}
 }
 
-/// Value at some offset
-#[derive(Debug, PartialEq)]
-pub struct WithOffset<T> {
-	/// Offset of the value
-	pub offset: usize,
-	/// Value at some offset
-	pub value: T,
-}
+
 
 /// Declaration of the variable
 #[derive(Debug, PartialEq, AST)]

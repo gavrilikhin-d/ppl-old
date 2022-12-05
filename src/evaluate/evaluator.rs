@@ -110,13 +110,13 @@ impl Evaluator {
 			match expr {
 				Expression::Literal(l) => self.evaluate_literal(l),
 				Expression::VariableReference(var) => {
-					let value = self.variables.get(&var.name);
+					let value = self.variables.get(&var.name.value);
 					if let Some(value) = value {
 						value.clone()
 					} else {
 						return Err(UndefinedVariable {
-							name: var.name.clone(),
-							at: (var.offset, var.name.len()).into()
+							name: var.name.value.clone(),
+							at: var.name.range().into()
 						});
 					}
 				}
