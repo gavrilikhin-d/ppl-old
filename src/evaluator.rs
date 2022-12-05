@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use rug;
 
-use crate::syntax::ast::{Literal, Expression, VariableReference, Statement, Declaration};
+use crate::syntax::ast::{Literal, Expression, Statement, Declaration};
 
 /// Value, that may be produced by the evaluator
 #[derive(Debug, PartialEq, Clone)]

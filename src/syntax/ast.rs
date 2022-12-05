@@ -7,74 +7,8 @@ use ast_derive::AST;
 
 use crate::syntax::error::*;
 
-/// Trait for lexer to consume tokens
-pub trait Consume {
-	type Err;
+use crate::syntax::token::Consume;
 
-	/// Lex next token and check that it has specified type
-	fn consume(&mut self, token: Token) -> Result<(), Self::Err> {
-		self.consume_one_of(&[token]).map(|_| ())
-	}
-
-	/// Lex next token and check that it has one of the specified types
-	fn consume_one_of(&mut self, tokens: &[Token]) -> Result<Token, Self::Err>;
-}
-
-
-impl<'source> Consume for logos::Lexer<'source, Token> {
-	type Err = LexerError;
-
-	/// Parse next token and check that it has specified type
-	///
-	/// # Example
-	/// ```
-	/// use ppl::syntax::Token;
-	/// use ppl::syntax::{ast::Consume, error::*};
-	/// use logos::Logos;
-	///
-	/// let mut lexer = ppl::syntax::Token::lexer("42");
-	/// assert_eq!(lexer.consume(Token::Integer), Ok(()));
-	///
-	/// let mut lexer = ppl::syntax::Token::lexer("42");
-	/// assert_eq!(
-	/// 	lexer.consume(Token::Id),
-	/// 	Err(
-	/// 		UnexpectedToken {
-	/// 			expected: vec![Token::Id],
-	/// 			got: Token::Integer,
-	/// 			at: lexer.span().into()
-	/// 		}.into()
-	/// 	)
-	/// );
-	/// ```
-	fn consume_one_of(&mut self, tokens: &[Token]) -> Result<Token, Self::Err> {
-		debug_assert!(tokens.len() > 0);
-
-		let token = self.next();
-		if token.is_none() {
-			return Err(MissingToken {
-				expected: tokens.to_owned(),
-				at: self.span().into()
-			}.into());
-		}
-
-		let token = token.unwrap();
-
-		if !tokens.contains(&token) {
-			if token == Token::Error {
-				return Err(InvalidToken{at: self.span().into()}.into());
-			}
-
-			return Err(UnexpectedToken {
-				expected: tokens.to_owned(),
-				got: token,
-				at: self.span().into()
-			}.into());
-		}
-
-		Ok(token)
-	}
-}
 
 /// Trait for parsing using lexer
 pub trait Parse where Self: Sized {

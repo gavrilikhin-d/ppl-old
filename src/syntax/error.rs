@@ -36,7 +36,7 @@ pub struct MissingToken {
 	pub expected: Vec<Token>,
 
 	/// Span of the token
-	#[label]
+	#[label("here")]
 	pub at: SourceSpan
 }
 
@@ -150,6 +150,6 @@ impl From<MissingToken> for ParseError {
 
 impl From<UnexpectedToken> for ParseError {
 	fn from(err: UnexpectedToken) -> Self {
-		ParseError::LexerError(err.into())
+		Self::LexerError(err.into())
 	}
 }
