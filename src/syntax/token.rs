@@ -92,7 +92,7 @@ impl<'source> Consume for logos::Lexer<'source, Token> {
 		if token.is_none() {
 			return Err(MissingToken {
 				expected: tokens.to_vec(),
-				at: (self.span().end - 1, 1).into()
+				at: (self.span().end - 1).into()
 			}.into());
 		}
 
