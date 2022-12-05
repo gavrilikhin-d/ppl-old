@@ -29,7 +29,7 @@ impl<'source> Consume for logos::Lexer<'source, Token> {
 	/// # Example
 	/// ```
 	/// use ppl::syntax::Token;
-	/// use ppl::syntax::ast::{Consume, UnexpectedToken};
+	/// use ppl::syntax::{ast::Consume, error::*};
 	/// use logos::Logos;
 	///
 	/// let mut lexer = ppl::syntax::Token::lexer("42");
