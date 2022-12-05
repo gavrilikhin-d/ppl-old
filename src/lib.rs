@@ -1,4 +1,4 @@
 pub mod syntax;
 
-pub mod evaluator;
-pub use evaluator::Evaluator;
+pub mod evaluate;
+pub use evaluate::Evaluator;
