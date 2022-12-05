@@ -10,7 +10,7 @@ pub struct UndefinedVariable {
 	pub name: String,
 
 	/// Span of name
-	#[label]
+	#[label("reference to undefined variable")]
 	pub at: SourceSpan
 }
 
@@ -23,11 +23,11 @@ pub struct AssignmentToImmutable {
 	pub name: String,
 
 	/// Span of name in declaration
-	#[label]
+	#[label("assigning to this immutable variable")]
 	pub referenced_at: SourceSpan,
 
 	/// Span of name in declaration
-	#[label("declared here")]
+	#[label("variable declared here as immutable")]
 	pub declared_at: SourceSpan
 }
 

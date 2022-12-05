@@ -253,7 +253,8 @@ fn test_variable_declaration() {
 		var,
 		VariableDeclaration {
 			name: WithOffset { offset: 4, value: "x".to_string(), },
-			initializer: Literal::Integer { offset: 8, value: "1".to_string() }.into()
+			initializer: Literal::Integer { offset: 8, value: "1".to_string() }.into(),
+			mutable: false,
 		}
 	);
 }
