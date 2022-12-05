@@ -13,3 +13,31 @@ pub struct UndefinedVariable {
 	#[label]
 	pub at: SourceSpan
 }
+
+/// Diagnostic for assignment to immutable variable
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("assignment to immutable variable '{name}'")]
+#[diagnostic(code(evaluator::assignment_to_immutable))]
+pub struct AssignmentToImmutable {
+	/// Name of variable
+	pub name: String,
+
+	/// Span of name in declaration
+	#[label]
+	pub referenced_at: SourceSpan,
+
+	/// Span of name in declaration
+	#[label("declared here")]
+	pub declared_at: SourceSpan
+}
+
+/// Possible lexer errors
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+pub enum Error {
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	UndefinedVariable(#[from] UndefinedVariable),
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	AssignmentToImmutable(#[from] AssignmentToImmutable),
+}

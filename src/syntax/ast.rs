@@ -11,6 +11,8 @@ use crate::syntax::token::Consume;
 
 use super::WithOffset;
 
+use derive_more::From;
+
 
 /// Trait for parsing using lexer
 pub trait Parse where Self: Sized {
@@ -21,7 +23,7 @@ pub trait Parse where Self: Sized {
 }
 
 /// AST for compile time known values
-#[derive(Debug, PartialEq, AST)]
+#[derive(Debug, PartialEq, AST, Clone)]
 pub enum Literal {
 	/// None literal
 	None { offset: usize },
@@ -45,7 +47,7 @@ impl Parse for Literal {
 }
 
 /// AST for variable reference
-#[derive(Debug, PartialEq, AST)]
+#[derive(Debug, PartialEq, AST, Clone)]
 pub struct VariableReference {
 	/// Referenced variable name
 	pub name: WithOffset<String>
@@ -66,22 +68,10 @@ impl Parse for VariableReference {
 }
 
 /// Any PPL expression
-#[derive(Debug, PartialEq, AST)]
+#[derive(Debug, PartialEq, AST, Clone, From)]
 pub enum Expression {
 	Literal(Literal),
 	VariableReference(VariableReference),
-}
-
-impl From<Literal> for Expression {
-	fn from(l: Literal) -> Self {
-		Expression::Literal(l)
-	}
-}
-
-impl From<VariableReference> for Expression {
-	fn from(v: VariableReference) -> Self {
-		Expression::VariableReference(v)
-	}
 }
 
 impl Parse for Expression {
@@ -112,12 +102,27 @@ impl Parse for Expression {
 
 
 /// Declaration of the variable
-#[derive(Debug, PartialEq, AST)]
+#[derive(Debug, PartialEq, AST, Clone)]
 pub struct VariableDeclaration {
 	/// Name of variable
 	pub name: WithOffset<String>,
 	/// Initializer for variable
 	pub initializer: Expression,
+
+	/// Is this variable mutable
+	pub mutable: bool,
+}
+
+impl VariableDeclaration {
+	/// Is this a mutable variable?
+	pub fn is_mutable(&self) -> bool {
+		self.mutable
+	}
+
+	/// Is this an immutable variable?
+	pub fn is_immutable(&self) -> bool {
+		!self.is_mutable()
+	}
 }
 
 impl Parse for VariableDeclaration {
@@ -139,14 +144,15 @@ impl Parse for VariableDeclaration {
 		Ok(
 			VariableDeclaration {
 				name: name,
-				initializer: Expression::parse(lexer)?
+				initializer: Expression::parse(lexer)?,
+				mutable: false,
 			}
 		)
 	}
 }
 
 /// Any PPL declaration
-#[derive(Debug, PartialEq, AST)]
+#[derive(Debug, PartialEq, AST, Clone, From)]
 pub enum Declaration {
 	Variable(VariableDeclaration)
 }
@@ -156,15 +162,40 @@ impl Parse for Declaration {
 
 	/// Parse declaration using lexer
 	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
-		VariableDeclaration::parse(lexer).map(|var| Declaration::Variable(var))
+		VariableDeclaration::parse(lexer).map(Declaration::Variable)
+	}
+}
+
+/// AST for assignment
+#[derive(Debug, PartialEq, AST, Clone)]
+pub struct Assignment {
+	/// Target to assign to
+	pub target: Expression,
+	/// Expression to assign
+	pub value: Expression,
+}
+
+impl Parse for Assignment {
+	type Err = ParseError;
+
+	/// Parse assignment using lexer
+	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
+		let target = Expression::parse(lexer)?;
+
+		lexer.consume(Token::Assign)?;
+
+		let value = Expression::parse(lexer)?;
+
+		Ok(Assignment { target, value })
 	}
 }
 
 /// Any PPL statement
-#[derive(Debug, PartialEq, AST)]
+#[derive(Debug, PartialEq, AST, Clone, From)]
 pub enum Statement {
 	Declaration(Declaration),
-	Expression(Expression)
+	Expression(Expression),
+	Assignment(Assignment),
 }
 
 impl Parse for Statement {
@@ -182,7 +213,22 @@ impl Parse for Statement {
 
 		match token.unwrap() {
 			Token::Let => Declaration::parse(lexer).map(|decl| Statement::Declaration(decl)),
-			Token::None | Token::Integer | Token::Id  => Expression::parse(lexer).map(|expr| Statement::Expression(expr)),
+			Token::None | Token::Integer | Token::Id => {
+				let target = Expression::parse(lexer)?;
+
+				let mut copy = lexer.clone();
+				if copy.next() != Some(Token::Assign) {
+					return Ok(target.into())
+				}
+
+				// Skip '='
+				lexer.next();
+
+				Ok(Assignment {
+					target,
+					value: Expression::parse(lexer)?
+				}.into())
+			},
 			Token::Assign | Token::Error => unreachable!("consume_one_of returned unexpected token"),
 		}
 	}

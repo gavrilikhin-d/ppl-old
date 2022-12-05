@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 /// Value at some offset
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct WithOffset<T> {
 	/// Offset of the value
 	pub offset: usize,

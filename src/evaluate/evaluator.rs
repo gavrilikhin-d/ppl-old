@@ -2,9 +2,9 @@ use std::fmt::Display;
 
 use rug;
 
-use crate::syntax::ast::{Literal, Expression, Statement, Declaration};
+use crate::syntax::ast::{Literal, Expression, Statement, Declaration, VariableDeclaration};
 
-use crate::evaluate::error::UndefinedVariable;
+use crate::evaluate::error::*;
 
 /// Value, that may be produced by the evaluator
 #[derive(Debug, PartialEq, Clone)]
@@ -50,11 +50,18 @@ impl Display for Value {
 	}
 }
 
+/// Data of the variable
+struct VariableData {
+	/// Computed value of the variable
+	value: Value,
+	/// Declaration of the variable
+	declaration: VariableDeclaration,
+}
 
 /// Evaluator for PPL
 pub struct Evaluator {
 	/// Declared variables
-	pub variables: std::collections::HashMap<String, Value>,
+	variables: std::collections::HashMap<String, VariableData>,
 }
 
 impl Evaluator {
@@ -110,9 +117,9 @@ impl Evaluator {
 			match expr {
 				Expression::Literal(l) => self.evaluate_literal(l),
 				Expression::VariableReference(var) => {
-					let value = self.variables.get(&var.name.value);
-					if let Some(value) = value {
-						value.clone()
+					let data = self.variables.get(&var.name.value);
+					if let Some(data) = data {
+						data.value.clone()
 					} else {
 						return Err(UndefinedVariable {
 							name: var.name.value.clone(),
@@ -129,20 +136,52 @@ impl Evaluator {
 		match decl {
 			Declaration::Variable(var) => {
 				let value = self.evaluate_expression(&var.initializer)?;
-				self.variables.insert(var.name.value.clone(), value);
+				self.variables.insert(var.name.value.clone(), VariableData {
+					value,
+					declaration: var.clone(),
+				});
 				Ok(())
 			}
 		}
 	}
 
 	/// Execute statement
-	pub fn execute(&mut self, stmt: &Statement) -> Result<Option<Value>, UndefinedVariable> {
+	pub fn execute(&mut self, stmt: &Statement) -> Result<Option<Value>, Error> {
 		Ok(match stmt {
 			Statement::Expression(expr) =>
 				Some(self.evaluate_expression(expr)?),
 			Statement::Declaration(decl) => {
 				self.declare(decl)?;
 				None
+			},
+			Statement::Assignment(a) => {
+				match &a.target {
+					Expression::VariableReference(var) => {
+						if self.variables.get(&var.name.value).is_none() {
+							return Err(UndefinedVariable {
+								name: var.name.value.clone(),
+								at: var.name.range().into()
+							}.into());
+						}
+
+						let decl = &self.variables.get(&var.name.value).unwrap().declaration;
+
+						if decl.is_immutable() {
+							return Err(AssignmentToImmutable {
+								name: var.name.value.clone(),
+								referenced_at: var.name.range().into(),
+								declared_at: decl.name.range().into()
+							}.into());
+						}
+
+						let value = self.evaluate_expression(&a.value)?;
+						self.variables.get_mut(&var.name.value).unwrap().value = value;
+						None
+					},
+					Expression::Literal(_) => {
+						unimplemented!("error: cannot assign to literal");
+					}
+				}
 			}
 		})
 	}
