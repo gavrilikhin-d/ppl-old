@@ -2,6 +2,21 @@ use std::io::Write;
 
 use ppl::{*, syntax::ast::Statement};
 
+fn process_single_statement(input: &str, evaluator: &mut Evaluator) -> miette::Result<()> {
+	let ast = input.parse::<Statement>()?;
+	let value = evaluator.execute(&ast)?;
+
+	if value.is_none() { return Ok(()); }
+
+	let value = value.unwrap();
+
+	if !value.is_none() {
+		println!("{}", value);
+	}
+
+	Ok(())
+}
+
 
 /// Read-Evaluate-Print Loop
 fn repl() {
@@ -18,23 +33,8 @@ fn repl() {
 			continue;
 		}
 
-		let ast = input.parse::<Statement>();
-		if let Err(err) = ast {
-			println!(
-				"{:?}",
-				miette::Report::new(err).with_source_code(input.to_owned())
-			);
-			continue;
-		}
-		let ast = ast.unwrap();
-		let value = evaluator.execute(&ast).unwrap();
-
-		if value.is_none() { continue; }
-
-		let value = value.unwrap();
-
-		if !value.is_none() {
-			println!("{}", value);
+		if let Err(err) = process_single_statement(&input, &mut evaluator) {
+			println!("{:?}", err.with_source_code(input.to_string()))
 		}
 	}
 }
