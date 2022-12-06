@@ -79,14 +79,13 @@ impl Parse for Expression {
 
 	/// Parse expression using lexer
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
-		let mut copy = lexer.clone();
-		let token = copy.consume_one_of(
+		let token = lexer.try_match_one_of(
 			&[Token::None, Token::Integer, Token::Id]
 		);
 		if token.is_err() {
 			return Err(
 				MissingExpression {
-					at: (copy.span().start - 1).into()
+					at: lexer.span().end.into()
 				}.into()
 			)
 		}
@@ -132,13 +131,7 @@ impl Parse for VariableDeclaration {
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
 		lexer.consume(Token::Let)?;
 
-		let mutable = match lexer.peek() {
-			Some(Token::Mut) => {
-				lexer.next();
-				true
-			},
-			_ => false,
-		};
+		let mutable = lexer.consume(Token::Mut).is_ok();
 
 		lexer.consume(Token::Id)?;
 
@@ -211,8 +204,7 @@ impl Parse for Statement {
 
 	/// Parse statement using lexer
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
-		let mut copy = lexer.clone();
-		let token = copy.consume_one_of(
+		let token = lexer.try_match_one_of(
 			&[Token::None, Token::Integer, Token::Id, Token::Let]
 		);
 		if token.is_err() {
@@ -224,12 +216,9 @@ impl Parse for Statement {
 			Token::None | Token::Integer | Token::Id => {
 				let target = Expression::parse(lexer)?;
 
-				if lexer.peek() != Some(Token::Assign) {
+				if lexer.consume(Token::Assign).is_err() {
 					return Ok(target.into())
 				}
-
-				// Skip '='
-				lexer.next();
 
 				Ok(Assignment {
 					target,

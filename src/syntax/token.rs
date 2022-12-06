@@ -100,6 +100,42 @@ impl<'source> Lexer<'source> {
 		self.peeked.clone()
     }
 
+/// Get span of next token
+	///
+	/// # Example
+	/// ```
+	/// use ppl::syntax::{Token, Lexer};
+	///
+	/// let mut lexer = Lexer::new("42");
+	/// assert_eq!(lexer.span(), 0..0);
+	/// assert_eq!(lexer.peek_span(), 0..2);
+	/// assert_eq!(lexer.span(), 0..0);
+	/// ```
+	pub fn peek_span(&mut self) -> Span {
+		if self.peeked.is_none() {
+			self.peek();
+		}
+		self.lexer.span()
+	}
+
+	/// Get slice of source code for next token
+	///
+	/// # Example
+	/// ```
+	/// use ppl::syntax::{Token, Lexer};
+	///
+	/// let mut lexer = Lexer::new("42");
+	/// assert_eq!(lexer.span(), 0..0);
+	/// assert_eq!(lexer.peek_slice(), "42");
+	/// assert_eq!(lexer.span(), 0..0);
+	/// ```
+	pub fn peek_slice(&mut self) -> &'source str {
+		if self.peeked.is_none() {
+			self.peek();
+		}
+		self.lexer.slice()
+	}
+
 	/// Get span of current token
 	///
 	/// # Example
@@ -159,7 +195,87 @@ impl<'source> Iterator for Lexer<'source> {
 }
 
 impl<'source> Lexer<'source> {
-	/// Lex next token and check that it has specified type
+	/// Try match next token with given type
+	///
+	/// # Example
+	/// ```
+	/// use ppl::syntax::{Token, Lexer, error::*};
+	///
+	/// let mut lexer = Lexer::new("42");
+	/// assert_eq!(lexer.try_match(Token::Integer), Ok(()));
+	///
+	/// let mut lexer = Lexer::new("42");
+	/// assert_eq!(
+	/// 	lexer.try_match(Token::Id),
+	/// 	Err(
+	/// 		UnexpectedToken {
+	/// 			expected: vec![Token::Id],
+	/// 			got: Token::Integer,
+	/// 			at: lexer.peek_span().into()
+	/// 		}.into()
+	/// 	)
+	/// );
+	/// ```
+	pub fn try_match(&mut self, token: Token) -> Result<(), LexerError> {
+		self.try_match_one_of(&[token]).map(|_| ())
+	}
+
+	/// Try match next token with one of specified types
+	///
+	/// # Example
+	/// ```
+	/// use ppl::syntax::{Token, Lexer, error::*};
+	///
+	/// let mut lexer = Lexer::new("42");
+	/// assert_eq!(lexer.span(), 0..0);
+	/// assert_eq!(lexer.try_match_one_of(&[Token::Integer, Token::Id]), Ok(Token::Integer));
+	/// assert_eq!(lexer.span(), 0..0);
+	///
+	/// let mut lexer = Lexer::new("42");
+	/// assert_eq!(lexer.span(), 0..0);
+	/// assert_eq!(
+	/// 	lexer.try_match_one_of(&[Token::None, Token::Id]),
+	/// 	Err(
+	/// 		UnexpectedToken {
+	/// 			expected: vec![Token::None, Token::Id],
+	/// 			got: Token::Integer,
+	/// 			at: lexer.peek_span().into()
+	/// 		}.into()
+	/// 	)
+	/// );
+	/// assert_eq!(lexer.span(), 0..0);
+	/// ```
+	pub fn try_match_one_of(&mut self, tokens: &[Token]) -> Result<Token, LexerError> {
+		debug_assert!(tokens.len() > 0);
+
+		let token = self.peek();
+		if token.is_none() {
+			return Err(MissingToken {
+				expected: tokens.to_vec(),
+				at: self.span().end.into()
+			}.into());
+		}
+
+		let token = token.unwrap();
+
+		if !tokens.contains(&token) {
+			if token == Token::Error {
+				return Err(InvalidToken{at: self.peek_span().into()}.into());
+			}
+
+			return Err(UnexpectedToken {
+				expected: tokens.to_owned(),
+				got: token,
+				at: self.peek_span().into()
+			}.into());
+		}
+
+		Ok(token)
+	}
+
+	/// Lex next token if it has specified type
+	///
+	/// **Note:** doesn't lex, on failure
 	///
 	/// # Example
 	/// ```
@@ -175,7 +291,7 @@ impl<'source> Lexer<'source> {
 	/// 		UnexpectedToken {
 	/// 			expected: vec![Token::Id],
 	/// 			got: Token::Integer,
-	/// 			at: lexer.span().into()
+	/// 			at: lexer.peek_span().into()
 	/// 		}.into()
 	/// 	)
 	/// );
@@ -184,7 +300,9 @@ impl<'source> Lexer<'source> {
 		self.consume_one_of(&[token]).map(|_| ())
 	}
 
-	/// Lex next token and check that it has one of the specified types
+	/// Lex next token if it has one of specified types
+	///
+	/// **Note:** doesn't lex, on failure
 	///
 	/// # Example
 	/// ```
@@ -200,36 +318,14 @@ impl<'source> Lexer<'source> {
 	/// 		UnexpectedToken {
 	/// 			expected: vec![Token::None, Token::Id],
 	/// 			got: Token::Integer,
-	/// 			at: lexer.span().into()
+	/// 			at: lexer.peek_span().into()
 	/// 		}.into()
 	/// 	)
 	/// );
 	/// ```
 	pub fn consume_one_of(&mut self, tokens: &[Token]) -> Result<Token, LexerError> {
-		debug_assert!(tokens.len() > 0);
-
-		let token = self.next();
-		if token.is_none() {
-			return Err(MissingToken {
-				expected: tokens.to_vec(),
-				at: (self.span().end - 1).into()
-			}.into());
-		}
-
-		let token = token.unwrap();
-
-		if !tokens.contains(&token) {
-			if token == Token::Error {
-				return Err(InvalidToken{at: self.span().into()}.into());
-			}
-
-			return Err(UnexpectedToken {
-				expected: tokens.to_owned(),
-				got: token,
-				at: self.span().into()
-			}.into());
-		}
-
+		let token = self.try_match_one_of(tokens)?;
+		self.next();
 		Ok(token)
 	}
 }
