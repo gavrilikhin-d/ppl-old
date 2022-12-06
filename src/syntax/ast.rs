@@ -132,6 +132,14 @@ impl Parse for VariableDeclaration {
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
 		lexer.consume(Token::Let)?;
 
+		let mutable = match lexer.peek() {
+			Some(Token::Mut) => {
+				lexer.next();
+				true
+			},
+			_ => false,
+		};
+
 		lexer.consume(Token::Id)?;
 
 		let name = WithOffset {
@@ -145,7 +153,7 @@ impl Parse for VariableDeclaration {
 			VariableDeclaration {
 				name: name,
 				initializer: Expression::parse(lexer)?,
-				mutable: false,
+				mutable
 			}
 		)
 	}
@@ -256,6 +264,16 @@ fn test_variable_declaration() {
 			mutable: false,
 		}
 	);
+
+	let var = "let mut x = 1".parse::<VariableDeclaration>().unwrap();
+	assert_eq!(
+		var,
+		VariableDeclaration {
+			name: WithOffset { offset: 8, value: "x".to_string(), },
+			initializer: Literal::Integer { offset: 12, value: "1".to_string() }.into(),
+			mutable: true,
+		}
+	)
 }
 
 #[test]
