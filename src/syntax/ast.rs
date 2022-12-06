@@ -41,7 +41,10 @@ impl Parse for Literal {
 		match token {
 			Token::None => Ok(Literal::None { offset: lexer.span().start }),
 			Token::Integer => Ok(Literal::Integer { offset: lexer.span().start, value: lexer.slice().to_string() }),
-			Token::Assign | Token::Id | Token::Let | Token::Error => unreachable!("consume_one_of returned unexpected token"),
+
+			Token::Assign | Token::Id | Token::Let | Token::Mut
+			| Token::Error =>
+				unreachable!("consume_one_of returned unexpected token"),
 		}
 	}
 }
@@ -94,7 +97,7 @@ impl Parse for Expression {
 		match token.unwrap() {
 			Token::None | Token::Integer => Ok(Expression::Literal(Literal::parse(lexer)?)),
 			Token::Id => Ok(Expression::VariableReference(VariableReference::parse(lexer)?)),
-			Token::Assign | Token::Let | Token::Error => unreachable!("consume_one_of returned unexpected token"),
+			Token::Assign | Token::Let | Token::Mut | Token::Error => unreachable!("consume_one_of returned unexpected token"),
 		}
 	}
 }
@@ -229,7 +232,7 @@ impl Parse for Statement {
 					value: Expression::parse(lexer)?
 				}.into())
 			},
-			Token::Assign | Token::Error => unreachable!("consume_one_of returned unexpected token"),
+			Token::Assign | Token::Mut | Token::Error => unreachable!("consume_one_of returned unexpected token"),
 		}
 	}
 }
