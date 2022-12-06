@@ -19,7 +19,7 @@ impl Value {
 	///
 	/// # Example
 	/// ```
-	/// use ppl::evaluator::Value;
+	/// use ppl::evaluate::Value;
 	///
 	/// let value = Value::None;
 	/// assert!(value.is_none());
@@ -69,7 +69,7 @@ impl Evaluator {
 	///
 	/// # Example
 	/// ```
-	/// use ppl::evaluator::Evaluator;
+	/// use ppl::Evaluator;
 	///
 	/// let mut evaluator = Evaluator::new();
 	/// ```
@@ -105,7 +105,7 @@ impl Evaluator {
 	/// use ppl::Evaluator;
 	/// use ppl::syntax::ast::Expression;
 	/// use ppl::syntax::ast::Literal;
-	/// use ppl::evaluator::Value;
+	/// use ppl::evaluate::Value;
 	///
 	/// let evaluator = Evaluator::new();
 	/// let expression = "42".parse::<Expression>().unwrap();

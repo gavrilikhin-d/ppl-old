@@ -1,13 +1,10 @@
 use std::str::FromStr;
-use crate::syntax::Token;
-use logos::{Logos, Lexer};
+use crate::syntax::{Token, Lexer};
 
 extern crate ast_derive;
 use ast_derive::AST;
 
 use crate::syntax::error::*;
-
-use crate::syntax::token::Consume;
 
 use super::WithOffset;
 
@@ -19,7 +16,7 @@ pub trait Parse where Self: Sized {
 	type Err;
 
 	/// Parse starting from current lexer state
-	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err>;
+	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err>;
 }
 
 /// AST for compile time known values
@@ -35,7 +32,7 @@ impl Parse for Literal {
 	type Err = ParseError;
 
 	/// Parse literal using lexer
-	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
+	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
 		let token = lexer.consume_one_of(&[Token::None, Token::Integer])?;
 
 		match token {
@@ -60,7 +57,7 @@ impl Parse for VariableReference {
 	type Err = ParseError;
 
 	/// Parse variable reference using lexer
-	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
+	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
 		lexer.consume(Token::Id)?;
 
 		let offset = lexer.span().start;
@@ -81,7 +78,7 @@ impl Parse for Expression {
 	type Err = ParseError;
 
 	/// Parse expression using lexer
-	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
+	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
 		let mut copy = lexer.clone();
 		let token = copy.consume_one_of(
 			&[Token::None, Token::Integer, Token::Id]
@@ -132,7 +129,7 @@ impl Parse for VariableDeclaration {
 	type Err = ParseError;
 
 	/// Parse variable declaration using lexer
-	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
+	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
 		lexer.consume(Token::Let)?;
 
 		lexer.consume(Token::Id)?;
@@ -164,7 +161,7 @@ impl Parse for Declaration {
 	type Err = ParseError;
 
 	/// Parse declaration using lexer
-	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
+	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
 		VariableDeclaration::parse(lexer).map(Declaration::Variable)
 	}
 }
@@ -182,7 +179,7 @@ impl Parse for Assignment {
 	type Err = ParseError;
 
 	/// Parse assignment using lexer
-	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
+	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
 		let target = Expression::parse(lexer)?;
 
 		lexer.consume(Token::Assign)?;
@@ -205,7 +202,7 @@ impl Parse for Statement {
 	type Err = ParseError;
 
 	/// Parse statement using lexer
-	fn parse(lexer: &mut Lexer<Token>) -> Result<Self, Self::Err> {
+	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
 		let mut copy = lexer.clone();
 		let token = copy.consume_one_of(
 			&[Token::None, Token::Integer, Token::Id, Token::Let]
@@ -219,8 +216,7 @@ impl Parse for Statement {
 			Token::None | Token::Integer | Token::Id => {
 				let target = Expression::parse(lexer)?;
 
-				let mut copy = lexer.clone();
-				if copy.next() != Some(Token::Assign) {
+				if lexer.peek() != Some(Token::Assign) {
 					return Ok(target.into())
 				}
 

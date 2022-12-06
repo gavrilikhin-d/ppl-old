@@ -1,5 +1,5 @@
 mod token;
-pub use token::Token;
+pub use token::{Token, Lexer};
 
 pub mod ast;
 pub mod error;

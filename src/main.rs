@@ -1,10 +1,8 @@
 use std::io::Write;
 
-use ppl::{*, syntax::{ast::{Statement, Parse}, Token}};
+use ppl::{*, syntax::{ast::{Statement, Parse}, Lexer}};
 
-use logos::Logos;
-
-fn process_single_statement(lexer: &mut logos::Lexer<Token>, evaluator: &mut Evaluator) -> miette::Result<()> {
+fn process_single_statement(lexer: &mut Lexer, evaluator: &mut Evaluator) -> miette::Result<()> {
 	let ast = Statement::parse(lexer)?;
 	let value = evaluator.execute(&ast)?;
 
@@ -40,7 +38,7 @@ fn repl() {
 
 		source.push_str(&input);
 
-		let mut lexer = Token::lexer(&source);
+		let mut lexer = Lexer::new(&source);
 		lexer.bump(offset);
 
 		if let Err(err) = process_single_statement(
