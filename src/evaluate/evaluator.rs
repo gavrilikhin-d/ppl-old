@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use rug;
 
+use crate::syntax::Ranged;
 use crate::syntax::ast::{Literal, Expression, Statement, Declaration, VariableDeclaration};
 
 use crate::evaluate::error::*;
@@ -11,6 +12,22 @@ use crate::evaluate::error::*;
 pub enum Value {
 	None,
 	Integer(rug::Integer),
+}
+
+/// Type of values
+#[derive(Debug, PartialEq, Clone)]
+pub enum Type {
+	None,
+	Integer
+}
+
+impl From<&Value> for Type {
+	fn from(value: &Value) -> Self {
+		match value {
+			Value::None => Type::None,
+			Value::Integer(_) => Type::Integer,
+		}
+	}
 }
 
 
@@ -32,6 +49,22 @@ impl Value {
 			Value::None => true,
 			_ => false,
 		}
+	}
+
+	/// Get type of value
+	///
+	/// # Example
+	/// ```
+	/// use ppl::evaluate::{Value, Type};
+	///
+	/// let value = Value::None;
+	/// assert_eq!(value.get_type(), Type::None);
+	///
+	/// let value = Value::Integer(42.into());
+	/// assert_eq!(value.get_type(), Type::Integer);
+	/// ```
+	pub fn get_type(&self) -> Type {
+		Type::from(self)
 	}
 }
 
@@ -164,7 +197,9 @@ impl Evaluator {
 							}.into());
 						}
 
-						let decl = &self.variables.get(&var.name.value).unwrap().declaration;
+						let data = &self.variables.get(&var.name.value).unwrap();
+
+						let decl = &data.declaration;
 
 						if decl.is_immutable() {
 							return Err(AssignmentToImmutable {
@@ -174,7 +209,20 @@ impl Evaluator {
 							}.into());
 						}
 
+
 						let value = self.evaluate_expression(&a.value)?;
+						if data.value.get_type() != value.get_type() {
+							return Err (
+								NoConversion {
+									from: value.get_type(),
+									from_span: a.value.range().into(),
+
+									to: data.value.get_type(),
+									to_span: var.name.range().into(),
+								}.into()
+							);
+						}
+
 						self.variables.get_mut(&var.name.value).unwrap().value = value;
 						None
 					},

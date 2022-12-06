@@ -6,7 +6,7 @@ use ast_derive::AST;
 
 use crate::syntax::error::*;
 
-use super::WithOffset;
+use super::{WithOffset, Ranged};
 
 use derive_more::From;
 
@@ -46,6 +46,18 @@ impl Parse for Literal {
 	}
 }
 
+impl Ranged for Literal {
+	/// Get range of literal
+	fn range(&self) -> std::ops::Range<usize> {
+		match self {
+			Literal::None { offset } =>
+				*offset..*offset + 4,
+			Literal::Integer { offset, value } =>
+				*offset..*offset + value.len(),
+		}
+	}
+}
+
 /// AST for variable reference
 #[derive(Debug, PartialEq, AST, Clone)]
 pub struct VariableReference {
@@ -64,6 +76,13 @@ impl Parse for VariableReference {
 		let name = lexer.slice().to_string();
 
 		Ok(VariableReference { name: WithOffset { offset, value: name }})
+	}
+}
+
+impl Ranged for VariableReference {
+	/// Get range of variable reference
+	fn range(&self) -> std::ops::Range<usize> {
+		self.name.range()
 	}
 }
 
@@ -94,6 +113,16 @@ impl Parse for Expression {
 			Token::None | Token::Integer => Ok(Expression::Literal(Literal::parse(lexer)?)),
 			Token::Id => Ok(Expression::VariableReference(VariableReference::parse(lexer)?)),
 			Token::Assign | Token::Let | Token::Mut | Token::Error => unreachable!("consume_one_of returned unexpected token"),
+		}
+	}
+}
+
+impl Ranged for Expression {
+	/// Get range of expression
+	fn range(&self) -> std::ops::Range<usize> {
+		match self {
+			Expression::Literal(l) => l.range(),
+			Expression::VariableReference(var) => var.range(),
 		}
 	}
 }

@@ -6,3 +6,6 @@ pub mod error;
 
 mod with_offset;
 pub use with_offset::WithOffset;
+
+mod ranged;
+pub use ranged::Ranged;

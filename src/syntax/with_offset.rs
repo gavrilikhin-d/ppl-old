@@ -1,5 +1,7 @@
 use std::ops::Range;
 
+use super::Ranged;
+
 /// Value at some offset
 #[derive(Debug, PartialEq, Clone)]
 pub struct WithOffset<T> {
@@ -9,7 +11,7 @@ pub struct WithOffset<T> {
 	pub value: T,
 }
 
-impl WithOffset<String> {
+impl Ranged for WithOffset<String> {
 	/// Get range of the underlying string
 	///
 	/// # Example
@@ -19,7 +21,7 @@ impl WithOffset<String> {
 	/// let value = WithOffset { offset: 0, value: "hello".to_string() };
 	/// assert_eq!(value.range(), 0..5);
 	/// ```
-	pub fn range(&self) -> Range<usize> {
+	fn range(&self) -> Range<usize> {
 		self.offset..self.offset + self.value.len()
 	}
 }

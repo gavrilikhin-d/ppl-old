@@ -1,6 +1,8 @@
 use thiserror::Error;
 use miette::{SourceSpan, Diagnostic};
 
+use crate::evaluate::Type;
+
 /// Diagnostic for undefined variables
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 #[error("variable '{name}' is not defined")]
@@ -31,6 +33,25 @@ pub struct AssignmentToImmutable {
 	pub declared_at: SourceSpan
 }
 
+/// Diagnostic for not convertible types
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("can't convert {from:?} to {to:?}")]
+#[diagnostic(code(evaluator::no_conversion))]
+pub struct NoConversion {
+	/// Type, that must be converted
+	pub from: Type,
+	/// Target type
+	pub to: Type,
+
+	/// Span of `from` type
+	#[label("this has {from:?} type")]
+	pub from_span: SourceSpan,
+
+	/// Span of `to` type
+	#[label("this has {to:?} type")]
+	pub to_span: SourceSpan
+}
+
 /// Possible lexer errors
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 pub enum Error {
@@ -40,4 +61,7 @@ pub enum Error {
 	#[error(transparent)]
 	#[diagnostic(transparent)]
 	AssignmentToImmutable(#[from] AssignmentToImmutable),
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	NoConversion(#[from] NoConversion),
 }
