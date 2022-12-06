@@ -28,6 +28,10 @@ pub enum Token
 	#[token("let")]
 	Let,
 
+	/// "mut" token
+	#[token("mut")]
+	Mut,
+
 	/// Error token
 	#[error]
 	#[regex("[ \n]+", logos::skip)]
@@ -40,6 +44,7 @@ impl Display for Token {
 			Token::None => write!(f, "'none'"),
 			Token::Assign => write!(f, "'='"),
 			Token::Let => write!(f, "'let'"),
+			Token::Mut => write!(f, "'mut'"),
 			_ => write!(f, "{:?}", self),
 		}
 	}
