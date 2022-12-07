@@ -35,14 +35,18 @@ impl Parse for Literal {
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
 		let token = lexer.consume_one_of(&[Token::None, Token::Integer])?;
 
-		match token {
-			Token::None => Ok(Literal::None { offset: lexer.span().start }),
-			Token::Integer => Ok(Literal::Integer { offset: lexer.span().start, value: lexer.slice().to_string() }),
+		Ok(
+			match token {
+				Token::None => Literal::None { offset: lexer.span().start },
+				Token::Integer =>
+					Literal::Integer {
+						offset: lexer.span().start,
+						value: lexer.slice().to_string()
+					},
 
-			Token::Assign | Token::Id | Token::Let | Token::Mut
-			| Token::Error =>
-				unreachable!("consume_one_of returned unexpected token"),
-		}
+				_ => unreachable!("consume_one_of returned unexpected token"),
+			}
+		)
 	}
 }
 
@@ -86,11 +90,94 @@ impl Ranged for VariableReference {
 	}
 }
 
+/// Unary operators
+#[derive(Debug, PartialEq, Clone)]
+pub enum UnaryOperator {
+	/// '+'
+	Plus,
+	/// '-'
+	Minus
+}
+
+impl TryFrom<Token> for UnaryOperator {
+	type Error = ();
+
+	fn try_from(value: Token) -> Result<Self, Self::Error> {
+		Ok(
+			match value {
+				Token::Plus => UnaryOperator::Plus,
+				Token::Minus => UnaryOperator::Minus,
+				_ => return Err(())
+			}
+		)
+	}
+}
+
+/// Kind of unary operator
+#[derive(Debug, PartialEq, Clone)]
+pub enum UnaryOperatorKind
+{
+	Prefix,
+	Postfix
+}
+
+/// AST for unary expression
+#[derive(Debug, PartialEq, AST, Clone)]
+pub struct UnaryOperation {
+	/// Operator of unary expression
+	pub operator: WithOffset<UnaryOperator>,
+	/// Operand of unary expression
+	pub operand: Box<Expression>,
+
+	/// Kind of unary operator
+	pub kind: UnaryOperatorKind
+}
+
+impl Parse for UnaryOperation {
+	type Err = ParseError;
+
+	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
+		let prefix = lexer.consume_one_of(&[Token::Plus, Token::Minus])?;
+
+		let offset = lexer.span().start;
+
+		let operand = Expression::parse(lexer)?;
+
+		Ok(UnaryOperation {
+			operand: Box::new(operand),
+			operator: WithOffset {
+				offset,
+				value: prefix.try_into().unwrap()
+			},
+			kind: UnaryOperatorKind::Prefix
+		})
+	}
+}
+
+impl Ranged for UnaryOperation {
+	fn start(&self) -> usize {
+		use UnaryOperatorKind::*;
+		match self.kind {
+			Prefix => self.operator.offset,
+			Postfix => self.operand.start()
+		}
+	}
+
+	fn end(&self) -> usize {
+		use UnaryOperatorKind::*;
+		match self.kind {
+			Prefix => self.operand.end(),
+			Postfix => self.operator.offset
+		}
+	}
+}
+
 /// Any PPL expression
 #[derive(Debug, PartialEq, AST, Clone, From)]
 pub enum Expression {
 	Literal(Literal),
 	VariableReference(VariableReference),
+	UnaryOperation(UnaryOperation)
 }
 
 impl Parse for Expression {
@@ -99,7 +186,7 @@ impl Parse for Expression {
 	/// Parse expression using lexer
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
 		let token = lexer.try_match_one_of(
-			&[Token::None, Token::Integer, Token::Id]
+			&[Token::None, Token::Integer, Token::Id, Token::Plus, Token::Minus]
 		);
 		if token.is_err() {
 			return Err(
@@ -109,11 +196,17 @@ impl Parse for Expression {
 			)
 		}
 
-		match token.unwrap() {
-			Token::None | Token::Integer => Ok(Expression::Literal(Literal::parse(lexer)?)),
-			Token::Id => Ok(Expression::VariableReference(VariableReference::parse(lexer)?)),
-			Token::Assign | Token::Let | Token::Mut | Token::Error => unreachable!("consume_one_of returned unexpected token"),
-		}
+		Ok(
+			match token.unwrap() {
+				Token::None | Token::Integer =>
+					Expression::Literal(Literal::parse(lexer)?),
+				Token::Id =>
+					Expression::VariableReference(VariableReference::parse(lexer)?),
+				Token::Plus | Token::Minus =>
+					UnaryOperation::parse(lexer)?.into(),
+				_ => unreachable!("consume_one_of returned unexpected token"),
+			}
+		)
 	}
 }
 
@@ -123,6 +216,7 @@ impl Ranged for Expression {
 		match self {
 			Expression::Literal(l) => l.range(),
 			Expression::VariableReference(var) => var.range(),
+			Expression::UnaryOperation(op) => op.range(),
 		}
 	}
 }
@@ -234,7 +328,7 @@ impl Parse for Statement {
 	/// Parse statement using lexer
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
 		let token = lexer.try_match_one_of(
-			&[Token::None, Token::Integer, Token::Id, Token::Let]
+			&[Token::None, Token::Integer, Token::Id, Token::Let, Token::Plus, Token::Minus]
 		);
 		if token.is_err() {
 			return Err(token.unwrap_err().into())
@@ -242,7 +336,7 @@ impl Parse for Statement {
 
 		match token.unwrap() {
 			Token::Let => Declaration::parse(lexer).map(|decl| Statement::Declaration(decl)),
-			Token::None | Token::Integer | Token::Id => {
+			Token::None | Token::Integer | Token::Id | Token::Plus | Token::Minus => {
 				let target = Expression::parse(lexer)?;
 
 				if lexer.consume(Token::Assign).is_err() {
@@ -254,7 +348,7 @@ impl Parse for Statement {
 					value: Expression::parse(lexer)?
 				}.into())
 			},
-			Token::Assign | Token::Mut | Token::Error => unreachable!("consume_one_of returned unexpected token"),
+			_ => unreachable!("consume_one_of returned unexpected token"),
 		}
 	}
 }

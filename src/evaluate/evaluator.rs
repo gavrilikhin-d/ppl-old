@@ -3,7 +3,7 @@ use std::fmt::Display;
 use rug;
 
 use crate::syntax::Ranged;
-use crate::syntax::ast::{Literal, Expression, Statement, Declaration, VariableDeclaration};
+use crate::syntax::ast::{Literal, Expression, Statement, Declaration, VariableDeclaration, UnaryOperation, Assignment};
 
 use crate::evaluate::error::*;
 
@@ -131,6 +131,10 @@ impl Evaluator {
 		}
 	}
 
+	pub fn evaluate_unary_operation(&self, op: &UnaryOperation) -> Result<Value, Error> {
+		unimplemented!("unary operations");
+	}
+
 	/// Evaluate value for expression
 	///
 	/// # Example
@@ -145,7 +149,7 @@ impl Evaluator {
 	/// let value = evaluator.evaluate_expression(&expression).unwrap();
 	/// assert_eq!(value, Value::Integer(42.into()));
 	/// ```
-	pub fn evaluate_expression(&self, expr: &Expression) -> Result<Value, UndefinedVariable> {
+	pub fn evaluate_expression(&self, expr: &Expression) -> Result<Value, Error> {
 		Ok(
 			match expr {
 				Expression::Literal(l) => self.evaluate_literal(l),
@@ -157,15 +161,17 @@ impl Evaluator {
 						return Err(UndefinedVariable {
 							name: var.name.value.clone(),
 							at: var.name.range().into()
-						});
+						}.into());
 					}
-				}
+				},
+				Expression::UnaryOperation(op) =>
+					self.evaluate_unary_operation(op)?
 			}
 		)
 	}
 
 	/// Execute code for declaration
-	pub fn declare(&mut self, decl: &Declaration) -> Result<(), UndefinedVariable> {
+	pub fn declare(&mut self, decl: &Declaration) -> Result<(), Error> {
 		match decl {
 			Declaration::Variable(var) => {
 				let value = self.evaluate_expression(&var.initializer)?;
@@ -178,60 +184,62 @@ impl Evaluator {
 		}
 	}
 
+	/// Run code for assignment
+	pub fn assign(&mut self, a: &Assignment) -> Result<(), Error>
+	{
+		match &a.target {
+			Expression::Literal(_) | Expression::UnaryOperation(_) => {
+				unimplemented!("error: cannot assign to expression");
+			},
+			Expression::VariableReference(var) => {
+				if self.variables.get(&var.name.value).is_none() {
+					return Err(UndefinedVariable {
+						name: var.name.value.clone(),
+						at: var.name.range().into()
+					}.into());
+				}
+
+				let data = &self.variables.get(&var.name.value).unwrap();
+
+				let decl = &data.declaration;
+
+				if decl.is_immutable() {
+					return Err(AssignmentToImmutable {
+						name: var.name.value.clone(),
+						referenced_at: var.name.range().into(),
+						declared_at: decl.name.range().into()
+					}.into());
+				}
+
+
+				let value = self.evaluate_expression(&a.value)?;
+				if data.value.get_type() != value.get_type() {
+					return Err (
+						NoConversion {
+							from: value.get_type(),
+							from_span: a.value.range().into(),
+
+							to: data.value.get_type(),
+							to_span: var.name.range().into(),
+						}.into()
+					);
+				}
+
+				self.variables.get_mut(&var.name.value).unwrap().value = value;
+			},
+		}
+		Ok(())
+	}
+
 	/// Execute statement
 	pub fn execute(&mut self, stmt: &Statement) -> Result<Option<Value>, Error> {
-		Ok(match stmt {
+		match stmt {
 			Statement::Expression(expr) =>
-				Some(self.evaluate_expression(expr)?),
-			Statement::Declaration(decl) => {
-				self.declare(decl)?;
-				None
-			},
-			Statement::Assignment(a) => {
-				match &a.target {
-					Expression::VariableReference(var) => {
-						if self.variables.get(&var.name.value).is_none() {
-							return Err(UndefinedVariable {
-								name: var.name.value.clone(),
-								at: var.name.range().into()
-							}.into());
-						}
-
-						let data = &self.variables.get(&var.name.value).unwrap();
-
-						let decl = &data.declaration;
-
-						if decl.is_immutable() {
-							return Err(AssignmentToImmutable {
-								name: var.name.value.clone(),
-								referenced_at: var.name.range().into(),
-								declared_at: decl.name.range().into()
-							}.into());
-						}
-
-
-						let value = self.evaluate_expression(&a.value)?;
-						if data.value.get_type() != value.get_type() {
-							return Err (
-								NoConversion {
-									from: value.get_type(),
-									from_span: a.value.range().into(),
-
-									to: data.value.get_type(),
-									to_span: var.name.range().into(),
-								}.into()
-							);
-						}
-
-						self.variables.get_mut(&var.name.value).unwrap().value = value;
-						None
-					},
-					Expression::Literal(_) => {
-						unimplemented!("error: cannot assign to literal");
-					}
-				}
-			}
-		})
+				return Ok(Some(self.evaluate_expression(expr)?)),
+			Statement::Declaration(decl) => self.declare(decl)?,
+			Statement::Assignment(a) => self.assign(a)?
+		}
+		Ok(None)
 	}
 }
 

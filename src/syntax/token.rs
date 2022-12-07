@@ -20,6 +20,14 @@ pub enum Token
 	#[token("=")]
 	Assign,
 
+	/// Plus token
+	#[token("+")]
+	Plus,
+
+	/// Minus token
+	#[token("-")]
+	Minus,
+
 	/// Identifier
 	#[regex("[_a-zA-Z][_a-zA-Z0-9]*")]
 	Id,
@@ -41,10 +49,12 @@ pub enum Token
 impl Display for Token {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
-			Token::None => write!(f, "'none'"),
-			Token::Assign => write!(f, "'='"),
-			Token::Let => write!(f, "'let'"),
-			Token::Mut => write!(f, "'mut'"),
+			Token::None => write!(f, "none"),
+			Token::Assign => write!(f, "="),
+			Token::Plus => write!(f, "+"),
+			Token::Minus => write!(f, "-"),
+			Token::Let => write!(f, "let"),
+			Token::Mut => write!(f, "mut"),
 			_ => write!(f, "{:?}", self),
 		}
 	}
