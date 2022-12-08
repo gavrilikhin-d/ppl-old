@@ -4,6 +4,7 @@ use super::{hir, Module, Typed};
 
 use super::error::*;
 
+/// Trait for lowering and adding statements to module
 pub trait Lowering<'module> {
 	/// Lower statement and add it to the end of the module
 	fn add(&'module mut self, statement: &ast::Statement) -> Result<hir::Statement, Error>;
@@ -19,7 +20,7 @@ impl<'module> Lowering<'module> for Module {
 }
 
 /// AST to HIR lowering context
-pub struct Context<'module> {
+struct Context<'module> {
 	/// Module, which is being lowered
 	pub module: &'module mut Module,
 }
