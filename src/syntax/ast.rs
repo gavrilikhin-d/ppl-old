@@ -6,7 +6,7 @@ use ast_derive::AST;
 
 use crate::syntax::error::*;
 
-use super::{WithOffset, Ranged};
+use super::{WithOffset, Ranged, Mutability, Mutable};
 
 use derive_more::From;
 
@@ -232,18 +232,12 @@ pub struct VariableDeclaration {
 	pub initializer: Expression,
 
 	/// Is this variable mutable
-	pub mutable: bool,
+	pub mutability: Mutability,
 }
 
-impl VariableDeclaration {
-	/// Is this a mutable variable?
-	pub fn is_mutable(&self) -> bool {
-		self.mutable
-	}
-
-	/// Is this an immutable variable?
-	pub fn is_immutable(&self) -> bool {
-		!self.is_mutable()
+impl Mutable for VariableDeclaration {
+	fn is_mutable(&self) -> bool {
+		self.mutability.is_mutable()
 	}
 }
 
@@ -269,7 +263,10 @@ impl Parse for VariableDeclaration {
 			VariableDeclaration {
 				name: name,
 				initializer: Expression::parse(lexer)?,
-				mutable
+				mutability: match mutable {
+					true => Mutability::Mutable,
+					false => Mutability::Immutable
+				}
 			}
 		)
 	}

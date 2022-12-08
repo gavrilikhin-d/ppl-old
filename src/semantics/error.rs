@@ -1,7 +1,7 @@
 use thiserror::Error;
 use miette::{SourceSpan, Diagnostic};
 
-use crate::evaluate::Type;
+use super::Type;
 
 /// Diagnostic for undefined variables
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
@@ -16,21 +16,14 @@ pub struct UndefinedVariable {
 	pub at: SourceSpan
 }
 
-/// Diagnostic for assignment to immutable variable
+/// Diagnostic for assignment to immutable
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("assignment to immutable variable '{name}'")]
+#[error("assignment to immutable")]
 #[diagnostic(code(evaluator::assignment_to_immutable))]
 pub struct AssignmentToImmutable {
-	/// Name of variable
-	pub name: String,
-
-	/// Span of name in declaration
-	#[label("assigning to this immutable variable")]
-	pub referenced_at: SourceSpan,
-
-	/// Span of name in declaration
-	#[label("variable declared here as immutable")]
-	pub declared_at: SourceSpan
+	/// Span of immutable thing
+	#[label("this value is immutable")]
+	pub at: SourceSpan,
 }
 
 /// Diagnostic for not convertible types

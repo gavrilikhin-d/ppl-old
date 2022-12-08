@@ -1,18 +1,13 @@
 use std::io::Write;
 
-use ppl::{*, syntax::{ast::{Statement, Parse}, Lexer}};
+use ppl::{*, syntax::{ast::{Statement, Parse}, Lexer}, semantics::ast_to_hir::Lowering};
 
-fn process_single_statement(lexer: &mut Lexer, evaluator: &mut Evaluator) -> miette::Result<()> {
+/// Parse and compile single statement
+fn process_single_statement(lexer: &mut Lexer, module: &mut semantics::Module) -> miette::Result<()> {
 	let ast = Statement::parse(lexer)?;
-	let value = evaluator.execute(&ast)?;
+	let hir = module.add(&ast)?;
 
-	if value.is_none() { return Ok(()); }
-
-	let value = value.unwrap();
-
-	if !value.is_none() {
-		println!("{}", value);
-	}
+	println!("{:#?}", hir);
 
 	Ok(())
 }
@@ -21,7 +16,7 @@ fn process_single_statement(lexer: &mut Lexer, evaluator: &mut Evaluator) -> mie
 /// Read-Evaluate-Print Loop
 fn repl() {
 	let mut source = String::new();
-	let mut evaluator = Evaluator::new();
+	let mut module = semantics::Module::new();
 
 	loop {
 		print!(">>> ");
@@ -43,7 +38,7 @@ fn repl() {
 
 		if let Err(err) = process_single_statement(
 			&mut lexer,
-			&mut evaluator
+			&mut module
 		) {
 			println!(
 				"{:?}",
