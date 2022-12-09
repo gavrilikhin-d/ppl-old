@@ -12,4 +12,4 @@ ast_derive = { path = "src/syntax/ast_derive" }
 miette = { version = "5.5.0", features = ["fancy"] }
 thiserror = "1.0.37"
 derive_more = "0.99.17"
-inkwell = "0.0.0"
+inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = ["llvm14-0"] }

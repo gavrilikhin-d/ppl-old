@@ -1,5 +1,7 @@
 use derive_more::From;
 
+use std::hash::{Hash, Hasher};
+
 use crate::syntax::{WithOffset, Ranged};
 
 use crate::semantics::Type;
@@ -11,7 +13,7 @@ pub use crate::syntax::Mutable;
 
 
 /// AST for compile time known values
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Literal {
 	/// None literal
 	None { offset: usize },
@@ -42,7 +44,7 @@ impl Typed for Literal {
 }
 
 /// AST for variable reference
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VariableReference {
 	/// Range of variable reference
 	pub span: std::ops::Range<usize>,
@@ -72,7 +74,7 @@ impl Typed for VariableReference {
 }
 
 /// Any PPL expression
-#[derive(Debug, PartialEq, Clone, From)]
+#[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum Expression {
 	Literal(Literal),
 	VariableReference(VariableReference),
@@ -109,7 +111,7 @@ impl Mutable for Expression {
 }
 
 /// Declaration of a variable
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VariableDeclaration {
 	/// Variable's name
 	pub name: WithOffset<String>,
@@ -118,6 +120,12 @@ pub struct VariableDeclaration {
 
 	/// Mutability of variable
 	pub mutability: Mutability,
+}
+
+impl Hash for VariableDeclaration {
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		self.name.value.hash(state);
+	}
 }
 
 impl Mutable for VariableDeclaration {
@@ -135,13 +143,13 @@ impl Typed for VariableDeclaration {
 }
 
 /// Any PPL declaration
-#[derive(Debug, PartialEq, Clone, From)]
+#[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum Declaration {
 	VariableDeclaration(VariableDeclaration),
 }
 
 /// Assignment of a value to a
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Assignment {
 	/// Variable to assign to
 	pub target: Expression,
@@ -150,7 +158,7 @@ pub struct Assignment {
 }
 
 /// Any PPL statement
-#[derive(Debug, PartialEq, Clone, From)]
+#[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum Statement {
 	Declaration(Declaration),
 	Expression(Expression),

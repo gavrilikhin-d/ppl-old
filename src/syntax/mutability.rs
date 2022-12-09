@@ -1,5 +1,5 @@
 /// The mutability of a binding
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Mutability {
 	/// The binding is mutable
 	Mutable,

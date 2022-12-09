@@ -3,7 +3,7 @@ use std::ops::Range;
 use super::Ranged;
 
 /// Value at some offset
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct WithOffset<T> {
 	/// Offset of the value
 	pub offset: usize,
