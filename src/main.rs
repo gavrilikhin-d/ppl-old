@@ -1,11 +1,16 @@
 use std::io::Write;
 
-use ppl::{*, syntax::{ast::{Statement, Parse}, Lexer}, semantics::ast_to_hir::Lowering};
+use ppl::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
+use ppl::syntax::Lexer;
+use ppl::syntax::ast::*;
 
 /// Parse and compile single statement
-fn process_single_statement(lexer: &mut Lexer, module: &mut semantics::Module) -> miette::Result<()> {
+fn process_single_statement(
+	lexer: &mut Lexer,
+	context: &mut ASTLoweringContext
+) -> miette::Result<()> {
 	let ast = Statement::parse(lexer)?;
-	let hir = module.add(&ast)?;
+	let hir = ast.lower_to_hir_within_context(context)?;
 
 	println!("{:#?}", hir);
 
@@ -16,7 +21,7 @@ fn process_single_statement(lexer: &mut Lexer, module: &mut semantics::Module) -
 /// Read-Evaluate-Print Loop
 fn repl() {
 	let mut source = String::new();
-	let mut module = semantics::Module::new();
+	let mut context = ASTLoweringContext::new();
 
 	loop {
 		print!(">>> ");
@@ -38,7 +43,7 @@ fn repl() {
 
 		if let Err(err) = process_single_statement(
 			&mut lexer,
-			&mut module
+			&mut context
 		) {
 			println!(
 				"{:?}",

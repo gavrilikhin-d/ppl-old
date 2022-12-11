@@ -9,6 +9,7 @@ pub use module::*;
 
 pub mod hir;
 
-pub mod ast_to_hir;
+mod ast_to_hir;
+pub use ast_to_hir::*;
 
 pub mod error;

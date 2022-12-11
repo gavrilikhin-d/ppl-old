@@ -4,36 +4,68 @@ use super::{hir, Module, Typed};
 
 use super::error::*;
 
-/// Trait for lowering and adding statements to module
-pub trait Lowering<'m> {
-	/// Lower statement and add it to the end of the module
-	fn add(&'m mut self, statement: &ast::Statement) -> Result<hir::Statement, Error>;
-}
-
-impl<'m> Lowering<'m> for Module {
-	/// Lower statement and add it to the end of the module
-	fn add(&'m mut self, statement: &ast::Statement) -> Result<hir::Statement, Error> {
-		let mut context = Context { module: self };
-		let lowered = context.lower_statement(statement);
-		lowered
-	}
-}
-
 /// AST to HIR lowering context
-struct Context<'m> {
+pub struct ASTLoweringContext {
 	/// Module, which is being lowered
-	pub module: &'m mut Module,
+	pub module: Module,
 }
 
-impl Context<'_> {
+impl ASTLoweringContext {
+	/// Create new lowering context
+	pub fn new() -> Self {
+		Self { module: Module::new() }
+	}
+
 	/// Recursively find variable starting from current scope
-	pub fn find_variable(&self, name: &str) -> Option<& hir::VariableDeclaration> {
+	pub fn find_variable(&self, name: &str)
+	-> Option<&hir::VariableDeclaration> {
 		self.module.variables.get(name)
 	}
+}
 
-	/// Lower AST for literal to literal
-	pub fn lower_literal(&self, literal: &ast::Literal) -> hir::Literal {
-		match literal {
+pub trait ASTLoweringWithinContext {
+	type HIR;
+
+	/// Lower AST to HIR within some context
+	fn lower_to_hir_within_context(
+		&self,
+		context: &mut ASTLoweringContext
+	) -> Result<Self::HIR, Error>;
+}
+
+impl ASTLoweringWithinContext for ast::Statement {
+	type HIR = hir::Statement;
+
+	/// Lower [`ast::Statement`] to [`hir::Statement`] within lowering context
+	fn lower_to_hir_within_context(
+		&self,
+		context: &mut ASTLoweringContext
+	) -> Result<Self::HIR, Error> {
+		let stmt: hir::Statement =
+		match self {
+			ast::Statement::Declaration(decl) =>
+				decl.lower_to_hir_within_context(context)?.into(),
+			ast::Statement::Assignment(assign) =>
+				assign.lower_to_hir_within_context(context)?.into(),
+			ast::Statement::Expression(expr) =>
+				expr.lower_to_hir_within_context(context)?.into(),
+		};
+
+		context.module.statements.push(stmt.clone());
+
+		Ok(stmt)
+	}
+}
+
+impl ASTLoweringWithinContext for ast::Literal {
+	type HIR = hir::Literal;
+
+	/// Lower [`ast::Literal`] to [`hir::Literal`] within lowering context
+	fn lower_to_hir_within_context(
+			&self,
+			_context: &mut ASTLoweringContext
+		) -> Result<Self::HIR, Error> {
+		Ok(match self {
 			ast::Literal::None { offset } =>
 				hir::Literal::None { offset: *offset },
 			ast::Literal::Integer { offset, value } =>
@@ -41,105 +73,138 @@ impl Context<'_> {
 					span: *offset..offset + value.len(),
 					value: value.parse::<rug::Integer>().unwrap(),
 				},
-		}
+		})
 	}
+}
 
-	/// Lower reference to variable to HIR
-	pub fn lower_variable_reference(&self, var_ast: &ast::VariableReference) -> Result<hir::VariableReference, Error> {
-		let var = self.find_variable(&var_ast.name.value);
+impl ASTLoweringWithinContext for ast::VariableReference {
+	type HIR = hir::VariableReference;
+
+	/// Lower [`ast::VariableReference`] to [`hir::VariableReference`] within lowering context
+	fn lower_to_hir_within_context(
+			&self,
+			context: &mut ASTLoweringContext
+		) -> Result<Self::HIR, Error> {
+		let var = context.find_variable(&self.name.value);
 		if var.is_none() {
 			return Err(UndefinedVariable {
-				name: var_ast.name.value.clone(),
-				at: var_ast.name.range().into()
+				name: self.name.value.clone(),
+				at: self.name.range().into()
 			}.into());
 		}
 
 		Ok(hir::VariableReference {
-			span: var_ast.name.range().into(),
+			span: self.name.range().into(),
 			variable: Box::new(var.unwrap().clone()),
 		})
 	}
+}
 
-	/// Lower AST for expression to HIR
-	pub fn lower_expression(&self, expr: &ast::Expression) -> Result<hir::Expression, Error> {
+impl ASTLoweringWithinContext for ast::Expression {
+	type HIR = hir::Expression;
+
+	/// Lower [`ast::Expression`] to [`hir::Expression`] within lowering context
+	fn lower_to_hir_within_context(
+			&self,
+			context: &mut ASTLoweringContext
+		) -> Result<Self::HIR, Error> {
 		Ok(
-			match expr {
-				ast::Expression::Literal(l) => self.lower_literal(l).into(),
+			match self {
+				ast::Expression::Literal(l) =>
+					l.lower_to_hir_within_context(context)?.into(),
 				ast::Expression::VariableReference(var) =>
-					self.lower_variable_reference(var)?.into(),
+					var.lower_to_hir_within_context(context)?.into(),
 				ast::Expression::UnaryOperation(op) => unimplemented!()
 			}
 		)
 	}
+}
 
-	/// Lower variable declaration
-	pub fn lower_variable_declaration(
-		&mut self,
-		decl_ast: &ast::VariableDeclaration
-	) -> Result<hir::VariableDeclaration, Error> {
+impl ASTLoweringWithinContext for ast::VariableDeclaration {
+	type HIR = hir::VariableDeclaration;
+
+	/// Lower [`ast::VariableDeclaration`] to [`hir::VariableDeclaration`] within lowering context
+	fn lower_to_hir_within_context(
+			&self,
+			context: &mut ASTLoweringContext
+		) -> Result<Self::HIR, Error> {
 		let var = hir::VariableDeclaration {
-			name: decl_ast.name.clone(),
-			initializer: self.lower_expression(&decl_ast.initializer)?,
-			mutability: decl_ast.mutability.clone(),
+			name: self.name.clone(),
+			initializer:
+				self.initializer.lower_to_hir_within_context(context)?,
+			mutability: self.mutability.clone(),
 		};
 
-		let name = &decl_ast.name.value;
+		let name = &self.name.value;
 
-		self.module.variables.insert(name.to_owned(), var.clone());
+		context.module.variables.insert(name.to_owned(), var.clone());
 
 		Ok(var)
 	}
+}
 
-	/// Lower AST for declaration to HIR
-	pub fn lower_declaration(&mut self, decl_ast: &ast::Declaration) -> Result<hir::Declaration, Error> {
-		Ok(
-			match decl_ast {
-				ast::Declaration::Variable(decl) =>
-					self.lower_variable_declaration(decl)?.into(),
-			}
-		)
+impl ASTLoweringWithinContext for ast::Declaration {
+	type HIR = hir::Declaration;
+
+	/// Lower [`ast::Declaration`] to [`hir::Declaration`] within lowering context
+	fn lower_to_hir_within_context(
+			&self,
+			context: &mut ASTLoweringContext
+		) -> Result<Self::HIR, Error> {
+		Ok(match self {
+			ast::Declaration::Variable(decl) =>
+				decl.lower_to_hir_within_context(context)?.into(),
+		})
 	}
+}
 
-	/// Lower AST for assignment to HIR
-	pub fn lower_assignment(&self, assign_ast: &ast::Assignment) -> Result<hir::Assignment, Error> {
-		let target = self.lower_expression(&assign_ast.target)?;
+impl ASTLoweringWithinContext for ast::Assignment {
+	type HIR = hir::Assignment;
+
+	/// Lower [`ast::Assignment`] to [`hir::Assignment`] within lowering context
+	fn lower_to_hir_within_context(
+			&self,
+			context: &mut ASTLoweringContext
+		) -> Result<Self::HIR, Error> {
+		let target = self.target.lower_to_hir_within_context(context)?;
 		if target.is_immutable() {
 			return Err(AssignmentToImmutable {
-				at: assign_ast.target.range().into()
+				at: self.target.range().into()
 			}.into());
 		}
 
-		let value = self.lower_expression(&assign_ast.value)?;
+		let value = self.value.lower_to_hir_within_context(context)?;
 		if target.get_type() != value.get_type() {
 			return Err (
 				NoConversion {
 					from: value.get_type(),
-					from_span: assign_ast.value.range().into(),
+					from_span: self.value.range().into(),
 
 					to: target.get_type(),
-					to_span: assign_ast.target.range().into(),
+					to_span: self.target.range().into(),
 				}.into()
 			);
 		}
 
 		Ok(hir::Assignment { target, value, })
 	}
-
-	/// Lower AST for statement to HIR
-	pub fn lower_statement(&mut self, stmt_ast: &ast::Statement) -> Result<hir::Statement, Error> {
-		let stmt: hir::Statement =
-			match &stmt_ast {
-				ast::Statement::Declaration(decl) =>
-					self.lower_declaration(decl)?.into(),
-				ast::Statement::Assignment(assign) =>
-					self.lower_assignment(assign)?.into(),
-				ast::Statement::Expression(expr) =>
-					self.lower_expression(expr)?.into(),
-			};
-
-		self.module.statements.push(stmt.clone());
-
-		Ok(stmt)
-	}
 }
 
+
+/// Trait for lowering and adding statements to module
+pub trait ASTLowering  {
+	type HIR;
+
+	/// Lower AST to HIR
+	fn lower_to_hir(&self) -> Result<Self::HIR, Error>;
+}
+
+impl<T: ASTLoweringWithinContext> ASTLowering for T {
+	type HIR = T::HIR;
+
+	/// Lower AST to HIR
+	fn lower_to_hir(&self) -> Result<Self::HIR, Error> {
+		let mut context = ASTLoweringContext::new();
+		self.lower_to_hir_within_context(&mut context)
+	}
+}
