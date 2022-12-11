@@ -5,14 +5,14 @@ use super::{hir, Module, Typed};
 use super::error::*;
 
 /// Trait for lowering and adding statements to module
-pub trait Lowering<'module> {
+pub trait Lowering<'m> {
 	/// Lower statement and add it to the end of the module
-	fn add(&'module mut self, statement: &ast::Statement) -> Result<hir::Statement, Error>;
+	fn add(&'m mut self, statement: &ast::Statement) -> Result<hir::Statement, Error>;
 }
 
-impl<'module> Lowering<'module> for Module {
+impl<'m> Lowering<'m> for Module {
 	/// Lower statement and add it to the end of the module
-	fn add(&'module mut self, statement: &ast::Statement) -> Result<hir::Statement, Error> {
+	fn add(&'m mut self, statement: &ast::Statement) -> Result<hir::Statement, Error> {
 		let mut context = Context { module: self };
 		let lowered = context.lower_statement(statement);
 		lowered
@@ -20,9 +20,9 @@ impl<'module> Lowering<'module> for Module {
 }
 
 /// AST to HIR lowering context
-struct Context<'module> {
+struct Context<'m> {
 	/// Module, which is being lowered
-	pub module: &'module mut Module,
+	pub module: &'m mut Module,
 }
 
 impl Context<'_> {
