@@ -125,6 +125,9 @@ impl<'ctx> ModuleContext<'ctx> {
 
 		let context = FunctionContext::new(self, function);
 
+		let value = context.lower_expression(expression);
+		context.builder.build_return(Some(&value));
+
 		function.verify(true);
 
 		function
@@ -275,9 +278,24 @@ impl<'ctx, 'm> FunctionContext<'ctx, 'm> {
 /// This will create a module, named `expression`,
 /// with a single function `evaluate` that takes no arguments
 /// and returns LLVM IR type corresponding to the type of the expression.
+///
+/// # Example
+/// ```
+/// use ppl::syntax::ast;
+/// use ppl::semantics::ASTLowering;
+/// use ppl::ir::hir_to_ir::create_module_for_expression;
+///
+/// let ast = "42".parse::<ast::Expression>().unwrap();
+/// let hir = ast.lower_to_hir().unwrap();
+///
+/// let llvm = inkwell::context::Context::create();
+/// let module = create_module_for_expression(&hir, &llvm);
+///
+/// module.print_to_stderr();
+/// ```
 pub fn create_module_for_expression<'hir, 'ctx>(
 	expression: &'hir Expression,
-	llvm: inkwell::context::ContextRef<'ctx>
+	llvm: &'ctx inkwell::context::Context
 ) -> inkwell::module::Module<'ctx> {
 	let module = llvm.create_module("expression");
 
