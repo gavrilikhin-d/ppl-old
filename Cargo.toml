@@ -9,8 +9,8 @@ edition = "2021"
 logos = "0.12.1"
 rug = "1.18.0"
 ast_derive = { path = "src/syntax/ast_derive" }
-runtime = { path = "src/ir/runtime" }
 miette = { version = "5.5.0", features = ["fancy"] }
 thiserror = "1.0.37"
 derive_more = "0.99.17"
 inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = ["llvm14-0"] }
+runtime = { path = "src/runtime" }
