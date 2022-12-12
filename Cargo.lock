@@ -434,6 +434,7 @@ name = "runtime"
 version = "0.1.0"
 dependencies = [
  "libc",
+ "rug",
 ]
 
 [[package]]

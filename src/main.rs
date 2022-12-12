@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use ppl::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
+use ppl::semantics::{ASTLoweringContext, ASTLoweringWithinContext, hir, Typed, Type};
 use ppl::syntax::Lexer;
 use ppl::syntax::ast::*;
 use ppl::ir;
@@ -38,6 +38,30 @@ fn process_single_statement(
 			.unwrap();
 
 	engine.add_global_mapping(&context.functions.none, runtime::none as usize);
+	engine.add_global_mapping(
+		&context.functions.integer_from_i64,
+		runtime::integer_from_i64 as usize
+	);
+	engine.add_global_mapping(
+		&context.functions.integer_from_c_string, runtime::integer_from_c_string as usize
+	);
+
+	if let Some(f) = module.get_function("execute") {
+		unsafe { engine.run_function(f, &[]); }
+	}
+	else if let Some(f) = module.get_function("evaluate") {
+		let result = unsafe { engine.run_function(f, &[]) };
+		let expr: hir::Expression = hir.try_into().unwrap();
+		match expr.get_type() {
+			Type::Integer => {
+				let result = unsafe {
+					result.into_pointer::<rug::Integer>()
+				};
+				println!("{}", unsafe { &*result });
+			},
+			Type::None => println!("none")
+		}
+	}
 
 	Ok(())
 }

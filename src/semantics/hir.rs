@@ -1,4 +1,4 @@
-use derive_more::From;
+use derive_more::{From, TryInto};
 
 use std::hash::{Hash, Hasher};
 
@@ -74,7 +74,7 @@ impl Typed for VariableReference {
 }
 
 /// Any PPL expression
-#[derive(Debug, PartialEq, Eq, Clone, From)]
+#[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Expression {
 	Literal(Literal),
 	VariableReference(VariableReference),
@@ -143,7 +143,7 @@ impl Typed for VariableDeclaration {
 }
 
 /// Any PPL declaration
-#[derive(Debug, PartialEq, Eq, Clone, From)]
+#[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Declaration {
 	VariableDeclaration(VariableDeclaration),
 }
@@ -158,7 +158,7 @@ pub struct Assignment {
 }
 
 /// Any PPL statement
-#[derive(Debug, PartialEq, Eq, Clone, From)]
+#[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Statement {
 	Declaration(Declaration),
 	Expression(Expression),
