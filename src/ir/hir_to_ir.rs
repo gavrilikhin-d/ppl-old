@@ -137,13 +137,13 @@ pub trait Context<'ctx> {
 /// Context for lowering HIR module to LLVM IR
 pub struct ModuleContext<'ctx> {
 	/// LLVM IR for PPL's types
-	types: Types<'ctx>,
+	pub types: Types<'ctx>,
 	/// LLVM IR for PPL's functions
-	functions: Functions<'ctx>,
+	pub functions: Functions<'ctx>,
 	/// Currently built module
-	module: inkwell::module::Module<'ctx>,
+	pub module: inkwell::module::Module<'ctx>,
 	/// Global variables
-	variables: HashMap<
+	pub variables: HashMap<
 		VariableDeclaration,
 		inkwell::values::PointerValue<'ctx>
 	>,
@@ -214,11 +214,11 @@ impl<'ctx> GlobalHIRLowering<'ctx> for VariableDeclaration {
 /// Context for lowering HIR function to LLVM IR
 pub struct FunctionContext<'ctx, 'm> {
 	/// Context for lowering HIR module to LLVM IR
-	module_context: &'m mut ModuleContext<'ctx>,
+	pub module_context: &'m mut ModuleContext<'ctx>,
 	/// Currently built function
-	function: inkwell::values::FunctionValue<'ctx>,
+	pub function: inkwell::values::FunctionValue<'ctx>,
 	/// Builder for current function
-	builder: inkwell::builder::Builder<'ctx>,
+	pub builder: inkwell::builder::Builder<'ctx>,
 }
 
 impl<'ctx, 'm> FunctionContext<'ctx, 'm> {

@@ -220,9 +220,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.137"
+version = "0.2.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc7fcc620a3bff7cdd7a365be3376c97191aeaccc2a603e600951e452615bf89"
+checksum = "db6d7e329c562c5dfab7a46a2afabc8b987ab9a4834c9d1ca04dc54c1546cef8"
 
 [[package]]
 name = "llvm-sys"
@@ -370,6 +370,7 @@ dependencies = [
  "logos",
  "miette",
  "rug",
+ "runtime",
  "thiserror",
 ]
 
@@ -425,6 +426,13 @@ checksum = "55313a5bab6820d1439c0266db37f8084e50618d35d16d81f692eee14d8b01b9"
 dependencies = [
  "az",
  "gmp-mpfr-sys",
+ "libc",
+]
+
+[[package]]
+name = "runtime"
+version = "0.1.0"
+dependencies = [
  "libc",
 ]
 

@@ -3,6 +3,11 @@ use std::io::Write;
 use ppl::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
 use ppl::syntax::Lexer;
 use ppl::syntax::ast::*;
+use ppl::ir;
+use ppl::ir::GlobalHIRLowering;
+use inkwell::OptimizationLevel;
+
+extern crate runtime;
 
 /// Parse and compile single statement
 fn process_single_statement(
@@ -10,9 +15,29 @@ fn process_single_statement(
 	context: &mut ASTLoweringContext
 ) -> miette::Result<()> {
 	let ast = Statement::parse(lexer)?;
-	let hir = ast.lower_to_hir_within_context(context)?;
+	println!("AST: {:#?}", ast);
 
-	println!("{:#?}", hir);
+	let hir = ast.lower_to_hir_within_context(context)?;
+	println!("HIR: {:#?}", hir);
+
+	let llvm = inkwell::context::Context::create();
+	let module = llvm.create_module("main");
+	let mut context = ir::ModuleContext::new(module);
+	hir.lower_global_to_ir(&mut context);
+
+	let module = context.module;
+
+	module.verify().unwrap();
+
+	module.print_to_stderr();
+
+
+	let engine =
+		module
+			.create_jit_execution_engine(OptimizationLevel::None)
+			.unwrap();
+
+	engine.add_global_mapping(&context.functions.none, runtime::none as usize);
 
 	Ok(())
 }
