@@ -3,7 +3,7 @@ use std::io::Write;
 use ppl::semantics::{ASTLoweringContext, ASTLoweringWithinContext, hir, Typed, Type};
 use ppl::syntax::Lexer;
 use ppl::syntax::ast::*;
-use ppl::ir;
+use ppl::ir::{self, Context};
 use ppl::ir::GlobalHIRLowering;
 use inkwell::OptimizationLevel;
 
@@ -25,7 +25,7 @@ fn process_single_statement(
 	let mut context = ir::ModuleContext::new(module);
 	hir.lower_global_to_ir(&mut context);
 
-	let module = context.module;
+	let module = &context.module;
 
 	module.print_to_stderr();
 
@@ -37,13 +37,13 @@ fn process_single_statement(
 			.create_jit_execution_engine(OptimizationLevel::None)
 			.unwrap();
 
-	engine.add_global_mapping(&context.functions.none, runtime::none as usize);
+	engine.add_global_mapping(&context.functions().none(), runtime::none as usize);
 	engine.add_global_mapping(
-		&context.functions.integer_from_i64,
+		&context.functions().integer_from_i64(),
 		runtime::integer_from_i64 as usize
 	);
 	engine.add_global_mapping(
-		&context.functions.integer_from_c_string, runtime::integer_from_c_string as usize
+		&context.functions().integer_from_c_string(), runtime::integer_from_c_string as usize
 	);
 
 	if let Some(f) = module.get_function("initialize") {

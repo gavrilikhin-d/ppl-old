@@ -42,28 +42,51 @@ pub trait HIRLoweringWithinFunctionContext<'llvm, 'm> {
 /// LLVM IR for PPL's types
 pub struct Types<'llvm> {
 	/// LLVM context
-	pub llvm: inkwell::context::ContextRef<'llvm>,
-	/// LLVM IR for [`None`](semantics::Type::None) type
-	pub none: inkwell::types::PointerType<'llvm>,
-	/// LLVM IR for [`Integer`](semantics::Type::Integer) type
-	pub integer: inkwell::types::PointerType<'llvm>,
-	/// LLVM IR for C string type
-	pub c_string: inkwell::types::PointerType<'llvm>,
+	llvm: inkwell::context::ContextRef<'llvm>,
 }
 
 impl<'llvm> Types<'llvm> {
 	/// Initialize LLVM IR for PPL's types
-	pub fn new(llvm: inkwell::context::ContextRef<'llvm>) -> Self {
-		let none = llvm.opaque_struct_type("None").ptr_type(AddressSpace::Generic);
-		let integer = llvm.opaque_struct_type("Integer").ptr_type(AddressSpace::Generic);
-		let c_string = llvm.i8_type().ptr_type(AddressSpace::Generic);
+	pub(crate) fn new(llvm: inkwell::context::ContextRef<'llvm>) -> Self {
+		Self { llvm }
+	}
 
-		Self {
-			llvm,
-			none,
-			integer,
-			c_string,
+	/// LLVM void type
+	pub fn void(&self) -> inkwell::types::VoidType<'llvm> {
+		self.llvm.void_type()
+	}
+
+	/// LLVM int type
+	pub fn i(&self, bits: u32) -> inkwell::types::IntType<'llvm> {
+		self.llvm.custom_width_int_type(bits)
+	}
+
+	/// LLVM unsigned int type
+	pub fn u(&self, bits: u32) -> inkwell::types::IntType<'llvm> {
+		self.i(bits)
+	}
+
+	/// LLVM IR for [`None`](semantics::Type::None) type
+	pub fn none(&self) -> inkwell::types::PointerType<'llvm> {
+		if let Some(ty) = self.llvm.get_struct_type("None") {
+			return ty.ptr_type(AddressSpace::Generic);
 		}
+
+		self.llvm.opaque_struct_type("None").ptr_type(AddressSpace::Generic)
+	}
+
+	/// LLVM IR for [`Integer`](semantics::Type::Integer) type
+	pub fn integer(&self) -> inkwell::types::PointerType<'llvm> {
+		if let Some(ty) = self.llvm.get_struct_type("Integer") {
+			return ty.ptr_type(AddressSpace::Generic);
+		}
+
+		self.llvm.opaque_struct_type("Integer").ptr_type(AddressSpace::Generic)
+	}
+
+	/// LLVM IR for C string type
+	pub fn c_string(&self) -> inkwell::types::PointerType<'llvm> {
+		self.llvm.i8_type().ptr_type(AddressSpace::Generic)
 	}
 }
 
@@ -80,46 +103,57 @@ impl<'llvm> HIRTypesLowering<'llvm> for semantics::Type {
 
 	fn lower_to_ir(&self, context: &dyn Context<'llvm>) -> Self::IR {
 		match self {
-			semantics::Type::None => context.types().none.into(),
-			semantics::Type::Integer => context.types().integer.into(),
+			semantics::Type::None => context.types().none().into(),
+			semantics::Type::Integer => context.types().integer().into(),
 		}
 	}
 }
 
 /// LLVM IR for PPL's functions
-pub struct Functions<'llvm> {
-	/// LLVM IR for default constructor of [`None`](semantics::Type::None) type
-	pub none: inkwell::values::FunctionValue<'llvm>,
-	/// LLVM IR for constructor of [`Integer`](semantics::Type::Integer) type from i64
-	pub integer_from_i64: inkwell::values::FunctionValue<'llvm>,
-	/// LLVM IR for constructor of [`Integer`](semantics::Type::Integer) type from C string
-	pub integer_from_c_string: inkwell::values::FunctionValue<'llvm>,
+pub struct Functions<'llvm, 'm> {
+	module: &'m inkwell::module::Module<'llvm>
 }
 
-impl<'llvm> Functions<'llvm> {
+impl<'llvm, 'm> Functions<'llvm, 'm> {
 	/// Initialize LLVM IR for PPL's functions
-	pub fn new(types: &Types<'llvm>, module: &inkwell::module::Module<'llvm>) -> Self {
-		let none = module.add_function(
-			"none",
-			types.none.fn_type(&[], false),
-			None
-		);
-		let integer_from_i64 = module.add_function(
-			"integer_from_i64",
-			types.integer.fn_type(&[types.llvm.i64_type().into()], false),
-			None
-		);
-		let integer_from_c_string = module.add_function(
-			"integer_from_c_string",
-			types.integer.fn_type(&[types.c_string.into()], false),
-			None
-		);
+	pub(crate) fn new(module: &'m inkwell::module::Module<'llvm>) -> Self {
+		Self { module }
+	}
 
-		Self {
-			none,
-			integer_from_i64,
-			integer_from_c_string,
+	/// Get function by name if it exists, or add a declaration for it
+	pub fn get_or_add_function(
+		&self,
+		name: &str,
+		ty: inkwell::types::FunctionType<'llvm>
+	) -> inkwell::values::FunctionValue<'llvm> {
+		if let Some(f) = self.module.get_function(&name) {
+			return f;
 		}
+		self.module.add_function(name, ty, None)
+	}
+
+	/// LLVM IR for default constructor of [`None`](semantics::Type::None) type
+	pub fn none(&self) -> inkwell::values::FunctionValue<'llvm> {
+		let types = Types::new(self.module.get_context());
+		self.get_or_add_function("none", types.none().fn_type(&[], false))
+	}
+
+	/// LLVM IR for constructor of [`Integer`](semantics::Type::Integer) type from i64
+	pub fn integer_from_i64(&self) -> inkwell::values::FunctionValue<'llvm> {
+		let types = Types::new(self.module.get_context());
+		self.get_or_add_function(
+			"integer_from_i64",
+			types.integer().fn_type(&[types.i(64).into()], false)
+		)
+	}
+
+	/// LLVM IR for constructor of [`Integer`](semantics::Type::Integer) type from C string
+	pub fn integer_from_c_string(&self) -> inkwell::values::FunctionValue<'llvm> {
+		let types = Types::new(self.module.get_context());
+		self.get_or_add_function(
+			"integer_from_c_string",
+			types.integer().fn_type(&[types.c_string().into()], false)
+		)
 	}
 }
 
@@ -129,18 +163,16 @@ pub trait Context<'llvm> {
 	fn llvm(&self) -> inkwell::context::ContextRef<'llvm>;
 
 	/// Get LLVM IR for PPL's types
-	fn types(&self) -> &Types<'llvm>;
+	fn types(&self) -> Types<'llvm> {
+		Types::new(self.llvm())
+	}
 
 	/// Get LLVM IR for PPL's functions
-	fn functions(&self) -> &Functions<'llvm>;
+	fn functions<'m>(&'m self) -> Functions<'llvm, 'm>;
 }
 
 /// Context for lowering HIR module to LLVM IR
 pub struct ModuleContext<'llvm> {
-	/// LLVM IR for PPL's types
-	pub types: Types<'llvm>,
-	/// LLVM IR for PPL's functions
-	pub functions: Functions<'llvm>,
 	/// Currently built module
 	pub module: inkwell::module::Module<'llvm>,
 	/// Global variables
@@ -153,12 +185,7 @@ pub struct ModuleContext<'llvm> {
 impl<'llvm> ModuleContext<'llvm> {
 	/// Initialize context for lowering HIR module to LLVM IR
 	pub fn new(module: inkwell::module::Module<'llvm>) -> Self {
-		let types = Types::new(module.get_context());
-		let functions = Functions::new(&types, &module);
-
 		Self {
-			types,
-			functions,
 			module,
 			variables: HashMap::new(),
 		}
@@ -170,12 +197,8 @@ impl<'llvm> Context<'llvm> for ModuleContext<'llvm> {
 		self.module.get_context()
 	}
 
-	fn types(&self) -> &Types<'llvm> {
-		&self.types
-	}
-
-	fn functions(&self) -> &Functions<'llvm> {
-		&self.functions
+	fn functions<'m>(&'m self) -> Functions<'llvm, 'm> {
+		Functions::new(&self.module)
 	}
 }
 
@@ -280,11 +303,7 @@ impl<'llvm> Context<'llvm> for FunctionContext<'llvm, '_> {
 		self.module_context.llvm()
 	}
 
-	fn types(&self) -> &Types<'llvm> {
-		self.module_context.types()
-	}
-
-	fn functions(&self) -> &Functions<'llvm> {
+	fn functions<'m>(&'m self) -> Functions<'llvm, 'm> {
 		self.module_context.functions()
 	}
 }
@@ -299,15 +318,15 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Literal {
 	) -> Self::IR {
 		match self {
 			Literal::None { .. } =>
-				context.builder.build_call(context.functions().none, &[], "")
+				context.builder.build_call(context.functions().none(), &[], "")
 					.try_as_basic_value()
 					.left()
 					.unwrap(),
 			Literal::Integer { value, .. } => {
 				if let Some(value) = value.to_i64() {
 					return context.builder.build_call(
-						context.functions().integer_from_i64,
-						&[context.llvm().i64_type().const_int(value as u64, false).into()],
+						context.functions().integer_from_i64(),
+						&[context.types().i(64).const_int(value as u64, false).into()],
 						""
 					).try_as_basic_value().left().unwrap();
 				}
@@ -316,7 +335,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Literal {
 					&format!("{}", value), ""
 				);
 				context.builder.build_call(
-					context.functions().integer_from_c_string,
+					context.functions().integer_from_c_string(),
 					&[str.as_pointer_value().into()],
 					""
 				).try_as_basic_value().left().unwrap()
