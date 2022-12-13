@@ -1,5 +1,6 @@
 use std::io::Write;
 
+use inkwell::execution_engine::ExecutionEngine;
 use ppl::semantics::{ASTLoweringContext, ASTLoweringWithinContext, hir, Typed, Type};
 use ppl::syntax::Lexer;
 use ppl::syntax::ast::*;
@@ -10,17 +11,18 @@ use inkwell::OptimizationLevel;
 extern crate runtime;
 
 /// Parse and compile single statement
-fn process_single_statement(
+fn process_single_statement<'llvm>(
 	lexer: &mut Lexer,
-	context: &mut ASTLoweringContext
+	ast_lowering_context: &mut ASTLoweringContext,
+	llvm: &'llvm inkwell::context::Context,
+	engine: &mut ExecutionEngine<'llvm>
 ) -> miette::Result<()> {
 	let ast = Statement::parse(lexer)?;
 	println!("AST: {:#?}", ast);
 
-	let hir = ast.lower_to_hir_within_context(context)?;
+	let hir = ast.lower_to_hir_within_context(ast_lowering_context)?;
 	println!("HIR: {:#?}", hir);
 
-	let llvm = inkwell::context::Context::create();
 	let module = llvm.create_module("main");
 	let mut context = ir::ModuleContext::new(module);
 	hir.lower_global_to_ir(&mut context);
@@ -31,11 +33,7 @@ fn process_single_statement(
 
 	module.verify().unwrap();
 
-
-	let engine =
-		module
-			.create_jit_execution_engine(OptimizationLevel::None)
-			.unwrap();
+	engine.add_module(module).unwrap();
 
 	engine.add_global_mapping(&context.functions().none(), runtime::none as usize);
 	engine.add_global_mapping(
@@ -75,6 +73,12 @@ fn process_single_statement(
 fn repl() {
 	let mut source = String::new();
 	let mut context = ASTLoweringContext::new();
+	let llvm = inkwell::context::Context::create();
+	let mut engine =
+		llvm
+			.create_module("")
+			.create_jit_execution_engine(OptimizationLevel::None)
+			.unwrap();
 
 	loop {
 		print!(">>> ");
@@ -96,7 +100,9 @@ fn repl() {
 
 		if let Err(err) = process_single_statement(
 			&mut lexer,
-			&mut context
+			&mut context,
+			&llvm,
+			&mut engine
 		) {
 			println!(
 				"{:?}",
