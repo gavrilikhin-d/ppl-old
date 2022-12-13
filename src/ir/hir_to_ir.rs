@@ -237,6 +237,8 @@ impl<'llvm> GlobalHIRLowering<'llvm> for VariableDeclaration {
 			global.clone().as_pointer_value()
 		);
 
+		global.set_initializer(&ty.const_zero());
+
 		let initialize = context.module.add_function(
 			"initialize",
 			context.llvm().void_type().fn_type(&[], false),
@@ -352,7 +354,9 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for VariableReferenc
 		&self,
 		context: &mut FunctionContext<'llvm, 'm>
 	) -> Self::IR {
-		context.get_variable(&self.variable).unwrap()
+		context.get_variable(&self.variable).expect(
+			format!("Variable {} not found", self.variable.name.value).as_str()
+		)
 	}
 }
 
