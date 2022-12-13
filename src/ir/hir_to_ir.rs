@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use inkwell::AddressSpace;
+use inkwell::module::Linkage;
 use inkwell::types::BasicType;
 
 use crate::semantics::{self, Typed};
@@ -217,13 +218,24 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Declaration {
 	}
 }
 
-impl<'llvm> GlobalHIRLowering<'llvm> for VariableDeclaration {
+/// Trait for declaring global entries in LLVM IR
+trait DeclareGlobal<'llvm> {
+	type IR;
+
+	/// Declare global value without defining it
+	fn declare_global(
+		&self,
+		context: &mut ModuleContext<'llvm>
+	) -> Self::IR;
+}
+
+impl<'llvm> DeclareGlobal<'llvm> for VariableDeclaration {
 	type IR = inkwell::values::GlobalValue<'llvm>;
 
-	/// Lower global [`VariableDeclaration`] to LLVM IR
-	fn lower_global_to_ir(
-			&self,
-			context: &mut ModuleContext<'llvm>
+	/// Declare global variable without defining it
+	fn declare_global(
+		&self,
+		context: &mut ModuleContext<'llvm>
 	) -> Self::IR {
 		let ty = self.get_type().lower_to_ir(context);
 		let global = context.module.add_global(ty, None, &self.name.value);
@@ -232,12 +244,28 @@ impl<'llvm> GlobalHIRLowering<'llvm> for VariableDeclaration {
 			global.set_constant(true);
 		}
 
+		global
+	}
+}
+
+impl<'llvm> GlobalHIRLowering<'llvm> for VariableDeclaration {
+	type IR = inkwell::values::GlobalValue<'llvm>;
+
+	/// Lower global [`VariableDeclaration`] to LLVM IR
+	fn lower_global_to_ir(
+			&self,
+			context: &mut ModuleContext<'llvm>
+	) -> Self::IR {
+		let global = self.declare_global(context);
+
 		context.variables.insert(
 			self.clone(),
 			global.clone().as_pointer_value()
 		);
 
-		global.set_initializer(&ty.const_zero());
+		global.set_initializer(
+			&self.get_type().lower_to_ir(context).const_zero()
+		);
 
 		let initialize = context.module.add_function(
 			"initialize",
@@ -354,9 +382,11 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for VariableReferenc
 		&self,
 		context: &mut FunctionContext<'llvm, 'm>
 	) -> Self::IR {
-		context.get_variable(&self.variable).expect(
-			format!("Variable {} not found", self.variable.name.value).as_str()
-		)
+		if let Some(var) = context.get_variable(&self.variable) {
+			return var;
+		}
+
+		self.variable.declare_global(context.module_context).as_pointer_value()
 	}
 }
 
