@@ -6,53 +6,53 @@ use crate::semantics::{self, Typed};
 use crate::semantics::hir::*;
 
 /// Trait for lowering HIR for global declarations to IR within module context
-pub trait GlobalHIRLowering<'ctx> {
+pub trait GlobalHIRLowering<'llvm> {
 	type IR;
 
 	/// Lower HIR for global declaration to IR within module context
 	fn lower_global_to_ir(
 		&self,
-		context: &mut ModuleContext<'ctx>
+		context: &mut ModuleContext<'llvm>
 	) -> Self::IR;
 }
 
 /// Trait for lowering HIR for local declarations to IR within function context
-pub trait LocalHIRLowering<'ctx, 'm> {
+pub trait LocalHIRLowering<'llvm, 'm> {
 	type IR;
 
 	/// Lower HIR for local declaration to IR within function context
 	fn lower_local_to_ir(
 		&self,
-		context: &mut FunctionContext<'ctx, 'm>
+		context: &mut FunctionContext<'llvm, 'm>
 	) -> Self::IR;
 }
 
 /// Trait for lowering HIR to IR within function context
-pub trait HIRLoweringWithinFunctionContext<'ctx, 'm> {
+pub trait HIRLoweringWithinFunctionContext<'llvm, 'm> {
 	type IR;
 
 	/// Lower HIR to IR within function context
 	fn lower_to_ir(
 		&self,
-		context: &mut FunctionContext<'ctx, 'm>
+		context: &mut FunctionContext<'llvm, 'm>
 	) -> Self::IR;
 }
 
 /// LLVM IR for PPL's types
-pub struct Types<'ctx> {
+pub struct Types<'llvm> {
 	/// LLVM context
-	pub llvm: inkwell::context::ContextRef<'ctx>,
+	pub llvm: inkwell::context::ContextRef<'llvm>,
 	/// LLVM IR for [`None`](semantics::Type::None) type
-	pub none: inkwell::types::StructType<'ctx>,
+	pub none: inkwell::types::StructType<'llvm>,
 	/// LLVM IR for [`Integer`](semantics::Type::Integer) type
-	pub integer: inkwell::types::StructType<'ctx>,
+	pub integer: inkwell::types::StructType<'llvm>,
 	/// LLVM IR for C string type
-	pub c_string: inkwell::types::PointerType<'ctx>,
+	pub c_string: inkwell::types::PointerType<'llvm>,
 }
 
-impl<'ctx> Types<'ctx> {
+impl<'llvm> Types<'llvm> {
 	/// Initialize LLVM IR for PPL's types
-	pub fn new(llvm: inkwell::context::ContextRef<'ctx>) -> Self {
+	pub fn new(llvm: inkwell::context::ContextRef<'llvm>) -> Self {
 		let none = llvm.opaque_struct_type("None");
 		let integer = llvm.opaque_struct_type("Integer");
 		let c_string = llvm.i8_type().ptr_type(inkwell::AddressSpace::Generic);
@@ -67,17 +67,17 @@ impl<'ctx> Types<'ctx> {
 }
 
 /// Trait for convenient lowering of PPL's [`Type`](semantics::Type) to LLVM IR
-pub trait HIRTypesLowering<'ctx> {
+pub trait HIRTypesLowering<'llvm> {
 	type IR;
 
 	/// Lower PPL's [`Type`](semantics::Type) to LLVM IR
-	fn lower_to_ir(&self, context: &dyn Context<'ctx>) -> Self::IR;
+	fn lower_to_ir(&self, context: &dyn Context<'llvm>) -> Self::IR;
 }
 
-impl<'ctx> HIRTypesLowering<'ctx> for semantics::Type {
-	type IR = inkwell::types::BasicTypeEnum<'ctx>;
+impl<'llvm> HIRTypesLowering<'llvm> for semantics::Type {
+	type IR = inkwell::types::BasicTypeEnum<'llvm>;
 
-	fn lower_to_ir(&self, context: &dyn Context<'ctx>) -> Self::IR {
+	fn lower_to_ir(&self, context: &dyn Context<'llvm>) -> Self::IR {
 		match self {
 			semantics::Type::None => context.types().none.into(),
 			semantics::Type::Integer => context.types().integer.into(),
@@ -86,18 +86,18 @@ impl<'ctx> HIRTypesLowering<'ctx> for semantics::Type {
 }
 
 /// LLVM IR for PPL's functions
-pub struct Functions<'ctx> {
+pub struct Functions<'llvm> {
 	/// LLVM IR for default constructor of [`None`](semantics::Type::None) type
-	pub none: inkwell::values::FunctionValue<'ctx>,
+	pub none: inkwell::values::FunctionValue<'llvm>,
 	/// LLVM IR for constructor of [`Integer`](semantics::Type::Integer) type from i64
-	pub integer_from_i64: inkwell::values::FunctionValue<'ctx>,
+	pub integer_from_i64: inkwell::values::FunctionValue<'llvm>,
 	/// LLVM IR for constructor of [`Integer`](semantics::Type::Integer) type from C string
-	pub integer_from_c_string: inkwell::values::FunctionValue<'ctx>,
+	pub integer_from_c_string: inkwell::values::FunctionValue<'llvm>,
 }
 
-impl<'ctx> Functions<'ctx> {
+impl<'llvm> Functions<'llvm> {
 	/// Initialize LLVM IR for PPL's functions
-	pub fn new(types: &Types<'ctx>, module: &inkwell::module::Module<'ctx>) -> Self {
+	pub fn new(types: &Types<'llvm>, module: &inkwell::module::Module<'llvm>) -> Self {
 		let none = module.add_function(
 			"none",
 			types.none.fn_type(&[], false),
@@ -123,35 +123,35 @@ impl<'ctx> Functions<'ctx> {
 }
 
 /// Trait for common context methods
-pub trait Context<'ctx> {
+pub trait Context<'llvm> {
 	/// Get LLVM context
-	fn llvm(&self) -> inkwell::context::ContextRef<'ctx>;
+	fn llvm(&self) -> inkwell::context::ContextRef<'llvm>;
 
 	/// Get LLVM IR for PPL's types
-	fn types(&self) -> &Types<'ctx>;
+	fn types(&self) -> &Types<'llvm>;
 
 	/// Get LLVM IR for PPL's functions
-	fn functions(&self) -> &Functions<'ctx>;
+	fn functions(&self) -> &Functions<'llvm>;
 }
 
 /// Context for lowering HIR module to LLVM IR
-pub struct ModuleContext<'ctx> {
+pub struct ModuleContext<'llvm> {
 	/// LLVM IR for PPL's types
-	pub types: Types<'ctx>,
+	pub types: Types<'llvm>,
 	/// LLVM IR for PPL's functions
-	pub functions: Functions<'ctx>,
+	pub functions: Functions<'llvm>,
 	/// Currently built module
-	pub module: inkwell::module::Module<'ctx>,
+	pub module: inkwell::module::Module<'llvm>,
 	/// Global variables
 	pub variables: HashMap<
 		VariableDeclaration,
-		inkwell::values::PointerValue<'ctx>
+		inkwell::values::PointerValue<'llvm>
 	>,
 }
 
-impl<'ctx> ModuleContext<'ctx> {
+impl<'llvm> ModuleContext<'llvm> {
 	/// Initialize context for lowering HIR module to LLVM IR
-	pub fn new(module: inkwell::module::Module<'ctx>) -> Self {
+	pub fn new(module: inkwell::module::Module<'llvm>) -> Self {
 		let types = Types::new(module.get_context());
 		let functions = Functions::new(&types, &module);
 
@@ -164,27 +164,27 @@ impl<'ctx> ModuleContext<'ctx> {
 	}
 }
 
-impl<'ctx> Context<'ctx> for ModuleContext<'ctx> {
-	fn llvm(&self) -> inkwell::context::ContextRef<'ctx> {
+impl<'llvm> Context<'llvm> for ModuleContext<'llvm> {
+	fn llvm(&self) -> inkwell::context::ContextRef<'llvm> {
 		self.module.get_context()
 	}
 
-	fn types(&self) -> &Types<'ctx> {
+	fn types(&self) -> &Types<'llvm> {
 		&self.types
 	}
 
-	fn functions(&self) -> &Functions<'ctx> {
+	fn functions(&self) -> &Functions<'llvm> {
 		&self.functions
 	}
 }
 
-impl<'ctx> GlobalHIRLowering<'ctx> for Declaration {
-	type IR = inkwell::values::GlobalValue<'ctx>;
+impl<'llvm> GlobalHIRLowering<'llvm> for Declaration {
+	type IR = inkwell::values::GlobalValue<'llvm>;
 
 	/// Lower global [`Declaration`] to LLVM IR
 	fn lower_global_to_ir(
 		&self,
-		context: &mut ModuleContext<'ctx>
+		context: &mut ModuleContext<'llvm>
 	) -> Self::IR {
 		match self {
 			Declaration::VariableDeclaration(var) =>
@@ -193,13 +193,13 @@ impl<'ctx> GlobalHIRLowering<'ctx> for Declaration {
 	}
 }
 
-impl<'ctx> GlobalHIRLowering<'ctx> for VariableDeclaration {
-	type IR = inkwell::values::GlobalValue<'ctx>;
+impl<'llvm> GlobalHIRLowering<'llvm> for VariableDeclaration {
+	type IR = inkwell::values::GlobalValue<'llvm>;
 
 	/// Lower global [`VariableDeclaration`] to LLVM IR
 	fn lower_global_to_ir(
 			&self,
-			context: &mut ModuleContext<'ctx>
+			context: &mut ModuleContext<'llvm>
 	) -> Self::IR {
 		let ty = self.get_type().lower_to_ir(context);
 		let global = context.module.add_global(ty, None, &self.name.value);
@@ -212,20 +212,20 @@ impl<'ctx> GlobalHIRLowering<'ctx> for VariableDeclaration {
 }
 
 /// Context for lowering HIR function to LLVM IR
-pub struct FunctionContext<'ctx, 'm> {
+pub struct FunctionContext<'llvm, 'm> {
 	/// Context for lowering HIR module to LLVM IR
-	pub module_context: &'m mut ModuleContext<'ctx>,
+	pub module_context: &'m mut ModuleContext<'llvm>,
 	/// Currently built function
-	pub function: inkwell::values::FunctionValue<'ctx>,
+	pub function: inkwell::values::FunctionValue<'llvm>,
 	/// Builder for current function
-	pub builder: inkwell::builder::Builder<'ctx>,
+	pub builder: inkwell::builder::Builder<'llvm>,
 }
 
-impl<'ctx, 'm> FunctionContext<'ctx, 'm> {
+impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
 	/// Initialize context for lowering HIR function to LLVM IR
 	pub fn new(
-		module_context: &'m mut ModuleContext<'ctx>,
-		function: inkwell::values::FunctionValue<'ctx>
+		module_context: &'m mut ModuleContext<'llvm>,
+		function: inkwell::values::FunctionValue<'llvm>
 	) -> Self {
 		let llvm = module_context.llvm();
 
@@ -241,32 +241,32 @@ impl<'ctx, 'm> FunctionContext<'ctx, 'm> {
 	}
 
 	/// Get LLVM IR for variable
-	pub fn get_variable(&self, variable: &VariableDeclaration) -> Option<inkwell::values::PointerValue<'ctx>> {
+	pub fn get_variable(&self, variable: &VariableDeclaration) -> Option<inkwell::values::PointerValue<'llvm>> {
 		self.module_context.variables.get(variable).cloned()
 	}
 }
 
-impl<'ctx> Context<'ctx> for FunctionContext<'ctx, '_> {
-	fn llvm(&self) -> inkwell::context::ContextRef<'ctx> {
+impl<'llvm> Context<'llvm> for FunctionContext<'llvm, '_> {
+	fn llvm(&self) -> inkwell::context::ContextRef<'llvm> {
 		self.module_context.llvm()
 	}
 
-	fn types(&self) -> &Types<'ctx> {
+	fn types(&self) -> &Types<'llvm> {
 		self.module_context.types()
 	}
 
-	fn functions(&self) -> &Functions<'ctx> {
+	fn functions(&self) -> &Functions<'llvm> {
 		self.module_context.functions()
 	}
 }
 
-impl<'ctx, 'm> HIRLoweringWithinFunctionContext<'ctx, 'm> for Literal {
-	type IR = inkwell::values::BasicValueEnum<'ctx>;
+impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Literal {
+	type IR = inkwell::values::BasicValueEnum<'llvm>;
 
 	/// Lower [`Literal`] to LLVM IR
 	fn lower_to_ir(
 		&self,
-		context: &mut FunctionContext<'ctx, 'm>
+		context: &mut FunctionContext<'llvm, 'm>
 	) -> Self::IR {
 		match self {
 			Literal::None { .. } =>
@@ -296,33 +296,33 @@ impl<'ctx, 'm> HIRLoweringWithinFunctionContext<'ctx, 'm> for Literal {
 	}
 }
 
-impl<'ctx, 'm> HIRLoweringWithinFunctionContext<'ctx, 'm> for VariableReference {
-	type IR = inkwell::values::PointerValue<'ctx>;
+impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for VariableReference {
+	type IR = inkwell::values::PointerValue<'llvm>;
 
 	/// Lower [`VariableReference`] to LLVM IR
 	fn lower_to_ir(
 		&self,
-		context: &mut FunctionContext<'ctx, 'm>
+		context: &mut FunctionContext<'llvm, 'm>
 	) -> Self::IR {
 		context.get_variable(&self.variable).unwrap()
 	}
 }
 
 /// Trait for [`Expression`] to lower HIR to LLVM IR without loading references
-trait HIRExpressionLoweringWithoutLoad<'ctx, 'm> {
+trait HIRExpressionLoweringWithoutLoad<'llvm, 'm> {
 	/// Lower [`Expression`] to LLVM IR without loading variables
 	fn lower_to_ir_without_load(
 		&self,
-		context: &mut FunctionContext<'ctx, 'm>,
-	) -> inkwell::values::BasicValueEnum<'ctx>;
+		context: &mut FunctionContext<'llvm, 'm>,
+	) -> inkwell::values::BasicValueEnum<'llvm>;
 }
 
-impl<'ctx, 'm> HIRExpressionLoweringWithoutLoad<'ctx, 'm> for Expression {
+impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
 	/// Lower [`Expression`] to LLVM IR without loading variables
 	fn lower_to_ir_without_load(
 		&self,
-		context: &mut FunctionContext<'ctx, 'm>,
-	) -> inkwell::values::BasicValueEnum<'ctx> {
+		context: &mut FunctionContext<'llvm, 'm>,
+	) -> inkwell::values::BasicValueEnum<'llvm> {
 		match self {
 			Expression::Literal(l) => l.lower_to_ir(context),
 			Expression::VariableReference(var) =>
@@ -331,13 +331,13 @@ impl<'ctx, 'm> HIRExpressionLoweringWithoutLoad<'ctx, 'm> for Expression {
 	}
 }
 
-impl<'ctx, 'm> HIRLoweringWithinFunctionContext<'ctx, 'm> for Expression {
-	type IR = inkwell::values::BasicValueEnum<'ctx>;
+impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
+	type IR = inkwell::values::BasicValueEnum<'llvm>;
 
 	/// Lower [`Expression`] to LLVM IR with loading references
 	fn lower_to_ir(
 		&self,
-		context: &mut FunctionContext<'ctx, 'm>,
+		context: &mut FunctionContext<'llvm, 'm>,
 	) -> Self::IR {
 		match self {
 			Expression::VariableReference(var) => {
@@ -349,13 +349,13 @@ impl<'ctx, 'm> HIRLoweringWithinFunctionContext<'ctx, 'm> for Expression {
 	}
 }
 
-impl<'ctx, 'm> HIRLoweringWithinFunctionContext<'ctx, 'm> for Assignment {
-	type IR = inkwell::values::InstructionValue<'ctx>;
+impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Assignment {
+	type IR = inkwell::values::InstructionValue<'llvm>;
 
 	/// Lower [`Assignment`] to LLVM IR
 	fn lower_to_ir(
 		&self,
-		context: &mut FunctionContext<'ctx, 'm>
+		context: &mut FunctionContext<'llvm, 'm>
 	) -> Self::IR {
 		let target = self.target.lower_to_ir_without_load(context);
 		let value = self.value.lower_to_ir(context);
@@ -363,13 +363,13 @@ impl<'ctx, 'm> HIRLoweringWithinFunctionContext<'ctx, 'm> for Assignment {
 	}
 }
 
-impl<'ctx> GlobalHIRLowering<'ctx> for Statement {
-	type IR = inkwell::values::GlobalValue<'ctx>;
+impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
+	type IR = inkwell::values::GlobalValue<'llvm>;
 
 	/// Lower global [`Statement`] to LLVM IR
 	fn lower_global_to_ir(
 		&self,
-		context: &mut ModuleContext<'ctx>
+		context: &mut ModuleContext<'llvm>
 	) -> Self::IR {
 		return match self {
 			Statement::Declaration(d) =>
