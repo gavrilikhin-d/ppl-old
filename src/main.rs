@@ -46,6 +46,10 @@ fn process_single_statement(
 		&context.functions.integer_from_c_string, runtime::integer_from_c_string as usize
 	);
 
+	if let Some(f) = module.get_function("initialize") {
+		unsafe { engine.run_function(f, &[]); }
+	}
+
 	if let Some(f) = module.get_function("execute") {
 		unsafe { engine.run_function(f, &[]); }
 	}

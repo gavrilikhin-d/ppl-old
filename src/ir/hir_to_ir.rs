@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use inkwell::AddressSpace;
 use inkwell::types::BasicType;
 
 use crate::semantics::{self, Typed};
@@ -43,9 +44,9 @@ pub struct Types<'llvm> {
 	/// LLVM context
 	pub llvm: inkwell::context::ContextRef<'llvm>,
 	/// LLVM IR for [`None`](semantics::Type::None) type
-	pub none: inkwell::types::StructType<'llvm>,
+	pub none: inkwell::types::PointerType<'llvm>,
 	/// LLVM IR for [`Integer`](semantics::Type::Integer) type
-	pub integer: inkwell::types::StructType<'llvm>,
+	pub integer: inkwell::types::PointerType<'llvm>,
 	/// LLVM IR for C string type
 	pub c_string: inkwell::types::PointerType<'llvm>,
 }
@@ -53,9 +54,9 @@ pub struct Types<'llvm> {
 impl<'llvm> Types<'llvm> {
 	/// Initialize LLVM IR for PPL's types
 	pub fn new(llvm: inkwell::context::ContextRef<'llvm>) -> Self {
-		let none = llvm.opaque_struct_type("None");
-		let integer = llvm.opaque_struct_type("Integer");
-		let c_string = llvm.i8_type().ptr_type(inkwell::AddressSpace::Generic);
+		let none = llvm.opaque_struct_type("None").ptr_type(AddressSpace::Generic);
+		let integer = llvm.opaque_struct_type("Integer").ptr_type(AddressSpace::Generic);
+		let c_string = llvm.i8_type().ptr_type(AddressSpace::Generic);
 
 		Self {
 			llvm,
@@ -203,10 +204,25 @@ impl<'llvm> GlobalHIRLowering<'llvm> for VariableDeclaration {
 	) -> Self::IR {
 		let ty = self.get_type().lower_to_ir(context);
 		let global = context.module.add_global(ty, None, &self.name.value);
+
+		if self.is_immutable() {
+			global.set_constant(true);
+		}
+
 		context.variables.insert(
 			self.clone(),
 			global.clone().as_pointer_value()
 		);
+
+		let initialize = context.module.add_function(
+			"initialize",
+			context.llvm().void_type().fn_type(&[], false),
+			None
+		);
+		let mut f_context = FunctionContext::new(context, initialize);
+		let value = self.initializer.lower_to_ir(&mut f_context);
+		f_context.builder.build_store(global.as_pointer_value(), value);
+
 		global
 	}
 }
@@ -243,6 +259,19 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
 	/// Get LLVM IR for variable
 	pub fn get_variable(&self, variable: &VariableDeclaration) -> Option<inkwell::values::PointerValue<'llvm>> {
 		self.module_context.variables.get(variable).cloned()
+	}
+}
+
+impl Drop for FunctionContext<'_, '_> {
+	fn drop(&mut self) {
+		let terminator =
+			self.builder
+				.get_insert_block()
+				.and_then(|b| b.get_terminator());
+
+		if terminator.is_some() { return; }
+
+		self.builder.build_return(None);
 	}
 }
 
