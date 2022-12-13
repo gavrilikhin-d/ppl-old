@@ -27,9 +27,9 @@ fn process_single_statement(
 
 	let module = context.module;
 
-	module.verify().unwrap();
-
 	module.print_to_stderr();
+
+	module.verify().unwrap();
 
 
 	let engine =
