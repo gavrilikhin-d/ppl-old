@@ -1,3 +1,5 @@
+use super::hir::TypeDeclaration;
+
 /// Type of values
 #[derive(Debug, PartialEq, Clone)]
 pub enum Type {
@@ -5,6 +7,8 @@ pub enum Type {
 	None,
 	/// Arbitrary integer type
 	Integer,
+	/// User defined type
+	Class(TypeDeclaration)
 }
 
 /// Trait for values with a type

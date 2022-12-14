@@ -142,10 +142,18 @@ impl Typed for VariableDeclaration {
 	}
 }
 
+/// Declaration of a type
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct TypeDeclaration {
+	/// Type's name
+	pub name: WithOffset<String>,
+}
+
 /// Any PPL declaration
 #[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Declaration {
-	VariableDeclaration(VariableDeclaration),
+	Variable(VariableDeclaration),
+	Type(TypeDeclaration),
 }
 
 /// Assignment of a value to a

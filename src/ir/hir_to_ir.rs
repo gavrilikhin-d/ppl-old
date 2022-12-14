@@ -212,7 +212,7 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Declaration {
 		context: &mut ModuleContext<'llvm>
 	) -> Self::IR {
 		match self {
-			Declaration::VariableDeclaration(var) =>
+			Declaration::Variable(var) =>
 				var.lower_global_to_ir(context)
 		}
 	}
