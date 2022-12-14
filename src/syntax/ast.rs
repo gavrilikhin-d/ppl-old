@@ -367,22 +367,57 @@ impl Parse for Statement {
 			return Err(token.unwrap_err().into())
 		}
 
-		match token.unwrap() {
-			Token::Let | Token::Type => Declaration::parse(lexer).map(|decl| Statement::Declaration(decl)),
-			Token::None | Token::Integer | Token::Id | Token::Plus | Token::Minus => {
+		let res = match token.unwrap() {
+			Token::Let | Token::Type =>
+				Declaration::parse(lexer)
+					.map(|decl| Statement::Declaration(decl)),
+			Token::None | Token::Integer | Token::Id |
+			Token::Plus | Token::Minus => {
 				let target = Expression::parse(lexer)?;
 
 				if lexer.consume(Token::Assign).is_err() {
-					return Ok(target.into())
+					Ok(target.into())
 				}
-
-				Ok(Assignment {
-					target,
-					value: Expression::parse(lexer)?
-				}.into())
+				else
+				{
+					Ok(
+						Assignment {
+							target,
+							value: Expression::parse(lexer)?
+						}.into()
+					)
+				}
 			},
 			_ => unreachable!("consume_one_of returned unexpected token"),
+		};
+
+		if lexer.peek().is_some() {
+			lexer.consume(Token::Newline)?;
 		}
+
+		res
+	}
+}
+
+/// Any PPL statement
+#[derive(Debug, PartialEq, AST, Clone)]
+pub struct Module {
+	/// Statements in module
+	pub statements: Vec<Statement>,
+}
+
+impl Parse for Module {
+	type Err = ParseError;
+
+	/// Parse all statements in module
+	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
+		let mut statements = Vec::new();
+
+		while lexer.peek().is_some() {
+			statements.push(Statement::parse(lexer)?);
+		}
+
+		Ok(Module { statements })
 	}
 }
 
