@@ -272,10 +272,36 @@ impl Parse for VariableDeclaration {
 	}
 }
 
+/// Declaration of type
+#[derive(Debug, PartialEq, AST, Clone)]
+pub struct TypeDeclaration {
+	/// Name of type
+	pub name: WithOffset<String>,
+}
+
+impl Parse for TypeDeclaration {
+	type Err = ParseError;
+
+	/// Parse type declaration using lexer
+	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
+		lexer.consume(Token::Type)?;
+
+		lexer.consume(Token::Id)?;
+
+		let name = WithOffset {
+			value: lexer.slice().to_string(),
+			offset: lexer.span().start
+		};
+
+		Ok(TypeDeclaration {name})
+	}
+}
+
 /// Any PPL declaration
 #[derive(Debug, PartialEq, AST, Clone, From)]
 pub enum Declaration {
-	Variable(VariableDeclaration)
+	Variable(VariableDeclaration),
+	Type(TypeDeclaration),
 }
 
 impl Parse for Declaration {
@@ -283,7 +309,14 @@ impl Parse for Declaration {
 
 	/// Parse declaration using lexer
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
-		VariableDeclaration::parse(lexer).map(Declaration::Variable)
+		let token = lexer.try_match_one_of(&[Token::Type, Token::Let])?;
+		match token {
+			Token::Type =>
+				TypeDeclaration::parse(lexer).map(Declaration::Type),
+			Token::Let =>
+				VariableDeclaration::parse(lexer).map(Declaration::Variable),
+			_ => unreachable!("try_ match_one_of returned unexpected token"),
+		}
 	}
 }
 
