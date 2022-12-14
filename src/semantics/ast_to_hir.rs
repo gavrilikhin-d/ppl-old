@@ -230,3 +230,18 @@ impl<T: ASTLoweringWithinContext> ASTLowering for T {
 		self.lower_to_hir_within_context(&mut context)
 	}
 }
+
+impl ASTLowering for ast::Module {
+	type HIR = Module;
+
+	/// Lower [`ast::Module`] to [`semantics::Module`](Module)
+	fn lower_to_hir(&self) -> Result<Self::HIR, Error> {
+		let mut context = ASTLoweringContext::new();
+
+		for stmt in &self.statements {
+			stmt.lower_to_hir_within_context(&mut context)?;
+		}
+
+		Ok(context.module)
+	}
+}
