@@ -44,6 +44,10 @@ pub enum Token
 	#[token("type")]
 	Type,
 
+	/// '\n' token
+	#[token("\n")]
+	Newline,
+
 	/// Error token
 	#[error]
 	#[regex("[ \n]+", logos::skip)]
