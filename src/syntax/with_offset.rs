@@ -16,7 +16,7 @@ impl Ranged for WithOffset<String> {
 	///
 	/// # Example
 	/// ```
-	/// use ppl::syntax::WithOffset;
+	/// use ppl::syntax::{WithOffset, Ranged};
 	///
 	/// let value = WithOffset { offset: 0, value: "hello".to_string() };
 	/// assert_eq!(value.range(), 0..5);
