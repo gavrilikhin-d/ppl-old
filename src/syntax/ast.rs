@@ -358,14 +358,17 @@ impl Parse for Statement {
 	/// Parse statement using lexer
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
 		let token = lexer.try_match_one_of(
-			&[Token::None, Token::Integer, Token::Id, Token::Let, Token::Plus, Token::Minus]
+			&[
+				Token::None, Token::Integer, Token::Id,
+				Token::Let, Token::Plus, Token::Minus, Token::Type
+			]
 		);
 		if token.is_err() {
 			return Err(token.unwrap_err().into())
 		}
 
 		match token.unwrap() {
-			Token::Let => Declaration::parse(lexer).map(|decl| Statement::Declaration(decl)),
+			Token::Let | Token::Type => Declaration::parse(lexer).map(|decl| Statement::Declaration(decl)),
 			Token::None | Token::Integer | Token::Id | Token::Plus | Token::Minus => {
 				let target = Expression::parse(lexer)?;
 
