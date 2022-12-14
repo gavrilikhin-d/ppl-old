@@ -35,7 +35,10 @@ fn process_single_statement<'llvm>(
 
 	engine.add_module(module).unwrap();
 
-	engine.add_global_mapping(&context.functions().none(), runtime::none as usize);
+	engine.add_global_mapping(
+		&context.functions().none(),
+		runtime::none as usize
+	);
 	engine.add_global_mapping(
 		&context.functions().integer_from_i64(),
 		runtime::integer_from_i64 as usize
