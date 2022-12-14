@@ -403,7 +403,7 @@ fn test_variable_declaration() {
 		VariableDeclaration {
 			name: WithOffset { offset: 4, value: "x".to_string(), },
 			initializer: Literal::Integer { offset: 8, value: "1".to_string() }.into(),
-			mutable: false,
+			mutability: Mutability::Immutable,
 		}
 	);
 
@@ -413,7 +413,7 @@ fn test_variable_declaration() {
 		VariableDeclaration {
 			name: WithOffset { offset: 8, value: "x".to_string(), },
 			initializer: Literal::Integer { offset: 12, value: "1".to_string() }.into(),
-			mutable: true,
+			mutability: Mutability::Mutable,
 		}
 	)
 }
