@@ -67,22 +67,28 @@ impl<'llvm> Types<'llvm> {
 		self.i(bits)
 	}
 
-	/// LLVM IR for [`None`](semantics::Type::None) type
-	pub fn none(&self) -> inkwell::types::PointerType<'llvm> {
-		if let Some(ty) = self.llvm.get_struct_type("None") {
-			return ty.ptr_type(AddressSpace::Generic);
+	/// Get LLVM opaque struct type or create it if it doesn't exist
+	fn get_or_add_opaque_struct(&self, name: &str) -> inkwell::types::StructType<'llvm> {
+		if let Some(ty) = self.llvm.get_struct_type(name) {
+			return ty;
 		}
 
-		self.llvm.opaque_struct_type("None").ptr_type(AddressSpace::Generic)
+		self.llvm.opaque_struct_type(name)
+	}
+
+	/// LLVM IR for [`Class`](semantics::Type::Class) type
+	pub fn class(&self, name: &str) -> inkwell::types::PointerType<'llvm> {
+		self.get_or_add_opaque_struct(name).ptr_type(AddressSpace::Generic)
+	}
+
+	/// LLVM IR for [`None`](semantics::Type::None) type
+	pub fn none(&self) -> inkwell::types::PointerType<'llvm> {
+		self.class("None")
 	}
 
 	/// LLVM IR for [`Integer`](semantics::Type::Integer) type
 	pub fn integer(&self) -> inkwell::types::PointerType<'llvm> {
-		if let Some(ty) = self.llvm.get_struct_type("Integer") {
-			return ty.ptr_type(AddressSpace::Generic);
-		}
-
-		self.llvm.opaque_struct_type("Integer").ptr_type(AddressSpace::Generic)
+		self.class("Integer")
 	}
 
 	/// LLVM IR for C string type
@@ -106,6 +112,8 @@ impl<'llvm> HIRTypesLowering<'llvm> for semantics::Type {
 		match self {
 			semantics::Type::None => context.types().none().into(),
 			semantics::Type::Integer => context.types().integer().into(),
+			semantics::Type::Class(ty) =>
+				context.types().class(&ty.name.value).into()
 		}
 	}
 }
@@ -204,7 +212,7 @@ impl<'llvm> Context<'llvm> for ModuleContext<'llvm> {
 }
 
 impl<'llvm> GlobalHIRLowering<'llvm> for Declaration {
-	type IR = inkwell::values::GlobalValue<'llvm>;
+	type IR = ();
 
 	/// Lower global [`Declaration`] to LLVM IR
 	fn lower_global_to_ir(
@@ -212,8 +220,12 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Declaration {
 		context: &mut ModuleContext<'llvm>
 	) -> Self::IR {
 		match self {
-			Declaration::Variable(var) =>
-				var.lower_global_to_ir(context)
+			Declaration::Variable(var) => {
+				var.lower_global_to_ir(context);
+			},
+			Declaration::Type(ty) => {
+				ty.lower_to_ir(context);
+			},
 		}
 	}
 }
@@ -277,6 +289,15 @@ impl<'llvm> GlobalHIRLowering<'llvm> for VariableDeclaration {
 		f_context.builder.build_store(global.as_pointer_value(), value);
 
 		global
+	}
+}
+
+impl<'llvm> HIRTypesLowering<'llvm> for TypeDeclaration {
+	type IR = inkwell::types::PointerType<'llvm>;
+
+	/// Lower [`TypeDeclaration`] to LLVM IR
+	fn lower_to_ir(&self, context: &dyn Context<'llvm>) -> Self::IR {
+		context.types().class(&self.name.value)
 	}
 }
 
@@ -446,14 +467,14 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Assignment {
 }
 
 impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
-	type IR = inkwell::values::GlobalValue<'llvm>;
+	type IR = ();
 
 	/// Lower global [`Statement`] to LLVM IR
 	fn lower_global_to_ir(
 		&self,
 		context: &mut ModuleContext<'llvm>
 	) -> Self::IR {
-		return match self {
+		match self {
 			Statement::Declaration(d) =>
 				d.lower_global_to_ir(context),
 			Statement::Assignment(a) => {
@@ -465,8 +486,6 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
 
 				let mut context = FunctionContext::new(context, function);
 				a.lower_to_ir(&mut context);
-
-				function.as_global_value()
 			},
 			Statement::Expression(expr) =>
 			{
@@ -482,8 +501,6 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
 				context.builder.build_return(Some(&value));
 
 				function.verify(true);
-
-				function.as_global_value()
 			},
 		};
 	}

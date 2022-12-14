@@ -64,7 +64,8 @@ fn process_single_statement<'llvm>(
 				};
 				println!("{}", unsafe { &*result });
 			},
-			Type::None => println!("none")
+			Type::None => println!("none"),
+			Type::Class(_) => unimplemented!("returning classes"),
 		}
 	}
 

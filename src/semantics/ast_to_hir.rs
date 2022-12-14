@@ -143,6 +143,26 @@ impl ASTLoweringWithinContext for ast::VariableDeclaration {
 	}
 }
 
+impl ASTLoweringWithinContext for ast::TypeDeclaration {
+	type HIR = hir::TypeDeclaration;
+
+	/// Lower [`ast::TypeDeclaration`] to [`hir::TypeDeclaration`] within lowering context
+	fn lower_to_hir_within_context(
+		&self,
+		context: &mut ASTLoweringContext
+	) -> Result<Self::HIR, Error> {
+		let ty = hir::TypeDeclaration {
+			name: self.name.clone(),
+		};
+
+		let name = &self.name.value;
+
+		context.module.types.insert(name.to_owned(), ty.clone());
+
+		Ok(ty)
+	}
+}
+
 impl ASTLoweringWithinContext for ast::Declaration {
 	type HIR = hir::Declaration;
 
@@ -153,6 +173,8 @@ impl ASTLoweringWithinContext for ast::Declaration {
 		) -> Result<Self::HIR, Error> {
 		Ok(match self {
 			ast::Declaration::Variable(decl) =>
+				decl.lower_to_hir_within_context(context)?.into(),
+			ast::Declaration::Type(decl) =>
 				decl.lower_to_hir_within_context(context)?.into(),
 		})
 	}
