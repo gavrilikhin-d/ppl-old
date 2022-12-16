@@ -66,6 +66,7 @@ fn process_single_statement<'llvm>(
 			},
 			Type::None => println!("none"),
 			Type::Class(_) => unimplemented!("returning classes"),
+			Type::Function { .. } => unimplemented!("returning functions"),
 		}
 	}
 

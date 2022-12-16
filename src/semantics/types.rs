@@ -1,14 +1,16 @@
 use super::hir::TypeDeclaration;
 
 /// Type of values
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Type {
 	/// None type
 	None,
 	/// Arbitrary integer type
 	Integer,
 	/// User defined type
-	Class(TypeDeclaration)
+	Class(TypeDeclaration),
+	/// Function type
+	Function { parameters: Vec<Type>, return_type: Box<Type> },
 }
 
 /// Trait for values with a type

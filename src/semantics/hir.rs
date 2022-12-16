@@ -149,6 +149,54 @@ pub struct TypeDeclaration {
 	pub name: WithOffset<String>,
 }
 
+/// Declaration of a function parameter
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct Parameter {
+	/// Type's name
+	pub name: WithOffset<String>,
+	/// Type of parameter
+	pub ty: Type
+}
+
+impl Typed for Parameter {
+	/// Get type of parameter
+	fn get_type(&self) -> Type {
+		self.ty.clone()
+	}
+}
+
+/// Part of a function name
+#[derive(Debug, PartialEq, Eq, Clone, From)]
+pub enum FunctionNamePart {
+	Text(WithOffset<String>),
+	Parameter(Parameter),
+}
+
+/// Declaration of a type
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct FunctionDeclaration {
+	/// Type's name
+	pub name_parts: Vec<FunctionNamePart>,
+	/// Type of returned value
+	pub return_type: Type,
+}
+
+impl Typed for FunctionDeclaration {
+	fn get_type(&self) -> Type {
+		Type::Function {
+			return_type: Box::new(self.return_type.clone()),
+			parameters:
+				self.name_parts.iter().filter_map(
+					|part| match part {
+						FunctionNamePart::Parameter(parameter) =>
+							Some(parameter.get_type()),
+						_ => None
+					}
+				).collect()
+		}
+	}
+}
+
 /// Any PPL declaration
 #[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Declaration {

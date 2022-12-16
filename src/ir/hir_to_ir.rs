@@ -112,7 +112,8 @@ impl<'llvm> HIRTypesLowering<'llvm> for semantics::Type {
 		match self {
 			semantics::Type::None => context.types().none().into(),
 			semantics::Type::Integer => context.types().integer().into(),
-			semantics::Type::Class(ty) => ty.lower_to_ir(context).into()
+			semantics::Type::Class(ty) => ty.lower_to_ir(context).into(),
+			semantics::Type::Function { .. } => unimplemented!("Function type lowering"),
 		}
 	}
 }
