@@ -297,11 +297,125 @@ impl Parse for TypeDeclaration {
 	}
 }
 
+/// Parameter of function
+#[derive(Debug, PartialEq, AST, Clone)]
+pub struct Parameter {
+	/// Parameter's name
+	pub name: WithOffset<String>,
+	/// Parameter's type
+	pub ty: WithOffset<String>,
+}
+
+impl Parse for Parameter {
+	type Err = ParseError;
+
+	/// Parse parameter using lexer
+	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
+		lexer.consume(Token::Id)?;
+
+		let name = WithOffset {
+			value: lexer.slice().to_string(),
+			offset: lexer.span().start
+		};
+
+		lexer.consume(Token::Colon)?;
+
+		lexer.consume(Token::Id)?;
+
+		let ty = WithOffset {
+			value: lexer.slice().to_string(),
+			offset: lexer.span().start
+		};
+
+		Ok(
+			Parameter {
+				name,
+				ty,
+			}
+		)
+	}
+}
+
+/// Cell of function
+#[derive(Debug, PartialEq, AST, Clone, From)]
+pub enum FunctionNamePart {
+	Text(WithOffset<String>),
+	Parameter(Parameter),
+}
+
+impl Parse for FunctionNamePart {
+	type Err = ParseError;
+
+	/// Parse function name part using lexer
+	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
+		let token = lexer.consume_one_of(&[Token::Id, Token::Less])?;
+		match token {
+			Token::Id =>
+				Ok(WithOffset {
+					value: lexer.slice().to_string(),
+					offset: lexer.span().start
+				}.into()),
+			Token::Less => {
+				let p = Parameter::parse(lexer)?;
+
+				lexer.consume(Token::Greater)?;
+
+				Ok(p.into())
+			}
+			_ => unreachable!("consume_one_of returned unexpected token"),
+		}
+	}
+}
+
+/// Any PPL declaration
+#[derive(Debug, PartialEq, AST, Clone)]
+pub struct FunctionDeclaration {
+	/// Name parts of function
+	pub name_parts: Vec<FunctionNamePart>,
+	/// Return type of function
+	pub return_type: Option<WithOffset<String>>,
+}
+
+impl Parse for FunctionDeclaration {
+	type Err = ParseError;
+
+	/// Parse function declaration using lexer
+	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
+		lexer.consume(Token::Fn)?;
+
+		let mut name_parts = Vec::new();
+
+		loop {
+			let part = FunctionNamePart::parse(lexer)?;
+			name_parts.push(part);
+
+			if lexer.try_match_one_of(&[Token::Newline, Token::Arrow]).is_ok() {
+				break;
+			}
+		}
+
+		let return_type = if lexer.consume(Token::Arrow).is_ok() {
+			lexer.consume(Token::Id)?;
+
+			Some(WithOffset {
+				value: lexer.slice().to_string(),
+				offset: lexer.span().start
+			})
+		} else {
+			None
+		};
+
+		Ok(FunctionDeclaration {name_parts, return_type})
+	}
+
+}
+
 /// Any PPL declaration
 #[derive(Debug, PartialEq, AST, Clone, From)]
 pub enum Declaration {
 	Variable(VariableDeclaration),
 	Type(TypeDeclaration),
+	Function(FunctionDeclaration),
 }
 
 impl Parse for Declaration {
@@ -309,12 +423,16 @@ impl Parse for Declaration {
 
 	/// Parse declaration using lexer
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
-		let token = lexer.try_match_one_of(&[Token::Type, Token::Let])?;
+		let token = lexer.try_match_one_of(
+			&[Token::Type, Token::Let, Token::Fn]
+		)?;
 		match token {
 			Token::Type =>
 				TypeDeclaration::parse(lexer).map(Declaration::Type),
 			Token::Let =>
 				VariableDeclaration::parse(lexer).map(Declaration::Variable),
+			Token::Fn =>
+				FunctionDeclaration::parse(lexer).map(Declaration::Function),
 			_ => unreachable!("try_ match_one_of returned unexpected token"),
 		}
 	}
@@ -360,7 +478,8 @@ impl Parse for Statement {
 		let token = lexer.try_match_one_of(
 			&[
 				Token::None, Token::Integer, Token::Id,
-				Token::Let, Token::Plus, Token::Minus, Token::Type
+				Token::Let, Token::Plus, Token::Minus,
+				Token::Type, Token::Fn
 			]
 		);
 		if token.is_err() {
@@ -368,7 +487,7 @@ impl Parse for Statement {
 		}
 
 		let res = match token.unwrap() {
-			Token::Let | Token::Type =>
+			Token::Let | Token::Type | Token::Fn =>
 				Declaration::parse(lexer)
 					.map(|decl| Statement::Declaration(decl)),
 			Token::None | Token::Integer | Token::Id |
@@ -454,6 +573,46 @@ fn test_variable_declaration() {
 			mutability: Mutability::Mutable,
 		}
 	)
+}
+
+#[test]
+fn test_type() {
+	let type_decl = "type x".parse::<TypeDeclaration>().unwrap();
+	assert_eq!(
+		type_decl,
+		TypeDeclaration {
+			name: WithOffset { offset: 5, value: "x".to_string(), },
+		}
+	);
+}
+
+#[test]
+fn test_function_declaration() {
+	let func =
+		"fn distance from <a: Point> to <b: Point> -> Distance"
+			.parse::<FunctionDeclaration>()
+			.unwrap();
+	assert_eq!(
+		func,
+		FunctionDeclaration {
+			name_parts: vec![
+				WithOffset { offset: 3, value: "distance".to_string(), }.into(),
+				WithOffset { offset: 12, value: "from".to_string(), }.into(),
+				Parameter {
+					name: WithOffset { offset: 18, value: "a".to_string(), },
+					ty: WithOffset { offset: 21, value: "Point".to_string() },
+				}.into(),
+				WithOffset { offset: 28, value: "to".to_string(), }.into(),
+				Parameter {
+					name: WithOffset { offset: 32, value: "b".to_string(), },
+					ty: WithOffset { offset: 35, value: "Point".to_string() },
+				}.into(),
+			],
+			return_type: Some(
+				WithOffset { offset: 45, value: "Distance".to_string() }
+			)
+		}
+	);
 }
 
 #[test]

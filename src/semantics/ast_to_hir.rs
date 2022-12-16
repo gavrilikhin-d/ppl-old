@@ -176,6 +176,8 @@ impl ASTLoweringWithinContext for ast::Declaration {
 				decl.lower_to_hir_within_context(context)?.into(),
 			ast::Declaration::Type(decl) =>
 				decl.lower_to_hir_within_context(context)?.into(),
+			ast::Declaration::Function(decl) =>
+				unimplemented!("Function declarations hir are not yet supported"),
 		})
 	}
 }
