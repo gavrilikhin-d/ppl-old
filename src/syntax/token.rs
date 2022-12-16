@@ -48,6 +48,26 @@ pub enum Token
 	#[token("\n")]
 	Newline,
 
+	/// ':' token
+	#[token(":")]
+	Colon,
+
+	/// '<' token
+	#[token("<")]
+	Less,
+
+	/// '>' token
+	#[token(">")]
+	Greater,
+
+	/// "fn" token
+	#[token("fn")]
+	Fn,
+
+	/// "->" token
+	#[token("->")]
+	Arrow,
+
 	/// Error token
 	#[error]
 	#[regex("[ \n]+", logos::skip)]
@@ -61,6 +81,11 @@ impl Display for Token {
 			Token::Assign => write!(f, "="),
 			Token::Plus => write!(f, "+"),
 			Token::Minus => write!(f, "-"),
+			Token::Colon => write!(f, ":"),
+			Token::Less => write!(f, "<"),
+			Token::Greater => write!(f, ">"),
+			Token::Fn => write!(f, "fn"),
+			Token::Arrow => write!(f, "->"),
 			Token::Let => write!(f, "let"),
 			Token::Mut => write!(f, "mut"),
 			Token::Type => write!(f, "type"),
