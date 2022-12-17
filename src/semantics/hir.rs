@@ -9,8 +9,7 @@ use crate::semantics::Type;
 
 use super::Typed;
 
-pub use crate::syntax::Mutability;
-pub use crate::syntax::Mutable;
+pub use crate::mutability::{Mutability, Mutable};
 
 
 /// AST for compile time known values

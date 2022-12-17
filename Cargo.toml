@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 logos = "0.12.1"
 rug = "1.18.0"
-ast_derive = { path = "src/syntax/ast_derive" }
+ast_derive = { path = "src/ast_derive" }
 miette = { version = "5.5.0", features = ["fancy"] }
 thiserror = "1.0.37"
 derive_more = "0.99.17"

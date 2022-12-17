@@ -3,7 +3,7 @@ use std::io::Write;
 use inkwell::execution_engine::ExecutionEngine;
 use ppl::semantics::{ASTLoweringContext, ASTLoweringWithinContext, hir, Typed, Type};
 use ppl::syntax::Lexer;
-use ppl::syntax::ast::*;
+use ppl::ast::*;
 use ppl::ir::{self, Context};
 use ppl::ir::GlobalHIRLowering;
 use inkwell::OptimizationLevel;

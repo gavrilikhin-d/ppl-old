@@ -1,8 +1,9 @@
-use crate::syntax::{ast, Ranged, WithOffset};
+use crate::syntax::{Ranged, WithOffset};
 use super::hir::Mutable;
 use super::{Type, hir, Module, Typed};
 
 use super::error::*;
+use crate::ast;
 
 /// AST to HIR lowering context
 pub struct ASTLoweringContext {

@@ -4,9 +4,9 @@ use crate::syntax::{Token, Lexer};
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::error::*;
+use crate::syntax::{WithOffset, Ranged, error::*};
 
-use super::{WithOffset, Ranged, Mutability, Mutable};
+use crate::mutability::{Mutable, Mutability};
 
 use derive_more::From;
 

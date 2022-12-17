@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::semantics::hir::{VariableDeclaration, TypeDeclaration, Statement};
-use crate::syntax::ast;
+use crate::ast;
 
 use super::ASTLowering;
 
