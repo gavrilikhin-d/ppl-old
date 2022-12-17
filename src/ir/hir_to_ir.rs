@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
 use inkwell::AddressSpace;
-use inkwell::module::Linkage;
-use inkwell::types::{BasicType, BasicMetadataTypeEnum};
+use inkwell::types::BasicMetadataTypeEnum;
 
-use crate::semantics::{self, Typed};
-use crate::semantics::hir::*;
+use inkwell::types::BasicType;
+
+use crate::hir::*;
 
 /// Trait for lowering HIR for global declarations to IR within module context
 pub trait GlobalHIRLowering<'llvm> {
@@ -76,17 +76,17 @@ impl<'llvm> Types<'llvm> {
 		self.llvm.opaque_struct_type(name)
 	}
 
-	/// LLVM IR for [`Class`](semantics::Type::Class) type
+	/// LLVM IR for [`Class`](Type::Class) type
 	pub fn class(&self, name: &str) -> inkwell::types::PointerType<'llvm> {
 		self.get_or_add_opaque_struct(name).ptr_type(AddressSpace::Generic)
 	}
 
-	/// LLVM IR for [`None`](semantics::Type::None) type
+	/// LLVM IR for [`None`](Type::None) type
 	pub fn none(&self) -> inkwell::types::PointerType<'llvm> {
 		self.class("None")
 	}
 
-	/// LLVM IR for [`Integer`](semantics::Type::Integer) type
+	/// LLVM IR for [`Integer`](Type::Integer) type
 	pub fn integer(&self) -> inkwell::types::PointerType<'llvm> {
 		self.class("Integer")
 	}
@@ -97,23 +97,23 @@ impl<'llvm> Types<'llvm> {
 	}
 }
 
-/// Trait for convenient lowering of PPL's [`Type`](semantics::Type) to LLVM IR
+/// Trait for convenient lowering of PPL's [`Type`](Type) to LLVM IR
 pub trait HIRTypesLowering<'llvm> {
 	type IR;
 
-	/// Lower PPL's [`Type`](semantics::Type) to LLVM IR
+	/// Lower PPL's [`Type`](Type) to LLVM IR
 	fn lower_to_ir(&self, context: &dyn Context<'llvm>) -> Self::IR;
 }
 
-impl<'llvm> HIRTypesLowering<'llvm> for semantics::Type {
+impl<'llvm> HIRTypesLowering<'llvm> for Type {
 	type IR = inkwell::types::BasicTypeEnum<'llvm>;
 
 	fn lower_to_ir(&self, context: &dyn Context<'llvm>) -> Self::IR {
 		match self {
-			semantics::Type::None => context.types().none().into(),
-			semantics::Type::Integer => context.types().integer().into(),
-			semantics::Type::Class(ty) => ty.lower_to_ir(context).into(),
-			semantics::Type::Function { .. } => unimplemented!("Function type lowering"),
+			Type::None => context.types().none().into(),
+			Type::Integer => context.types().integer().into(),
+			Type::Class(ty) => ty.lower_to_ir(context).into(),
+			Type::Function { .. } => unimplemented!("Function type lowering"),
 		}
 	}
 }
@@ -141,13 +141,13 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
 		self.module.add_function(name, ty, None)
 	}
 
-	/// LLVM IR for default constructor of [`None`](semantics::Type::None) type
+	/// LLVM IR for default constructor of [`None`](Type::None) type
 	pub fn none(&self) -> inkwell::values::FunctionValue<'llvm> {
 		let types = Types::new(self.module.get_context());
 		self.get_or_add_function("none", types.none().fn_type(&[], false))
 	}
 
-	/// LLVM IR for constructor of [`Integer`](semantics::Type::Integer) type from i64
+	/// LLVM IR for constructor of [`Integer`](Type::Integer) type from i64
 	pub fn integer_from_i64(&self) -> inkwell::values::FunctionValue<'llvm> {
 		let types = Types::new(self.module.get_context());
 		self.get_or_add_function(
@@ -156,7 +156,7 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
 		)
 	}
 
-	/// LLVM IR for constructor of [`Integer`](semantics::Type::Integer) type from C string
+	/// LLVM IR for constructor of [`Integer`](Type::Integer) type from C string
 	pub fn integer_from_c_string(&self) -> inkwell::values::FunctionValue<'llvm> {
 		let types = Types::new(self.module.get_context());
 		self.get_or_add_function(
@@ -314,7 +314,7 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionDeclaration {
 		context: &mut ModuleContext<'llvm>
 	) -> Self::IR {
 		let ty = match self.get_type() {
-			semantics::Type::Function { parameters, return_type } => {
+			Type::Function { parameters, return_type } => {
 				let parameters = parameters.iter().map(|p| p.lower_to_ir(context).into()).collect::<Vec<BasicMetadataTypeEnum>>();
 				let return_type = return_type.lower_to_ir(context);
 				return_type.fn_type(&parameters, false)

@@ -1,6 +1,6 @@
+use crate::mutability::Mutable;
 use crate::syntax::{Ranged, WithOffset};
-use super::hir::Mutable;
-use super::{Type, hir, Module, Typed};
+pub use crate::hir::{self, Type, Module, Typed};
 
 use super::error::*;
 use crate::ast;

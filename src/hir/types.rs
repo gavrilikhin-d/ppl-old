@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::hir::TypeDeclaration;
+use super::TypeDeclaration;
 use derive_more::From;
 
 /// Type of values

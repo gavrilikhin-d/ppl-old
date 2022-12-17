@@ -1,7 +1,7 @@
 use thiserror::Error;
 use miette::{SourceSpan, Diagnostic};
 
-use super::Type;
+use crate::hir::Type;
 
 /// Diagnostic for undefined variables
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]

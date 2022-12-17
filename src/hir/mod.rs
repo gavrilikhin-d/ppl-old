@@ -5,9 +5,11 @@ use std::hash::{Hash, Hasher};
 
 use crate::syntax::{WithOffset, Ranged};
 
-use crate::semantics::Type;
+mod module;
+pub use module::*;
 
-use super::Typed;
+mod types;
+pub use types::*;
 
 pub use crate::mutability::{Mutability, Mutable};
 

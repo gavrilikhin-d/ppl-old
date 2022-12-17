@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::semantics::hir::{VariableDeclaration, TypeDeclaration, Statement};
 use crate::ast;
 
-use super::ASTLowering;
+use crate::semantics::ASTLowering;
 
 /// Module with PPL code
 #[derive(Debug, PartialEq, Clone)]
