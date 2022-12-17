@@ -1,6 +1,6 @@
-use crate::syntax::{ast, Ranged};
+use crate::syntax::{ast, Ranged, WithOffset};
 use super::hir::Mutable;
-use super::{hir, Module, Typed};
+use super::{Type, hir, Module, Typed};
 
 use super::error::*;
 
@@ -20,6 +20,24 @@ impl ASTLoweringContext {
 	pub fn find_variable(&self, name: &str)
 	-> Option<&hir::VariableDeclaration> {
 		self.module.variables.get(name)
+	}
+
+	/// Recursively find type starting from current scope
+	pub fn find_type(&self, name: &str) -> Option<Type> {
+		self.module.types.get(name).map(|t| t.clone().into())
+	}
+
+	/// Recursively find type starting from current scope, or return error
+	pub fn get_type(&self, name: &WithOffset<String>) -> Result<Type, UnknownType> {
+		let t = self.find_type(&name.value);
+		if t.is_none() {
+			return Err(UnknownType {
+				name: name.value.clone(),
+				at: name.range().into()
+			}.into());
+		}
+
+		Ok(t.unwrap())
 	}
 }
 
@@ -163,6 +181,55 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
 	}
 }
 
+impl ASTLoweringWithinContext for ast::Parameter {
+	type HIR = hir::Parameter;
+
+	/// Lower [`ast::Parameter`] to [`hir::Parameter`] within lowering context
+	fn lower_to_hir_within_context(
+		&self,
+		context: &mut ASTLoweringContext
+	) -> Result<Self::HIR, Error> {
+		let ty = context.get_type(&self.ty)?;
+
+		Ok(hir::Parameter {
+			name: self.name.clone(),
+			ty,
+		})
+	}
+}
+
+impl ASTLoweringWithinContext for ast::FunctionDeclaration {
+	type HIR = hir::FunctionDeclaration;
+
+	/// Lower [`ast::FunctionDeclaration`] to [`hir::FunctionDeclaration`] within lowering context
+	fn lower_to_hir_within_context(
+		&self,
+		context: &mut ASTLoweringContext
+	) -> Result<Self::HIR, Error> {
+		let mut name_parts: Vec<hir::FunctionNamePart> = Vec::new();
+		for part in &self.name_parts {
+			match part {
+				ast::FunctionNamePart::Text(t) =>
+					name_parts.push(t.clone().into()),
+				ast::FunctionNamePart::Parameter(p) =>
+					name_parts.push(
+						p.lower_to_hir_within_context(context)?.into()
+					),
+			}
+		}
+
+		let return_type = match &self.return_type {
+			Some(ty) => context.get_type(ty)?,
+			None => Type::None,
+		};
+
+		Ok(hir::FunctionDeclaration {
+			name_parts,
+			return_type
+		})
+	}
+}
+
 impl ASTLoweringWithinContext for ast::Declaration {
 	type HIR = hir::Declaration;
 
@@ -177,7 +244,7 @@ impl ASTLoweringWithinContext for ast::Declaration {
 			ast::Declaration::Type(decl) =>
 				decl.lower_to_hir_within_context(context)?.into(),
 			ast::Declaration::Function(decl) =>
-				unimplemented!("Function declarations hir are not yet supported"),
+				decl.lower_to_hir_within_context(context)?.into(),
 		})
 	}
 }

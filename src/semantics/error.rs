@@ -6,7 +6,7 @@ use super::Type;
 /// Diagnostic for undefined variables
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 #[error("variable '{name}' is not defined")]
-#[diagnostic(code(evaluator::undefined_variable))]
+#[diagnostic(code(semantics::undefined_variable))]
 pub struct UndefinedVariable {
 	/// Name of undefined variable
 	pub name: String,
@@ -16,10 +16,23 @@ pub struct UndefinedVariable {
 	pub at: SourceSpan
 }
 
+/// Diagnostic for unknown type
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("unknown type '{name}'")]
+#[diagnostic(code(semantics::unknown_type))]
+pub struct UnknownType {
+	/// Name of unknown type
+	pub name: String,
+
+	/// Span of name
+	#[label("reference to unknown type")]
+	pub at: SourceSpan
+}
+
 /// Diagnostic for assignment to immutable
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 #[error("assignment to immutable")]
-#[diagnostic(code(evaluator::assignment_to_immutable))]
+#[diagnostic(code(semantics::assignment_to_immutable))]
 pub struct AssignmentToImmutable {
 	/// Span of immutable thing
 	#[label("this value is immutable")]
@@ -29,7 +42,7 @@ pub struct AssignmentToImmutable {
 /// Diagnostic for not convertible types
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 #[error("can't convert {from:?} to {to:?}")]
-#[diagnostic(code(evaluator::no_conversion))]
+#[diagnostic(code(semantics::no_conversion))]
 pub struct NoConversion {
 	/// Type, that must be converted
 	pub from: Type,
@@ -45,7 +58,7 @@ pub struct NoConversion {
 	pub to_span: SourceSpan
 }
 
-/// Possible lexer errors
+/// Possible semantics errors
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 pub enum Error {
 	#[error(transparent)]
@@ -57,4 +70,7 @@ pub enum Error {
 	#[error(transparent)]
 	#[diagnostic(transparent)]
 	NoConversion(#[from] NoConversion),
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	UnknownType(#[from] UnknownType),
 }

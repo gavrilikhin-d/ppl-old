@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use inkwell::AddressSpace;
 use inkwell::module::Linkage;
-use inkwell::types::BasicType;
+use inkwell::types::{BasicType, BasicMetadataTypeEnum};
 
 use crate::semantics::{self, Typed};
 use crate::semantics::hir::*;
@@ -226,6 +226,9 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Declaration {
 			Declaration::Type(ty) => {
 				ty.lower_to_ir(context);
 			},
+			Declaration::Function(f) => {
+				f.lower_global_to_ir(context);
+			},
 		}
 	}
 }
@@ -298,6 +301,43 @@ impl<'llvm> HIRTypesLowering<'llvm> for TypeDeclaration {
 	/// Lower [`TypeDeclaration`] to LLVM IR
 	fn lower_to_ir(&self, context: &dyn Context<'llvm>) -> Self::IR {
 		context.types().class(&self.name.value)
+	}
+}
+
+
+impl<'llvm> DeclareGlobal<'llvm> for FunctionDeclaration {
+	type IR = inkwell::values::FunctionValue<'llvm>;
+
+	/// Declare global function without defining it
+	fn declare_global(
+		&self,
+		context: &mut ModuleContext<'llvm>
+	) -> Self::IR {
+		let ty = match self.get_type() {
+			semantics::Type::Function { parameters, return_type } => {
+				let parameters = parameters.iter().map(|p| p.lower_to_ir(context).into()).collect::<Vec<BasicMetadataTypeEnum>>();
+				let return_type = return_type.lower_to_ir(context);
+				return_type.fn_type(&parameters, false)
+			},
+			_ => unreachable!("FunctionDeclaration::get_type() returned non-function type")
+		};
+		context.module.add_function(
+			&self.name(),
+			ty,
+			None
+		)
+	}
+}
+
+impl<'llvm> GlobalHIRLowering<'llvm> for FunctionDeclaration {
+	type IR = inkwell::values::FunctionValue<'llvm>;
+
+	/// Lower global [`FunctionDeclaration`] to LLVM IR
+	fn lower_global_to_ir(
+		&self,
+		context: &mut ModuleContext<'llvm>
+	) -> Self::IR {
+		self.declare_global(context)
 	}
 }
 

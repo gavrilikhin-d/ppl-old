@@ -1,5 +1,6 @@
 use derive_more::{From, TryInto};
 
+use std::fmt::Display;
 use std::hash::{Hash, Hasher};
 
 use crate::syntax::{WithOffset, Ranged};
@@ -172,6 +173,16 @@ pub enum FunctionNamePart {
 	Parameter(Parameter),
 }
 
+impl Display for FunctionNamePart {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			FunctionNamePart::Text(text) => write!(f, "{}", text.value),
+			FunctionNamePart::Parameter(parameter) =>
+				write!(f, "<{}: {}>", parameter.name.value, parameter.ty),
+		}
+	}
+}
+
 /// Declaration of a type
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct FunctionDeclaration {
@@ -180,6 +191,23 @@ pub struct FunctionDeclaration {
 	/// Type of returned value
 	pub return_type: Type,
 }
+
+impl FunctionDeclaration {
+	/// Get name of function
+	pub fn name(&self) -> String {
+		let mut name = String::new();
+
+		for (i, part) in self.name_parts.iter().enumerate() {
+			if i > 0 {
+				name.push_str(" ");
+			}
+			name.push_str(format!("{}", part).as_str());
+		}
+
+		name
+	}
+}
+
 
 impl Typed for FunctionDeclaration {
 	fn get_type(&self) -> Type {
@@ -202,6 +230,7 @@ impl Typed for FunctionDeclaration {
 pub enum Declaration {
 	Variable(VariableDeclaration),
 	Type(TypeDeclaration),
+	Function(FunctionDeclaration),
 }
 
 /// Assignment of a value to a
