@@ -1,18 +1,22 @@
-use std::collections::HashMap;
+use std::collections::HashSet;
 
-use crate::semantics::hir::{VariableDeclaration, TypeDeclaration, Statement};
+use std::sync::Arc;
 use crate::ast;
-
+use crate::hir::{VariableDeclaration, TypeDeclaration, FunctionDeclaration, Statement};
+use crate::named::HashByName;
 use crate::semantics::ASTLowering;
 
 /// Module with PPL code
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Module {
-	/// Variables declared in this module
-	pub variables: HashMap<String, VariableDeclaration>,
+	/// Variables, declared in this module
+	pub variables: HashSet<HashByName<Arc<VariableDeclaration>>>,
 
-	/// Types declared in this module
-	pub types: HashMap<String, TypeDeclaration>,
+	/// Types, declared in this module
+	pub types: HashSet<HashByName<Arc<TypeDeclaration>>>,
+
+	/// Functions, declared in this module
+	pub functions: HashSet<HashByName<Arc<FunctionDeclaration>>>,
 
 	/// Statements in this module
 	pub statements: Vec<Statement>
@@ -22,8 +26,9 @@ impl Module {
 	/// Create an empty module
 	pub fn new() -> Self {
 		Self {
-			variables: HashMap::new(),
-			types: HashMap::new(),
+			variables: HashSet::new(),
+			types: HashSet::new(),
+			functions: HashSet::new(),
 			statements: vec![]
 		}
 	}

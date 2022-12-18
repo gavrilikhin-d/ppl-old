@@ -4,7 +4,7 @@ use crate::syntax::{Token, Lexer};
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{WithOffset, Ranged, error::*};
+use crate::syntax::{StringWithOffset, WithOffset, Ranged, error::*};
 
 use crate::mutability::{Mutable, Mutability};
 
@@ -66,7 +66,7 @@ impl Ranged for Literal {
 #[derive(Debug, PartialEq, AST, Clone)]
 pub struct VariableReference {
 	/// Referenced variable name
-	pub name: WithOffset<String>
+	pub name: StringWithOffset
 }
 
 impl Parse for VariableReference {
@@ -79,7 +79,7 @@ impl Parse for VariableReference {
 		let offset = lexer.span().start;
 		let name = lexer.slice().to_string();
 
-		Ok(VariableReference { name: WithOffset { offset, value: name }})
+		Ok(VariableReference { name: StringWithOffset::from(name).at(offset)})
 	}
 }
 
@@ -227,7 +227,7 @@ impl Ranged for Expression {
 #[derive(Debug, PartialEq, AST, Clone)]
 pub struct VariableDeclaration {
 	/// Name of variable
-	pub name: WithOffset<String>,
+	pub name: StringWithOffset,
 	/// Initializer for variable
 	pub initializer: Expression,
 
@@ -252,16 +252,13 @@ impl Parse for VariableDeclaration {
 
 		lexer.consume(Token::Id)?;
 
-		let name = WithOffset {
-			value: lexer.slice().to_string(),
-			offset: lexer.span().start
-		};
+		let name = StringWithOffset::from(lexer.slice()).at(lexer.span().start);
 
 		lexer.consume(Token::Assign)?;
 
 		Ok(
 			VariableDeclaration {
-				name: name,
+				name,
 				initializer: Expression::parse(lexer)?,
 				mutability: match mutable {
 					true => Mutability::Mutable,
@@ -276,7 +273,7 @@ impl Parse for VariableDeclaration {
 #[derive(Debug, PartialEq, AST, Clone)]
 pub struct TypeDeclaration {
 	/// Name of type
-	pub name: WithOffset<String>,
+	pub name: StringWithOffset,
 }
 
 impl Parse for TypeDeclaration {
@@ -288,10 +285,7 @@ impl Parse for TypeDeclaration {
 
 		lexer.consume(Token::Id)?;
 
-		let name = WithOffset {
-			value: lexer.slice().to_string(),
-			offset: lexer.span().start
-		};
+		let name = lexer.string_with_offset();
 
 		Ok(TypeDeclaration {name})
 	}
@@ -301,9 +295,9 @@ impl Parse for TypeDeclaration {
 #[derive(Debug, PartialEq, AST, Clone)]
 pub struct Parameter {
 	/// Parameter's name
-	pub name: WithOffset<String>,
+	pub name: StringWithOffset,
 	/// Parameter's type
-	pub ty: WithOffset<String>,
+	pub ty: StringWithOffset,
 }
 
 impl Parse for Parameter {
@@ -311,21 +305,11 @@ impl Parse for Parameter {
 
 	/// Parse parameter using lexer
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
-		lexer.consume(Token::Id)?;
-
-		let name = WithOffset {
-			value: lexer.slice().to_string(),
-			offset: lexer.span().start
-		};
+		let name = lexer.consume(Token::Id)?;
 
 		lexer.consume(Token::Colon)?;
 
-		lexer.consume(Token::Id)?;
-
-		let ty = WithOffset {
-			value: lexer.slice().to_string(),
-			offset: lexer.span().start
-		};
+		let ty = lexer.consume(Token::Id)?;
 
 		Ok(
 			Parameter {
@@ -339,7 +323,7 @@ impl Parse for Parameter {
 /// Cell of function
 #[derive(Debug, PartialEq, AST, Clone, From)]
 pub enum FunctionNamePart {
-	Text(WithOffset<String>),
+	Text(StringWithOffset),
 	Parameter(Parameter),
 }
 
@@ -351,10 +335,7 @@ impl Parse for FunctionNamePart {
 		let token = lexer.consume_one_of(&[Token::Id, Token::Less])?;
 		match token {
 			Token::Id =>
-				Ok(WithOffset {
-					value: lexer.slice().to_string(),
-					offset: lexer.span().start
-				}.into()),
+				Ok(lexer.string_with_offset().into()),
 			Token::Less => {
 				let p = Parameter::parse(lexer)?;
 
@@ -373,7 +354,7 @@ pub struct FunctionDeclaration {
 	/// Name parts of function
 	pub name_parts: Vec<FunctionNamePart>,
 	/// Return type of function
-	pub return_type: Option<WithOffset<String>>,
+	pub return_type: Option<StringWithOffset>,
 }
 
 impl Parse for FunctionDeclaration {
@@ -395,12 +376,7 @@ impl Parse for FunctionDeclaration {
 		}
 
 		let return_type = if lexer.consume(Token::Arrow).is_ok() {
-			lexer.consume(Token::Id)?;
-
-			Some(WithOffset {
-				value: lexer.slice().to_string(),
-				offset: lexer.span().start
-			})
+			Some(lexer.consume(Token::Id)?)
 		} else {
 			None
 		};
@@ -558,7 +534,7 @@ fn test_variable_declaration() {
 	assert_eq!(
 		var,
 		VariableDeclaration {
-			name: WithOffset { offset: 4, value: "x".to_string(), },
+			name: StringWithOffset::from("x").at(4),
 			initializer: Literal::Integer { offset: 8, value: "1".to_string() }.into(),
 			mutability: Mutability::Immutable,
 		}
@@ -568,7 +544,7 @@ fn test_variable_declaration() {
 	assert_eq!(
 		var,
 		VariableDeclaration {
-			name: WithOffset { offset: 8, value: "x".to_string(), },
+			name: StringWithOffset::from("x").at(8),
 			initializer: Literal::Integer { offset: 12, value: "1".to_string() }.into(),
 			mutability: Mutability::Mutable,
 		}
@@ -581,7 +557,7 @@ fn test_type() {
 	assert_eq!(
 		type_decl,
 		TypeDeclaration {
-			name: WithOffset { offset: 5, value: "x".to_string(), },
+			name: StringWithOffset::from("x").at(5)
 		}
 	);
 }
@@ -596,20 +572,20 @@ fn test_function_declaration() {
 		func,
 		FunctionDeclaration {
 			name_parts: vec![
-				WithOffset { offset: 3, value: "distance".to_string(), }.into(),
-				WithOffset { offset: 12, value: "from".to_string(), }.into(),
+				StringWithOffset::from("distance").at(3).into(),
+				StringWithOffset::from("from").at(12).into(),
 				Parameter {
-					name: WithOffset { offset: 18, value: "a".to_string(), },
-					ty: WithOffset { offset: 21, value: "Point".to_string() },
+					name: StringWithOffset::from("a").at(18).into(),
+					ty: StringWithOffset::from("Point").at(21).into(),
 				}.into(),
-				WithOffset { offset: 28, value: "to".to_string(), }.into(),
+				StringWithOffset::from("to").at(28).into(),
 				Parameter {
-					name: WithOffset { offset: 32, value: "b".to_string(), },
-					ty: WithOffset { offset: 35, value: "Point".to_string() },
+					name: StringWithOffset::from("b").at(32).into(),
+					ty: StringWithOffset::from("Point").at(35).into(),
 				}.into(),
 			],
 			return_type: Some(
-				WithOffset { offset: 45, value: "Distance".to_string() }
+				StringWithOffset::from("Distance").at(45).into()
 			)
 		}
 	);

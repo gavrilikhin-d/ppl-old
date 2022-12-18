@@ -4,6 +4,8 @@ use logos::{Logos, Span};
 
 use crate::syntax::error::{LexerError, InvalidToken, UnexpectedToken, MissingToken};
 
+use super::StringWithOffset;
+
 /// The different kinds of tokens that can be lexed.
 #[derive(Logos, Debug, PartialEq, Clone)]
 pub enum Token
@@ -210,6 +212,22 @@ impl<'source> Lexer<'source> {
 		&self.lexer.source()[self.span.clone()]
 	}
 
+	/// Get string with offset of current token
+	///
+	/// # Example
+	/// ```
+	/// use ppl::syntax::{Token, Lexer, StringWithOffset};
+	///
+	/// let mut lexer = Lexer::new("42");
+	/// assert_eq!(lexer.next(), Some(Token::Integer));
+	/// assert_eq!(
+	/// 	lexer.string_with_offset(),
+	/// 	StringWithOffset::from("42").at(0)
+	/// );
+	pub fn string_with_offset(&self) -> StringWithOffset {
+		StringWithOffset::from(self.slice()).at(self.span().start)
+	}
+
 	/// Bumps the end of currently lexed token by `n` bytes.
     ///
     /// # Panics
@@ -221,6 +239,7 @@ impl<'source> Lexer<'source> {
 		self.peeked.take();
 		self.lexer.bump(n)
 	}
+
 }
 
 impl<'source> Iterator for Lexer<'source> {
@@ -340,8 +359,8 @@ impl<'source> Lexer<'source> {
 	/// 	)
 	/// );
 	/// ```
-	pub fn consume(&mut self, token: Token) -> Result<(), LexerError> {
-		self.consume_one_of(&[token]).map(|_| ())
+	pub fn consume(&mut self, token: Token) -> Result<StringWithOffset, LexerError> {
+		self.consume_one_of(&[token]).map(|_| self.string_with_offset())
 	}
 
 	/// Lex next token if it has one of specified types

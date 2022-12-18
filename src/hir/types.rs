@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, sync::Arc};
 
 use super::TypeDeclaration;
 use derive_more::From;
@@ -11,7 +11,7 @@ pub enum Type {
 	/// Arbitrary integer type
 	Integer,
 	/// User defined type
-	Class(TypeDeclaration),
+	Class(Arc<TypeDeclaration>),
 	/// Function type
 	Function { parameters: Vec<Type>, return_type: Box<Type> },
 }
@@ -21,7 +21,7 @@ impl Display for Type {
 		match self {
 			Type::None => write!(f, "None"),
 			Type::Integer => write!(f, "Integer"),
-			Type::Class(class) => write!(f, "{}", class.name.value),
+			Type::Class(class) => write!(f, "{}", class.name),
 			Type::Function { parameters, return_type } => {
 				write!(f, "(")?;
 				for (i, parameter) in parameters.iter().enumerate() {
@@ -39,5 +39,5 @@ impl Display for Type {
 /// Trait for values with a type
 pub trait Typed {
 	/// Get type of value
-	fn get_type(&self) -> Type;
+	fn ty(&self) -> Type;
 }

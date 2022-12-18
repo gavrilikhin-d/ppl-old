@@ -1,9 +1,10 @@
 use std::io::Write;
 
 use inkwell::execution_engine::ExecutionEngine;
-use ppl::semantics::{ASTLoweringContext, ASTLoweringWithinContext, hir, Typed, Type};
+use ppl::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
 use ppl::syntax::Lexer;
 use ppl::ast::*;
+use ppl::hir::{self, Typed, Type};
 use ppl::ir::{self, Context};
 use ppl::ir::GlobalHIRLowering;
 use inkwell::OptimizationLevel;
@@ -57,7 +58,7 @@ fn process_single_statement<'llvm>(
 	else if let Some(f) = module.get_function("evaluate") {
 		let result = unsafe { engine.run_function(f, &[]) };
 		let expr: hir::Expression = hir.try_into().unwrap();
-		match expr.get_type() {
+		match expr.ty() {
 			Type::Integer => {
 				let result = unsafe {
 					result.into_pointer::<rug::Integer>()

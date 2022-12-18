@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use crate::mutability::Mutable;
-use crate::syntax::{Ranged, WithOffset};
-pub use crate::hir::{self, Type, Module, Typed};
+use crate::syntax::{Ranged, StringWithOffset};
+use crate::hir::{self, Type, Module, Typed};
 
 use super::error::*;
 use crate::ast;
@@ -19,21 +21,21 @@ impl ASTLoweringContext {
 
 	/// Recursively find variable starting from current scope
 	pub fn find_variable(&self, name: &str)
-	-> Option<&hir::VariableDeclaration> {
-		self.module.variables.get(name)
+	-> Option<Arc<hir::VariableDeclaration>> {
+		self.module.variables.get(name).map(|x| x.value.clone())
 	}
 
 	/// Recursively find type starting from current scope
 	pub fn find_type(&self, name: &str) -> Option<Type> {
-		self.module.types.get(name).map(|t| t.clone().into())
+		self.module.types.get(name).map(|t| t.value.clone().into())
 	}
 
 	/// Recursively find type starting from current scope, or return error
-	pub fn get_type(&self, name: &WithOffset<String>) -> Result<Type, UnknownType> {
-		let t = self.find_type(&name.value);
+	pub fn ty(&self, name: &StringWithOffset) -> Result<Type, UnknownType> {
+		let t = self.find_type(&name);
 		if t.is_none() {
 			return Err(UnknownType {
-				name: name.value.clone(),
+				name: name.into(),
 				at: name.range().into()
 			}.into());
 		}
@@ -104,17 +106,17 @@ impl ASTLoweringWithinContext for ast::VariableReference {
 			&self,
 			context: &mut ASTLoweringContext
 		) -> Result<Self::HIR, Error> {
-		let var = context.find_variable(&self.name.value);
+		let var = context.find_variable(&self.name);
 		if var.is_none() {
 			return Err(UndefinedVariable {
-				name: self.name.value.clone(),
+				name: self.name.clone().into(),
 				at: self.name.range().into()
 			}.into());
 		}
 
 		Ok(hir::VariableReference {
 			span: self.name.range().into(),
-			variable: Box::new(var.unwrap().clone()),
+			variable: var.unwrap(),
 		})
 	}
 }
@@ -140,43 +142,39 @@ impl ASTLoweringWithinContext for ast::Expression {
 }
 
 impl ASTLoweringWithinContext for ast::VariableDeclaration {
-	type HIR = hir::VariableDeclaration;
+	type HIR = Arc<hir::VariableDeclaration>;
 
 	/// Lower [`ast::VariableDeclaration`] to [`hir::VariableDeclaration`] within lowering context
 	fn lower_to_hir_within_context(
 			&self,
 			context: &mut ASTLoweringContext
 		) -> Result<Self::HIR, Error> {
-		let var = hir::VariableDeclaration {
+		let var = Arc::new(hir::VariableDeclaration {
 			name: self.name.clone(),
 			initializer:
 				self.initializer.lower_to_hir_within_context(context)?,
 			mutability: self.mutability.clone(),
-		};
+		});
 
-		let name = &self.name.value;
-
-		context.module.variables.insert(name.to_owned(), var.clone());
+		context.module.variables.insert(var.clone().into());
 
 		Ok(var)
 	}
 }
 
 impl ASTLoweringWithinContext for ast::TypeDeclaration {
-	type HIR = hir::TypeDeclaration;
+	type HIR = Arc<hir::TypeDeclaration>;
 
 	/// Lower [`ast::TypeDeclaration`] to [`hir::TypeDeclaration`] within lowering context
 	fn lower_to_hir_within_context(
 		&self,
 		context: &mut ASTLoweringContext
 	) -> Result<Self::HIR, Error> {
-		let ty = hir::TypeDeclaration {
+		let ty = Arc::new(hir::TypeDeclaration {
 			name: self.name.clone(),
-		};
+		});
 
-		let name = &self.name.value;
-
-		context.module.types.insert(name.to_owned(), ty.clone());
+		context.module.types.insert(ty.clone().into());
 
 		Ok(ty)
 	}
@@ -190,7 +188,7 @@ impl ASTLoweringWithinContext for ast::Parameter {
 		&self,
 		context: &mut ASTLoweringContext
 	) -> Result<Self::HIR, Error> {
-		let ty = context.get_type(&self.ty)?;
+		let ty = context.ty(&self.ty)?;
 
 		Ok(hir::Parameter {
 			name: self.name.clone(),
@@ -200,7 +198,7 @@ impl ASTLoweringWithinContext for ast::Parameter {
 }
 
 impl ASTLoweringWithinContext for ast::FunctionDeclaration {
-	type HIR = hir::FunctionDeclaration;
+	type HIR = Arc<hir::FunctionDeclaration>;
 
 	/// Lower [`ast::FunctionDeclaration`] to [`hir::FunctionDeclaration`] within lowering context
 	fn lower_to_hir_within_context(
@@ -220,14 +218,19 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
 		}
 
 		let return_type = match &self.return_type {
-			Some(ty) => context.get_type(ty)?,
+			Some(ty) => context.ty(ty)?,
 			None => Type::None,
 		};
 
-		Ok(hir::FunctionDeclaration {
-			name_parts,
-			return_type
-		})
+		let f = Arc::new(
+			hir::FunctionDeclaration::build()
+				.with_name(name_parts)
+				.with_return_type(return_type)
+		);
+
+		context.module.functions.insert(f.clone().into());
+
+		Ok(f)
 	}
 }
 
@@ -266,13 +269,13 @@ impl ASTLoweringWithinContext for ast::Assignment {
 		}
 
 		let value = self.value.lower_to_hir_within_context(context)?;
-		if target.get_type() != value.get_type() {
+		if target.ty() != value.ty() {
 			return Err (
 				NoConversion {
-					from: value.get_type(),
+					from: value.ty(),
 					from_span: self.value.range().into(),
 
-					to: target.get_type(),
+					to: target.ty(),
 					to_span: self.target.range().into(),
 				}.into()
 			);

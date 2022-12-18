@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use inkwell::AddressSpace;
 use inkwell::types::BasicMetadataTypeEnum;
@@ -6,6 +7,9 @@ use inkwell::types::BasicMetadataTypeEnum;
 use inkwell::types::BasicType;
 
 use crate::hir::*;
+use crate::mutability::Mutable;
+use crate::named::HashByName;
+use crate::named::Named;
 
 /// Trait for lowering HIR for global declarations to IR within module context
 pub trait GlobalHIRLowering<'llvm> {
@@ -186,7 +190,7 @@ pub struct ModuleContext<'llvm> {
 	pub module: inkwell::module::Module<'llvm>,
 	/// Global variables
 	pub variables: HashMap<
-		VariableDeclaration,
+		HashByName<Arc<VariableDeclaration>>,
 		inkwell::values::PointerValue<'llvm>
 	>,
 }
@@ -252,8 +256,8 @@ impl<'llvm> DeclareGlobal<'llvm> for VariableDeclaration {
 		&self,
 		context: &mut ModuleContext<'llvm>
 	) -> Self::IR {
-		let ty = self.get_type().lower_to_ir(context);
-		let global = context.module.add_global(ty, None, &self.name.value);
+		let ty = self.ty().lower_to_ir(context);
+		let global = context.module.add_global(ty, None, &self.name);
 
 		if self.is_immutable() {
 			global.set_constant(true);
@@ -263,7 +267,7 @@ impl<'llvm> DeclareGlobal<'llvm> for VariableDeclaration {
 	}
 }
 
-impl<'llvm> GlobalHIRLowering<'llvm> for VariableDeclaration {
+impl<'llvm> GlobalHIRLowering<'llvm> for Arc<VariableDeclaration> {
 	type IR = inkwell::values::GlobalValue<'llvm>;
 
 	/// Lower global [`VariableDeclaration`] to LLVM IR
@@ -274,12 +278,12 @@ impl<'llvm> GlobalHIRLowering<'llvm> for VariableDeclaration {
 		let global = self.declare_global(context);
 
 		context.variables.insert(
-			self.clone(),
+			self.clone().into(),
 			global.clone().as_pointer_value()
 		);
 
 		global.set_initializer(
-			&self.get_type().lower_to_ir(context).const_zero()
+			&self.ty().lower_to_ir(context).const_zero()
 		);
 
 		let initialize = context.module.add_function(
@@ -300,7 +304,7 @@ impl<'llvm> HIRTypesLowering<'llvm> for TypeDeclaration {
 
 	/// Lower [`TypeDeclaration`] to LLVM IR
 	fn lower_to_ir(&self, context: &dyn Context<'llvm>) -> Self::IR {
-		context.types().class(&self.name.value)
+		context.types().class(&self.name)
 	}
 }
 
@@ -313,16 +317,16 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionDeclaration {
 		&self,
 		context: &mut ModuleContext<'llvm>
 	) -> Self::IR {
-		let ty = match self.get_type() {
+		let ty = match self.ty() {
 			Type::Function { parameters, return_type } => {
 				let parameters = parameters.iter().map(|p| p.lower_to_ir(context).into()).collect::<Vec<BasicMetadataTypeEnum>>();
 				let return_type = return_type.lower_to_ir(context);
 				return_type.fn_type(&parameters, false)
 			},
-			_ => unreachable!("FunctionDeclaration::get_type() returned non-function type")
+			_ => unreachable!("FunctionDeclaration::ty() returned non-function type")
 		};
 		context.module.add_function(
-			&self.name(),
+			self.name(),
 			ty,
 			None
 		)
@@ -372,7 +376,7 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
 
 	/// Get LLVM IR for variable
 	pub fn get_variable(&self, variable: &VariableDeclaration) -> Option<inkwell::values::PointerValue<'llvm>> {
-		self.module_context.variables.get(variable).cloned()
+		self.module_context.variables.get(variable.name()).cloned()
 	}
 }
 
@@ -531,7 +535,7 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
 			{
 				let function = context.module.add_function(
 					"evaluate",
-					expr.get_type().lower_to_ir(context).fn_type(&[], false),
+					expr.ty().lower_to_ir(context).fn_type(&[], false),
 					None
 				);
 
