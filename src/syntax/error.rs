@@ -6,7 +6,7 @@ use miette::{SourceSpan, Diagnostic};
 use super::Token;
 
 /// Diagnostic for unwanted extra tokens
-#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq, Eq)]
 #[error("invalid token")]
 #[diagnostic(code(lexer::invalid_token))]
 pub struct InvalidToken {
@@ -16,7 +16,7 @@ pub struct InvalidToken {
 }
 
 /// Diagnostic for unwanted extra tokens
-#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq, Eq)]
 #[error("extra {token:?}")]
 #[diagnostic(code(lexer::extra_token))]
 pub struct ExtraToken {
@@ -29,7 +29,7 @@ pub struct ExtraToken {
 }
 
 /// Diagnostic for missing token
-#[derive(Error, Debug, Clone, Diagnostic, PartialEq)]
+#[derive(Error, Debug, Clone, Diagnostic, PartialEq, Eq)]
 #[diagnostic(code(lexer::missing_token))]
 pub struct MissingToken {
 	/// Expected alternatives
@@ -59,7 +59,7 @@ impl Display for MissingToken {
 }
 
 /// Diagnostic for unexpected token
-#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq, Eq)]
 #[diagnostic(code(lexer::unexpected_token))]
 pub struct UnexpectedToken {
 	/// Expected alternatives
@@ -91,7 +91,7 @@ impl Display for UnexpectedToken {
 
 
 /// Possible lexer errors
-#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq, Eq)]
 pub enum LexerError {
 	#[error(transparent)]
 	#[diagnostic(transparent)]
@@ -108,7 +108,7 @@ pub enum LexerError {
 }
 
 /// Diagnostic for missing expressions
-#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq, Eq)]
 #[error("missing expression")]
 #[diagnostic(
 	code(parser::missing_expression),
@@ -119,15 +119,30 @@ pub struct MissingExpression {
 	pub at: SourceSpan
 }
 
+/// Diagnostic for missing variable's name
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq, Eq)]
+#[error("missing variable's name")]
+#[diagnostic(
+	code(parser::missing_variable_name),
+)]
+pub struct MissingVariableName {
+	/// Location, where name was expected
+	#[label("variable's name is expected here")]
+	pub at: SourceSpan
+}
+
 /// Possible parser errors
-#[derive(Error, Diagnostic, Debug, PartialEq)]
+#[derive(Error, Diagnostic, Debug, PartialEq, Eq)]
 pub enum ParseError {
 	#[error(transparent)]
 	#[diagnostic(transparent)]
 	LexerError(#[from] LexerError),
 	#[error(transparent)]
 	#[diagnostic(transparent)]
-	MissingExpression(#[from] MissingExpression)
+	MissingExpression(#[from] MissingExpression),
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	MissingVariableName(#[from] MissingVariableName),
 }
 
 impl From<InvalidToken> for ParseError {

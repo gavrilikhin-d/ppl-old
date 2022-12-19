@@ -3,7 +3,8 @@ use ast_derive::AST;
 
 use crate::mutability::{Mutability, Mutable};
 use crate::ast::Expression;
-use crate::syntax::{Token, Lexer, Parse, StringWithOffset, error::ParseError};
+use crate::syntax::error::{ParseError, MissingVariableName};
+use crate::syntax::{Token, Lexer, Parse, StringWithOffset};
 
 /// Declaration of the variable
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -32,7 +33,11 @@ impl Parse for VariableDeclaration {
 
 		let mutable = lexer.consume(Token::Mut).is_ok();
 
-		lexer.consume(Token::Id)?;
+		lexer.consume(Token::Id).or_else(
+			|_| Err(MissingVariableName {
+				at: lexer.span().end.into()
+			})
+		)?;
 
 		let name = StringWithOffset::from(lexer.slice()).at(lexer.span().start);
 

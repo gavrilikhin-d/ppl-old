@@ -7,7 +7,7 @@ use crate::syntax::error::{LexerError, InvalidToken, UnexpectedToken, MissingTok
 use super::StringWithOffset;
 
 /// The different kinds of tokens that can be lexed.
-#[derive(Logos, Debug, PartialEq, Clone)]
+#[derive(Logos, Debug, PartialEq, Eq, Clone)]
 pub enum Token
 {
 	/// None literal
