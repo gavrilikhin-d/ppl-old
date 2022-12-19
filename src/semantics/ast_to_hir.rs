@@ -1,6 +1,8 @@
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use crate::mutability::Mutable;
+use crate::named::HashByName;
 use crate::syntax::{Ranged, StringWithOffset};
 use crate::hir::{self, Type, Module, Typed};
 
@@ -11,12 +13,14 @@ use crate::ast;
 pub struct ASTLoweringContext {
 	/// Module, which is being lowered
 	pub module: Module,
+	/// Imported modules
+	pub imports: HashSet<HashByName<Arc<Module>>>,
 }
 
 impl ASTLoweringContext {
 	/// Create new lowering context
-	pub fn new() -> Self {
-		Self { module: Module::new() }
+	pub fn new(name: &str) -> Self {
+		Self { module: Module::new(name), imports: HashSet::new() }
 	}
 
 	/// Recursively find variable starting from current scope
@@ -299,7 +303,7 @@ impl<T: ASTLoweringWithinContext> ASTLowering for T {
 
 	/// Lower AST to HIR
 	fn lower_to_hir(&self) -> Result<Self::HIR, Error> {
-		let mut context = ASTLoweringContext::new();
+		let mut context = ASTLoweringContext::new("main");
 		self.lower_to_hir_within_context(&mut context)
 	}
 }
@@ -309,7 +313,7 @@ impl ASTLowering for ast::Module {
 
 	/// Lower [`ast::Module`] to [`semantics::Module`](Module)
 	fn lower_to_hir(&self) -> Result<Self::HIR, Error> {
-		let mut context = ASTLoweringContext::new();
+		let mut context = ASTLoweringContext::new("main");
 
 		for stmt in &self.statements {
 			stmt.lower_to_hir_within_context(&mut context)?;

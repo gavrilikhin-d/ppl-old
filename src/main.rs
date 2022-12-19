@@ -78,7 +78,7 @@ fn process_single_statement<'llvm>(
 /// Read-Evaluate-Print Loop
 fn repl() {
 	let mut source = String::new();
-	let mut context = ASTLoweringContext::new();
+	let mut context = ASTLoweringContext::new("repl");
 	let llvm = inkwell::context::Context::create();
 	let mut engine =
 		llvm

@@ -3,12 +3,15 @@ use std::collections::HashSet;
 use std::sync::Arc;
 use crate::ast;
 use crate::hir::{VariableDeclaration, TypeDeclaration, FunctionDeclaration, Statement};
-use crate::named::HashByName;
+use crate::named::{HashByName, Named};
 use crate::semantics::ASTLowering;
 
 /// Module with PPL code
 #[derive(Debug, PartialEq, Eq)]
 pub struct Module {
+	/// Name of the module
+	pub name: String,
+
 	/// Variables, declared in this module
 	pub variables: HashSet<HashByName<Arc<VariableDeclaration>>>,
 
@@ -24,8 +27,9 @@ pub struct Module {
 
 impl Module {
 	/// Create an empty module
-	pub fn new() -> Self {
+	pub fn new(name: &str) -> Self {
 		Self {
+			name: name.to_string(),
 			variables: HashSet::new(),
 			types: HashSet::new(),
 			functions: HashSet::new(),
@@ -54,5 +58,11 @@ impl Module {
 
 		ast.lower_to_hir()
 			.expect("Errors while lowering builtin module to hir")
+	}
+}
+
+impl Named for Module {
+	fn name(&self) -> &str {
+		&self.name
 	}
 }
