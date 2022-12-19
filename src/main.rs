@@ -2,7 +2,7 @@ use std::io::Write;
 
 use inkwell::execution_engine::ExecutionEngine;
 use ppl::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
-use ppl::syntax::Lexer;
+use ppl::syntax::{Lexer, Parse};
 use ppl::ast::*;
 use ppl::hir::{self, Typed, Type};
 use ppl::ir::{self, Context};
