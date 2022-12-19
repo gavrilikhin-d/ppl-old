@@ -367,6 +367,7 @@ dependencies = [
  "ast_derive",
  "derive_more",
  "inkwell",
+ "lazy_static",
  "logos",
  "miette",
  "rug",

@@ -4,7 +4,9 @@ use std::sync::Arc;
 use crate::ast;
 use crate::hir::{VariableDeclaration, TypeDeclaration, FunctionDeclaration, Statement};
 use crate::named::{HashByName, Named};
-use crate::semantics::ASTLowering;
+use crate::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
+
+use lazy_static::lazy_static;
 
 /// Module with PPL code
 #[derive(Debug, PartialEq, Eq)]
@@ -25,6 +27,10 @@ pub struct Module {
 	pub statements: Vec<Statement>
 }
 
+lazy_static!(
+	static ref BUILTIN: Arc<Module> = Arc::new(Module::create_builtin());
+);
+
 impl Module {
 	/// Create an empty module
 	pub fn new(name: &str) -> Self {
@@ -37,15 +43,8 @@ impl Module {
 		}
 	}
 
-	/// Get builtin module
-	///
-	/// # Example
-	/// ```
-	/// use ppl::semantics::Module;
-	///
-	/// let module = Module::builtin();
-	/// ```
-	pub fn builtin() -> Self {
+	/// Create builtin module
+	pub(crate) fn create_builtin() -> Self {
 		let path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime/ppl.ppl");
 
 		let content =
@@ -56,8 +55,29 @@ impl Module {
 			content.parse::<ast::Module>()
 				.expect("Errors while parsing builtin module");
 
-		ast.lower_to_hir()
-			.expect("Errors while lowering builtin module to hir")
+		let mut context = ASTLoweringContext {
+			module: Module::new("ppl"),
+			builtin: None
+		};
+
+		for stmt in ast.statements {
+			stmt.lower_to_hir_within_context(&mut context)
+				.expect("Errors while lowering builtin module to hir");
+		}
+
+		context.module
+	}
+
+	/// Get builtin module
+	///
+	/// # Example
+	/// ```
+	/// use ppl::semantics::Module;
+	///
+	/// let module = Module::builtin();
+	/// ```
+	pub fn builtin() -> Arc<Self> {
+		BUILTIN.clone()
 	}
 }
 

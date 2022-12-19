@@ -14,3 +14,4 @@ thiserror = "1.0.37"
 derive_more = "0.99.17"
 inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = ["llvm14-0"] }
 runtime = { path = "src/runtime" }
+lazy_static = "1.4.0"

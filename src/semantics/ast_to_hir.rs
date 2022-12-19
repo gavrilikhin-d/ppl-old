@@ -1,8 +1,6 @@
-use std::collections::HashSet;
 use std::sync::Arc;
 
 use crate::mutability::Mutable;
-use crate::named::HashByName;
 use crate::syntax::{Ranged, StringWithOffset};
 use crate::hir::{self, Type, Module, Typed};
 
@@ -13,25 +11,35 @@ use crate::ast;
 pub struct ASTLoweringContext {
 	/// Module, which is being lowered
 	pub module: Module,
-	/// Imported modules
-	pub imports: HashSet<HashByName<Arc<Module>>>,
+	/// Builtin module (set to None, when lowering builtin module itself)
+	pub builtin: Option<Arc<Module>>,
 }
 
 impl ASTLoweringContext {
 	/// Create new lowering context
 	pub fn new(name: &str) -> Self {
-		Self { module: Module::new(name), imports: HashSet::new() }
+		Self { module: Module::new(name), builtin: Some(Module::builtin()) }
 	}
 
 	/// Recursively find variable starting from current scope
 	pub fn find_variable(&self, name: &str)
 	-> Option<Arc<hir::VariableDeclaration>> {
-		self.module.variables.get(name).map(|x| x.value.clone())
+		let var = self.module.variables.get(name);
+		if var.is_some() {
+			var
+		} else {
+			self.builtin.as_ref().and_then(|m| m.variables.get(name))
+		}.map(|x| x.value.clone())
 	}
 
 	/// Recursively find type starting from current scope
 	pub fn find_type(&self, name: &str) -> Option<Type> {
-		self.module.types.get(name).map(|t| t.value.clone().into())
+		let ty = self.module.types.get(name);
+		if ty.is_some() {
+			ty
+		} else {
+			self.builtin.as_ref().and_then(|m| m.types.get(name))
+		}.map(|t| t.value.clone().into())
 	}
 
 	/// Recursively find type starting from current scope, or return error
