@@ -121,7 +121,12 @@ impl FunctionDeclarationBuilder {
 			if i > 0 {
 				name.push_str(" ");
 			}
-			name.push_str(format!("{}", part).as_str());
+
+			match part {
+				FunctionNamePart::Text(text) => name.push_str(&text),
+				FunctionNamePart::Parameter(p) =>
+					name.push_str(format!("<:{}>", p.ty()).as_str()),
+			}
 		}
 		name
 	}
