@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 
 use std::sync::Arc;
 use crate::ast;
@@ -21,7 +21,14 @@ pub struct Module {
 	pub types: HashSet<HashByName<Arc<TypeDeclaration>>>,
 
 	/// Functions, declared in this module
-	pub functions: HashSet<HashByName<Arc<FunctionDeclaration>>>,
+	pub functions: HashMap<
+		String, // Name format
+		HashSet<
+			HashByName<
+				Arc<FunctionDeclaration>
+			>
+		>
+	>,
 
 	/// Statements in this module
 	pub statements: Vec<Statement>
@@ -38,7 +45,7 @@ impl Module {
 			name: name.to_string(),
 			variables: HashSet::new(),
 			types: HashSet::new(),
-			functions: HashSet::new(),
+			functions: HashMap::new(),
 			statements: vec![]
 		}
 	}

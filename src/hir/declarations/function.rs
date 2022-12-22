@@ -54,8 +54,26 @@ pub struct FunctionDeclaration {
 	/// Type of returned value
 	pub return_type: Type,
 
+	/// Cached format for name of function
+	name_format: String,
 	/// Cached name of function
 	name: String,
+}
+
+impl FunctionDeclaration {
+	/// Format for the function's name
+	///
+	/// # Example
+	///
+	/// The following functions:
+	/// ```ppl
+	/// fn print <x: None> -> None
+	/// fn print <x: Integer> -> None
+	/// ```
+	/// both have `print <>` name format
+	pub fn name_format(&self) -> &str {
+		&self.name_format
+	}
 }
 
 /// Builder for a function declaration
@@ -79,20 +97,43 @@ impl FunctionDeclarationBuilder {
 		self
 	}
 
-	/// Set the return type of the function and return the declaration
-	pub fn with_return_type(self, return_type: Type) -> FunctionDeclaration {
-		let mut name = String::new();
+	/// Build function's name format
+	fn build_name_format(&self) -> String {
+		let mut name_format = String::new();
+		for (i, part) in self.name_parts.iter().enumerate() {
+			if i > 0 {
+				name_format.push_str(" ");
+			}
+			name_format.push_str(
+				match part {
+					FunctionNamePart::Text(text) => &text,
+					FunctionNamePart::Parameter(_) => "<>",
+				}
+			)
+		}
+		name_format
+	}
 
+	/// Build function's name
+	fn build_name(&self) -> String {
+		let mut name = String::new();
 		for (i, part) in self.name_parts.iter().enumerate() {
 			if i > 0 {
 				name.push_str(" ");
 			}
 			name.push_str(format!("{}", part).as_str());
 		}
+		name
+	}
 
+	/// Set the return type of the function and return the declaration
+	pub fn with_return_type(self, return_type: Type) -> FunctionDeclaration {
+		let name_format = self.build_name_format();
+		let name = self.build_name();
 		FunctionDeclaration {
 			name_parts: self.name_parts,
 			return_type,
+			name_format,
 			name,
 		}
 	}

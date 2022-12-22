@@ -455,6 +455,25 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for VariableReferenc
 	}
 }
 
+impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
+	type IR = inkwell::values::CallSiteValue<'llvm>;
+
+	/// Lower [`Call`] to LLVM IR
+	fn lower_to_ir(
+		&self,
+		context: &mut FunctionContext<'llvm, 'm>
+	) -> Self::IR {
+		unimplemented!("Function calls ir is not implemented yet");
+
+		// let function = context.functions().get(&self.function).unwrap();
+		// let arguments = self.arguments.iter()
+		// 	.map(|arg| arg.lower_to_ir(context))
+		// 	.collect::<Vec<_>>();
+
+		// context.builder.build_call(function, &arguments, "")
+	}
+}
+
 /// Trait for [`Expression`] to lower HIR to LLVM IR without loading references
 trait HIRExpressionLoweringWithoutLoad<'llvm, 'm> {
 	/// Lower [`Expression`] to LLVM IR without loading variables
@@ -471,9 +490,11 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
 		context: &mut FunctionContext<'llvm, 'm>,
 	) -> inkwell::values::BasicValueEnum<'llvm> {
 		match self {
-			Expression::Literal(l) => l.lower_to_ir(context),
 			Expression::VariableReference(var) =>
 				var.lower_to_ir(context).into(),
+
+			Expression::Literal(l) => l.lower_to_ir(context),
+			Expression::Call(call) => call.lower_to_ir(context).try_as_basic_value().left().unwrap(),
 		}
 	}
 }

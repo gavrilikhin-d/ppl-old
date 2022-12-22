@@ -1,5 +1,7 @@
 use std::{fmt::Display, sync::Arc};
 
+use crate::mutability::Mutable;
+
 use super::TypeDeclaration;
 use derive_more::From;
 
@@ -33,6 +35,12 @@ impl Display for Type {
 				write!(f, ") -> {}", return_type)
 			}
 		}
+	}
+}
+
+impl Mutable for Type {
+	fn is_mutable(&self) -> bool {
+		false
 	}
 }
 

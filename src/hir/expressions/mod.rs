@@ -4,6 +4,9 @@ pub use literal::*;
 mod variable;
 pub use variable::*;
 
+mod call;
+pub use call::*;
+
 use derive_more::{From, TryInto};
 
 use crate::syntax::Ranged;
@@ -15,6 +18,7 @@ use crate::hir::{Type, Typed};
 pub enum Expression {
 	Literal(Literal),
 	VariableReference(VariableReference),
+	Call(Call),
 }
 
 impl Ranged for Expression {
@@ -23,6 +27,7 @@ impl Ranged for Expression {
 		match self {
 			Expression::Literal(literal) => literal.range(),
 			Expression::VariableReference(variable) => variable.range(),
+			Expression::Call(call) => call.range(),
 		}
 	}
 }
@@ -33,6 +38,7 @@ impl Typed for Expression {
 		match self {
 			Expression::Literal(literal) => literal.ty(),
 			Expression::VariableReference(variable) => variable.ty(),
+			Expression::Call(call) => call.ty(),
 		}
 	}
 }
@@ -43,6 +49,7 @@ impl Mutable for Expression {
 		match self {
 			Expression::Literal(_) => false,
 			Expression::VariableReference(variable) => variable.is_mutable(),
+			Expression::Call(call) => call.is_mutable(),
 		}
 	}
 }

@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use crate::mutability::Mutable;
@@ -133,6 +134,22 @@ impl ASTLoweringWithinContext for ast::VariableReference {
 	}
 }
 
+impl ASTLoweringWithinContext for ast::UnaryOperation {
+	type HIR = hir::Call;
+
+	/// Lower [`ast::UnaryOperation`] to [`hir::Call`] within lowering context.
+	///
+	/// **Note**: Unary operator is actually a call to function.
+	fn lower_to_hir_within_context(
+		&self,
+		context: &mut ASTLoweringContext
+	) -> Result<Self::HIR, Error> {
+		unimplemented!(
+			"Unary operator ast to hir lowering is not implemented yet"
+		);
+	}
+}
+
 impl ASTLoweringWithinContext for ast::Expression {
 	type HIR = hir::Expression;
 
@@ -147,7 +164,8 @@ impl ASTLoweringWithinContext for ast::Expression {
 					l.lower_to_hir_within_context(context)?.into(),
 				ast::Expression::VariableReference(var) =>
 					var.lower_to_hir_within_context(context)?.into(),
-				ast::Expression::UnaryOperation(op) => unimplemented!()
+				ast::Expression::UnaryOperation(op) =>
+					op.lower_to_hir_within_context(context)?.into()
 			}
 		)
 	}
@@ -240,7 +258,18 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
 				.with_return_type(return_type)
 		);
 
-		context.module.functions.insert(f.clone().into());
+		let functions = context.module.functions.get_mut(f.name_format());
+		if let Some(functions) = functions {
+			functions.insert(f.clone().into());
+		}
+		else {
+			let mut functions = HashSet::new();
+			functions.insert(f.clone().into());
+			context.module.functions.insert(
+				f.name_format().to_string(),
+				functions
+			);
+		}
 
 		Ok(f)
 	}
