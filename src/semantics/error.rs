@@ -1,7 +1,7 @@
 use thiserror::Error;
 use miette::{SourceSpan, Diagnostic};
 
-use crate::hir::Type;
+use crate::{hir::Type, syntax::error};
 
 /// Diagnostic for undefined variables
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
@@ -78,6 +78,45 @@ pub struct NoUnaryOperator {
 	pub operand_span: SourceSpan,
 }
 
+/// Diagnostic for unresolved function call
+#[derive(Error, Debug, Clone, PartialEq)]
+#[error("no function '{name}'")]
+pub struct NoFunction {
+	/// Expected name of function
+	pub name: String,
+
+	/// Span of whole function call
+	pub at: SourceSpan,
+
+	/// Types of arguments
+	pub arguments: Vec<(Type, SourceSpan)>,
+}
+
+impl Diagnostic for NoFunction {
+	fn code<'a>(&'a self) -> Option<Box<dyn std::fmt::Display + 'a>> {
+		Some(Box::new("semantics::no_function"))
+	}
+
+	fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
+		if self.arguments.is_empty() {
+			Some(Box::new(std::iter::once(
+				miette::LabeledSpan::new_with_span(
+					Some("can't resolve this function call".to_string()), self.at
+				)
+			)))
+		}
+		else {
+			Some(Box::new(self.arguments
+				.iter()
+				.map(
+					|(t, s)| miette::LabeledSpan::new_with_span(
+						Some(format!("<:{}>", t)), *s
+					)
+				)))
+		}
+	}
+}
+
 /// Possible semantics errors
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 pub enum Error {
@@ -96,4 +135,7 @@ pub enum Error {
 	#[error(transparent)]
 	#[diagnostic(transparent)]
 	NoUnaryOperator(#[from] NoUnaryOperator),
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	NoFunction(#[from] NoFunction),
 }

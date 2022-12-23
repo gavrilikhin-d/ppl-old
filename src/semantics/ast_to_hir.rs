@@ -179,6 +179,49 @@ impl ASTLoweringWithinContext for ast::UnaryOperation {
 	}
 }
 
+impl ASTLoweringWithinContext for ast::Call {
+	type HIR = hir::Call;
+
+	/// Lower [`ast::Call`] to [`hir::Call`] within lowering context
+	fn lower_to_hir_within_context(
+		&self,
+		context: &mut ASTLoweringContext
+	) -> Result<Self::HIR, Error> {
+		let mut args = Vec::new();
+		for part in &self.name_parts {
+			match part {
+				// TODO: some text parts may actually be variable references
+				ast::CallNamePart::Text(_) => continue,
+				ast::CallNamePart::Argument(arg) => {
+					args.push(arg.lower_to_hir_within_context(context)?);
+				}
+			}
+		}
+
+		let name_format = self.name_format();
+		let functions = context.find_functions_with_format(&name_format);
+		if functions.is_empty() {
+			let mut name = name_format;
+			for arg in &args {
+				name = name.replacen("<>", format!("<:{}>", arg.ty()).as_str(), 1);
+			}
+
+			let arguments = args.iter().map(
+				|arg| (arg.ty(), arg.range().into())
+			).collect::<Vec<_>>();
+
+			return Err(NoFunction {
+				name,
+				at: self.range().into(),
+				arguments
+			}.into());
+		}
+		unimplemented!(
+			"Unary operator ast to hir lowering is not implemented yet"
+		);
+	}
+}
+
 impl ASTLoweringWithinContext for ast::Expression {
 	type HIR = hir::Expression;
 
@@ -194,7 +237,9 @@ impl ASTLoweringWithinContext for ast::Expression {
 				ast::Expression::VariableReference(var) =>
 					var.lower_to_hir_within_context(context)?.into(),
 				ast::Expression::UnaryOperation(op) =>
-					op.lower_to_hir_within_context(context)?.into()
+					op.lower_to_hir_within_context(context)?.into(),
+				ast::Expression::Call(call) =>
+					call.lower_to_hir_within_context(context)?.into(),
 			}
 		)
 	}

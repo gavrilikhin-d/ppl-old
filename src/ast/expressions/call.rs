@@ -50,6 +50,24 @@ pub struct Call {
 	pub name_parts: Vec<CallNamePart>
 }
 
+impl Call {
+	/// Get name format of called function
+	pub fn name_format(&self) -> String {
+		let mut format = String::new();
+		for (i, part) in self.name_parts.iter().enumerate() {
+			if i > 0 {
+				format.push(' ');
+			}
+
+			match part {
+				CallNamePart::Text(text) => format.push_str(&text),
+				CallNamePart::Argument(_) => format.push_str("<>"),
+			}
+		}
+		format
+	}
+}
+
 impl Ranged for Call {
 	/// Get range of function call
 	fn range(&self) -> std::ops::Range<usize> {
