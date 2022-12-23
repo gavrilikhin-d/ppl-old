@@ -386,12 +386,12 @@ impl ASTLoweringWithinContext for ast::Assignment {
 		let value = self.value.lower_to_hir_within_context(context)?;
 		if target.ty() != value.ty() {
 			return Err (
-				NoConversion {
-					from: value.ty(),
-					from_span: self.value.range().into(),
+				TypeMismatch {
+					got: value.ty(),
+					got_span: self.value.range().into(),
 
-					to: target.ty(),
-					to_span: self.target.range().into(),
+					expected: target.ty(),
+					expected_span: self.target.range().into(),
 				}.into()
 			);
 		}

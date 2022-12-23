@@ -87,9 +87,10 @@ impl Parse for Call {
 			name_parts.push(CallNamePart::parse(lexer)?);
 
 			let token = lexer.peek();
-			if token.is_none() || token == Some(Token::Newline) {
-				break
-			}
+			if token.is_none() { break; }
+
+			let token = token.unwrap();
+			if token.is_operator() || token == Token::Newline { break; }
 		}
 
 		debug_assert!(name_parts.len() > 0);

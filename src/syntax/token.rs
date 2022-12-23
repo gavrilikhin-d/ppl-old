@@ -76,6 +76,16 @@ pub enum Token
 	Error
 }
 
+impl Token {
+	/// Check if token is an operator
+	pub fn is_operator(&self) -> bool {
+		match self {
+			Token::Assign | Token::Plus | Token::Minus | Token::Less | Token::Greater => true,
+			_ => false
+		}
+	}
+}
+
 impl Display for Token {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {

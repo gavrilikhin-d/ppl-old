@@ -1,7 +1,7 @@
 use thiserror::Error;
 use miette::{SourceSpan, Diagnostic};
 
-use crate::{hir::Type, syntax::error};
+use crate::hir::Type;
 
 /// Diagnostic for undefined variables
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
@@ -41,21 +41,21 @@ pub struct AssignmentToImmutable {
 
 /// Diagnostic for not convertible types
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("can't convert {from:?} to {to:?}")]
-#[diagnostic(code(semantics::no_conversion))]
-pub struct NoConversion {
-	/// Type, that must be converted
-	pub from: Type,
-	/// Target type
-	pub to: Type,
+#[error("expected {expected} type, got {got}")]
+#[diagnostic(code(semantics::type_mismatch))]
+pub struct TypeMismatch {
+	/// Expected type
+	pub expected: Type,
+	/// Real type
+	pub got: Type,
 
 	/// Span of `from` type
-	#[label("this has {from:?} type")]
-	pub from_span: SourceSpan,
+	#[label("this has {expected} type")]
+	pub expected_span: SourceSpan,
 
 	/// Span of `to` type
-	#[label("this has {to:?} type")]
-	pub to_span: SourceSpan
+	#[label("this has {got} type")]
+	pub got_span: SourceSpan
 }
 
 /// Diagnostic for unresolved unary operator
@@ -128,7 +128,7 @@ pub enum Error {
 	AssignmentToImmutable(#[from] AssignmentToImmutable),
 	#[error(transparent)]
 	#[diagnostic(transparent)]
-	NoConversion(#[from] NoConversion),
+	TypeMismatch(#[from] TypeMismatch),
 	#[error(transparent)]
 	#[diagnostic(transparent)]
 	UnknownType(#[from] UnknownType),
