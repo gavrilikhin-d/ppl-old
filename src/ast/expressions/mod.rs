@@ -22,7 +22,8 @@ use derive_more::From;
 pub enum Expression {
 	Literal(Literal),
 	VariableReference(VariableReference),
-	UnaryOperation(UnaryOperation)
+	UnaryOperation(UnaryOperation),
+	Call(Call),
 }
 
 impl Parse for Expression {
@@ -44,9 +45,20 @@ impl Parse for Expression {
 		Ok(
 			match token.unwrap() {
 				Token::None | Token::Integer =>
-					Expression::Literal(Literal::parse(lexer)?),
-				Token::Id =>
-					Expression::VariableReference(VariableReference::parse(lexer)?),
+					Literal::parse(lexer)?.into(),
+				Token::Id => {
+					let call = Call::parse(lexer)?;
+					if call.name_parts.len() > 1 {
+						call.into()
+					}
+					else
+					{
+						VariableReference {
+							name: call.name_parts.first().unwrap().clone().try_into().unwrap()
+						}.into()
+					}
+
+				}
 				Token::Plus | Token::Minus =>
 					UnaryOperation::parse(lexer)?.into(),
 				_ => unreachable!("consume_one_of returned unexpected token"),
@@ -62,6 +74,7 @@ impl Ranged for Expression {
 			Expression::Literal(l) => l.range(),
 			Expression::VariableReference(var) => var.range(),
 			Expression::UnaryOperation(op) => op.range(),
+			Expression::Call(call) => call.range(),
 		}
 	}
 }

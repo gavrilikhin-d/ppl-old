@@ -15,12 +15,7 @@ impl Parse for VariableReference {
 
 	/// Parse variable reference using lexer
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
-		lexer.consume(Token::Id)?;
-
-		let offset = lexer.span().start;
-		let name = lexer.slice().to_string();
-
-		Ok(VariableReference { name: StringWithOffset::from(name).at(offset)})
+		Ok(VariableReference { name: lexer.consume(Token::Id)? })
 	}
 }
 

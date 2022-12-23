@@ -2,14 +2,14 @@ extern crate ast_derive;
 
 use ast_derive::AST;
 
-use derive_more::From;
+use derive_more::{From, TryInto};
 
 use super::Expression;
 
 use crate::syntax::{Token, Lexer, Parse, Ranged, StringWithOffset, error::ParseError};
 
 /// Cell of function
-#[derive(Debug, PartialEq, Eq, AST, Clone, From)]
+#[derive(Debug, PartialEq, Eq, AST, Clone, From, TryInto)]
 pub enum CallNamePart {
 	Text(StringWithOffset),
 	Argument(Expression),
