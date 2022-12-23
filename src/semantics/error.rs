@@ -58,6 +58,25 @@ pub struct TypeMismatch {
 	pub got_span: SourceSpan
 }
 
+/// Diagnostic for mismatched parameter-argument types
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("parameter {expected} type, got {got}")]
+#[diagnostic(code(semantics::argument_type_mismatch))]
+pub struct ArgumentTypeMismatch {
+	/// Expected type
+	pub expected: Type,
+	/// Real type
+	pub got: Type,
+
+	/// Span of `from` type
+	#[label("parameter has {expected} type")]
+	pub expected_span: SourceSpan,
+
+	/// Span of `to` type
+	#[label("argument has {got} type")]
+	pub got_span: SourceSpan
+}
+
 /// Diagnostic for unresolved unary operator
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 #[error("no unary operator '{name}'")]
@@ -80,6 +99,24 @@ pub struct NoUnaryOperator {
 
 /// Diagnostic for unresolved function call
 #[derive(Error, Debug, Clone, PartialEq)]
+#[error("candidate is not viable")]
+pub struct CandidateNotViable {
+	/// Expected name of function
+	pub reason: Error,
+}
+
+impl Diagnostic for CandidateNotViable {
+	fn severity(&self) -> Option<miette::Severity> {
+		Some(miette::Severity::Advice)
+	}
+
+	fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
+		self.reason.labels()
+	}
+}
+
+/// Diagnostic for unresolved function call
+#[derive(Error, Debug, Clone, PartialEq)]
 #[error("no function '{name}'")]
 pub struct NoFunction {
 	/// Expected name of function
@@ -90,6 +127,9 @@ pub struct NoFunction {
 
 	/// Types of arguments
 	pub arguments: Vec<(Type, SourceSpan)>,
+
+	/// Reasons, why candidates failed
+	pub candidates: Vec<CandidateNotViable>
 }
 
 impl Diagnostic for NoFunction {
@@ -115,6 +155,15 @@ impl Diagnostic for NoFunction {
 				)))
 		}
 	}
+
+	fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {
+		if self.candidates.is_empty() {
+			None
+		}
+		else {
+			Some(Box::new(self.candidates.iter().map(|c| c as &dyn Diagnostic)))
+		}
+	}
 }
 
 /// Possible semantics errors
@@ -129,6 +178,9 @@ pub enum Error {
 	#[error(transparent)]
 	#[diagnostic(transparent)]
 	TypeMismatch(#[from] TypeMismatch),
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	ArgumentTypeMismatch(#[from] ArgumentTypeMismatch),
 	#[error(transparent)]
 	#[diagnostic(transparent)]
 	UnknownType(#[from] UnknownType),

@@ -74,6 +74,14 @@ impl FunctionDeclaration {
 	pub fn name_format(&self) -> &str {
 		&self.name_format
 	}
+
+	/// Get iterator over function's parameters
+	pub fn parameters(&self) -> impl Iterator<Item = &Parameter> {
+		self.name_parts.iter().filter_map(|part| match part {
+			FunctionNamePart::Parameter(p) => Some(p),
+			_ => None,
+		})
+	}
 }
 
 /// Builder for a function declaration

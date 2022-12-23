@@ -200,25 +200,51 @@ impl ASTLoweringWithinContext for ast::Call {
 
 		let name_format = self.name_format();
 		let functions = context.find_functions_with_format(&name_format);
-		if functions.is_empty() {
-			let mut name = name_format;
-			for arg in &args {
-				name = name.replacen("<>", format!("<:{}>", arg.ty()).as_str(), 1);
-			}
+		let mut name = name_format;
+		for arg in &args {
+			name = name.replacen("<>", format!("<:{}>", arg.ty()).as_str(), 1);
+		}
+		let arguments = args.iter().map(
+			|arg| (arg.ty(), arg.range().into())
+		).collect::<Vec<_>>();
 
-			let arguments = args.iter().map(
-				|arg| (arg.ty(), arg.range().into())
-			).collect::<Vec<_>>();
+		let f = functions.get(name.as_str());
+		if f.is_none() {
+			let mut candidates: Vec<CandidateNotViable> = Vec::new();
+			for candidate in functions {
+				for (param, arg) in candidate.value.parameters().zip(&args) {
+					if param.ty() != arg.ty() {
+						candidates.push(
+							CandidateNotViable {
+								reason: ArgumentTypeMismatch {
+									expected: param.ty(),
+									expected_span: param.name.range().into(),
+									got: arg.ty(),
+									got_span: arg.range().into(),
+								}.into()
+							}
+						);
+						break;
+					}
+				}
+			}
 
 			return Err(NoFunction {
 				name,
 				at: self.range().into(),
-				arguments
+				arguments,
+				candidates
 			}.into());
 		}
-		unimplemented!(
-			"Unary operator ast to hir lowering is not implemented yet"
-		);
+
+		let function = f.unwrap().value.clone();
+		Ok(
+			hir::Call {
+				function,
+				range: self.range().into(),
+				args,
+			}
+		)
 	}
 }
 
