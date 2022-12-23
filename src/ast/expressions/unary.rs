@@ -1,4 +1,6 @@
 extern crate ast_derive;
+use std::fmt::Display;
+
 use ast_derive::AST;
 
 use super::Expression;
@@ -11,6 +13,28 @@ pub enum UnaryOperator {
 	Plus,
 	/// '-'
 	Minus
+}
+
+impl UnaryOperator {
+	/// Get length of operator
+	pub fn len(&self) -> usize {
+		1
+	}
+}
+
+impl Display for UnaryOperator {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			UnaryOperator::Plus => write!(f, "+"),
+			UnaryOperator::Minus => write!(f, "-"),
+		}
+	}
+}
+
+impl Ranged for WithOffset<UnaryOperator> {
+	fn range(&self) -> std::ops::Range<usize> {
+		self.offset..(self.offset + self.value.len())
+	}
 }
 
 impl TryFrom<Token> for UnaryOperator {
@@ -45,6 +69,18 @@ pub struct UnaryOperation {
 
 	/// Kind of unary operator
 	pub kind: UnaryOperatorKind
+}
+
+impl UnaryOperation {
+	/// Get name format of function associated with unary operator
+	pub fn name_format(&self) -> String {
+		match self.kind {
+			UnaryOperatorKind::Prefix =>
+				format!("{} <>", self.operator.value),
+			UnaryOperatorKind::Postfix =>
+				format!("<> {}", self.operator.value),
+		}
+	}
 }
 
 impl Parse for UnaryOperation {

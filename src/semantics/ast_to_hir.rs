@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use std::sync::Arc;
 
 use crate::mutability::Mutable;
+use crate::named::HashByName;
 use crate::syntax::{Ranged, StringWithOffset};
 use crate::hir::{self, Type, Module, Typed};
 
@@ -54,6 +55,19 @@ impl ASTLoweringContext {
 		}
 
 		Ok(t.unwrap())
+	}
+
+	/// Recursively find all functions with same name format
+	pub fn find_functions_with_format(&self, format: &str)
+		-> HashSet<
+			HashByName<
+				Arc<hir::FunctionDeclaration>
+			>
+		>
+	{
+		let funcs = self.module.functions.get(format).cloned().unwrap_or_default();
+		let builtins = self.builtin.as_ref().and_then(|m| m.functions.get(format)).cloned().unwrap_or_default();
+		funcs.union(&builtins).cloned().collect()
 	}
 }
 
@@ -144,6 +158,21 @@ impl ASTLoweringWithinContext for ast::UnaryOperation {
 		&self,
 		context: &mut ASTLoweringContext
 	) -> Result<Self::HIR, Error> {
+		let operand = self.operand.lower_to_hir_within_context(context)?;
+
+		let name_format = self.name_format();
+		let functions = context.find_functions_with_format(&name_format);
+		if functions.is_empty() {
+			return Err(NoUnaryOperator {
+				name: name_format.replace(
+					"<>",
+					format!("<:{}>", operand.ty()).as_str()
+				),
+				operator_span: self.operator.range().into(),
+				operand_type: operand.ty(),
+				operand_span: operand.range().into(),
+			}.into());
+		}
 		unimplemented!(
 			"Unary operator ast to hir lowering is not implemented yet"
 		);

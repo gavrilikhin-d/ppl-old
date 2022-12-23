@@ -58,6 +58,26 @@ pub struct NoConversion {
 	pub to_span: SourceSpan
 }
 
+/// Diagnostic for unresolved unary operator
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("no unary operator '{name}'")]
+#[diagnostic(code(semantics::no_unary_operator))]
+pub struct NoUnaryOperator {
+	/// Expected name of unary operator
+	pub name: String,
+
+	/// Type of operand
+	pub operand_type: Type,
+
+	/// Span of operator
+	#[label("can't resolve this unary operator")]
+	pub operator_span: SourceSpan,
+
+	/// Span of operator
+	#[label("<:{operand_type}>")]
+	pub operand_span: SourceSpan,
+}
+
 /// Possible semantics errors
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 pub enum Error {
@@ -73,4 +93,7 @@ pub enum Error {
 	#[error(transparent)]
 	#[diagnostic(transparent)]
 	UnknownType(#[from] UnknownType),
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	NoUnaryOperator(#[from] NoUnaryOperator),
 }
