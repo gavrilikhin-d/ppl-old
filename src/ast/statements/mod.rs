@@ -22,7 +22,7 @@ impl Parse for Statement {
 
 	/// Parse statement using lexer
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
-		let token = lexer.try_match_one_of(
+		let token = lexer.skip_spaces().try_match_one_of(
 			&[
 				Token::None, Token::Integer, Token::Id,
 				Token::Let, Token::Plus, Token::Minus,
