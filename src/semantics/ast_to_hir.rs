@@ -116,10 +116,15 @@ impl ASTLoweringWithinContext for ast::Literal {
 		Ok(match self {
 			ast::Literal::None { offset } =>
 				hir::Literal::None { offset: *offset },
-			ast::Literal::Integer { offset, value } =>
+			ast::Literal::Integer { value, .. } =>
 				hir::Literal::Integer {
-					span: *offset..offset + value.len(),
+					span: self.range(),
 					value: value.parse::<rug::Integer>().unwrap(),
+				},
+			ast::Literal::String { value, .. } =>
+				hir::Literal::String {
+					span: self.range(),
+					value: value.clone(),
 				},
 		})
 	}
