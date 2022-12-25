@@ -121,5 +121,6 @@ fn repl() {
 }
 
 fn main() {
+	miette::set_panic_hook();
 	repl()
 }
