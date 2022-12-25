@@ -21,6 +21,8 @@ fn impl_ast_macro(ast: &syn::DeriveInput) -> TokenStream {
 			fn from_str(s: &str) -> Result<Self, Self::Err> {
 				let mut lexer = Lexer::new(s);
 
+				lexer.skip_spaces();
+
 				let res = #name::parse(&mut lexer);
 
 				let token = lexer.skip_spaces().next();
