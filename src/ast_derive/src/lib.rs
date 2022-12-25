@@ -23,8 +23,8 @@ fn impl_ast_macro(ast: &syn::DeriveInput) -> TokenStream {
 
 				let res = #name::parse(&mut lexer);
 
-				let token = lexer.next();
-				if token != None {
+				let token = lexer.skip_spaces().next();
+				if token.is_some() {
 					return Err(
 						crate::syntax::error::ExtraToken {
 							token: token.unwrap(),
