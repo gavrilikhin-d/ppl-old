@@ -10,6 +10,8 @@ pub enum Literal {
 	None { offset: usize },
 	/// Any precision decimal integer literal
 	Integer { offset: usize, value: String },
+	/// String literal
+	String { offset: usize, value: String },
 }
 
 impl Parse for Literal {
@@ -27,6 +29,12 @@ impl Parse for Literal {
 						offset: lexer.span().start,
 						value: lexer.slice().to_string()
 					},
+				Token::String =>
+					Literal::String {
+						offset: lexer.span().start,
+						value:
+							lexer.slice()[1..lexer.span().len() - 1].to_string()
+					},
 
 				_ => unreachable!("consume_one_of returned unexpected token"),
 			}
@@ -42,6 +50,8 @@ impl Ranged for Literal {
 				*offset..*offset + 4,
 			Literal::Integer { offset, value } =>
 				*offset..*offset + value.len(),
+			Literal::String { offset, value } =>
+				*offset..*offset + value.len() + 2,
 		}
 	}
 }
@@ -56,6 +66,12 @@ fn test_none() {
 fn test_integer() {
 	let literal = "123".parse::<Literal>().unwrap();
 	assert_eq!(literal, Literal::Integer { offset: 0, value: "123".to_string() });
+}
+
+#[test]
+fn test_string() {
+	let literal = "\"123\"".parse::<Literal>().unwrap();
+	assert_eq!(literal, Literal::String { offset: 0, value: "123".to_string() });
 }
 
 #[test]
