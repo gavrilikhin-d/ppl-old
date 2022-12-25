@@ -182,6 +182,19 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
 			types.integer().fn_type(&[types.c_string().into()], false)
 		)
 	}
+
+	/// LLVM IR for constructor of [`String`](Type::String) type from C string
+	/// and its length
+	pub fn string_from_c_string_and_length(&self) -> inkwell::values::FunctionValue<'llvm> {
+		let types = Types::new(self.module.get_context());
+		self.get_or_add_function(
+			"string_from_c_string_and_length",
+			types.string().fn_type(
+				&[types.c_string().into(), types.u(64).into()],
+				false
+			)
+		)
+	}
 }
 
 /// Trait for common context methods
@@ -446,6 +459,20 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Literal {
 				context.builder.build_call(
 					context.functions().integer_from_c_string(),
 					&[str.as_pointer_value().into()],
+					""
+				).try_as_basic_value().left().unwrap()
+			}
+			Literal::String { value, .. } => {
+				let str = context.builder.build_global_string_ptr(&value, "");
+				context.builder.build_call(
+					context.functions().string_from_c_string_and_length(),
+					&[
+						str.as_pointer_value().into(),
+						context.types().u(64).const_int(
+							value.len() as u64,
+							false
+						).into()
+					],
 					""
 				).try_as_basic_value().left().unwrap()
 			}

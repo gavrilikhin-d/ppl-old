@@ -13,7 +13,7 @@ pub use unary::*;
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{Token, Lexer, Parse, Ranged, error::{ParseError, MissingExpression}};
+use crate::syntax::{Token, Lexer, Parse, Ranged, error::{ParseError, MissingExpression}, StartsHere};
 
 use derive_more::From;
 
@@ -26,15 +26,22 @@ pub enum Expression {
 	Call(Call),
 }
 
+impl StartsHere for Expression {
+	/// Check that expression may start at current lexer position
+	fn starts_here(lexer: &mut Lexer) -> bool {
+		Literal::starts_here(lexer) ||
+		VariableReference::starts_here(lexer) ||
+		UnaryOperation::starts_here(lexer) ||
+		Call::starts_here(lexer)
+	}
+}
+
 impl Parse for Expression {
 	type Err = ParseError;
 
 	/// Parse expression using lexer
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
-		let token = lexer.try_match_one_of(
-			&[Token::None, Token::Integer, Token::Id, Token::Plus, Token::Minus]
-		);
-		if token.is_err() {
+		if !Expression::starts_here(lexer) {
 			return Err(
 				MissingExpression {
 					at: lexer.span().end.into()
@@ -42,10 +49,12 @@ impl Parse for Expression {
 			)
 		}
 
+		if Literal::starts_here(lexer) {
+			return Ok(Literal::parse(lexer)?.into());
+		}
+
 		Ok(
-			match token.unwrap() {
-				Token::None | Token::Integer =>
-					Literal::parse(lexer)?.into(),
+			match lexer.peek().unwrap() {
 				Token::Id => {
 					let call = Call::parse(lexer)?;
 					if call.name_parts.len() > 1 {
@@ -61,7 +70,7 @@ impl Parse for Expression {
 				}
 				Token::Plus | Token::Minus =>
 					UnaryOperation::parse(lexer)?.into(),
-				_ => unreachable!("consume_one_of returned unexpected token"),
+				_ => unreachable!("unexpected token at start of expression"),
 			}
 		)
 	}

@@ -2,6 +2,7 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use crate::ast::Expression;
+use crate::syntax::StartsHere;
 use crate::syntax::{Token, Lexer, Parse, error::ParseError};
 
 /// AST for assignment
@@ -11,6 +12,13 @@ pub struct Assignment {
 	pub target: Expression,
 	/// Expression to assign
 	pub value: Expression,
+}
+
+impl StartsHere for Assignment {
+	/// Check that assignment may start at current lexer position
+	fn starts_here(lexer: &mut Lexer) -> bool {
+		Expression::starts_here(lexer)
+	}
 }
 
 impl Parse for Assignment {

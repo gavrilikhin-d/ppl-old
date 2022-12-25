@@ -4,7 +4,7 @@ use std::fmt::Display;
 use ast_derive::AST;
 
 use super::Expression;
-use crate::syntax::{Token, Lexer, Parse, Ranged, WithOffset, error::ParseError};
+use crate::syntax::{Token, Lexer, Parse, Ranged, WithOffset, error::ParseError, StartsHere};
 
 /// Unary operators
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -80,6 +80,15 @@ impl UnaryOperation {
 			UnaryOperatorKind::Postfix =>
 				format!("<> {}", self.operator.value),
 		}
+	}
+}
+
+impl StartsHere for UnaryOperation {
+	/// Check that unary operation may start at current lexer position
+	fn starts_here(lexer: &mut Lexer) -> bool {
+		lexer.try_match_one_of(
+			&[Token::Plus, Token::Minus]
+		).is_ok()
 	}
 }
 

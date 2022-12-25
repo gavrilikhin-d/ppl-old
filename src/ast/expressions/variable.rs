@@ -1,13 +1,20 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{Token, Lexer, Parse, Ranged, StringWithOffset, error::ParseError};
+use crate::syntax::{Token, Lexer, Parse, Ranged, StringWithOffset, error::ParseError, StartsHere};
 
 /// AST for variable reference
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct VariableReference {
 	/// Referenced variable name
 	pub name: StringWithOffset
+}
+
+impl StartsHere for VariableReference {
+	/// Check that variable reference may start at current lexer position
+	fn starts_here(lexer: &mut Lexer) -> bool {
+		lexer.try_match(Token::Id).is_ok()
+	}
 }
 
 impl Parse for VariableReference {

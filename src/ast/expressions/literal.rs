@@ -1,7 +1,7 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{Token, Lexer, Parse, Ranged, error::ParseError};
+use crate::syntax::{Token, Lexer, Parse, Ranged, error::ParseError, StartsHere};
 
 /// AST for compile time known values
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -14,12 +14,21 @@ pub enum Literal {
 	String { offset: usize, value: String },
 }
 
+impl StartsHere for Literal {
+	/// Check that literal may start at current lexer position
+	fn starts_here(lexer: &mut Lexer) -> bool {
+		lexer.try_match_one_of(
+			&[Token::None, Token::Integer, Token::String]
+		).is_ok()
+	}
+}
+
 impl Parse for Literal {
 	type Err = ParseError;
 
 	/// Parse literal using lexer
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
-		let token = lexer.consume_one_of(&[Token::None, Token::Integer])?;
+		let token = lexer.consume_one_of(&[Token::None, Token::Integer, Token::String])?;
 
 		Ok(
 			match token {

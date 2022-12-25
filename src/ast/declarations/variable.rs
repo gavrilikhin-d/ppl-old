@@ -4,7 +4,7 @@ use ast_derive::AST;
 use crate::mutability::{Mutability, Mutable};
 use crate::ast::Expression;
 use crate::syntax::error::{ParseError, MissingVariableName};
-use crate::syntax::{Token, Lexer, Parse, StringWithOffset};
+use crate::syntax::{Token, Lexer, Parse, StringWithOffset, StartsHere};
 
 /// Declaration of the variable
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -21,6 +21,13 @@ pub struct VariableDeclaration {
 impl Mutable for VariableDeclaration {
 	fn is_mutable(&self) -> bool {
 		self.mutability.is_mutable()
+	}
+}
+
+impl StartsHere for VariableDeclaration {
+	/// Check that variable declaration may start at current lexer position
+	fn starts_here(lexer: &mut Lexer) -> bool {
+		lexer.try_match(Token::Let).is_ok()
 	}
 }
 

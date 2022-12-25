@@ -10,7 +10,7 @@ pub use variable::*;
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{Token, Lexer, Parse, error::ParseError};
+use crate::syntax::{Token, Lexer, Parse, error::{ParseError, MissingDeclaration}, StartsHere};
 
 use derive_more::From;
 
@@ -23,22 +23,36 @@ pub enum Declaration {
 	Function(FunctionDeclaration),
 }
 
+impl StartsHere for Declaration {
+	/// Check literal may start at current lexer position
+	fn starts_here(lexer: &mut Lexer) -> bool {
+		VariableDeclaration::starts_here(lexer) ||
+		TypeDeclaration::starts_here(lexer) ||
+		FunctionDeclaration::starts_here(lexer)
+	}
+}
+
 impl Parse for Declaration {
 	type Err = ParseError;
 
 	/// Parse declaration using lexer
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
-		let token = lexer.try_match_one_of(
-			&[Token::Type, Token::Let, Token::Fn]
-		)?;
-		match token {
+		if !Declaration::starts_here(lexer) {
+			return Err(
+				MissingDeclaration {
+					at: lexer.span().end.into()
+				}.into()
+			);
+		}
+
+		match lexer.peek().unwrap() {
 			Token::Type =>
 				TypeDeclaration::parse(lexer).map(Declaration::Type),
 			Token::Let =>
 				VariableDeclaration::parse(lexer).map(Declaration::Variable),
 			Token::Fn =>
 				FunctionDeclaration::parse(lexer).map(Declaration::Function),
-			_ => unreachable!("try_ match_one_of returned unexpected token"),
+			_ => unreachable!("unexpected token in start of declaration"),
 		}
 	}
 }

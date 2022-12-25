@@ -66,6 +66,12 @@ fn process_single_statement<'llvm>(
 				println!("{}", unsafe { &*result });
 			},
 			Type::None => println!("none"),
+			Type::String => {
+				let result = unsafe {
+					result.into_pointer::<String>()
+				};
+				println!("{}", unsafe { &*result });
+			}
 			Type::Class(_) => unimplemented!("returning classes"),
 			Type::Function { .. } => unimplemented!("returning functions"),
 		}

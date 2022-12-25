@@ -6,7 +6,7 @@ use derive_more::{From, TryInto};
 
 use super::Expression;
 
-use crate::syntax::{Token, Lexer, Parse, Ranged, StringWithOffset, error::ParseError};
+use crate::syntax::{Token, Lexer, Parse, Ranged, StringWithOffset, error::ParseError, StartsHere};
 
 /// Cell of function
 #[derive(Debug, PartialEq, Eq, AST, Clone, From, TryInto)]
@@ -65,6 +65,13 @@ impl Call {
 			}
 		}
 		format
+	}
+}
+
+impl StartsHere for Call {
+	/// Check that call may start at current lexer position
+	fn starts_here(lexer: &mut Lexer) -> bool {
+		lexer.try_match(Token::Id).is_ok()
 	}
 }
 

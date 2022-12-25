@@ -119,6 +119,30 @@ pub struct MissingExpression {
 	pub at: SourceSpan
 }
 
+/// Diagnostic for missing declaration
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq, Eq)]
+#[error("missing declaration")]
+#[diagnostic(
+	code(parser::missing_declaration),
+)]
+pub struct MissingDeclaration {
+	/// Location, where declaration was expected
+	#[label("here")]
+	pub at: SourceSpan
+}
+
+/// Diagnostic for missing statement
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq, Eq)]
+#[error("missing statement")]
+#[diagnostic(
+	code(parser::missing_statement),
+)]
+pub struct MissingStatement {
+	/// Location, where statement was expected
+	#[label("here")]
+	pub at: SourceSpan
+}
+
 /// Diagnostic for missing variable's name
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq, Eq)]
 #[error("missing variable's name")]
@@ -140,6 +164,12 @@ pub enum ParseError {
 	#[error(transparent)]
 	#[diagnostic(transparent)]
 	MissingExpression(#[from] MissingExpression),
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	MissingDeclaration(#[from] MissingDeclaration),
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	MissingStatement(#[from] MissingStatement),
 	#[error(transparent)]
 	#[diagnostic(transparent)]
 	MissingVariableName(#[from] MissingVariableName),

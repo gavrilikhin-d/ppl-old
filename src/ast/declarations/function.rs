@@ -3,7 +3,7 @@ use ast_derive::AST;
 
 use derive_more::From;
 
-use crate::syntax::{Token, Lexer, Parse, StringWithOffset, error::ParseError};
+use crate::syntax::{Token, Lexer, Parse, StringWithOffset, error::ParseError, StartsHere};
 
 /// Parameter of function
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -69,6 +69,13 @@ pub struct FunctionDeclaration {
 	pub name_parts: Vec<FunctionNamePart>,
 	/// Return type of function
 	pub return_type: Option<StringWithOffset>,
+}
+
+impl StartsHere for FunctionDeclaration {
+	/// Check that function declaration may start at current lexer position
+	fn starts_here(lexer: &mut Lexer) -> bool {
+		lexer.try_match(Token::Fn).is_ok()
+	}
 }
 
 impl Parse for FunctionDeclaration {
