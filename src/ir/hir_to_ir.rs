@@ -5,6 +5,7 @@ use inkwell::AddressSpace;
 use inkwell::types::BasicMetadataTypeEnum;
 
 use inkwell::types::BasicType;
+use inkwell::values::BasicMetadataValueEnum;
 
 use crate::hir::*;
 use crate::mutability::Mutable;
@@ -131,6 +132,13 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
 	/// Initialize LLVM IR for PPL's functions
 	pub(crate) fn new(module: &'m inkwell::module::Module<'llvm>) -> Self {
 		Self { module }
+	}
+
+	/// Get function by name
+	pub fn get(&self, name: &str)
+		-> Option<inkwell::values::FunctionValue<'llvm>>
+	{
+		self.module.get_function(name)
 	}
 
 	/// Get function by name if it exists, or add a declaration for it
@@ -463,14 +471,21 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
 		&self,
 		context: &mut FunctionContext<'llvm, 'm>
 	) -> Self::IR {
-		unimplemented!("Function calls ir is not implemented yet");
+		let function =
+			context
+				.functions()
+				.get(self.function.name())
+				.expect(
+					format!(
+						"IR for function '{}' not found",
+						self.function.name()
+					).as_str()
+				);
+		let arguments = self.args.iter()
+			.map(|arg| arg.lower_to_ir(context).into())
+			.collect::<Vec<BasicMetadataValueEnum>>();
 
-		// let function = context.functions().get(&self.function).unwrap();
-		// let arguments = self.arguments.iter()
-		// 	.map(|arg| arg.lower_to_ir(context))
-		// 	.collect::<Vec<_>>();
-
-		// context.builder.build_call(function, &arguments, "")
+		context.builder.build_call(function, &arguments, "")
 	}
 }
 
