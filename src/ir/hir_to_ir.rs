@@ -96,6 +96,11 @@ impl<'llvm> Types<'llvm> {
 		self.class("Integer")
 	}
 
+	/// LLVM IR for [`String`](Type::String) type
+	pub fn string(&self) -> inkwell::types::PointerType<'llvm> {
+		self.class("String")
+	}
+
 	/// LLVM IR for C string type
 	pub fn c_string(&self) -> inkwell::types::PointerType<'llvm> {
 		self.llvm.i8_type().ptr_type(AddressSpace::Generic)
@@ -117,6 +122,7 @@ impl<'llvm> HIRTypesLowering<'llvm> for Type {
 		match self {
 			Type::None => context.types().none().into(),
 			Type::Integer => context.types().integer().into(),
+			Type::String => context.types().string().into(),
 			Type::Class(ty) => ty.lower_to_ir(context).into(),
 			Type::Function { .. } => unimplemented!("Function type lowering"),
 		}
