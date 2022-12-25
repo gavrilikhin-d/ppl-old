@@ -51,16 +51,9 @@ impl Module {
 	}
 
 	/// Create builtin module
-	pub(crate) fn create_builtin() -> Self {
-		let path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime/ppl.ppl");
-
-		let content =
-			std::fs::read_to_string(path)
-				.expect(format!("Failed to read {}", path).as_str());
-
+	fn create_builtin_from_str(content: &str) -> miette::Result<Self> {
 		let ast =
-			content.parse::<ast::Module>()
-				.expect("Errors while parsing builtin module");
+			content.parse::<ast::Module>()?;
 
 		let mut context = ASTLoweringContext {
 			module: Module::new("ppl"),
@@ -68,11 +61,31 @@ impl Module {
 		};
 
 		for stmt in ast.statements {
-			stmt.lower_to_hir_within_context(&mut context)
-				.expect("Errors while lowering builtin module to hir");
+			stmt.lower_to_hir_within_context(&mut context)?;
 		}
 
-		context.module
+		Ok(context.module)
+	}
+
+	/// Create builtin module
+	pub(crate) fn create_builtin() -> Self {
+		let path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime/ppl.ppl");
+
+		let content =
+			std::fs::read_to_string(path)
+				.expect(format!("Failed to read {}", path).as_str());
+
+		let module = Self::create_builtin_from_str(&content);
+		if let Err(err) = module {
+			panic!(
+				"Error in builtin module: {:?}",
+				err.with_source_code(
+					miette::NamedSource::new("ppl.ppl", content)
+				)
+			);
+		}
+
+		module.unwrap()
 	}
 
 	/// Get builtin module
