@@ -72,7 +72,7 @@ pub enum Token
 
 	/// Error token
 	#[error]
-	#[regex("[ \n]+", logos::skip)]
+	#[regex("[ ]+", logos::skip)]
 	Error
 }
 
@@ -406,7 +406,17 @@ impl<'source> Lexer<'source> {
 }
 
 impl<'source> Lexer<'source> {
-	/// Skip spaces
+	/// Skip space tokens
+	///
+	/// # Example
+	/// ```
+	/// use ppl::syntax::{Token, Lexer};
+	///
+	/// let mut lexer = Lexer::new("\n  \n42");
+	/// assert_eq!(lexer.peek(), Some(Token::Newline));
+	/// lexer.skip_spaces();
+	/// assert_eq!(lexer.peek(), Some(Token::Integer));
+	/// ```
 	pub fn skip_spaces(&mut self) -> &mut Self {
 		while self.peek().map_or(false, |token| token.is_whitespace()) {
 			self.next();
