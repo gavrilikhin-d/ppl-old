@@ -84,8 +84,9 @@ impl Parse for FunctionDeclaration {
 			let part = FunctionNamePart::parse(lexer)?;
 			name_parts.push(part);
 
-			if lexer.try_match_one_of(&[Token::Newline, Token::Arrow]).is_ok() {
-				break;
+			match lexer.peek() {
+				None | Some(Token::Arrow) | Some(Token::Newline) => break,
+				_ => continue,
 			}
 		}
 
