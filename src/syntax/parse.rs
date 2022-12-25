@@ -8,8 +8,8 @@ pub trait Parse where Self: Sized {
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err>;
 }
 
-/// Trait for checking that current lexer state is start of node
+/// Trait for checking that current lexer state is 100% start of a node
 pub trait StartsHere {
-	/// Check if current lexer state is start of this node
+	/// Check if current lexer state is 100% start of this node
 	fn starts_here(lexer: &mut Lexer) -> bool;
 }

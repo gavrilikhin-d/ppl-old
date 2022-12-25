@@ -47,6 +47,10 @@ fn process_single_statement<'llvm>(
 	engine.add_global_mapping(
 		&context.functions().integer_from_c_string(), runtime::integer_from_c_string as usize
 	);
+	engine.add_global_mapping(
+		&context.functions().string_from_c_string_and_length(),
+		runtime::string_from_c_string_and_length as usize
+	);
 
 	if let Some(f) = module.get_function("initialize") {
 		unsafe { engine.run_function(f, &[]); }
@@ -70,7 +74,7 @@ fn process_single_statement<'llvm>(
 				let result = unsafe {
 					result.into_pointer::<String>()
 				};
-				println!("{}", unsafe { &*result });
+				println!("{:?}", unsafe { &*result });
 			}
 			Type::Class(_) => unimplemented!("returning classes"),
 			Type::Function { .. } => unimplemented!("returning functions"),

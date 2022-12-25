@@ -17,6 +17,8 @@ use crate::syntax::{Token, Lexer, Parse, Ranged, error::{ParseError, MissingExpr
 
 use derive_more::From;
 
+use super::Declaration;
+
 /// Any PPL expression
 #[derive(Debug, PartialEq, Eq, AST, Clone, From)]
 pub enum Expression {
@@ -27,12 +29,10 @@ pub enum Expression {
 }
 
 impl StartsHere for Expression {
-	/// Check that expression may start at current lexer position
+	/// Check that expression 100% starts at current lexer position
 	fn starts_here(lexer: &mut Lexer) -> bool {
-		Literal::starts_here(lexer) ||
-		VariableReference::starts_here(lexer) ||
-		UnaryOperation::starts_here(lexer) ||
-		Call::starts_here(lexer)
+		!Declaration::starts_here(lexer) &&
+		lexer.peek().map_or(false, |t| t != Token::Error)
 	}
 }
 

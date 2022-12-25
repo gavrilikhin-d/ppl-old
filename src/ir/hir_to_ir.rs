@@ -129,6 +129,7 @@ impl<'llvm> HIRTypesLowering<'llvm> for Type {
 	}
 }
 
+// IMPORTANT: don't forget to update global mapping when adding new function!!!
 /// LLVM IR for PPL's functions
 pub struct Functions<'llvm, 'm> {
 	module: &'m inkwell::module::Module<'llvm>
@@ -195,6 +196,8 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
 			)
 		)
 	}
+
+	// IMPORTANT: don't forget to update global mapping when adding new function!!!
 }
 
 /// Trait for common context methods
