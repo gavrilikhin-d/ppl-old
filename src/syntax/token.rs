@@ -70,6 +70,10 @@ pub enum Token
 	#[token("->")]
 	Arrow,
 
+	/// String literal
+	#[regex("\"[^\n\"]*\"")]
+	String,
+
 	/// Error token
 	#[error]
 	#[regex("[ ]+", logos::skip)]
