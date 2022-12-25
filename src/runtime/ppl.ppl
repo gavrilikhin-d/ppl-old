@@ -1,2 +1,4 @@
 type None
 type Integer
+fn print <x:None>
+fn print <x:Integer>
