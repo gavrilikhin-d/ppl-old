@@ -12,6 +12,8 @@ pub enum Type {
 	None,
 	/// Arbitrary integer type
 	Integer,
+	/// String type
+	String,
 	/// User defined type
 	Class(Arc<TypeDeclaration>),
 	/// Function type
@@ -21,8 +23,6 @@ pub enum Type {
 impl Display for Type {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
-			Type::None => write!(f, "None"),
-			Type::Integer => write!(f, "Integer"),
 			Type::Class(class) => write!(f, "{}", class.name),
 			Type::Function { parameters, return_type } => {
 				write!(f, "(")?;
@@ -33,7 +33,8 @@ impl Display for Type {
 					write!(f, "{}", parameter)?;
 				}
 				write!(f, ") -> {}", return_type)
-			}
+			},
+			_ => write!(f, "{:?}", self)
 		}
 	}
 }
