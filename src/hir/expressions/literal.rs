@@ -8,6 +8,8 @@ pub enum Literal {
 	None { offset: usize },
 	/// Any precision decimal integer literal
 	Integer { span: std::ops::Range<usize>, value: rug::Integer },
+	/// String literal
+	String { span: std::ops::Range<usize>, value: String },
 }
 
 impl Ranged for Literal {
@@ -17,6 +19,8 @@ impl Ranged for Literal {
 			Literal::None { offset } =>
 				*offset..*offset + 4,
 			Literal::Integer { span, .. } =>
+				span.clone(),
+			Literal::String { span, .. } =>
 				span.clone(),
 		}
 	}
@@ -28,6 +32,7 @@ impl Typed for Literal {
 		match self {
 			Literal::None { .. } => Type::None,
 			Literal::Integer { .. } => Type::Integer,
+			Literal::String { .. } => Type::String,
 		}
 	}
 }
