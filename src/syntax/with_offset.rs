@@ -25,7 +25,7 @@ impl StringWithOffset {
 	///
 	/// # Example
 	/// ```
-	/// use ppl::syntax::StringWithOffset;
+	/// use ppl::syntax::{StringWithOffset, Ranged};
 	///
 	/// let value = StringWithOffset::from("hello").at(10);
 	/// assert_eq!(value.range(), 10..15);

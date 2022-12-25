@@ -79,7 +79,7 @@ impl Module {
 	///
 	/// # Example
 	/// ```
-	/// use ppl::semantics::Module;
+	/// use ppl::hir::Module;
 	///
 	/// let module = Module::builtin();
 	/// ```

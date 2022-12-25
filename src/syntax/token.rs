@@ -357,7 +357,7 @@ impl<'source> Lexer<'source> {
 	/// use ppl::syntax::{Token, Lexer, error::*};
 	///
 	/// let mut lexer = Lexer::new("42");
-	/// assert_eq!(lexer.consume(Token::Integer), Ok(()));
+	/// assert_eq!(lexer.consume(Token::Integer), Ok("42".into()));
 	///
 	/// let mut lexer = Lexer::new("42");
 	/// assert_eq!(
@@ -610,7 +610,7 @@ impl LexerNoSpaces<'_, '_> {
 	/// use ppl::syntax::{Token, Lexer, error::*};
 	///
 	/// let mut lexer = Lexer::new("42");
-	/// assert_eq!(lexer.consume(Token::Integer), Ok(()));
+	/// assert_eq!(lexer.consume(Token::Integer), Ok("42".into()));
 	///
 	/// let mut lexer = Lexer::new("42");
 	/// assert_eq!(
