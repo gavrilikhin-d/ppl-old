@@ -1,5 +1,7 @@
 type None
 type Integer
 
+@mangle_as("print_none")
 fn print <x:None>
+@mangle_as("print_integer")
 fn print <x:Integer>
