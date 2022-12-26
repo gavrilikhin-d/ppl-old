@@ -11,6 +11,8 @@ use crate::syntax::{Token, Lexer, Parse, error::ParseError};
 
 use derive_more::From;
 
+use super::Annotation;
+
 /// Any PPL statement
 #[derive(Debug, PartialEq, Eq, AST, Clone, From)]
 pub enum Statement {
@@ -22,6 +24,7 @@ pub enum Statement {
 impl StartsHere for Statement {
 	/// Check that statement may start at current lexer position
 	fn starts_here(lexer: &mut Lexer) -> bool {
+		Annotation::starts_here(lexer) ||
 		Declaration::starts_here(lexer) ||
 		Expression::starts_here(lexer) ||
 		Assignment::starts_here(lexer)
@@ -41,6 +44,12 @@ impl Parse for Statement {
 					at: lexer.span().end.into()
 				}.into()
 			);
+		}
+
+		let mut annotations = Vec::new();
+		while Annotation::starts_here(lexer) {
+			annotations.push(Annotation::parse(lexer)?);
+			lexer.skip_spaces();
 		}
 
 		let res = match lexer.peek().unwrap() {

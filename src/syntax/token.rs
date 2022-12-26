@@ -74,6 +74,22 @@ pub enum Token
 	#[regex("\"[^\n\"]*\"")]
 	String,
 
+	/// '@' token
+	#[token("@")]
+	At,
+
+	/// '(' token
+	#[token("(")]
+	LParen,
+
+	/// ')' token
+	#[token(")")]
+	RParen,
+
+	/// ',' comma
+	#[token(",")]
+	Comma,
+
 	/// Error token
 	#[error]
 	#[regex("[ ]+", logos::skip)]
@@ -110,6 +126,9 @@ impl Display for Token {
 			Token::Greater => write!(f, ">"),
 			Token::Fn => write!(f, "fn"),
 			Token::Arrow => write!(f, "->"),
+			Token::At => write!(f, "@"),
+			Token::LParen => write!(f, "("),
+			Token::RParen => write!(f, ")"),
 			Token::Let => write!(f, "let"),
 			Token::Mut => write!(f, "mut"),
 			Token::Type => write!(f, "type"),

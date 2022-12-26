@@ -1,6 +1,9 @@
 mod module;
 pub use module::*;
 
+mod annotation;
+pub use annotation::*;
+
 mod statements;
 pub use statements::*;
 
