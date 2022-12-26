@@ -58,6 +58,8 @@ pub struct FunctionDeclaration {
 	name_format: String,
 	/// Cached name of function
 	name: String,
+	/// Mangled name of function
+	mangled_name: Option<String>,
 }
 
 impl FunctionDeclaration {
@@ -81,6 +83,11 @@ impl FunctionDeclaration {
 			FunctionNamePart::Parameter(p) => Some(p),
 			_ => None,
 		})
+	}
+
+	/// Get mangled name of function
+	pub fn mangled_name(&self) -> &str {
+		self.mangled_name.as_deref().unwrap_or(self.name())
 	}
 }
 
@@ -148,6 +155,7 @@ impl FunctionDeclarationBuilder {
 			return_type,
 			name_format,
 			name,
+			mangled_name: None,
 		}
 	}
 }

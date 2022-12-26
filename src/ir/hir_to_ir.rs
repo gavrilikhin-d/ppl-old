@@ -356,7 +356,7 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionDeclaration {
 			_ => unreachable!("FunctionDeclaration::ty() returned non-function type")
 		};
 		context.module.add_function(
-			self.name(),
+			self.mangled_name(),
 			ty,
 			None
 		)
@@ -510,11 +510,11 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
 		let function =
 			context
 				.functions()
-				.get(self.function.name())
+				.get(self.function.mangled_name())
 				.expect(
 					format!(
 						"IR for function '{}' not found",
-						self.function.name()
+						self.function.mangled_name()
 					).as_str()
 				);
 		let arguments = self.args.iter()
