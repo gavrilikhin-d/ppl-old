@@ -511,12 +511,10 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
 			context
 				.functions()
 				.get(self.function.mangled_name())
-				.expect(
-					format!(
-						"IR for function '{}' not found",
-						self.function.mangled_name()
-					).as_str()
-				);
+				.or_else(|| Some(
+					self.function.declare_global(context.module_context)
+				)).unwrap();
+
 		let arguments = self.args.iter()
 			.map(|arg| arg.lower_to_ir(context).into())
 			.collect::<Vec<BasicMetadataValueEnum>>();
