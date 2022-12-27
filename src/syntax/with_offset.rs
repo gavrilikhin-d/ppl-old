@@ -111,3 +111,9 @@ impl Ranged for StringWithOffset {
 		self.offset..self.offset + self.value.len()
 	}
 }
+
+impl PartialEq<&str> for StringWithOffset {
+	fn eq(&self, other: &&str) -> bool {
+		self.value == *other
+	}
+}

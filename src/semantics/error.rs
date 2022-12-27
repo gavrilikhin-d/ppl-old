@@ -29,6 +29,19 @@ pub struct UnknownType {
 	pub at: SourceSpan
 }
 
+/// Diagnostic for unknown annotations
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("unknown annotation '@{name}'")]
+#[diagnostic(code(semantics::unknown_annotation))]
+pub struct UnknownAnnotation {
+	/// Name of unknown annotation
+	pub name: String,
+
+	/// Span of name
+	#[label("here")]
+	pub at: SourceSpan
+}
+
 /// Diagnostic for assignment to immutable
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 #[error("assignment to immutable")]
@@ -184,6 +197,9 @@ pub enum Error {
 	#[error(transparent)]
 	#[diagnostic(transparent)]
 	UnknownType(#[from] UnknownType),
+	#[error(transparent)]
+	#[diagnostic(transparent)]
+	UnknownAnnotation(#[from] UnknownAnnotation),
 	#[error(transparent)]
 	#[diagnostic(transparent)]
 	NoUnaryOperator(#[from] NoUnaryOperator),

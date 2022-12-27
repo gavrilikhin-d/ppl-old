@@ -11,9 +11,9 @@ use super::Expression;
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct Annotation {
 	/// Annotation name
-	name: StringWithOffset,
+	pub name: StringWithOffset,
 	/// Arguments of annotation
-	args: Vec<Expression>
+	pub args: Vec<Expression>
 }
 
 impl StartsHere for Annotation {

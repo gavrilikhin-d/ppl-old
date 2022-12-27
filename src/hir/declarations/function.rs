@@ -53,13 +53,13 @@ pub struct FunctionDeclaration {
 	pub name_parts: Vec<FunctionNamePart>,
 	/// Type of returned value
 	pub return_type: Type,
+	/// Mangled name to use instead of default
+	pub mangled_name: Option<String>,
 
 	/// Cached format for name of function
 	name_format: String,
 	/// Cached name of function
 	name: String,
-	/// Mangled name of function
-	mangled_name: Option<String>,
 }
 
 impl FunctionDeclaration {
@@ -95,20 +95,29 @@ impl FunctionDeclaration {
 pub struct FunctionDeclarationBuilder {
 	/// Type's name
 	name_parts: Vec<FunctionNamePart>,
+	/// Mangled name of function
+	mangled_name: Option<String>,
 }
 
 impl FunctionDeclarationBuilder {
 	/// Create a new builder for a function declaration
-	pub fn new() -> FunctionDeclarationBuilder {
+	pub fn new() -> Self {
 		FunctionDeclarationBuilder {
 			name_parts: Vec::new(),
+			mangled_name: None
 		}
 	}
 
 	/// Set name parts of the function
 	pub fn with_name(mut self, name_parts: Vec<FunctionNamePart>)
-	-> FunctionDeclarationBuilder {
+	-> Self {
 		self.name_parts = name_parts;
+		self
+	}
+
+	/// Set mangled name of function
+	pub fn with_mangled_name(mut self, mangled_name: Option<String>) -> Self {
+		self.mangled_name = mangled_name;
 		self
 	}
 
@@ -155,7 +164,7 @@ impl FunctionDeclarationBuilder {
 			return_type,
 			name_format,
 			name,
-			mangled_name: None,
+			mangled_name: self.mangled_name,
 		}
 	}
 }

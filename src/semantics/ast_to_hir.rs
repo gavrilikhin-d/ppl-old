@@ -332,6 +332,31 @@ impl ASTLoweringWithinContext for ast::Parameter {
 	}
 }
 
+impl ASTLoweringWithinContext for ast::Annotation {
+	type HIR = hir::Annotation;
+
+	/// Lower [`ast::Annotation`] to [`hir::Annotation`] within lowering context
+	fn lower_to_hir_within_context(
+		&self,
+		context: &mut ASTLoweringContext
+	) -> Result<Self::HIR, Error> {
+		if self.name == "mangle_as" {
+			if let Some(
+				ast::Expression::Literal(
+					ast::Literal::String { value, .. })
+				) = self.args.first() {
+				return Ok(hir::Annotation::MangleAs(value.clone()));
+			}
+		}
+		Err(
+			UnknownAnnotation {
+				name: self.name.to_string(),
+				at: self.name.range().into(),
+			}.into()
+		)
+	}
+}
+
 impl ASTLoweringWithinContext for ast::FunctionDeclaration {
 	type HIR = Arc<hir::FunctionDeclaration>;
 
@@ -357,11 +382,24 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
 			None => Type::None,
 		};
 
+		let annotations = self.annotations.iter().map(
+			|a| a.lower_to_hir_within_context(context)
+		).collect::<Result<Vec<_>, _>>()?;
+		let mangled_name = annotations.iter().find_map(
+			|a| match a {
+				hir::Annotation::MangleAs(name) => Some(name.clone()),
+				_ => None,
+			}
+		);
+
 		let f = Arc::new(
 			hir::FunctionDeclaration::build()
 				.with_name(name_parts)
+				.with_mangled_name(mangled_name)
 				.with_return_type(return_type)
 		);
+
+
 
 		let functions = context.module.functions.get_mut(f.name_format());
 		if let Some(functions) = functions {
