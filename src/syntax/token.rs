@@ -93,6 +93,7 @@ pub enum Token
 	/// Error token
 	#[error]
 	#[regex("[ ]+", logos::skip)]
+	#[regex("//[^\n]*", logos::skip)]
 	Error
 }
 

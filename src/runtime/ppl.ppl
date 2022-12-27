@@ -1,7 +1,10 @@
 type None
 type Integer
 
+/// Prints "none\n" to stdout
 @mangle_as("print_none")
 fn print <x:None>
+
+/// Prints integer to stdout with newline
 @mangle_as("print_integer")
 fn print <x:Integer>
