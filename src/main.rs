@@ -5,7 +5,7 @@ use ppl::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
 use ppl::syntax::{Lexer, Parse};
 use ppl::ast::*;
 use ppl::hir::{self, Typed, Type};
-use ppl::ir::{self, Context};
+use ppl::ir::{self, HIRModuleLowering};
 use ppl::ir::GlobalHIRLowering;
 use inkwell::OptimizationLevel;
 
@@ -35,22 +35,6 @@ fn process_single_statement<'llvm>(
 	module.verify().unwrap();
 
 	engine.add_module(module).unwrap();
-
-	engine.add_global_mapping(
-		&context.functions().none(),
-		runtime::none as usize
-	);
-	engine.add_global_mapping(
-		&context.functions().integer_from_i64(),
-		runtime::integer_from_i64 as usize
-	);
-	engine.add_global_mapping(
-		&context.functions().integer_from_c_string(), runtime::integer_from_c_string as usize
-	);
-	engine.add_global_mapping(
-		&context.functions().string_from_c_string_and_length(),
-		runtime::string_from_c_string_and_length as usize
-	);
 
 	if let Some(f) = module.get_function("initialize") {
 		unsafe { engine.run_function(f, &[]); }
@@ -87,15 +71,33 @@ fn process_single_statement<'llvm>(
 
 /// Read-Evaluate-Print Loop
 fn repl() {
-	let mut source = String::new();
 	let mut context = ASTLoweringContext::new("repl");
 	let llvm = inkwell::context::Context::create();
+	let builtin = hir::Module::builtin().lower_to_ir(&llvm);
 	let mut engine =
-		llvm
-			.create_module("")
-			.create_jit_execution_engine(OptimizationLevel::None)
-			.unwrap();
+	builtin
+	.create_jit_execution_engine(OptimizationLevel::None)
+	.unwrap();
 
+	let functions = ir::Functions::new(&builtin);
+
+	engine.add_global_mapping(
+		&functions.none(),
+		runtime::none as usize
+	);
+	engine.add_global_mapping(
+		&functions.integer_from_i64(),
+		runtime::integer_from_i64 as usize
+	);
+	engine.add_global_mapping(
+		&functions.integer_from_c_string(), runtime::integer_from_c_string as usize
+	);
+	engine.add_global_mapping(
+		&functions.string_from_c_string_and_length(),
+		runtime::string_from_c_string_and_length as usize
+	);
+
+	let mut source = String::new();
 	loop {
 		print!(">>> ");
 		std::io::stdout().flush().unwrap();

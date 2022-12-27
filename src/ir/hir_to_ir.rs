@@ -137,7 +137,7 @@ pub struct Functions<'llvm, 'm> {
 
 impl<'llvm, 'm> Functions<'llvm, 'm> {
 	/// Initialize LLVM IR for PPL's functions
-	pub(crate) fn new(module: &'m inkwell::module::Module<'llvm>) -> Self {
+	pub fn new(module: &'m inkwell::module::Module<'llvm>) -> Self {
 		Self { module }
 	}
 
@@ -617,5 +617,27 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
 				function.verify(true);
 			},
 		};
+	}
+}
+
+/// Trait for lowering HIR Module to LLVM IR
+pub trait HIRModuleLowering<'llvm> {
+	/// Lower [`Module`] to LLVM IR
+	fn lower_to_ir(&self, llvm: &'llvm inkwell::context::Context)
+		-> inkwell::module::Module<'llvm>;
+}
+
+impl<'llvm> HIRModuleLowering<'llvm> for Module {
+	/// Lower [`Module`] to LLVM IR
+	fn lower_to_ir(&self, llvm: &'llvm inkwell::context::Context)
+		-> inkwell::module::Module<'llvm>
+	{
+		let mut context = ModuleContext::new(llvm.create_module(self.name()));
+
+		for statement in &self.statements {
+			statement.lower_global_to_ir(&mut context);
+		}
+
+		context.module
 	}
 }
