@@ -338,7 +338,7 @@ impl ASTLoweringWithinContext for ast::Annotation {
 	/// Lower [`ast::Annotation`] to [`hir::Annotation`] within lowering context
 	fn lower_to_hir_within_context(
 		&self,
-		context: &mut ASTLoweringContext
+		_context: &mut ASTLoweringContext
 	) -> Result<Self::HIR, Error> {
 		if self.name == "mangle_as" {
 			if let Some(
@@ -388,7 +388,6 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
 		let mangled_name = annotations.iter().find_map(
 			|a| match a {
 				hir::Annotation::MangleAs(name) => Some(name.clone()),
-				_ => None,
 			}
 		);
 
