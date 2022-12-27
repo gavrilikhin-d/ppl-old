@@ -3,7 +3,7 @@ use ast_derive::AST;
 
 use derive_more::From;
 
-use crate::syntax::{Token, Lexer, Parse, StringWithOffset, error::ParseError, StartsHere};
+use crate::{syntax::{Token, Lexer, Parse, StringWithOffset, error::ParseError, StartsHere}, ast::Annotation};
 
 /// Parameter of function
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -69,6 +69,9 @@ pub struct FunctionDeclaration {
 	pub name_parts: Vec<FunctionNamePart>,
 	/// Return type of function
 	pub return_type: Option<StringWithOffset>,
+
+	/// Annotations for function
+	pub annotations: Vec<Annotation>
 }
 
 impl StartsHere for FunctionDeclaration {
@@ -103,7 +106,7 @@ impl Parse for FunctionDeclaration {
 			None
 		};
 
-		Ok(FunctionDeclaration {name_parts, return_type})
+		Ok(FunctionDeclaration {name_parts, return_type, annotations: vec![] })
 	}
 
 }
