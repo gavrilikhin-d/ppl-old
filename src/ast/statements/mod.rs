@@ -52,25 +52,22 @@ impl Parse for Statement {
 			lexer.skip_spaces();
 		}
 
-		let res = match lexer.peek().unwrap() {
+		let res: Statement = match lexer.peek().unwrap() {
 			Token::Let | Token::Type | Token::Fn =>
-				Declaration::parse(lexer)
-					.map(|decl| Statement::Declaration(decl)),
+				Declaration::parse(lexer)?.into(),
 			Token::None | Token::Integer | Token::String |
 			Token::Id | Token::Plus | Token::Minus => {
 				let target = Expression::parse(lexer)?;
 
 				if lexer.consume(Token::Assign).is_err() {
-					Ok(target.into())
+					target.into()
 				}
 				else
 				{
-					Ok(
-						Assignment {
-							target,
-							value: Expression::parse(lexer)?
-						}.into()
-					)
+					Assignment {
+						target,
+						value: Expression::parse(lexer)?
+					}.into()
 				}
 			},
 			_ => unreachable!("consume_one_of returned unexpected token"),
@@ -80,6 +77,6 @@ impl Parse for Statement {
 			lexer.consume(Token::Newline)?;
 		}
 
-		res
+		Ok(res)
 	}
 }
