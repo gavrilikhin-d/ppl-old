@@ -53,7 +53,7 @@ fn process_single_statement<'llvm>(
 				};
 				println!("{}", unsafe { &*result });
 			},
-			Type::None => println!("none"),
+			Type::None => (), // Do nothing
 			Type::String => {
 				let result = unsafe {
 					result.into_pointer::<String>()
