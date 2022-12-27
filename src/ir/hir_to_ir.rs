@@ -112,13 +112,13 @@ pub trait HIRTypesLowering<'llvm> {
 	type IR;
 
 	/// Lower PPL's [`Type`](Type) to LLVM IR
-	fn lower_to_ir(&self, context: &dyn Context<'llvm>) -> Self::IR;
+	fn lower_to_ir(&self, context: &impl Context<'llvm>) -> Self::IR;
 }
 
 impl<'llvm> HIRTypesLowering<'llvm> for Type {
 	type IR = inkwell::types::BasicTypeEnum<'llvm>;
 
-	fn lower_to_ir(&self, context: &dyn Context<'llvm>) -> Self::IR {
+	fn lower_to_ir(&self, context: &impl Context<'llvm>) -> Self::IR {
 		match self {
 			Type::None => context.types().none().into(),
 			Type::Integer => context.types().integer().into(),
@@ -333,7 +333,7 @@ impl<'llvm> HIRTypesLowering<'llvm> for TypeDeclaration {
 	type IR = inkwell::types::PointerType<'llvm>;
 
 	/// Lower [`TypeDeclaration`] to LLVM IR
-	fn lower_to_ir(&self, context: &dyn Context<'llvm>) -> Self::IR {
+	fn lower_to_ir(&self, context: &impl Context<'llvm>) -> Self::IR {
 		context.types().class(&self.name)
 	}
 }
