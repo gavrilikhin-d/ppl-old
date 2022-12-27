@@ -96,6 +96,14 @@ fn repl() {
 		&functions.string_from_c_string_and_length(),
 		runtime::string_from_c_string_and_length as usize
 	);
+	engine.add_global_mapping(
+		&functions.print_none(),
+		runtime::print_none as usize
+	);
+	engine.add_global_mapping(
+		&functions.print_integer(),
+		runtime::print_integer as usize
+	);
 
 	let mut source = String::new();
 	loop {

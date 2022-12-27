@@ -197,6 +197,24 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
 		)
 	}
 
+	/// LLVM IR for "print <x: None> -> None" builtin function
+	pub fn print_none(&self) -> inkwell::values::FunctionValue<'llvm> {
+		let types = Types::new(self.module.get_context());
+		self.get_or_add_function(
+			"print_none",
+			types.none().fn_type(&[types.none().into()], false)
+		)
+	}
+
+	/// LLVM IR for "print <x: None> -> None" builtin function
+	pub fn print_integer(&self) -> inkwell::values::FunctionValue<'llvm> {
+		let types = Types::new(self.module.get_context());
+		self.get_or_add_function(
+			"print_integer",
+			types.none().fn_type(&[types.integer().into()], false)
+		)
+	}
+
 	// IMPORTANT: don't forget to update global mapping when adding new function!!!
 }
 
