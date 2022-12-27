@@ -52,7 +52,7 @@ impl Parse for Statement {
 			lexer.skip_spaces();
 		}
 
-		let res: Statement = match lexer.peek().unwrap() {
+		let mut res: Statement = match lexer.peek().unwrap() {
 			Token::Let | Token::Type | Token::Fn =>
 				Declaration::parse(lexer)?.into(),
 			Token::None | Token::Integer | Token::String |
@@ -72,6 +72,17 @@ impl Parse for Statement {
 			},
 			_ => unreachable!("consume_one_of returned unexpected token"),
 		};
+
+
+		if !annotations.is_empty() {
+			if  let Statement::Declaration(Declaration::Function(ref mut decl)) = res {
+				decl.annotations = annotations;
+			}
+			else
+			{
+				unimplemented!("Annotations are not supported for this statement");
+			}
+		}
 
 		if lexer.peek().is_some() {
 			lexer.consume(Token::Newline)?;
