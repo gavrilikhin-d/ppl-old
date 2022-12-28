@@ -97,7 +97,10 @@ impl Parse for FunctionDeclaration {
 			name_parts.push(part);
 
 			match lexer.peek() {
-				None | Some(Token::Arrow) | Some(Token::Newline) => break,
+				None |
+				Some(Token::Arrow) |
+				Some(Token::Newline) |
+				Some(Token::Colon) => break,
 				_ => continue,
 			}
 		}
@@ -119,6 +122,8 @@ impl Parse for FunctionDeclaration {
 			loop {
 				lexer.skip_indentation();
 				stmts.push(Statement::parse(lexer)?);
+				// FIXME: last indentation may be already skipped
+				lexer.skip_indentation();
 				if lexer.indentation() < indentation {
 					break;
 				}
@@ -164,6 +169,42 @@ fn test_function_declaration() {
 			),
 			annotations: vec![],
 			body: None,
+		}
+	);
+}
+
+#[test]
+fn test_function_with_body() {
+	use crate::ast::Literal;
+
+	let func =
+		"fn test:\n\t1\n\t2"
+			.parse::<FunctionDeclaration>()
+			.unwrap();
+	assert_eq!(
+		func,
+		FunctionDeclaration {
+			name_parts: vec![
+				StringWithOffset::from("test").at(3).into(),
+			],
+			return_type: None,
+			annotations: vec![],
+			body: Some(
+				vec![
+					Statement::Expression(
+						Literal::Integer{
+							value: "1".into(),
+							offset: 10,
+						}.into()
+					),
+					Statement::Expression(
+						Literal::Integer{
+							value: "2".into(),
+							offset: 13,
+						}.into()
+					),
+				]
+			),
 		}
 	);
 }
