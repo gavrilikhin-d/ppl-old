@@ -3,7 +3,7 @@ use ast_derive::AST;
 
 use derive_more::From;
 
-use crate::{syntax::{Token, Lexer, Parse, StringWithOffset, error::ParseError, StartsHere}, ast::Annotation};
+use crate::{syntax::{Token, Lexer, Parse, StringWithOffset, error::ParseError, StartsHere}, ast::{Annotation, Statement}};
 
 /// Parameter of function
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -69,6 +69,8 @@ pub struct FunctionDeclaration {
 	pub name_parts: Vec<FunctionNamePart>,
 	/// Return type of function
 	pub return_type: Option<StringWithOffset>,
+	/// Body of function
+	pub body: Option<Vec<Statement>>,
 
 	/// Annotations for function
 	pub annotations: Vec<Annotation>
@@ -106,7 +108,31 @@ impl Parse for FunctionDeclaration {
 			None
 		};
 
-		Ok(FunctionDeclaration {name_parts, return_type, annotations: vec![] })
+		let mut body = None;
+
+		if lexer.consume(Token::Colon).is_ok() {
+			lexer.consume(Token::Newline)?;
+
+			let mut stmts = Vec::new();
+
+			let indentation = lexer.indentation() + 1;
+			loop {
+				lexer.skip_indentation();
+				stmts.push(Statement::parse(lexer)?);
+				if lexer.indentation() < indentation {
+					break;
+				}
+			}
+
+			body = Some(stmts);
+		}
+
+		Ok(FunctionDeclaration {
+			name_parts,
+			return_type,
+			body,
+			annotations: vec![]
+		})
 	}
 
 }
