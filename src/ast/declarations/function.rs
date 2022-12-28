@@ -161,7 +161,9 @@ fn test_function_declaration() {
 			],
 			return_type: Some(
 				StringWithOffset::from("Distance").at(45).into()
-			)
+			),
+			annotations: vec![],
+			body: None,
 		}
 	);
 }
