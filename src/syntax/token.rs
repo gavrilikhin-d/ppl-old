@@ -90,6 +90,10 @@ pub enum Token
 	#[token(",")]
 	Comma,
 
+	/// '\t' token
+	#[token("\t")]
+	Tab,
+
 	/// Error token
 	#[error]
 	#[regex("[ ]+", logos::skip)]
@@ -147,6 +151,8 @@ pub struct Lexer<'source> {
 	span: Span,
 	/// Peeked token
     peeked: Option<Token>,
+	/// Current indentation level
+	indentation: usize,
 }
 
 impl<'source> Lexer<'source> {
@@ -164,6 +170,7 @@ impl<'source> Lexer<'source> {
             lexer: Token::lexer(source),
 			span: 0..0,
             peeked: None,
+			indentation: 0,
         }
     }
 
