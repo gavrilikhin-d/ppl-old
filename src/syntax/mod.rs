@@ -1,10 +1,13 @@
 mod token;
-pub use token::{Token, Lexer};
+pub use token::*;
+
+mod lexer;
+pub use lexer::*;
 
 pub mod error;
 
 mod with_offset;
-pub use with_offset::{WithOffset, StringWithOffset};
+pub use with_offset::*;
 
 mod ranged;
 pub use ranged::Ranged;
