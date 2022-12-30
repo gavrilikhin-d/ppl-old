@@ -216,6 +216,15 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
 	}
 
 	// IMPORTANT: don't forget to update global mapping when adding new function!!!
+
+	/// LLVM IR for "print <str: String> -> None" builtin function
+	pub fn print_string(&self) -> inkwell::values::FunctionValue<'llvm> {
+		let types = Types::new(self.module.get_context());
+		self.get_or_add_function(
+			"print_string",
+			types.none().fn_type(&[types.string().into()], false)
+		)
+	}
 }
 
 /// Trait for common context methods

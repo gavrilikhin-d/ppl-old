@@ -1,5 +1,8 @@
+// IMPORTANT: add mapping for new functions with @mangle_as
+
 type None
 type Integer
+type String
 
 /// Prints "none\n" to stdout
 @mangle_as("print_none")
@@ -8,3 +11,7 @@ fn print <x:None>
 /// Prints integer to stdout with newline
 @mangle_as("print_integer")
 fn print <x:Integer>
+
+/// Prints string to stdout with newline
+@mangle_as("print_string")
+fn print <str:String>

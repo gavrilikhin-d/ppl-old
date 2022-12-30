@@ -104,6 +104,10 @@ fn repl() {
 		&functions.print_integer(),
 		runtime::print_integer as usize
 	);
+	engine.add_global_mapping(
+		&functions.print_string(),
+		runtime::print_string as usize
+	);
 
 	let mut source = String::new();
 	loop {

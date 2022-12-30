@@ -1,13 +1,12 @@
-// IMPORTANT: don't forget to update global mapping after adding new function!!!
 
 use rug::Integer;
 
 /// Runtime for PPL's builtin functions
 #[repr(C)]
 pub struct None {
-    _data: [u8; 0],
+	_data: [u8; 0],
     _marker:
-        core::marker::PhantomData<(*mut u8, core::marker::PhantomPinned)>,
+	core::marker::PhantomData<(*mut u8, core::marker::PhantomPinned)>,
 }
 
 /// Default constructor for PPL's [`None`](ppl::semantics::Type::None) type
@@ -69,4 +68,19 @@ pub extern "C" fn string_from_c_string_and_length(str: *const i8, _len: u64) -> 
 	Box::into_raw(boxed)
 }
 
+/// Prints none value
+///
+/// Runtime for builtin ppl's function:
+/// ```ppl
+/// fn print <str: String> -> None
+/// ```
+#[no_mangle]
+pub extern "C" fn print_string(str: *const String) -> *const None {
+	if str.is_null() {
+		panic!("null pointer passed to print_string");
+	}
+	println!("{}", unsafe { &*str });
+	none()
+}
 
+// IMPORTANT: don't forget to update global mapping after adding new function!!!
