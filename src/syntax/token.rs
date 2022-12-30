@@ -66,6 +66,10 @@ pub enum Token
 	#[token("->")]
 	Arrow,
 
+	/// "=>" token
+	#[token("=>")]
+	FatArrow,
+
 	/// String literal
 	#[regex("\"[^\n\"]*\"")]
 	String,
@@ -127,6 +131,7 @@ impl Display for Token {
 			Token::Greater => write!(f, ">"),
 			Token::Fn => write!(f, "fn"),
 			Token::Arrow => write!(f, "->"),
+			Token::FatArrow => write!(f, "=>"),
 			Token::At => write!(f, "@"),
 			Token::LParen => write!(f, "("),
 			Token::RParen => write!(f, ")"),

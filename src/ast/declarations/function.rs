@@ -101,6 +101,7 @@ impl Parse for FunctionDeclaration {
 			match lexer.peek() {
 				None |
 				Some(Token::Arrow) |
+				Some(Token::FatArrow) |
 				Some(Token::Newline) |
 				Some(Token::Colon) => break,
 				_ => continue,
@@ -114,8 +115,10 @@ impl Parse for FunctionDeclaration {
 		};
 
 		let mut body = None;
-
-		if lexer.consume(Token::Colon).is_ok() {
+		if lexer.consume(Token::FatArrow).is_ok() {
+			body = Some(vec![Statement::parse(lexer)?])
+		}
+		else if lexer.consume(Token::Colon).is_ok() {
 			lexer.consume(Token::Newline)?;
 
 			let mut stmts = Vec::new();

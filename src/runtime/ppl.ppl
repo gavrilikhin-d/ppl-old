@@ -13,5 +13,4 @@ fn print <:Integer>
 fn print <:String>
 
 /// Prints "none" to stdout with newline
-fn print <:None>:
-	print "none"
+fn print <:None> => print "none"
