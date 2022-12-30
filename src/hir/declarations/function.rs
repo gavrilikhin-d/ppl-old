@@ -4,7 +4,7 @@ use derive_more::From;
 
 use crate::named::Named;
 use crate::syntax::StringWithOffset;
-use crate::hir::{Type, Typed};
+use crate::hir::{Type, Typed, Statement};
 
 /// Declaration of a function parameter
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -55,6 +55,8 @@ pub struct FunctionDeclaration {
 	pub return_type: Type,
 	/// Mangled name to use instead of default
 	pub mangled_name: Option<String>,
+	/// Body of function
+	pub body: Option<Vec<Statement>>,
 
 	/// Cached format for name of function
 	name_format: String,
@@ -97,6 +99,8 @@ pub struct FunctionDeclarationBuilder {
 	name_parts: Vec<FunctionNamePart>,
 	/// Mangled name of function
 	mangled_name: Option<String>,
+	/// Body of function
+	body: Option<Vec<Statement>>,
 }
 
 impl FunctionDeclarationBuilder {
@@ -104,7 +108,8 @@ impl FunctionDeclarationBuilder {
 	pub fn new() -> Self {
 		FunctionDeclarationBuilder {
 			name_parts: Vec::new(),
-			mangled_name: None
+			mangled_name: None,
+			body: None,
 		}
 	}
 
@@ -118,6 +123,12 @@ impl FunctionDeclarationBuilder {
 	/// Set mangled name of function
 	pub fn with_mangled_name(mut self, mangled_name: Option<String>) -> Self {
 		self.mangled_name = mangled_name;
+		self
+	}
+
+	/// Set body of function
+	pub fn with_body(mut self, body: Option<Vec<Statement>>) -> Self {
+		self.body = body;
 		self
 	}
 
@@ -165,6 +176,7 @@ impl FunctionDeclarationBuilder {
 			name_format,
 			name,
 			mangled_name: self.mangled_name,
+			body: self.body,
 		}
 	}
 }
