@@ -4,15 +4,14 @@ type None
 type Integer
 type String
 
-
 /// Prints integer to stdout with newline
 @mangle_as("print_integer")
-fn print <x:Integer>
+fn print <:Integer>
 
 /// Prints string to stdout with newline
 @mangle_as("print_string")
-fn print <str:String>
+fn print <:String>
 
 /// Prints "none" to stdout with newline
-fn print <x:None>:
+fn print <:None>:
 	print "none"

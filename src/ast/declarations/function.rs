@@ -19,7 +19,9 @@ impl Parse for Parameter {
 
 	/// Parse parameter using lexer
 	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
-		let name = lexer.consume(Token::Id)?;
+		let name = lexer.consume(Token::Id).ok().unwrap_or_else(
+			|| StringWithOffset::from("").at(lexer.span().end)
+		);
 
 		lexer.consume(Token::Colon)?;
 
