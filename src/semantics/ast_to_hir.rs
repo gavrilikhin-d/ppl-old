@@ -391,14 +391,23 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
 			}
 		);
 
+		let mut body = None;
+		if let Some(stmts) = &self.body {
+			let mut hir = Vec::new();
+			for stmt in stmts {
+				hir.push(stmt.lower_to_hir_within_context(context)?);
+			}
+			body = Some(hir);
+		}
+
+
 		let f = Arc::new(
 			hir::FunctionDeclaration::build()
 				.with_name(name_parts)
 				.with_mangled_name(mangled_name)
+				.with_body(body)
 				.with_return_type(return_type)
 		);
-
-
 
 		let functions = context.module.functions.get_mut(f.name_format());
 		if let Some(functions) = functions {
