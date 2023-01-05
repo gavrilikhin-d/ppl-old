@@ -96,6 +96,8 @@ fn repl() {
 
     let mut lexer = InteractiveLexer::new();
     loop {
+		lexer.override_next_prompt(">>> ");
+
         if let Err(err) = process_single_statement(&mut lexer, &mut context, &llvm, &mut engine) {
             println!(
                 "{:?}",

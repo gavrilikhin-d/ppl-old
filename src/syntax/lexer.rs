@@ -360,6 +360,10 @@ impl Lexer for FullSourceLexer<'_> {
 
 /// Lexer for reading from interactive stream (stdin)
 pub struct InteractiveLexer {
+	/// Prompt to display before reading next line
+	pub prompt: String,
+	/// Used to override next prompt
+	next_prompt: RefCell<Option<String>>,
     /// Current source code of lexer
     source: RefCell<String>,
     /// Span of current token
@@ -372,6 +376,8 @@ impl InteractiveLexer {
     /// Create new interactive lexer
     pub fn new() -> Self {
         Self {
+			prompt: "... ".to_string(),
+			next_prompt: None.into(),
             source: String::new().into(),
             span: 0..0,
             indentation: 0,
@@ -387,7 +393,13 @@ impl InteractiveLexer {
 
     /// Request next line
     fn request_line(&self) {
-        print!(">>> ");
+		if let Some(prompt) = self.next_prompt.take() {
+        	print!("{}", prompt);
+		}
+		else
+		{
+			print!("{}", self.prompt);
+		}
         std::io::stdout().flush().unwrap();
         let mut line = String::new();
         std::io::stdin().read_line(&mut line).unwrap();
@@ -400,6 +412,11 @@ impl InteractiveLexer {
             self.request_line()
         }
     }
+
+	/// Override next prompt
+	pub fn override_next_prompt(&mut self, prompt: &str) {
+		self.next_prompt = Some(prompt.to_string()).into()
+	}
 }
 
 impl Iterator for InteractiveLexer {
