@@ -8,7 +8,7 @@ use crate::hir::{Declaration, Expression};
 /// Any PPL statement
 #[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Statement {
-	Declaration(Declaration),
-	Expression(Expression),
-	Assignment(Assignment),
+    Declaration(Declaration),
+    Expression(Expression),
+    Assignment(Assignment),
 }

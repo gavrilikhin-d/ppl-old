@@ -19,7 +19,7 @@ fn impl_ast_macro(ast: &syn::DeriveInput) -> TokenStream {
 			type Err = <#name as Parse>::Err;
 
 			fn from_str(s: &str) -> Result<Self, Self::Err> {
-				let mut lexer = Lexer::new(s);
+				let mut lexer = crate::syntax::FullSourceLexer::new(s);
 
 				lexer.skip_spaces();
 

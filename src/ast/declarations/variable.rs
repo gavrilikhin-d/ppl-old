@@ -1,89 +1,95 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::mutability::{Mutability, Mutable};
 use crate::ast::Expression;
-use crate::syntax::error::{ParseError, MissingVariableName};
-use crate::syntax::{Token, Lexer, Parse, StringWithOffset, StartsHere};
+use crate::mutability::{Mutability, Mutable};
+use crate::syntax::error::{MissingVariableName, ParseError};
+use crate::syntax::{Lexer, Parse, StartsHere, StringWithOffset, Token};
 
 /// Declaration of the variable
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct VariableDeclaration {
-	/// Name of variable
-	pub name: StringWithOffset,
-	/// Initializer for variable
-	pub initializer: Expression,
+    /// Name of variable
+    pub name: StringWithOffset,
+    /// Initializer for variable
+    pub initializer: Expression,
 
-	/// Is this variable mutable
-	pub mutability: Mutability,
+    /// Is this variable mutable
+    pub mutability: Mutability,
 }
 
 impl Mutable for VariableDeclaration {
-	fn is_mutable(&self) -> bool {
-		self.mutability.is_mutable()
-	}
+    fn is_mutable(&self) -> bool {
+        self.mutability.is_mutable()
+    }
 }
 
 impl StartsHere for VariableDeclaration {
-	/// Check that variable declaration may start at current lexer position
-	fn starts_here(lexer: &mut Lexer) -> bool {
-		lexer.try_match(Token::Let).is_ok()
-	}
+    /// Check that variable declaration may start at current lexer position
+    fn starts_here(lexer: &mut impl Lexer) -> bool {
+        lexer.try_match(Token::Let).is_ok()
+    }
 }
 
 impl Parse for VariableDeclaration {
-	type Err = ParseError;
+    type Err = ParseError;
 
-	/// Parse variable declaration using lexer
-	fn parse(lexer: &mut Lexer) -> Result<Self, Self::Err> {
-		lexer.consume(Token::Let)?;
+    /// Parse variable declaration using lexer
+    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
+        lexer.consume(Token::Let)?;
 
-		let mutable = lexer.consume(Token::Mut).is_ok();
+        let mutable = lexer.consume(Token::Mut).is_ok();
 
-		lexer.consume(Token::Id).or_else(
-			|_| Err(MissingVariableName {
-				at: lexer.span().end.into()
-			})
-		)?;
+        lexer.consume(Token::Id).or_else(|_| {
+            Err(MissingVariableName {
+                at: lexer.span().end.into(),
+            })
+        })?;
 
-		let name = StringWithOffset::from(lexer.slice()).at(lexer.span().start);
+        let name = StringWithOffset::from(lexer.slice()).at(lexer.span().start);
 
-		lexer.consume(Token::Assign)?;
+        lexer.consume(Token::Assign)?;
 
-		Ok(
-			VariableDeclaration {
-				name,
-				initializer: Expression::parse(lexer)?,
-				mutability: match mutable {
-					true => Mutability::Mutable,
-					false => Mutability::Immutable
-				}
-			}
-		)
-	}
+        Ok(VariableDeclaration {
+            name,
+            initializer: Expression::parse(lexer)?,
+            mutability: match mutable {
+                true => Mutability::Mutable,
+                false => Mutability::Immutable,
+            },
+        })
+    }
 }
 
 #[test]
 fn test_variable_declaration() {
-	let var = "let x = 1".parse::<VariableDeclaration>().unwrap();
+    let var = "let x = 1".parse::<VariableDeclaration>().unwrap();
 
-	use crate::ast::Literal;
-	assert_eq!(
-		var,
-		VariableDeclaration {
-			name: StringWithOffset::from("x").at(4),
-			initializer: Literal::Integer { offset: 8, value: "1".to_string() }.into(),
-			mutability: Mutability::Immutable,
-		}
-	);
+    use crate::ast::Literal;
+    assert_eq!(
+        var,
+        VariableDeclaration {
+            name: StringWithOffset::from("x").at(4),
+            initializer: Literal::Integer {
+                offset: 8,
+                value: "1".to_string()
+            }
+            .into(),
+            mutability: Mutability::Immutable,
+        }
+    );
 
-	let var = "let mut x = 1".parse::<VariableDeclaration>().unwrap();
-	assert_eq!(
-		var,
-		VariableDeclaration {
-			name: StringWithOffset::from("x").at(8),
-			initializer: Literal::Integer { offset: 12, value: "1".to_string() }.into(),
-			mutability: Mutability::Mutable,
-		}
-	)
+    let var = "let mut x = 1".parse::<VariableDeclaration>().unwrap();
+    assert_eq!(
+        var,
+        VariableDeclaration {
+            name: StringWithOffset::from("x").at(8),
+            initializer: Literal::Integer {
+                offset: 12,
+                value: "1".to_string()
+            }
+            .into(),
+            mutability: Mutability::Mutable,
+        }
+    )
 }

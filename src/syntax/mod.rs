@@ -10,7 +10,7 @@ mod with_offset;
 pub use with_offset::*;
 
 mod ranged;
-pub use ranged::Ranged;
+pub use ranged::*;
 
 mod parse;
 pub use parse::*;
