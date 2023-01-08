@@ -1,6 +1,9 @@
 mod assignment;
 pub use assignment::*;
 
+mod ret;
+pub use ret::*;
+
 extern crate ast_derive;
 use ast_derive::AST;
 
@@ -19,6 +22,7 @@ pub enum Statement {
     Declaration(Declaration),
     Expression(Expression),
     Assignment(Assignment),
+	Return(Return)
 }
 
 impl StartsHere for Statement {
@@ -28,6 +32,7 @@ impl StartsHere for Statement {
             || Declaration::starts_here(lexer)
             || Expression::starts_here(lexer)
             || Assignment::starts_here(lexer)
+			|| Return::starts_here(lexer)
     }
 }
 
@@ -70,8 +75,9 @@ impl Parse for Statement {
                     }
                     .into()
                 }
-            }
-            _ => unreachable!("consume_one_of returned unexpected token"),
+            },
+			Token::Return => Return::parse(lexer)?.into(),
+            _ => unreachable!("unexpected token"),
         };
 
         if !annotations.is_empty() {

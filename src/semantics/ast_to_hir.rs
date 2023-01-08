@@ -107,6 +107,7 @@ impl ASTLoweringWithinContext for ast::Statement {
                 assign.lower_to_hir_within_context(context)?.into()
             }
             ast::Statement::Expression(expr) => expr.lower_to_hir_within_context(context)?.into(),
+			ast::Statement::Return(ret) => todo!()
         };
 
         context.module.statements.push(stmt.clone());
