@@ -668,6 +668,7 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
 
                 function.verify(true);
             }
+			Statement::Return(ret) => todo!()
         };
     }
 }
@@ -685,6 +686,7 @@ impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Statement {
             Statement::Expression(expr) => {
                 expr.lower_to_ir(context);
             }
+			Statement::Return(ret) => todo!()
         };
     }
 }
