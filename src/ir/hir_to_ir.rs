@@ -688,17 +688,26 @@ impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Statement {
                 expr.lower_to_ir(context);
             }
 			Statement::Return(ret) => {
-				let value = ret.value.as_ref().map(
-					|expr| expr.lower_to_ir(context)
-				);
-				if let Some(value) = value {
-					context.builder.build_return(Some(&value));
-				} else {
-					context.builder.build_return(None);
-				}
+				ret.lower_to_ir(context);
 			}
         };
     }
+}
+
+impl HIRLoweringWithinFunctionContext<'_, '_> for Return {
+	type IR = ();
+
+	/// Lower [`Return`] to LLVM IR
+	fn lower_to_ir(&self, context: &mut FunctionContext) -> Self::IR {
+		let value = self.value.as_ref().map(
+			|expr| expr.lower_to_ir(context)
+		);
+		if let Some(value) = value {
+			context.builder.build_return(Some(&value));
+		} else {
+			context.builder.build_return(None);
+		}
+	}
 }
 
 /// Trait for lowering HIR Module to LLVM IR
