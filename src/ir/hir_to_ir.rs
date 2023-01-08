@@ -668,7 +668,8 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
 
                 function.verify(true);
             }
-			Statement::Return(ret) => todo!()
+			Statement::Return(_) =>
+				unreachable!("Return statement is not allowed in global scope")
         };
     }
 }
@@ -686,7 +687,16 @@ impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Statement {
             Statement::Expression(expr) => {
                 expr.lower_to_ir(context);
             }
-			Statement::Return(ret) => todo!()
+			Statement::Return(ret) => {
+				let value = ret.value.as_ref().map(
+					|expr| expr.lower_to_ir(context)
+				);
+				if let Some(value) = value {
+					context.builder.build_return(Some(&value));
+				} else {
+					context.builder.build_return(None);
+				}
+			}
         };
     }
 }
