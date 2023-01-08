@@ -93,6 +93,10 @@ pub enum Token {
     #[token("\t")]
     Tab,
 
+	/// "return" token
+	#[token("return")]
+	Return,
+
     /// Error token
     #[error]
     #[regex("[ ]+", logos::skip)]
@@ -137,6 +141,7 @@ impl Display for Token {
             Token::Let => write!(f, "let"),
             Token::Mut => write!(f, "mut"),
             Token::Type => write!(f, "type"),
+			Token::Return => write!(f, "return"),
             _ => write!(f, "{:?}", self),
         }
     }
