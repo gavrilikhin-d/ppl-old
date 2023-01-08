@@ -107,7 +107,7 @@ impl ASTLoweringWithinContext for ast::Statement {
                 assign.lower_to_hir_within_context(context)?.into()
             }
             ast::Statement::Expression(expr) => expr.lower_to_hir_within_context(context)?.into(),
-			ast::Statement::Return(ret) => todo!()
+			ast::Statement::Return(ret) => ret.lower_to_hir_within_context(context)?.into(),
         };
 
         context.module.statements.push(stmt.clone());
@@ -465,6 +465,21 @@ impl ASTLoweringWithinContext for ast::Assignment {
 
         Ok(hir::Assignment { target, value })
     }
+}
+
+impl ASTLoweringWithinContext for ast::Return {
+	type HIR = hir::Return;
+
+	/// Lower [`ast::Return`] to [`hir::Return`] within lowering context
+	fn lower_to_hir_within_context(
+		&self,
+		context: &mut ASTLoweringContext,
+	) -> Result<Self::HIR, Error> {
+		let value = self.value.as_ref().map(
+			|expr| expr.lower_to_hir_within_context(context)
+		).transpose()?;
+		Ok(hir::Return { value })
+	}
 }
 
 /// Trait for lowering and adding statements to module
