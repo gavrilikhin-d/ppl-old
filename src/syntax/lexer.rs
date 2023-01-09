@@ -273,7 +273,7 @@ impl Lexer for FullSourceLexer<'_> {
     /// assert_eq!(lexer.span(), 0..2);
     /// ```
     fn peek(&self) -> Option<Token> {
-        if self.peeked.take().is_none() {
+        if self.peeked.borrow().is_none() {
             *self.peeked.borrow_mut() = self.lexer.borrow_mut().next();
         }
         self.peeked.borrow().clone()
