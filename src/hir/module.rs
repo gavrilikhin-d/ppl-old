@@ -4,9 +4,7 @@ use crate::ast;
 use crate::hir::{FunctionDeclaration, Statement, TypeDeclaration, VariableDeclaration};
 use crate::named::{HashByName, Named};
 use crate::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
-use std::sync::Arc;
-
-use lazy_static::lazy_static;
+use std::sync::{Arc, LazyLock};
 
 /// Module with PPL code
 #[derive(Debug, PartialEq, Eq)]
@@ -30,9 +28,8 @@ pub struct Module {
     pub statements: Vec<Statement>,
 }
 
-lazy_static! {
-    static ref BUILTIN: Arc<Module> = Arc::new(Module::create_builtin());
-}
+static BUILTIN: LazyLock<Arc<Module>> =
+	LazyLock::new(|| Arc::new(Module::create_builtin()));
 
 impl Module {
     /// Create an empty module
