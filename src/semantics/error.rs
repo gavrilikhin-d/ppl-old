@@ -176,6 +176,16 @@ impl Diagnostic for NoFunction {
     }
 }
 
+/// Diagnostic for return statement outside of function
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("return outside of function")]
+#[diagnostic(code(semantics::return_outside_function))]
+pub struct ReturnOutsideFunction {
+    /// Span of operator
+    #[label("this return is outside of function")]
+    pub at: SourceSpan,
+}
+
 /// Possible semantics errors
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 pub enum Error {
@@ -203,4 +213,7 @@ pub enum Error {
     #[error(transparent)]
     #[diagnostic(transparent)]
     NoFunction(#[from] NoFunction),
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    ReturnOutsideFunction(#[from] ReturnOutsideFunction),
 }

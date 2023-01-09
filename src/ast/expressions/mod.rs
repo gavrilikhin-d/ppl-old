@@ -34,7 +34,7 @@ pub enum Expression {
 impl StartsHere for Expression {
     /// Check that expression 100% starts at current lexer position
     fn starts_here(lexer: &mut impl Lexer) -> bool {
-        !Declaration::starts_here(lexer) && lexer.peek().map_or(false, |t| t != Token::Error)
+        !Declaration::starts_here(lexer) && lexer.peek().map_or(false, |t| t != Token::Error && t != Token::Newline)
     }
 }
 

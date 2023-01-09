@@ -15,6 +15,8 @@ pub struct ASTLoweringContext {
     pub module: Module,
     /// Builtin module (set to None, when lowering builtin module itself)
     pub builtin: Option<Arc<Module>>,
+	/// Stack of functions, which are being lowered
+	pub functions_stack: Vec<Arc<hir::FunctionDeclaration>>,
 }
 
 impl ASTLoweringContext {
@@ -23,7 +25,8 @@ impl ASTLoweringContext {
         Self {
             module: Module::new(name),
             builtin: Some(Module::builtin()),
-        }
+			functions_stack: Vec::new(),
+		}
     }
 
     /// Recursively find variable starting from current scope
@@ -478,6 +481,13 @@ impl ASTLoweringWithinContext for ast::Return {
 		let value = self.value.as_ref().map(
 			|expr| expr.lower_to_hir_within_context(context)
 		).transpose()?;
+
+		if context.functions_stack.is_empty() {
+			return Err(ReturnOutsideFunction {
+				at: self.range().into(),
+			}.into());
+		}
+
 		Ok(hir::Return { value })
 	}
 }

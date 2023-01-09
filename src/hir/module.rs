@@ -53,6 +53,7 @@ impl Module {
         let mut context = ASTLoweringContext {
             module: Module::new("ppl"),
             builtin: None,
+			functions_stack: vec![],
         };
 
         for stmt in ast.statements {
