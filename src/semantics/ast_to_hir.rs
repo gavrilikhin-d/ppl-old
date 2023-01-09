@@ -487,7 +487,7 @@ impl ASTLoweringWithinContext for ast::Return {
 			if value.is_none() && f.return_type != Type::None {
 				return Err(MissingReturnValue {
 					ty: f.return_type.clone(),
-					at: self.range().into(),
+					at: self.range().end.into(),
 				}.into());
 			}
 			let value = value.as_ref().unwrap();
