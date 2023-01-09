@@ -15,5 +15,4 @@ fn print <:String>
 /// Prints "none" to stdout with newline
 fn print <:None> => print "none"
 
-/// Unary plus operator. Does nothing
-fn + <x: Integer> -> Integer
+fn + <x: Integer> => x

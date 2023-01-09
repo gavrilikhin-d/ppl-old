@@ -384,7 +384,7 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
             }
         }
 
-        let return_type = match &self.return_type {
+        let mut return_type = match &self.return_type {
             Some(ty) => context.ty(ty)?,
             None => Type::None,
         };
@@ -417,6 +417,23 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
             body = Some(hir);
         }
 		context.functions_stack.pop();
+
+		if self.implicit_return {
+			let expr: hir::Expression = body.as_mut().unwrap().pop().unwrap().try_into().unwrap();
+			if self.return_type.is_none() {
+				return_type = expr.ty();
+			}
+			else {
+				if expr.ty() != return_type {
+					return Err(ReturnTypeMismatch {
+						expected: return_type.clone(),
+						got: expr.ty(),
+						got_span: expr.range().into()
+					}.into());
+				}
+			}
+			body = Some(vec![hir::Return{ value: Some(expr) }.into()]);
+		}
 
         let f = Arc::new(
             hir::FunctionDeclaration::build()

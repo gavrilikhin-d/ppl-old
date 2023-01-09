@@ -89,6 +89,9 @@ pub struct FunctionDeclaration {
     /// Body of function
     pub body: Option<Vec<Statement>>,
 
+	/// Does this function use implicit return (=>)
+	pub implicit_return: bool,
+
     /// Annotations for function
     pub annotations: Vec<Annotation>,
 }
@@ -130,8 +133,10 @@ impl Parse for FunctionDeclaration {
         };
 
         let mut body = None;
+		let mut implicit_return = false;
         if lexer.consume(Token::FatArrow).is_ok() {
-            body = Some(vec![Expression::parse(lexer)?.into()])
+            body = Some(vec![Expression::parse(lexer)?.into()]);
+			implicit_return = true;
         } else if lexer.consume(Token::Colon).is_ok() {
             lexer.consume(Token::Newline)?;
 
@@ -155,6 +160,7 @@ impl Parse for FunctionDeclaration {
             name_parts,
             return_type,
             body,
+			implicit_return,
             annotations: vec![],
         })
     }
