@@ -1,16 +1,48 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use inkwell::types::AnyTypeEnum;
 use inkwell::types::BasicMetadataTypeEnum;
 use inkwell::AddressSpace;
 
 use inkwell::types::BasicType;
+use inkwell::types::BasicTypeEnum;
 use inkwell::values::BasicMetadataValueEnum;
 
 use crate::hir::*;
 use crate::mutability::Mutable;
 use crate::named::HashByName;
 use crate::named::Named;
+
+/// Convenience trait for inkwell
+trait TryIntoBasicTypeEnum<'ctx> : TryInto<BasicTypeEnum<'ctx>> {
+	/// Convert to [`BasicTypeEnum`](inkwell::types::BasicTypeEnum)
+	fn try_into_basic_type(self) -> Result<BasicTypeEnum<'ctx>, Self::Error>;
+}
+
+impl<'ctx> TryIntoBasicTypeEnum<'ctx> for AnyTypeEnum<'ctx> {
+	fn try_into_basic_type(self) -> Result<BasicTypeEnum<'ctx>, Self::Error> {
+		self.try_into()
+	}
+}
+
+/// Convenience trait for inkwell
+trait FnType<'ctx> {
+    /// Creates a `FunctionType` with this type for its return types
+    fn fn_type(self, param_types: &[BasicMetadataTypeEnum<'ctx>], is_var_args: bool) -> inkwell::types::FunctionType<'ctx>;
+}
+
+impl<'ctx> FnType<'ctx> for AnyTypeEnum<'ctx> {
+	fn fn_type(self, param_types: &[BasicMetadataTypeEnum<'ctx>], is_var_args: bool) -> inkwell::types::FunctionType<'ctx> {
+		if self.is_void_type() {
+			self.into_void_type().fn_type(param_types, is_var_args)
+		}
+		else
+		{
+			self.try_into_basic_type().expect("Non-void and non basic return type").fn_type(param_types, is_var_args)
+		}
+	}
+}
 
 /// Trait for lowering HIR for global declarations to IR within module context
 pub trait GlobalHIRLowering<'llvm> {
@@ -79,8 +111,8 @@ impl<'llvm> Types<'llvm> {
     }
 
     /// LLVM IR for [`None`](Type::None) type
-    pub fn none(&self) -> inkwell::types::PointerType<'llvm> {
-        self.class("None")
+    pub fn none(&self) -> inkwell::types::VoidType<'llvm> {
+        self.void()
     }
 
     /// LLVM IR for [`Integer`](Type::Integer) type
@@ -108,7 +140,7 @@ pub trait HIRTypesLowering<'llvm> {
 }
 
 impl<'llvm> HIRTypesLowering<'llvm> for Type {
-    type IR = inkwell::types::BasicTypeEnum<'llvm>;
+    type IR = inkwell::types::AnyTypeEnum<'llvm>;
 
     fn lower_to_ir(&self, context: &impl Context<'llvm>) -> Self::IR {
         match self {
@@ -302,7 +334,10 @@ impl<'llvm> DeclareGlobal<'llvm> for VariableDeclaration {
     /// Declare global variable without defining it
     fn declare_global(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
         let ty = self.ty().lower_to_ir(context);
-        let global = context.module.add_global(ty, None, &self.name);
+		if ty.is_void_type() {
+			todo!("handle void type globals")
+		}
+        let global = context.module.add_global(ty.try_into_basic_type().expect("non-basic type global"), None, &self.name);
 
         if self.is_immutable() {
             global.set_constant(true);
@@ -323,7 +358,7 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Arc<VariableDeclaration> {
             .variables
             .insert(self.clone().into(), global.clone().as_pointer_value());
 
-        global.set_initializer(&self.ty().lower_to_ir(context).const_zero());
+        global.set_initializer(&self.ty().lower_to_ir(context).try_into_basic_type().expect("non-basic type global initializer").const_zero());
 
         let initialize = context.module.add_function(
             "initialize",
@@ -334,7 +369,7 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Arc<VariableDeclaration> {
         let value = self.initializer.lower_to_ir(&mut f_context);
         f_context
             .builder
-            .build_store(global.as_pointer_value(), value);
+            .build_store(global.as_pointer_value(), value.expect("initializer return None or Void"));
 
         global
     }
@@ -370,7 +405,7 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionDeclaration {
             } => {
                 let parameters = parameters
                     .iter()
-                    .map(|p| p.lower_to_ir(context).into())
+                    .filter_map(|p| p.lower_to_ir(context).try_into().ok())
                     .collect::<Vec<BasicMetadataTypeEnum>>();
                 let return_type = return_type.lower_to_ir(context);
                 return_type.fn_type(&parameters, false)
@@ -482,20 +517,15 @@ impl<'llvm> Context<'llvm> for FunctionContext<'llvm, '_> {
 }
 
 impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Literal {
-    type IR = inkwell::values::BasicValueEnum<'llvm>;
+    type IR = Option<inkwell::values::BasicValueEnum<'llvm>>;
 
     /// Lower [`Literal`] to LLVM IR
     fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        match self {
-            Literal::None { .. } => context
-                .builder
-                .build_call(context.functions().none(), &[], "")
-                .try_as_basic_value()
-                .left()
-                .unwrap(),
+        Some(match self {
+            Literal::None { .. } => return None,
             Literal::Integer { value, .. } => {
                 if let Some(value) = value.to_i64() {
-                    return context
+                    return Some(context
                         .builder
                         .build_call(
                             context.functions().integer_from_i64(),
@@ -504,7 +534,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Literal {
                         )
                         .try_as_basic_value()
                         .left()
-                        .unwrap();
+                        .unwrap());
                 }
 
                 let str = context
@@ -541,7 +571,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Literal {
                     .left()
                     .unwrap()
             }
-        }
+        })
     }
 }
 
@@ -574,7 +604,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
         let arguments = self
             .args
             .iter()
-            .map(|arg| arg.lower_to_ir(context).into())
+            .filter_map(|arg| arg.lower_to_ir(context).map(|x| x.into()))
             .collect::<Vec<BasicMetadataValueEnum>>();
 
         context.builder.build_call(function, &arguments, "")
@@ -587,7 +617,7 @@ trait HIRExpressionLoweringWithoutLoad<'llvm, 'm> {
     fn lower_to_ir_without_load(
         &self,
         context: &mut FunctionContext<'llvm, 'm>,
-    ) -> inkwell::values::BasicValueEnum<'llvm>;
+    ) -> Option<inkwell::values::BasicValueEnum<'llvm>>;
 }
 
 impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
@@ -595,22 +625,21 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
     fn lower_to_ir_without_load(
         &self,
         context: &mut FunctionContext<'llvm, 'm>,
-    ) -> inkwell::values::BasicValueEnum<'llvm> {
+    ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
         match self {
-            Expression::VariableReference(var) => var.lower_to_ir(context).into(),
+            Expression::VariableReference(var) => Some(var.lower_to_ir(context).into()),
 
             Expression::Literal(l) => l.lower_to_ir(context),
             Expression::Call(call) => call
                 .lower_to_ir(context)
                 .try_as_basic_value()
-                .left()
-                .unwrap(),
+				.left()
         }
     }
 }
 
 impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
-    type IR = inkwell::values::BasicValueEnum<'llvm>;
+    type IR = Option<inkwell::values::BasicValueEnum<'llvm>>;
 
     /// Lower [`Expression`] to LLVM IR with loading references
     fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
@@ -633,7 +662,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Assignment {
         let value = self.value.lower_to_ir(context);
         context
             .builder
-            .build_store(target.into_pointer_value(), value)
+            .build_store(target.expect("Assignment to none").into_pointer_value(), value.expect("Assigning none"))
     }
 }
 
@@ -664,7 +693,11 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
                 let mut context = FunctionContext::new(context, function);
 
                 let value = expr.lower_to_ir(&mut context);
-                context.builder.build_return(Some(&value));
+				if let Some(value) = value {
+                	context.builder.build_return(Some(&value));
+				} else {
+					context.builder.build_return(None);
+				}
 
                 function.verify(true);
             }
@@ -702,7 +735,7 @@ impl HIRLoweringWithinFunctionContext<'_, '_> for Return {
 		let value = self.value.as_ref().map(
 			|expr| expr.lower_to_ir(context)
 		);
-		if let Some(value) = value {
+		if let Some(Some(value)) = value {
 			context.builder.build_return(Some(&value));
 		} else {
 			context.builder.build_return(None);
