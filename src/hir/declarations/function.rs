@@ -1,10 +1,14 @@
 use std::fmt::Display;
+use std::sync::Arc;
 
 use derive_more::From;
 
 use crate::hir::{Statement, Type, Typed};
+use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::StringWithOffset;
+
+use super::VariableDeclaration;
 
 /// Declaration of a function parameter
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -29,11 +33,17 @@ impl Typed for Parameter {
     }
 }
 
+impl Mutable for Parameter {
+	fn is_immutable(&self) -> bool {
+		true
+	}
+}
+
 /// Part of a function name
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum FunctionNamePart {
     Text(StringWithOffset),
-    Parameter(Parameter),
+    Parameter(Arc<Parameter>),
 }
 
 impl Display for FunctionNamePart {
@@ -81,9 +91,9 @@ impl FunctionDeclaration {
     }
 
     /// Get iterator over function's parameters
-    pub fn parameters(&self) -> impl Iterator<Item = &Parameter> {
+    pub fn parameters(&self) -> impl Iterator<Item = Arc<Parameter>> + '_ {
         self.name_parts.iter().filter_map(|part| match part {
-            FunctionNamePart::Parameter(p) => Some(p),
+            FunctionNamePart::Parameter(p) => Some(p.clone()),
             _ => None,
         })
     }

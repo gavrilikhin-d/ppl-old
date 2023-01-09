@@ -1,7 +1,9 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
-use crate::hir::{self, Module, Type, Typed};
+use derive_more::From;
+
+use crate::hir::{self, Module, Type, Typed, ParameterOrVariable};
 use crate::mutability::Mutable;
 use crate::named::HashByName;
 use crate::syntax::{Ranged, StringWithOffset};
@@ -30,14 +32,20 @@ impl ASTLoweringContext {
     }
 
     /// Recursively find variable starting from current scope
-    pub fn find_variable(&self, name: &str) -> Option<Arc<hir::VariableDeclaration>> {
+    pub fn find_variable(&self, name: &str) -> Option<ParameterOrVariable> {
+		for f in self.functions_stack.iter().rev() {
+			if let Some(param) = f.parameters().find(|p| p.name == name) {
+				return Some(param.into());
+			}
+		}
+
         let var = self.module.variables.get(name);
         if var.is_some() {
             var
         } else {
             self.builtin.as_ref().and_then(|m| m.variables.get(name))
         }
-        .map(|x| x.value.clone())
+        .map(|x| x.value.clone().into())
     }
 
     /// Recursively find type starting from current scope
@@ -318,7 +326,7 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
 }
 
 impl ASTLoweringWithinContext for ast::Parameter {
-    type HIR = hir::Parameter;
+    type HIR = Arc<hir::Parameter>;
 
     /// Lower [`ast::Parameter`] to [`hir::Parameter`] within lowering context
     fn lower_to_hir_within_context(
@@ -327,10 +335,10 @@ impl ASTLoweringWithinContext for ast::Parameter {
     ) -> Result<Self::HIR, Error> {
         let ty = context.ty(&self.ty)?;
 
-        Ok(hir::Parameter {
+        Ok(Arc::new(hir::Parameter {
             name: self.name.clone(),
             ty,
-        })
+        }))
     }
 }
 

@@ -423,12 +423,7 @@ impl<'llvm> GlobalHIRLowering<'llvm> for FunctionDeclaration {
     fn lower_global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
         let f = self.declare_global(context);
 
-        if let Some(stmts) = &self.body {
-            let mut f_context = FunctionContext::new(context, f);
-            for stmt in stmts {
-                stmt.lower_local_to_ir(&mut f_context);
-            }
-        }
+		self.emit_body(context);
 
         f
     }
@@ -442,15 +437,41 @@ impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for FunctionDeclaration {
         // TODO: limit function visibility, capture variables, etc.
         let f = self.declare_global(context.module_context);
 
-        if let Some(stmts) = &self.body {
-            let mut f_context = FunctionContext::new(context.module_context, f);
+		self.emit_body(context.module_context);
+
+        f
+    }
+}
+
+/// Trait for emitting body of function
+trait EmitBody<'llvm> {
+	/// Emit body of function
+	fn emit_body(&self, context: &mut ModuleContext<'llvm>);
+}
+
+impl<'llvm> EmitBody<'llvm> for FunctionDeclaration {
+	fn emit_body(&self, context: &mut ModuleContext<'llvm>) {
+		let f = context.functions().get(self.mangled_name()).expect("Function was not declared before emitting body");
+		if let Some(stmts) = &self.body {
+            let mut f_context = FunctionContext::new(context, f);
+			for p in self.parameters().filter(
+				|p| !p.name().is_empty() && p.ty() != Type::None
+			) {
+				f_context.parameters.insert(
+					p.name().to_string(),
+					f_context
+						.builder
+						.build_alloca(
+							p.ty().lower_to_ir(&f_context).try_into_basic_type().unwrap(),
+							&p.name()
+						)
+				);
+			}
             for stmt in stmts {
                 stmt.lower_local_to_ir(&mut f_context);
             }
         }
-
-        f
-    }
+	}
 }
 
 /// Context for lowering HIR function to LLVM IR
@@ -461,6 +482,11 @@ pub struct FunctionContext<'llvm, 'm> {
     pub function: inkwell::values::FunctionValue<'llvm>,
     /// Builder for current function
     pub builder: inkwell::builder::Builder<'llvm>,
+	/// Parameters of this function
+	pub parameters: HashMap<
+		String,
+		inkwell::values::PointerValue<'llvm>
+	>
 }
 
 impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
@@ -479,15 +505,23 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
             module_context,
             function,
             builder,
+			parameters: HashMap::new()
         }
     }
 
     /// Get LLVM IR for variable
     pub fn get_variable(
         &self,
-        variable: &VariableDeclaration,
+        variable: &ParameterOrVariable,
     ) -> Option<inkwell::values::PointerValue<'llvm>> {
-        self.module_context.variables.get(variable.name()).cloned()
+		match variable {
+			ParameterOrVariable::Parameter(p) => {
+				self.parameters.get(p.name()).cloned()
+			}
+			ParameterOrVariable::Variable(v) => {
+				self.module_context.variables.get(v.name()).cloned()
+			}
+		}
     }
 }
 
@@ -584,10 +618,16 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for VariableReferenc
             return var;
         }
 
-        self.variable
-            .declare_global(context.module_context)
-            .as_pointer_value()
-    }
+		match &self.variable {
+			ParameterOrVariable::Parameter(p) => panic!(
+				"Parameter {:?} not found", p.name()
+			),
+			ParameterOrVariable::Variable(var) =>
+				var
+           	 		.declare_global(context.module_context)
+            		.as_pointer_value()
+    	}
+	}
 }
 
 impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {

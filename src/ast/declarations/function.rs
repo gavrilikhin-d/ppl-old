@@ -4,7 +4,7 @@ use ast_derive::AST;
 use derive_more::From;
 
 use crate::{
-    ast::{Annotation, Statement},
+    ast::{Annotation, Statement, Expression},
     syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token},
 };
 
@@ -131,7 +131,7 @@ impl Parse for FunctionDeclaration {
 
         let mut body = None;
         if lexer.consume(Token::FatArrow).is_ok() {
-            body = Some(vec![Statement::parse(lexer)?])
+            body = Some(vec![Expression::parse(lexer)?.into()])
         } else if lexer.consume(Token::Colon).is_ok() {
             lexer.consume(Token::Newline)?;
 
@@ -191,10 +191,10 @@ fn test_function_declaration() {
 }
 
 #[test]
-fn test_function_with_body() {
+fn test_function_with_single_line_body() {
     use crate::ast::Literal;
 
-    let func = "fn test:\n\t1\n\t2".parse::<FunctionDeclaration>().unwrap();
+    let func = "fn test => 1".parse::<FunctionDeclaration>().unwrap();
     assert_eq!(
         func,
         FunctionDeclaration {
@@ -205,14 +205,7 @@ fn test_function_with_body() {
                 Statement::Expression(
                     Literal::Integer {
                         value: "1".into(),
-                        offset: 10,
-                    }
-                    .into()
-                ),
-                Statement::Expression(
-                    Literal::Integer {
-                        value: "2".into(),
-                        offset: 13,
+                        offset: 11,
                     }
                     .into()
                 ),
