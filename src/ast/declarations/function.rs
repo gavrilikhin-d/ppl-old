@@ -58,6 +58,13 @@ impl Parse for FunctionNamePart {
         match token {
             Token::Id => Ok(lexer.string_with_offset().into()),
             Token::Less => {
+				// '<' here is an operator
+				if lexer.peek() == Some(Token::Less) {
+					return Ok(
+						FunctionNamePart::Operator(lexer.string_with_offset())
+					)
+				}
+
                 let p = Parameter::parse(lexer)?;
 
                 lexer.consume(Token::Greater)?;
