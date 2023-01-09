@@ -368,7 +368,10 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
         let mut name_parts: Vec<hir::FunctionNamePart> = Vec::new();
         for part in &self.name_parts {
             match part {
-                ast::FunctionNamePart::Text(t) => name_parts.push(t.clone().into()),
+                ast::FunctionNamePart::Text(t) =>
+					name_parts.push(t.clone().into()),
+				ast::FunctionNamePart::Operator(op) =>
+					name_parts.push(op.clone().into()),
                 ast::FunctionNamePart::Parameter(p) => {
                     name_parts.push(p.lower_to_hir_within_context(context)?.into())
                 }
