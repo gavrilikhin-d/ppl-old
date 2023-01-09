@@ -181,9 +181,36 @@ impl Diagnostic for NoFunction {
 #[error("return outside of function")]
 #[diagnostic(code(semantics::return_outside_function))]
 pub struct ReturnOutsideFunction {
-    /// Span of operator
+    /// Span of return statement
     #[label("this return is outside of function")]
     pub at: SourceSpan,
+}
+
+/// Diagnostic for missing return value
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("missing return value with \"{ty}\" type")]
+#[diagnostic(code(semantics::missing_return_value))]
+pub struct MissingReturnValue {
+	/// Type of return value
+	pub ty: Type,
+    /// Point, where return value is expected
+    #[label("here")]
+    pub at: SourceSpan,
+}
+
+/// Diagnostic for mismatch of return type
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("return type mismatch: got \"{got}\", expected \"{expected}\"")]
+#[diagnostic(code(semantics::return_type_mismatch))]
+pub struct ReturnTypeMismatch {
+	/// Type of return value
+	pub got: Type,
+    /// Span of returned value
+    #[label("this has \"{got}\" type")]
+    pub got_span: SourceSpan,
+
+	/// Expected type of return value
+	pub expected: Type,
 }
 
 /// Possible semantics errors
@@ -216,4 +243,10 @@ pub enum Error {
     #[error(transparent)]
     #[diagnostic(transparent)]
     ReturnOutsideFunction(#[from] ReturnOutsideFunction),
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    MissingReturnValue(#[from] MissingReturnValue),
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    ReturnTypeMismatch(#[from] ReturnTypeMismatch),
 }
