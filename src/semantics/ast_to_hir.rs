@@ -389,6 +389,16 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
             hir::Annotation::MangleAs(name) => Some(name.clone()),
         });
 
+        let f = Arc::new(
+            hir::FunctionDeclaration::build()
+                .with_name(name_parts.clone())
+                .with_mangled_name(mangled_name.clone())
+                .with_return_type(return_type.clone()),
+        );
+
+		context.module.insert_function(f.clone());
+
+		context.functions_stack.push(f);
         let mut body = None;
         if let Some(stmts) = &self.body {
             let mut hir = Vec::new();
@@ -397,26 +407,17 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
             }
             body = Some(hir);
         }
+		context.functions_stack.pop();
 
         let f = Arc::new(
             hir::FunctionDeclaration::build()
                 .with_name(name_parts)
                 .with_mangled_name(mangled_name)
-                .with_body(body)
+				.with_body(body)
                 .with_return_type(return_type),
         );
 
-        let functions = context.module.functions.get_mut(f.name_format());
-        if let Some(functions) = functions {
-            functions.insert(f.clone().into());
-        } else {
-            let mut functions = HashSet::new();
-            functions.insert(f.clone().into());
-            context
-                .module
-                .functions
-                .insert(f.name_format().to_string(), functions);
-        }
+		context.module.insert_function(f.clone());
 
         Ok(f)
     }

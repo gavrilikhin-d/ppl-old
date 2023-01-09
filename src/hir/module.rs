@@ -92,6 +92,15 @@ impl Module {
     pub fn builtin() -> Arc<Self> {
         BUILTIN.clone()
     }
+
+	/// Insert function to module
+	pub fn insert_function(&mut self, function: Arc<FunctionDeclaration>) {
+		let set =
+			self.functions
+				.entry(function.name_format().to_string())
+				.or_insert_with(HashSet::new);
+		set.insert(function.into());
+	}
 }
 
 impl Named for Module {
