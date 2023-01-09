@@ -121,8 +121,6 @@ impl ASTLoweringWithinContext for ast::Statement {
 			ast::Statement::Return(ret) => ret.lower_to_hir_within_context(context)?.into(),
         };
 
-        context.module.statements.push(stmt.clone());
-
         Ok(stmt)
     }
 }
@@ -548,7 +546,8 @@ impl ASTLowering for ast::Module {
         let mut context = ASTLoweringContext::new("main");
 
         for stmt in &self.statements {
-            stmt.lower_to_hir_within_context(&mut context)?;
+			let stmt = stmt.lower_to_hir_within_context(&mut context)?;
+            context.module.statements.push(stmt);
         }
 
         Ok(context.module)
