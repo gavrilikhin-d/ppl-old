@@ -40,7 +40,7 @@ impl Parse for Tuple {
 		let lparen = lexer.consume(Token::LParen)?.start();
 
 		let mut expressions = Vec::new();
-		loop {
+		while lexer.peek().map_or(false, |t| t != Token::RParen) {
 			expressions.push(Expression::parse(lexer)?);
 
 			if lexer.peek().map_or(true, |t| t != Token::Comma) {
@@ -48,10 +48,6 @@ impl Parse for Tuple {
 			}
 
 			lexer.consume(Token::Comma)?;
-
-			if lexer.peek().map_or(true, |t| t == Token::RParen) {
-				break;
-			}
 		}
 
 		let rparen = lexer.consume(Token::RParen)?.start();
