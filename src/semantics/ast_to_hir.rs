@@ -316,6 +316,21 @@ impl ASTLoweringWithinContext for ast::Call {
     }
 }
 
+impl ASTLoweringWithinContext for ast::Tuple {
+	type HIR = hir::Expression;
+
+	/// Lower [`ast::Tuple`] to [`hir::Expression`] within lowering context
+	fn lower_to_hir_within_context(
+			&self,
+			context: &mut ASTLoweringContext,
+		) -> Result<Self::HIR, Error> {
+		if self.expressions.len() == 1 {
+			return self.expressions[0].lower_to_hir_within_context(context);
+		}
+		todo!("real tuples")
+	}
+}
+
 impl ASTLoweringWithinContext for ast::Expression {
     type HIR = hir::Expression;
 
@@ -331,7 +346,7 @@ impl ASTLoweringWithinContext for ast::Expression {
             }
             ast::Expression::UnaryOperation(op) => op.lower_to_hir_within_context(context)?.into(),
             ast::Expression::Call(call) => call.lower_to_hir_within_context(context)?.into(),
-			ast::Expression::Tuple(t) => todo!(),
+			ast::Expression::Tuple(t) => t.lower_to_hir_within_context(context)?.into(),
         })
     }
 }
