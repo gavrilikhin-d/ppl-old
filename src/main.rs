@@ -25,7 +25,7 @@ fn process_single_statement<'llvm>(
     println!("HIR: {:#?}", hir);
 
     let module = llvm.create_module("main");
-    let mut context = ir::ModuleContext::new(module, "<invalid>");
+    let mut context = ir::ModuleContext::new(module);
     hir.lower_global_to_ir(&mut context);
 
     let module = &context.module;
@@ -72,6 +72,7 @@ fn repl() {
     let mut context = ASTLoweringContext::new("repl");
     let llvm = inkwell::context::Context::create();
     let builtin = hir::Module::builtin().lower_to_ir(&llvm);
+	builtin.print_to_stderr();
     let mut engine = builtin
         .create_jit_execution_engine(OptimizationLevel::None)
         .unwrap();

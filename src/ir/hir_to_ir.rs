@@ -269,8 +269,7 @@ pub struct ModuleContext<'llvm> {
 impl<'llvm> ModuleContext<'llvm> {
     /// Initialize context for lowering HIR module to LLVM IR
     pub fn new(
-		module: inkwell::module::Module<'llvm>,
-		filename: &str
+		module: inkwell::module::Module<'llvm>
 	) -> Self {
 		let llvm = module.get_context();
 		let debug_metadata_version = llvm.i32_type().const_int(3, false);
@@ -282,7 +281,7 @@ impl<'llvm> ModuleContext<'llvm> {
 		let (dibuilder, compile_unit) = module.create_debug_info_builder(
 			true,
 			/* language */ inkwell::debug_info::DWARFSourceLanguage::Rust,
-			/* filename */ filename,
+			/* filename */ module.get_source_file_name().to_str().unwrap(),
 			/* directory */ ".",
 			/* producer */ "ppl",
 			/* is_optimized */ false,
@@ -830,10 +829,10 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         &self,
         llvm: &'llvm inkwell::context::Context,
     ) -> inkwell::module::Module<'llvm> {
-        let mut context = ModuleContext::new(
-			llvm.create_module(self.name()),
-			&self.filename
-		);
+		let module = llvm.create_module(self.name());
+		module.set_source_file_name(&self.filename);
+
+        let mut context = ModuleContext::new(module);
 
         for statement in &self.statements {
             statement.lower_global_to_ir(&mut context);

@@ -4,7 +4,7 @@ use std::path::Path;
 use crate::ast;
 use crate::hir::{FunctionDeclaration, Statement, TypeDeclaration, VariableDeclaration};
 use crate::named::{HashByName, Named};
-use crate::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
+use crate::semantics::{ASTLoweringContext, ASTLoweringWithinContext, ASTLowering};
 use std::sync::{Arc, LazyLock};
 
 /// Module with PPL code
@@ -70,7 +70,8 @@ impl Module {
 		};
 
         for stmt in ast.statements {
-            stmt.lower_to_hir_within_context(&mut context)?;
+			let stmt = stmt.lower_to_hir_within_context(&mut context)?;
+            context.module.statements.push(stmt);
         }
 
         Ok(context.module)
