@@ -56,29 +56,32 @@ impl Parse for Statement {
             lexer.skip_spaces();
         }
 
-        let mut res: Statement = match lexer.peek().unwrap() {
-            Token::Let | Token::Type | Token::Fn => Declaration::parse(lexer)?.into(),
-            Token::None
-            | Token::Integer
-            | Token::String
-            | Token::Id
-            | Token::Plus
-            | Token::Minus => {
-                let target = Expression::parse(lexer)?;
 
-                if lexer.consume(Token::Assign).is_err() {
-                    target.into()
-                } else {
-                    Assignment {
-                        target,
-                        value: Expression::parse(lexer)?,
-                    }
-                    .into()
-                }
-            },
-			Token::Return => Return::parse(lexer)?.into(),
-            _ => unreachable!("unexpected token"),
-        };
+
+        let mut res: Statement = if Declaration::starts_here(lexer) {
+			Declaration::parse(lexer)?.into()
+		}
+		else if Expression::starts_here(lexer) {
+			let target = Expression::parse(lexer)?;
+
+			if lexer.consume(Token::Assign).is_err() {
+				target.into()
+			} else {
+				Assignment {
+					target,
+					value: Expression::parse(lexer)?,
+				}
+				.into()
+			}
+		}
+		else {
+			match lexer.peek() {
+				Some(Token::Return) => Return::parse(lexer)?.into(),
+				t => unreachable!(
+					"Unexpected token {:#?} at start of statement", t
+				),
+			}
+		};
 
         if !annotations.is_empty() {
             if let Statement::Declaration(Declaration::Function(ref mut decl)) = res {

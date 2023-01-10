@@ -10,6 +10,9 @@ pub use variable::*;
 mod unary;
 pub use unary::*;
 
+mod tuple;
+pub use tuple::*;
+
 extern crate ast_derive;
 use ast_derive::AST;
 
@@ -29,6 +32,7 @@ pub enum Expression {
     VariableReference(VariableReference),
     UnaryOperation(UnaryOperation),
     Call(Call),
+	Tuple(Tuple),
 }
 
 impl StartsHere for Expression {
@@ -54,6 +58,10 @@ impl Parse for Expression {
             return Ok(Literal::parse(lexer)?.into());
         }
 
+		if Tuple::starts_here(lexer) {
+			return Ok(Tuple::parse(lexer)?.into());
+		}
+
         Ok(match lexer.peek().unwrap() {
             Token::Id => {
                 let call = Call::parse(lexer)?;
@@ -67,7 +75,7 @@ impl Parse for Expression {
                 }
             }
             Token::Plus | Token::Minus => UnaryOperation::parse(lexer)?.into(),
-            _ => unreachable!("unexpected token at start of expression"),
+            t => unreachable!("unexpected token {} at start of expression", t),
         })
     }
 }
@@ -80,6 +88,7 @@ impl Ranged for Expression {
             Expression::VariableReference(var) => var.range(),
             Expression::UnaryOperation(op) => op.range(),
             Expression::Call(call) => call.range(),
+			Expression::Tuple(tuple) => tuple.range(),
         }
     }
 }
