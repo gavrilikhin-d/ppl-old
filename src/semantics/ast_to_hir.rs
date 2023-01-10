@@ -467,7 +467,8 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
                 .with_return_type(return_type),
         );
 
-		context.module.insert_function(f.clone());
+		// Replace declaration with definition
+		context.module.functions.get_mut(f.name_format()).unwrap().replace(f.clone().into());
 
         Ok(f)
     }
