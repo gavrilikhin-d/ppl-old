@@ -2,18 +2,12 @@ use std::{fmt::Display, sync::Arc};
 
 use crate::mutability::Mutable;
 
-use super::TypeDeclaration;
+use super::{TypeDeclaration, Module};
 use derive_more::From;
 
 /// Type of values
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum Type {
-    /// None type
-    None,
-    /// Arbitrary integer type
-    Integer,
-    /// String type
-    String,
     /// User defined type
     Class(Arc<TypeDeclaration>),
     /// Function type
@@ -21,6 +15,60 @@ pub enum Type {
         parameters: Vec<Type>,
         return_type: Box<Type>,
     },
+}
+
+impl Type {
+	/// Is this a builtin type?
+	pub fn is_builtin(&self) -> bool {
+		match self {
+			Type::Class(c) => c.is_builtin(),
+			_ => false
+		}
+	}
+
+	/// Is this a builtin "None" type?
+	pub fn is_none(&self) -> bool {
+		match self {
+			Type::Class(c) => c.is_none(),
+			_ => false
+		}
+	}
+
+	/// Is this a builtin "Integer" type?
+	pub fn is_integer(&self) -> bool {
+		match self {
+			Type::Class(c) => c.is_integer(),
+			_ => false
+		}
+	}
+
+	/// Is this a builtin "String" type?
+	pub fn is_string(&self) -> bool {
+		match self {
+			Type::Class(c) => c.is_string(),
+			_ => false
+		}
+	}
+
+	/// Get builtin type by name
+	fn get_builtin(name: &str) -> Type {
+		Module::builtin().types.get(name).unwrap().value.clone().into()
+	}
+
+	/// Get builtin "None" type
+	pub fn none() -> Type {
+		Type::get_builtin("None")
+	}
+
+	/// Get builtin "Integer" type
+	pub fn integer() -> Type {
+		Type::get_builtin("Integer")
+	}
+
+	/// Get builtin "String" type
+	pub fn string() -> Type {
+		Type::get_builtin("String")
+	}
 }
 
 impl Display for Type {
@@ -40,7 +88,6 @@ impl Display for Type {
                 }
                 write!(f, ") -> {}", return_type)
             }
-            _ => write!(f, "{:?}", self),
         }
     }
 }

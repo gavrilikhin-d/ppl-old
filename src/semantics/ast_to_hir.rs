@@ -72,6 +72,33 @@ impl ASTLoweringContext {
         Ok(t.unwrap())
     }
 
+	/// Get builtin "None" type
+	pub fn none(&self) -> Type {
+		if self.builtin.is_none() {
+			return self.module.types.get("None").unwrap().value.clone().into()
+		}
+
+		Type::none()
+	}
+
+	/// Get builtin "Integer" type
+	pub fn integer(&self) -> Type {
+		if self.builtin.is_none() {
+			return self.module.types.get("Integer").unwrap().value.clone().into()
+		}
+
+		Type::integer()
+	}
+
+	/// Get builtin "String" type
+	pub fn string(&self) -> Type {
+		if self.builtin.is_none() {
+			return self.module.types.get("String").unwrap().value.clone().into()
+		}
+
+		Type::string()
+	}
+
     /// Recursively find all functions with same name format
     pub fn find_functions_with_format(
         &self,
@@ -183,17 +210,19 @@ impl ASTLoweringWithinContext for ast::Literal {
     /// Lower [`ast::Literal`] to [`hir::Literal`] within lowering context
     fn lower_to_hir_within_context(
         &self,
-        _context: &mut ASTLoweringContext,
+        context: &mut ASTLoweringContext,
     ) -> Result<Self::HIR, Error> {
         Ok(match self {
-            ast::Literal::None { offset } => hir::Literal::None { offset: *offset },
+            ast::Literal::None { offset } => hir::Literal::None { offset: *offset, ty: context.none() },
             ast::Literal::Integer { value, .. } => hir::Literal::Integer {
                 span: self.range(),
                 value: value.parse::<rug::Integer>().unwrap(),
+				ty: context.integer(),
             },
             ast::Literal::String { value, .. } => hir::Literal::String {
                 span: self.range(),
                 value: value.clone(),
+				ty: context.string(),
             },
         })
     }
@@ -337,6 +366,7 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
     ) -> Result<Self::HIR, Error> {
         let ty = Arc::new(hir::TypeDeclaration {
             name: self.name.clone(),
+			is_builtin: context.builtin.is_none()
         });
 
         context.module.types.insert(ty.clone().into());
@@ -408,7 +438,7 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
 
         let mut return_type = match &self.return_type {
             Some(ty) => context.ty(ty)?,
-            None => Type::None,
+            None => context.none(),
         };
 
         let annotations = self
@@ -533,7 +563,7 @@ impl ASTLoweringWithinContext for ast::Return {
 		).transpose()?;
 
 		if let Some(f) = context.functions_stack.last() {
-			if value.is_none() && f.return_type != Type::None {
+			if value.is_none() && !f.return_type.is_none() {
 				return Err(MissingReturnValue {
 					ty: f.return_type.clone(),
 					at: self.range().end.into(),

@@ -144,9 +144,6 @@ impl<'llvm> HIRTypesLowering<'llvm> for Type {
 
     fn lower_to_ir(&self, context: &impl Context<'llvm>) -> Self::IR {
         match self {
-            Type::None => context.types().none().into(),
-            Type::Integer => context.types().integer().into(),
-            Type::String => context.types().string().into(),
             Type::Class(ty) => ty.lower_to_ir(context).into(),
             Type::Function { .. } => unimplemented!("Function type lowering"),
         }
@@ -418,11 +415,14 @@ impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Arc<VariableDeclaration> {
 }
 
 impl<'llvm> HIRTypesLowering<'llvm> for TypeDeclaration {
-    type IR = inkwell::types::PointerType<'llvm>;
+    type IR = inkwell::types::AnyTypeEnum<'llvm>;
 
     /// Lower [`TypeDeclaration`] to LLVM IR
     fn lower_to_ir(&self, context: &impl Context<'llvm>) -> Self::IR {
-        context.types().class(&self.name)
+		if self.is_none() {
+			return context.types().none().into();
+		}
+        context.types().class(&self.name).into()
     }
 }
 
@@ -488,7 +488,7 @@ impl<'llvm> EmitBody<'llvm> for FunctionDeclaration {
 		if let Some(stmts) = &self.body {
             let mut f_context = FunctionContext::new(context, f);
 			for p in self.parameters().filter(
-				|p| !p.name().is_empty() && p.ty() != Type::None
+				|p| !p.name().is_empty() && !p.ty().is_none()
 			) {
 				f_context.parameters.insert(
 					p.name().to_string(),

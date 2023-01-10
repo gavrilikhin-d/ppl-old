@@ -50,16 +50,20 @@ fn process_single_statement<'llvm>(
         let result = unsafe { engine.run_function(f, &[]) };
         let expr: hir::Expression = hir.try_into().unwrap();
         match expr.ty() {
-            Type::Integer => {
-                let result = unsafe { result.into_pointer::<rug::Integer>() };
-                println!("{}", unsafe { &*result });
-            }
-            Type::None => (), // Do nothing
-            Type::String => {
-                let result = unsafe { result.into_pointer::<String>() };
-                println!("{:?}", unsafe { &*result });
-            }
-            Type::Class(_) => unimplemented!("returning classes"),
+            Type::Class(c) => {
+				if !c.is_builtin() {
+					unimplemented!("Returning user-defined classes")
+				}
+
+				if c.is_integer() {
+					let result = unsafe { result.into_pointer::<rug::Integer>() };
+					println!("{}", unsafe { &*result });
+				}
+			    else if c.is_string() {
+					let result = unsafe { result.into_pointer::<String>() };
+					println!("{:?}", unsafe { &*result });
+				}
+			},
             Type::Function { .. } => unimplemented!("returning functions"),
         }
     }

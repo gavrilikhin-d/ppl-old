@@ -5,16 +5,18 @@ use crate::syntax::Ranged;
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Literal {
     /// None literal
-    None { offset: usize },
+    None { offset: usize, ty: Type },
     /// Any precision decimal integer literal
     Integer {
         span: std::ops::Range<usize>,
         value: rug::Integer,
+		ty: Type,
     },
     /// String literal
     String {
         span: std::ops::Range<usize>,
         value: String,
+		ty: Type
     },
 }
 
@@ -22,7 +24,7 @@ impl Ranged for Literal {
     /// Get range of literal
     fn range(&self) -> std::ops::Range<usize> {
         match self {
-            Literal::None { offset } => *offset..*offset + 4,
+            Literal::None { offset, .. } => *offset..*offset + 4,
             Literal::Integer { span, .. } => span.clone(),
             Literal::String { span, .. } => span.clone(),
         }
@@ -33,9 +35,9 @@ impl Typed for Literal {
     /// Get type of literal
     fn ty(&self) -> Type {
         match self {
-            Literal::None { .. } => Type::None,
-            Literal::Integer { .. } => Type::Integer,
-            Literal::String { .. } => Type::String,
-        }
+            Literal::None { ty, .. } => ty,
+            Literal::Integer { ty, .. } => ty,
+            Literal::String { ty, .. } => ty,
+        }.clone()
     }
 }
