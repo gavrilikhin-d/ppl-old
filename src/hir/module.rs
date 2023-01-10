@@ -4,7 +4,7 @@ use std::path::Path;
 use crate::ast;
 use crate::hir::{FunctionDeclaration, Statement, TypeDeclaration, VariableDeclaration};
 use crate::named::{HashByName, Named};
-use crate::semantics::{ASTLoweringContext, ASTLoweringWithinContext, ASTLowering};
+use crate::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
 use std::sync::{Arc, LazyLock};
 
 /// Module with PPL code

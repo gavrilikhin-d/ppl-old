@@ -94,12 +94,9 @@ impl Parse for Call {
             name_parts.push(CallNamePart::parse(lexer)?);
 
             let token = lexer.peek();
-            if token.is_none() {
-                break;
-            }
-
-            let token = token.unwrap();
-            if token.is_operator() || token == Token::Newline {
+            if token.map_or(
+				true, |t| t.is_operator() || t == Token::Newline || t == Token::RParen
+			) {
                 break;
             }
         }
