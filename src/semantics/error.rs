@@ -153,9 +153,9 @@ impl Display for NoFunction {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self.kind {
 			CallKind::Call =>
-				write!(f, "no function \"{}\":", self.name),
+				write!(f, "no function \"{}\"", self.name),
 			CallKind::UnaryOperation =>
-				write!(f, "no unary operator \"{}\":", self.name),
+				write!(f, "no unary operator \"{}\"", self.name),
 		}
 	}
 }
