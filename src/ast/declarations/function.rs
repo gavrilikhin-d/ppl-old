@@ -192,6 +192,7 @@ fn test_function_declaration() {
             return_type: Some(StringWithOffset::from("Distance").at(45).into()),
             annotations: vec![],
             body: None,
+			implicit_return: false,
         }
     );
 }
@@ -216,6 +217,7 @@ fn test_function_with_single_line_body() {
                     .into()
                 ),
             ]),
+			implicit_return: true
         }
     );
 }
