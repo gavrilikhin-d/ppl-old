@@ -25,7 +25,7 @@ fn process_single_statement<'llvm>(
     println!("HIR: {:#?}", hir);
 
     let module = llvm.create_module("main");
-    let mut context = ir::ModuleContext::new(module);
+    let mut context = ir::ModuleContext::new(module, "<invalid>");
     hir.lower_global_to_ir(&mut context);
 
     let module = &context.module;

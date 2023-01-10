@@ -2,8 +2,6 @@ use std::collections::HashSet;
 use std::ops::Range;
 use std::sync::Arc;
 
-use derive_more::From;
-
 use crate::hir::{self, Module, Type, Typed, ParameterOrVariable, CallKind};
 use crate::mutability::Mutable;
 use crate::named::HashByName;
@@ -26,7 +24,7 @@ impl ASTLoweringContext {
     /// Create new lowering context
     pub fn new(name: &str) -> Self {
         Self {
-            module: Module::new(name),
+            module: Module::new(name, ""),
             builtin: Some(Module::builtin()),
 			functions_stack: Vec::new(),
 		}

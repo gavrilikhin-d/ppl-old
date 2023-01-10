@@ -260,14 +260,48 @@ pub struct ModuleContext<'llvm> {
     /// Global variables
     pub variables:
         HashMap<HashByName<Arc<VariableDeclaration>>, inkwell::values::PointerValue<'llvm>>,
+	/// Builder for debug info
+	pub dibuilder: inkwell::debug_info::DebugInfoBuilder<'llvm>,
+	/// Compile unit for debug info
+	pub compile_unit: inkwell::debug_info::DICompileUnit<'llvm>
 }
 
 impl<'llvm> ModuleContext<'llvm> {
     /// Initialize context for lowering HIR module to LLVM IR
-    pub fn new(module: inkwell::module::Module<'llvm>) -> Self {
+    pub fn new(
+		module: inkwell::module::Module<'llvm>,
+		filename: &str
+	) -> Self {
+		let llvm = module.get_context();
+		let debug_metadata_version = llvm.i32_type().const_int(3, false);
+		module.add_basic_value_flag(
+			"Debug Info Version",
+			inkwell::module::FlagBehavior::Warning,
+			debug_metadata_version,
+		);
+		let (dibuilder, compile_unit) = module.create_debug_info_builder(
+			true,
+			/* language */ inkwell::debug_info::DWARFSourceLanguage::Rust,
+			/* filename */ filename,
+			/* directory */ ".",
+			/* producer */ "ppl",
+			/* is_optimized */ false,
+			/* compiler command line flags */ "",
+			/* runtime_ver */ 0,
+			/* split_name */ "",
+			/* kind */ inkwell::debug_info::DWARFEmissionKind::Full,
+			/* dwo_id */ 0,
+			/* split_debug_inling */ false,
+			/* debug_info_for_profiling */ false,
+			/* sys_root */ "/",
+			/* sdk */ ""
+		);
+
         Self {
             module,
             variables: HashMap::new(),
+			dibuilder,
+			compile_unit
         }
     }
 }
@@ -796,7 +830,10 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         &self,
         llvm: &'llvm inkwell::context::Context,
     ) -> inkwell::module::Module<'llvm> {
-        let mut context = ModuleContext::new(llvm.create_module(self.name()));
+        let mut context = ModuleContext::new(
+			llvm.create_module(self.name()),
+			&self.filename
+		);
 
         for statement in &self.statements {
             statement.lower_global_to_ir(&mut context);
