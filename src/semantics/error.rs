@@ -1,7 +1,9 @@
+use std::fmt::Display;
+
 use miette::{Diagnostic, SourceSpan};
 use thiserror::Error;
 
-use crate::hir::Type;
+use crate::hir::{Type, CallKind};
 
 /// Diagnostic for undefined variables
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
@@ -130,8 +132,10 @@ impl Diagnostic for CandidateNotViable {
 
 /// Diagnostic for unresolved function call
 #[derive(Error, Debug, Clone, PartialEq)]
-#[error("no function '{name}'")]
 pub struct NoFunction {
+	/// Kind of function call, that failed to bind to function
+	pub kind: CallKind,
+
     /// Expected name of function
     pub name: String,
 
@@ -143,6 +147,17 @@ pub struct NoFunction {
 
     /// Reasons, why candidates failed
     pub candidates: Vec<CandidateNotViable>,
+}
+
+impl Display for NoFunction {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self.kind {
+			CallKind::Call =>
+				write!(f, "no function \"{}\":", self.name),
+			CallKind::UnaryOperation =>
+				write!(f, "no unary operator \"{}\":", self.name),
+		}
+	}
 }
 
 impl Diagnostic for NoFunction {
@@ -234,9 +249,6 @@ pub enum Error {
     #[error(transparent)]
     #[diagnostic(transparent)]
     UnknownAnnotation(#[from] UnknownAnnotation),
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    NoUnaryOperator(#[from] NoUnaryOperator),
     #[error(transparent)]
     #[diagnostic(transparent)]
     NoFunction(#[from] NoFunction),

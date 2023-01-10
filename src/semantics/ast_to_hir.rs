@@ -1,9 +1,10 @@
 use std::collections::HashSet;
+use std::ops::Range;
 use std::sync::Arc;
 
 use derive_more::From;
 
-use crate::hir::{self, Module, Type, Typed, ParameterOrVariable};
+use crate::hir::{self, Module, Type, Typed, ParameterOrVariable, CallKind};
 use crate::mutability::Mutable;
 use crate::named::HashByName;
 use crate::syntax::{Ranged, StringWithOffset};
@@ -92,6 +93,59 @@ impl ASTLoweringContext {
             .unwrap_or_default();
         funcs.union(&builtins).cloned().collect()
     }
+
+	/// Recursively find function with same name format and arguments
+	pub fn get_function(
+		&self,
+		range: Range<usize>,
+		format: &str,
+		args: &[hir::Expression],
+		kind: CallKind,
+	) -> Result<Arc<hir::FunctionDeclaration>, Error>
+	{
+        let functions = self.find_functions_with_format(format);
+        let mut name = format.to_string();
+        for arg in args {
+            name = name.replacen("<>", format!("<:{}>", arg.ty()).as_str(), 1);
+        }
+        let arguments = args
+            .iter()
+            .map(|arg| (arg.ty(), arg.range().into()))
+            .collect::<Vec<_>>();
+
+        let f = functions.get(name.as_str());
+        if f.is_none() {
+            let mut candidates: Vec<CandidateNotViable> = Vec::new();
+            for candidate in functions {
+                for (param, arg) in candidate.value.parameters().zip(args) {
+                    if param.ty() != arg.ty() {
+                        candidates.push(CandidateNotViable {
+                            reason: ArgumentTypeMismatch {
+                                expected: param.ty(),
+                                expected_span: param.name.range().into(),
+                                got: arg.ty(),
+                                got_span: arg.range().into(),
+                            }
+                            .into(),
+                        });
+                        break;
+                    }
+                }
+            }
+
+			return Err(
+				NoFunction {
+					kind,
+                	name,
+                	at: range.into(),
+                	arguments,
+                	candidates,
+            	}.into()
+			);
+        }
+
+        Ok(f.unwrap().value.clone())
+	}
 }
 
 pub trait ASTLoweringWithinContext {
@@ -181,20 +235,22 @@ impl ASTLoweringWithinContext for ast::UnaryOperation {
         &self,
         context: &mut ASTLoweringContext,
     ) -> Result<Self::HIR, Error> {
-        let operand = self.operand.lower_to_hir_within_context(context)?;
+        let args = vec![
+			self.operand.lower_to_hir_within_context(context)?
+		];
 
-        let name_format = self.name_format();
-        let functions = context.find_functions_with_format(&name_format);
-        if functions.is_empty() {
-            return Err(NoUnaryOperator {
-                name: name_format.replace("<>", format!("<:{}>", operand.ty()).as_str()),
-                operator_span: self.operator.range().into(),
-                operand_type: operand.ty(),
-                operand_span: operand.range().into(),
-            }
-            .into());
-        }
-        unimplemented!("Unary operator ast to hir lowering is not implemented yet");
+		let function = context.get_function(
+			self.range(),
+			self.name_format().as_str(),
+			&args,
+			CallKind::UnaryOperation
+		)?;
+
+        Ok(hir::Call {
+            function,
+            range: self.range().into(),
+            args,
+        })
     }
 }
 
@@ -211,53 +267,20 @@ impl ASTLoweringWithinContext for ast::Call {
             match part {
                 // TODO: some text parts may actually be variable references
                 ast::CallNamePart::Text(_) => continue,
+				ast::CallNamePart::Operator(_) => continue,
                 ast::CallNamePart::Argument(arg) => {
                     args.push(arg.lower_to_hir_within_context(context)?);
                 }
             }
         }
 
-        let name_format = self.name_format();
-        let functions = context.find_functions_with_format(&name_format);
-        let mut name = name_format;
-        for arg in &args {
-            name = name.replacen("<>", format!("<:{}>", arg.ty()).as_str(), 1);
-        }
-        let arguments = args
-            .iter()
-            .map(|arg| (arg.ty(), arg.range().into()))
-            .collect::<Vec<_>>();
+		let function = context.get_function(
+			self.range(),
+			self.name_format().as_str(),
+			&args,
+			CallKind::Call
+		)?;
 
-        let f = functions.get(name.as_str());
-        if f.is_none() {
-            let mut candidates: Vec<CandidateNotViable> = Vec::new();
-            for candidate in functions {
-                for (param, arg) in candidate.value.parameters().zip(&args) {
-                    if param.ty() != arg.ty() {
-                        candidates.push(CandidateNotViable {
-                            reason: ArgumentTypeMismatch {
-                                expected: param.ty(),
-                                expected_span: param.name.range().into(),
-                                got: arg.ty(),
-                                got_span: arg.range().into(),
-                            }
-                            .into(),
-                        });
-                        break;
-                    }
-                }
-            }
-
-            return Err(NoFunction {
-                name,
-                at: self.range().into(),
-                arguments,
-                candidates,
-            }
-            .into());
-        }
-
-        let function = f.unwrap().value.clone();
         Ok(hir::Call {
             function,
             range: self.range().into(),

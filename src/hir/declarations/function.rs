@@ -8,7 +8,6 @@ use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::StringWithOffset;
 
-use super::VariableDeclaration;
 
 /// Declaration of a function parameter
 #[derive(Debug, PartialEq, Eq, Clone)]

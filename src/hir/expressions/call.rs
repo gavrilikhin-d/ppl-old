@@ -4,6 +4,13 @@ use crate::syntax::Ranged;
 use std::ops::Range;
 use std::sync::Arc;
 
+/// Kind of function call
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum CallKind {
+	UnaryOperation,
+	Call
+}
+
 /// AST for function call
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Call {
