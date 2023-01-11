@@ -1,14 +1,14 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use std::ops::Range;
 use std::sync::Arc;
 
-use crate::hir::{self, Module, Type, Typed, ParameterOrVariable, CallKind};
+use crate::hir::{self, Module, Type, Typed, ParameterOrVariable, CallKind, FunctionNamePart, VariableReference};
 use crate::mutability::Mutable;
 use crate::named::HashByName;
 use crate::syntax::{Ranged, StringWithOffset};
 
 use super::error::*;
-use crate::ast;
+use crate::ast::{self, CallNamePart};
 
 /// AST to HIR lowering context
 pub struct ASTLoweringContext {
@@ -118,6 +118,41 @@ impl ASTLoweringContext {
             .unwrap_or_default();
         funcs.union(&builtins).cloned().collect()
     }
+
+	/// Get candidates for function call
+	pub fn get_candidates(
+		&self,
+		name_parts: &[CallNamePart],
+		args_cache: &[Option<hir::Expression>]
+	)
+		-> Vec<Arc<hir::FunctionDeclaration>>
+	{
+		let mut functions = self.module.functions.values().flatten().map(|f| f.value.clone()).collect::<Vec<_>>();
+
+		if let Some(builtin) = &self.builtin {
+			functions.extend(
+				builtin.functions.values().flatten().map(|f| f.value.clone())
+			)
+		}
+
+		let mut candidates = Vec::new();
+		for f in functions {
+			if f.name_parts.iter()
+				.zip(name_parts)
+				.enumerate()
+				.all(
+					|(i, (f_part, c_part))| match (f_part, c_part) {
+					(FunctionNamePart::Text(text1), CallNamePart::Text(text2)) => text1.as_str() == text2.as_str(),
+					(FunctionNamePart::Parameter(_), CallNamePart::Argument(_)) => true,
+					(FunctionNamePart::Parameter(_), CallNamePart::Text(_)) => args_cache[i].is_some(),
+					_ => false,
+				})
+			{
+				candidates.push(f.clone())
+			}
+		}
+		candidates
+	}
 
 	/// Recursively find function with same name format and arguments
 	pub fn get_function(
@@ -289,30 +324,88 @@ impl ASTLoweringWithinContext for ast::Call {
         &self,
         context: &mut ASTLoweringContext,
     ) -> Result<Self::HIR, Error> {
-        let mut args = Vec::new();
-        for part in &self.name_parts {
-            match part {
-                // TODO: some text parts may actually be variable references
-                ast::CallNamePart::Text(_) => continue,
-				ast::CallNamePart::Operator(_) => continue,
-                ast::CallNamePart::Argument(arg) => {
-                    args.push(arg.lower_to_hir_within_context(context)?);
-                }
-            }
+		let args_cache = self.name_parts.iter().map(
+			|part| match part {
+				CallNamePart::Argument(a) =>
+					Ok::<Option<hir::Expression>, Error>(Some(a.lower_to_hir_within_context(context)?)),
+				CallNamePart::Text(t) => {
+					if let Some(var) = context.find_variable(t) {
+						return Ok(Some(
+							hir::VariableReference {
+								span: t.range().into(),
+								variable: var,
+							}.into()
+						))
+					}
+					Ok(None)
+				}
+			}
+		).try_collect::<Vec<_>>()?;
+
+		let candidates = context.get_candidates(&self.name_parts, &args_cache);
+
+		let mut candidates_not_viable = Vec::new();
+		for f in candidates {
+			let mut args = Vec::new();
+			let mut failed = false;
+			for (i, f_part) in f.name_parts.iter().enumerate() {
+				match f_part {
+					FunctionNamePart::Text(_) => continue,
+					FunctionNamePart::Parameter(p) => {
+						let arg = args_cache[i].as_ref().unwrap();
+						if arg.ty() != p.ty() {
+							candidates_not_viable.push(
+								CandidateNotViable {
+									reason: ArgumentTypeMismatch {
+										expected: p.ty(),
+										expected_span: p.name.range().into(),
+										got: arg.ty(),
+										got_span: arg.range().into()
+									}.into()
+								}
+							);
+							failed = true;
+							break;
+						}
+						args.push(arg.clone());
+					}
+				}
+			}
+
+			if !failed {
+				return Ok(
+					hir::Call {
+						range: self.range(),
+						function: f.clone(),
+						args
+					}
+				)
+			}
+		}
+
+		let arguments = args_cache.iter().zip(&self.name_parts).filter_map(
+			|(arg, part)| if matches!(part, CallNamePart::Argument(_)) {
+				let arg = arg.as_ref().unwrap();
+				Some((arg.ty(), arg.range().into()))
+			}
+			else {
+				None
+			}
+		).collect::<Vec<_>>();
+
+		let mut name = self.name_format().to_string();
+        for arg in &arguments {
+            name = name.replacen("<>", format!("<:{}>", arg.0).as_str(), 1);
         }
-
-		let function = context.get_function(
-			self.range(),
-			self.name_format().as_str(),
-			&args,
-			CallKind::Call
-		)?;
-
-        Ok(hir::Call {
-            function,
-            range: self.range().into(),
-            args,
-        })
+		Err(
+			NoFunction {
+				kind: CallKind::Call,
+				name,
+				arguments,
+				candidates: candidates_not_viable,
+				at: self.range().into()
+			}.into()
+		)
     }
 }
 
@@ -443,8 +536,6 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
             match part {
                 ast::FunctionNamePart::Text(t) =>
 					name_parts.push(t.clone().into()),
-				ast::FunctionNamePart::Operator(op) =>
-					name_parts.push(op.clone().into()),
                 ast::FunctionNamePart::Parameter(p) => {
                     name_parts.push(p.lower_to_hir_within_context(context)?.into())
                 }

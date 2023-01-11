@@ -4,9 +4,12 @@ type None
 type Integer
 type String
 
-/// Prints integer to stdout with newline
-@mangle_as("print_integer")
-fn print <:Integer>
+/// Convert `None` to `String`
+fn <:None> as String => "none"
+
+/// Convert `Integer` to `String`
+@mangle_as("integer_as_string")
+fn <:Integer> as String -> String
 
 /// Prints string to stdout with newline
 @mangle_as("print_string")
@@ -14,5 +17,8 @@ fn print <:String>
 
 /// Prints "none" to stdout with newline
 fn print <:None> => print "none"
+
+/// Prints integer to stdout with newline
+fn print <x: Integer> => print (x as String)
 
 fn + <x: Integer> => x

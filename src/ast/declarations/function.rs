@@ -38,10 +38,7 @@ impl Parse for Parameter {
 /// Cell of function
 #[derive(Debug, PartialEq, Eq, AST, Clone, From)]
 pub enum FunctionNamePart {
-	#[from]
     Text(StringWithOffset),
-	Operator(StringWithOffset),
-	#[from]
     Parameter(Parameter),
 }
 
@@ -56,13 +53,12 @@ impl Parse for FunctionNamePart {
 			Token::Plus, Token::Minus
 		])?;
         match token {
-            Token::Id => Ok(lexer.string_with_offset().into()),
+            Token::Id | Token::Plus | Token::Minus | Token::Greater
+				=> Ok(lexer.string_with_offset().into()),
             Token::Less => {
 				// '<' here is an operator
 				if lexer.peek() == Some(Token::Less) {
-					return Ok(
-						FunctionNamePart::Operator(lexer.string_with_offset())
-					)
+					return Ok(lexer.string_with_offset().into())
 				}
 
                 let p = Parameter::parse(lexer)?;
@@ -71,9 +67,6 @@ impl Parse for FunctionNamePart {
 
                 Ok(p.into())
             }
-			Token::Plus | Token::Minus | Token::Greater => {
-				Ok(FunctionNamePart::Operator(lexer.string_with_offset()))
-			}
             _ => unreachable!("consume_one_of returned unexpected token"),
         }
     }

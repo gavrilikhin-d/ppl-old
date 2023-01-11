@@ -27,21 +27,6 @@ pub extern "C" fn print_none(none: *const None) -> *const None {
 	none
 }
 
-/// Prints none value
-///
-/// Runtime for builtin ppl's function:
-/// ```ppl
-/// fn print <x: None> -> None
-/// ```
-#[no_mangle]
-pub extern "C" fn print_integer(i: *const Integer) -> *const None {
-	if i.is_null() {
-		panic!("null pointer passed to print_integer");
-	}
-	println!("{}", unsafe { &*i });
-	none()
-}
-
 /// Construct [`Integer`](ppl::semantics::Type::Integer) from a C string
 #[no_mangle]
 pub extern "C" fn integer_from_i64(value: i64) -> *mut Integer {
@@ -81,6 +66,21 @@ pub extern "C" fn print_string(str: *const String) -> *const None {
 	}
 	println!("{}", unsafe { &*str });
 	none()
+}
+
+/// Converts `Integer` to `String`
+///
+/// Runtime for builtin ppl's function:
+/// ```ppl
+/// fn <:Integer> as String -> String
+/// ```
+#[no_mangle]
+pub extern "C" fn integer_as_string(i: *const Integer) -> *mut String {
+	if i.is_null() {
+		panic!("null pointer passed to integer_as_string");
+	}
+	let boxed = Box::new(unsafe { &*i }.to_string());
+	Box::into_raw(boxed)
 }
 
 // IMPORTANT: don't forget to update global mapping after adding new function!!!

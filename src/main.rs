@@ -96,8 +96,14 @@ fn repl() {
         &functions.string_from_c_string_and_length(),
         runtime::string_from_c_string_and_length as usize,
     );
-    engine.add_global_mapping(&functions.print_integer(), runtime::print_integer as usize);
-    engine.add_global_mapping(&functions.print_string(), runtime::print_string as usize);
+    engine.add_global_mapping(
+		&functions.integer_as_string(),
+		runtime::integer_as_string as usize
+	);
+    engine.add_global_mapping(
+		&functions.print_string(),
+		runtime::print_string as usize
+	);
 
     let mut lexer = InteractiveLexer::new();
     loop {

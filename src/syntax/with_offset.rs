@@ -117,3 +117,10 @@ impl PartialEq<&str> for StringWithOffset {
         self.value == *other
     }
 }
+
+impl StringWithOffset {
+	/// Convert this to [`&str`]
+	pub fn as_str(&self) -> &str {
+		&self.value
+	}
+}

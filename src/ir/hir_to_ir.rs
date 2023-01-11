@@ -215,12 +215,12 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
         )
     }
 
-    /// LLVM IR for "print <x: None> -> None" builtin function
-    pub fn print_integer(&self) -> inkwell::values::FunctionValue<'llvm> {
+    /// LLVM IR for "<:Integer> as String -> String" builtin function
+    pub fn integer_as_string(&self) -> inkwell::values::FunctionValue<'llvm> {
         let types = Types::new(self.module.get_context());
         self.get_or_add_function(
-            "print_integer",
-            types.none().fn_type(&[types.integer().into()], false),
+            "integer_as_string",
+            types.string().fn_type(&[types.integer().into()], false),
         )
     }
 

@@ -11,10 +11,7 @@ use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, StringW
 /// Cell of function
 #[derive(Debug, PartialEq, Eq, AST, Clone, From, TryInto)]
 pub enum CallNamePart {
-	#[from]
     Text(StringWithOffset),
-	Operator(StringWithOffset),
-    #[from]
 	Argument(Expression),
 }
 
@@ -24,7 +21,6 @@ impl Ranged for CallNamePart {
         match self {
             CallNamePart::Text(text) => text.range(),
             CallNamePart::Argument(arg) => arg.range(),
-			CallNamePart::Operator(op) => op.range(),
         }
     }
 }
@@ -61,7 +57,6 @@ impl Call {
 
             match part {
                 CallNamePart::Text(text) => format.push_str(&text),
-				CallNamePart::Operator(op) => format.push_str(&op),
                 CallNamePart::Argument(_) => format.push_str("<>"),
             }
         }
