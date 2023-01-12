@@ -104,6 +104,10 @@ fn repl() {
 		&functions.print_string(),
 		runtime::print_string as usize
 	);
+    engine.add_global_mapping(
+		&functions.minus_integer(),
+		runtime::minus_integer as usize
+	);
 
     let mut lexer = InteractiveLexer::new();
     loop {

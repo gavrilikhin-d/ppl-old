@@ -83,4 +83,19 @@ pub extern "C" fn integer_as_string(i: *const Integer) -> *mut String {
 	Box::into_raw(boxed)
 }
 
+/// Negates integer
+///
+/// Runtime for builtin ppl's function:
+/// ```ppl
+/// fn - <:Integer> -> Integer
+/// ```
+#[no_mangle]
+pub extern "C" fn minus_integer(i: *const Integer) -> *mut Integer {
+	if i.is_null() {
+		panic!("null pointer passed to integer_as_string");
+	}
+	let boxed = Box::new(-unsafe { &*i }.clone());
+	Box::into_raw(boxed)
+}
+
 // IMPORTANT: don't forget to update global mapping after adding new function!!!

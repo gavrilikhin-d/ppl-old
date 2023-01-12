@@ -22,3 +22,6 @@ fn print <:None> => print "none"
 fn print <x: Integer> => print (x as String)
 
 fn + <x: Integer> => x
+
+@mangle_as("minus_integer")
+fn - <:Integer> -> Integer
