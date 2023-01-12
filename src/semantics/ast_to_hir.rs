@@ -137,6 +137,10 @@ impl ASTLoweringContext {
 
 		let mut candidates = Vec::new();
 		for f in functions {
+			if f.name_parts.len() != name_parts.len() {
+				continue;
+			}
+
 			if f.name_parts.iter()
 				.zip(name_parts)
 				.enumerate()
