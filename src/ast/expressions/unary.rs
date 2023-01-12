@@ -3,7 +3,7 @@ use std::fmt::Display;
 
 use ast_derive::AST;
 
-use super::Expression;
+use super::{Expression, parse_atomic_expression};
 use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, Token, WithOffset};
 
 /// Unary operators
@@ -93,7 +93,7 @@ impl Parse for UnaryOperation {
 
         let offset = lexer.span().start;
 
-        let operand = Expression::parse(lexer)?;
+        let operand = parse_atomic_expression(lexer)?;
 
         Ok(UnaryOperation {
             operand: Box::new(operand),
