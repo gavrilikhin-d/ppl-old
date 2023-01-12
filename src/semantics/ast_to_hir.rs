@@ -440,6 +440,7 @@ impl ASTLoweringWithinContext for ast::Expression {
             ast::Expression::UnaryOperation(op) => op.lower_to_hir_within_context(context)?.into(),
             ast::Expression::Call(call) => call.lower_to_hir_within_context(context)?.into(),
 			ast::Expression::Tuple(t) => t.lower_to_hir_within_context(context)?.into(),
+			ast::Expression::BinaryOperation(op) => todo!()
         })
     }
 }

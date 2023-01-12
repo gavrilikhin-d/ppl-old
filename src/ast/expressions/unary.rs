@@ -48,8 +48,6 @@ impl Parse for UnaryOperation {
 		// TODO: postfix expressions
         let operator = lexer.consume(Token::Operator)?;
 
-        let offset = lexer.span().start;
-
         let operand = parse_atomic_expression(lexer)?;
 
         Ok(UnaryOperation {

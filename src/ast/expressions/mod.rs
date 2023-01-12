@@ -10,6 +10,9 @@ pub use variable::*;
 mod unary;
 pub use unary::*;
 
+mod binary;
+pub use binary::*;
+
 mod tuple;
 pub use tuple::*;
 
@@ -21,16 +24,17 @@ use crate::syntax::{
     Lexer, Parse, Ranged, StartsHere, Token,
 };
 
-use derive_more::From;
+use derive_more::{From, TryInto};
 
 use super::Declaration;
 
 /// Any PPL expression
-#[derive(Debug, PartialEq, Eq, AST, Clone, From)]
+#[derive(Debug, PartialEq, Eq, AST, Clone, From, TryInto)]
 pub enum Expression {
     Literal(Literal),
     VariableReference(VariableReference),
     UnaryOperation(UnaryOperation),
+	BinaryOperation(BinaryOperation),
     Call(Call),
 	Tuple(Tuple),
 }
@@ -70,6 +74,30 @@ pub(crate) fn parse_atomic_expression(lexer: &mut impl Lexer)
 	}.into())
 }
 
+/// Parse binary expression
+pub(crate) fn parse_binary_expression(lexer: &mut impl Lexer)
+	-> Result<Expression, ParseError> {
+	let mut left = parse_atomic_expression(lexer)?;
+
+	while lexer.peek().is_some_and(|t| t.is_operator()) {
+		lexer.consume_one_of(
+			&[Token::Operator, Token::Less, Token::Greater]
+		)?;
+		let operator = lexer.string_with_offset();
+
+		let right = parse_atomic_expression(lexer)?;
+
+		// TODO: handle precedence and associativity
+		left = BinaryOperation {
+			left: Box::new(left),
+			operator,
+			right: Box::new(right),
+		}.into();
+	}
+
+	Ok(left)
+}
+
 impl Parse for Expression {
     type Err = ParseError;
 
@@ -103,6 +131,7 @@ impl Ranged for Expression {
             Expression::Literal(l) => l.range(),
             Expression::VariableReference(var) => var.range(),
             Expression::UnaryOperation(op) => op.range(),
+			Expression::BinaryOperation(op) => op.range(),
             Expression::Call(call) => call.range(),
 			Expression::Tuple(tuple) => tuple.range(),
         }

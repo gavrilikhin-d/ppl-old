@@ -4,7 +4,7 @@ use ast_derive::AST;
 
 use derive_more::{From, TryInto};
 
-use super::{Expression, parse_atomic_expression};
+use super::{Expression, parse_atomic_expression, parse_binary_expression};
 
 use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, StringWithOffset, Token};
 
@@ -34,7 +34,7 @@ impl Parse for CallNamePart {
         Ok(if let Ok(text) = token {
             text.into()
         } else {
-            parse_atomic_expression(lexer)?.into()
+            parse_binary_expression(lexer)?.into()
         })
     }
 }
@@ -90,7 +90,7 @@ impl Parse for Call {
 
             let token = lexer.peek();
             if token.map_or(
-				true, |t| t.is_operator() || t == Token::Newline || t == Token::RParen
+				true, |t| t == Token::Newline || t == Token::RParen
 			) {
                 break;
             }
