@@ -1,48 +1,17 @@
-use std::collections::HashMap;
 use std::sync::Arc;
 
-use inkwell::types::AnyTypeEnum;
 use inkwell::types::BasicMetadataTypeEnum;
-use inkwell::AddressSpace;
 
-use inkwell::types::BasicType;
-use inkwell::types::BasicTypeEnum;
 use inkwell::values::BasicMetadataValueEnum;
 
+use super::inkwell::*;
 use crate::hir::*;
 use crate::mutability::Mutable;
-use crate::named::HashByName;
 use crate::named::Named;
 
-/// Convenience trait for inkwell
-trait TryIntoBasicTypeEnum<'ctx> : TryInto<BasicTypeEnum<'ctx>> {
-	/// Convert to [`BasicTypeEnum`](inkwell::types::BasicTypeEnum)
-	fn try_into_basic_type(self) -> Result<BasicTypeEnum<'ctx>, Self::Error>;
-}
-
-impl<'ctx> TryIntoBasicTypeEnum<'ctx> for AnyTypeEnum<'ctx> {
-	fn try_into_basic_type(self) -> Result<BasicTypeEnum<'ctx>, Self::Error> {
-		self.try_into()
-	}
-}
-
-/// Convenience trait for inkwell
-trait FnType<'ctx> {
-    /// Creates a `FunctionType` with this type for its return types
-    fn fn_type(self, param_types: &[BasicMetadataTypeEnum<'ctx>], is_var_args: bool) -> inkwell::types::FunctionType<'ctx>;
-}
-
-impl<'ctx> FnType<'ctx> for AnyTypeEnum<'ctx> {
-	fn fn_type(self, param_types: &[BasicMetadataTypeEnum<'ctx>], is_var_args: bool) -> inkwell::types::FunctionType<'ctx> {
-		if self.is_void_type() {
-			self.into_void_type().fn_type(param_types, is_var_args)
-		}
-		else
-		{
-			self.try_into_basic_type().expect("Non-void and non basic return type").fn_type(param_types, is_var_args)
-		}
-	}
-}
+use super::Context;
+use super::FunctionContext;
+use super::ModuleContext;
 
 /// Trait for lowering HIR for global declarations to IR within module context
 pub trait GlobalHIRLowering<'llvm> {
@@ -68,69 +37,6 @@ pub trait HIRLoweringWithinFunctionContext<'llvm, 'm> {
     fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR;
 }
 
-/// LLVM IR for PPL's types
-pub struct Types<'llvm> {
-    /// LLVM context
-    llvm: inkwell::context::ContextRef<'llvm>,
-}
-
-impl<'llvm> Types<'llvm> {
-    /// Initialize LLVM IR for PPL's types
-    pub(crate) fn new(llvm: inkwell::context::ContextRef<'llvm>) -> Self {
-        Self { llvm }
-    }
-
-    /// LLVM void type
-    pub fn void(&self) -> inkwell::types::VoidType<'llvm> {
-        self.llvm.void_type()
-    }
-
-    /// LLVM int type
-    pub fn i(&self, bits: u32) -> inkwell::types::IntType<'llvm> {
-        self.llvm.custom_width_int_type(bits)
-    }
-
-    /// LLVM unsigned int type
-    pub fn u(&self, bits: u32) -> inkwell::types::IntType<'llvm> {
-        self.i(bits)
-    }
-
-    /// Get LLVM opaque struct type or create it if it doesn't exist
-    fn get_or_add_opaque_struct(&self, name: &str) -> inkwell::types::StructType<'llvm> {
-        if let Some(ty) = self.llvm.get_struct_type(name) {
-            return ty;
-        }
-
-        self.llvm.opaque_struct_type(name)
-    }
-
-    /// LLVM IR for [`Class`](Type::Class) type
-    pub fn class(&self, name: &str) -> inkwell::types::PointerType<'llvm> {
-        self.get_or_add_opaque_struct(name)
-            .ptr_type(AddressSpace::Generic)
-    }
-
-    /// LLVM IR for [`None`](Type::None) type
-    pub fn none(&self) -> inkwell::types::VoidType<'llvm> {
-        self.void()
-    }
-
-    /// LLVM IR for [`Integer`](Type::Integer) type
-    pub fn integer(&self) -> inkwell::types::PointerType<'llvm> {
-        self.class("Integer")
-    }
-
-    /// LLVM IR for [`String`](Type::String) type
-    pub fn string(&self) -> inkwell::types::PointerType<'llvm> {
-        self.class("String")
-    }
-
-    /// LLVM IR for C string type
-    pub fn c_string(&self) -> inkwell::types::PointerType<'llvm> {
-        self.llvm.i8_type().ptr_type(AddressSpace::Generic)
-    }
-}
-
 /// Trait for convenient lowering of PPL's [`Type`](Type) to LLVM IR
 pub trait HIRTypesLowering<'llvm> {
     type IR;
@@ -147,168 +53,6 @@ impl<'llvm> HIRTypesLowering<'llvm> for Type {
             Type::Class(ty) => ty.lower_to_ir(context).into(),
             Type::Function { .. } => unimplemented!("Function type lowering"),
         }
-    }
-}
-
-// IMPORTANT: don't forget to update global mapping when adding new function!!!
-/// LLVM IR for PPL's functions
-pub struct Functions<'llvm, 'm> {
-    module: &'m inkwell::module::Module<'llvm>,
-}
-
-impl<'llvm, 'm> Functions<'llvm, 'm> {
-    /// Initialize LLVM IR for PPL's functions
-    pub fn new(module: &'m inkwell::module::Module<'llvm>) -> Self {
-        Self { module }
-    }
-
-    /// Get function by name
-    pub fn get(&self, name: &str) -> Option<inkwell::values::FunctionValue<'llvm>> {
-        self.module.get_function(name)
-    }
-
-    /// Get function by name if it exists, or add a declaration for it
-    pub fn get_or_add_function(
-        &self,
-        name: &str,
-        ty: inkwell::types::FunctionType<'llvm>,
-    ) -> inkwell::values::FunctionValue<'llvm> {
-        if let Some(f) = self.module.get_function(&name) {
-            return f;
-        }
-        self.module.add_function(name, ty, None)
-    }
-
-    /// LLVM IR for default constructor of [`None`](Type::None) type
-    pub fn none(&self) -> inkwell::values::FunctionValue<'llvm> {
-        let types = Types::new(self.module.get_context());
-        self.get_or_add_function("none", types.none().fn_type(&[], false))
-    }
-
-    /// LLVM IR for constructor of [`Integer`](Type::Integer) type from i64
-    pub fn integer_from_i64(&self) -> inkwell::values::FunctionValue<'llvm> {
-        let types = Types::new(self.module.get_context());
-        self.get_or_add_function(
-            "integer_from_i64",
-            types.integer().fn_type(&[types.i(64).into()], false),
-        )
-    }
-
-    /// LLVM IR for constructor of [`Integer`](Type::Integer) type from C string
-    pub fn integer_from_c_string(&self) -> inkwell::values::FunctionValue<'llvm> {
-        let types = Types::new(self.module.get_context());
-        self.get_or_add_function(
-            "integer_from_c_string",
-            types.integer().fn_type(&[types.c_string().into()], false),
-        )
-    }
-
-    /// LLVM IR for constructor of [`String`](Type::String) type from C string
-    /// and its length
-    pub fn string_from_c_string_and_length(&self) -> inkwell::values::FunctionValue<'llvm> {
-        let types = Types::new(self.module.get_context());
-        self.get_or_add_function(
-            "string_from_c_string_and_length",
-            types
-                .string()
-                .fn_type(&[types.c_string().into(), types.u(64).into()], false),
-        )
-    }
-
-    /// LLVM IR for "<:Integer> as String -> String" builtin function
-    pub fn integer_as_string(&self) -> inkwell::values::FunctionValue<'llvm> {
-        let types = Types::new(self.module.get_context());
-        self.get_or_add_function(
-            "integer_as_string",
-            types.string().fn_type(&[types.integer().into()], false),
-        )
-    }
-
-    /// LLVM IR for "print <str: String> -> None" builtin function
-    pub fn print_string(&self) -> inkwell::values::FunctionValue<'llvm> {
-        let types = Types::new(self.module.get_context());
-        self.get_or_add_function(
-            "print_string",
-            types.none().fn_type(&[types.string().into()], false),
-        )
-    }
-
-    // IMPORTANT: don't forget to update global mapping when adding new function!!!
-}
-
-/// Trait for common context methods
-pub trait Context<'llvm> {
-    /// Get LLVM context
-    fn llvm(&self) -> inkwell::context::ContextRef<'llvm>;
-
-    /// Get LLVM IR for PPL's types
-    fn types(&self) -> Types<'llvm> {
-        Types::new(self.llvm())
-    }
-
-    /// Get LLVM IR for PPL's functions
-    fn functions<'m>(&'m self) -> Functions<'llvm, 'm>;
-}
-
-/// Context for lowering HIR module to LLVM IR
-pub struct ModuleContext<'llvm> {
-    /// Currently built module
-    pub module: inkwell::module::Module<'llvm>,
-    /// Global variables
-    pub variables:
-        HashMap<HashByName<Arc<VariableDeclaration>>, inkwell::values::PointerValue<'llvm>>,
-	/// Builder for debug info
-	pub dibuilder: inkwell::debug_info::DebugInfoBuilder<'llvm>,
-	/// Compile unit for debug info
-	pub compile_unit: inkwell::debug_info::DICompileUnit<'llvm>
-}
-
-impl<'llvm> ModuleContext<'llvm> {
-    /// Initialize context for lowering HIR module to LLVM IR
-    pub fn new(
-		module: inkwell::module::Module<'llvm>
-	) -> Self {
-		let llvm = module.get_context();
-		let debug_metadata_version = llvm.i32_type().const_int(3, false);
-		module.add_basic_value_flag(
-			"Debug Info Version",
-			inkwell::module::FlagBehavior::Warning,
-			debug_metadata_version,
-		);
-		let (dibuilder, compile_unit) = module.create_debug_info_builder(
-			true,
-			/* language */ inkwell::debug_info::DWARFSourceLanguage::Rust,
-			/* filename */ module.get_source_file_name().to_str().unwrap(),
-			/* directory */ ".",
-			/* producer */ "ppl",
-			/* is_optimized */ false,
-			/* compiler command line flags */ "",
-			/* runtime_ver */ 0,
-			/* split_name */ "",
-			/* kind */ inkwell::debug_info::DWARFEmissionKind::Full,
-			/* dwo_id */ 0,
-			/* split_debug_inling */ false,
-			/* debug_info_for_profiling */ false,
-			/* sys_root */ "/",
-			/* sdk */ ""
-		);
-
-        Self {
-            module,
-            variables: HashMap::new(),
-			dibuilder,
-			compile_unit
-        }
-    }
-}
-
-impl<'llvm> Context<'llvm> for ModuleContext<'llvm> {
-    fn llvm(&self) -> inkwell::context::ContextRef<'llvm> {
-        self.module.get_context()
-    }
-
-    fn functions<'m>(&'m self) -> Functions<'llvm, 'm> {
-        Functions::new(&self.module)
     }
 }
 
@@ -509,82 +253,6 @@ impl<'llvm> EmitBody<'llvm> for FunctionDeclaration {
             }
         }
 	}
-}
-
-/// Context for lowering HIR function to LLVM IR
-pub struct FunctionContext<'llvm, 'm> {
-    /// Context for lowering HIR module to LLVM IR
-    pub module_context: &'m mut ModuleContext<'llvm>,
-    /// Currently built function
-    pub function: inkwell::values::FunctionValue<'llvm>,
-    /// Builder for current function
-    pub builder: inkwell::builder::Builder<'llvm>,
-	/// Parameters of this function
-	pub parameters: HashMap<
-		String,
-		inkwell::values::PointerValue<'llvm>
-	>
-}
-
-impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
-    /// Initialize context for lowering HIR function to LLVM IR
-    pub fn new(
-        module_context: &'m mut ModuleContext<'llvm>,
-        function: inkwell::values::FunctionValue<'llvm>,
-    ) -> Self {
-        let llvm = module_context.llvm();
-
-        let builder = llvm.create_builder();
-        let basic_block = llvm.append_basic_block(function, "");
-        builder.position_at_end(basic_block);
-
-        Self {
-            module_context,
-            function,
-            builder,
-			parameters: HashMap::new()
-        }
-    }
-
-    /// Get LLVM IR for variable
-    pub fn get_variable(
-        &self,
-        variable: &ParameterOrVariable,
-    ) -> Option<inkwell::values::PointerValue<'llvm>> {
-		match variable {
-			ParameterOrVariable::Parameter(p) => {
-				self.parameters.get(p.name()).cloned()
-			}
-			ParameterOrVariable::Variable(v) => {
-				self.module_context.variables.get(v.name()).cloned()
-			}
-		}
-    }
-}
-
-impl Drop for FunctionContext<'_, '_> {
-    fn drop(&mut self) {
-        let terminator = self
-            .builder
-            .get_insert_block()
-            .and_then(|b| b.get_terminator());
-
-        if terminator.is_some() {
-            return;
-        }
-
-        self.builder.build_return(None);
-    }
-}
-
-impl<'llvm> Context<'llvm> for FunctionContext<'llvm, '_> {
-    fn llvm(&self) -> inkwell::context::ContextRef<'llvm> {
-        self.module_context.llvm()
-    }
-
-    fn functions<'m>(&'m self) -> Functions<'llvm, 'm> {
-        self.module_context.functions()
-    }
 }
 
 impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Literal {
