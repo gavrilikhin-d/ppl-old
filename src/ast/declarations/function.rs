@@ -50,10 +50,10 @@ impl Parse for FunctionNamePart {
         let token = lexer.consume_one_of(&[
 			Token::Id,
 			Token::Less, Token::Greater,
-			Token::Plus, Token::Minus
+			Token::Operator,
 		])?;
         match token {
-            Token::Id | Token::Plus | Token::Minus | Token::Greater
+            Token::Id | Token::Greater | Token::Operator
 				=> Ok(lexer.string_with_offset().into()),
             Token::Less => {
 				// '<' here is an operator

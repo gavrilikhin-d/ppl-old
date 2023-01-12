@@ -1,6 +1,7 @@
 #![feature(anonymous_lifetime_in_impl_trait)]
 #![feature(once_cell)]
 #![feature(iterator_try_collect)]
+#![feature(is_some_and)]
 
 pub mod mutability;
 pub mod named;

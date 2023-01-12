@@ -17,13 +17,9 @@ pub enum Token {
     #[token("=")]
     Assign,
 
-    /// Plus token
-    #[token("+")]
-    Plus,
-
-    /// Minus token
-    #[token("-")]
-    Minus,
+    /// Token for operator
+	#[regex(r"[-+*/=<>?!~|&^%$#\\]+")]
+	Operator,
 
     /// Identifier
     #[regex("[_a-zA-Z][_a-zA-Z0-9]*")]
@@ -108,7 +104,7 @@ impl Token {
     /// Check if token is an operator
     pub fn is_operator(&self) -> bool {
         match self {
-            Token::Assign | Token::Plus | Token::Minus | Token::Less | Token::Greater => true,
+            Token::Assign | Token::Less | Token::Greater | Token::Operator => true,
             _ => false,
         }
     }
@@ -127,8 +123,6 @@ impl Display for Token {
         match self {
             Token::None => write!(f, "none"),
             Token::Assign => write!(f, "="),
-            Token::Plus => write!(f, "+"),
-            Token::Minus => write!(f, "-"),
             Token::Colon => write!(f, ":"),
             Token::Less => write!(f, "<"),
             Token::Greater => write!(f, ">"),
