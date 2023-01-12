@@ -46,6 +46,30 @@ impl StartsHere for Expression {
     }
 }
 
+/// Parse atomic expression
+pub(crate) fn parse_atomic_expression(lexer: &mut impl Lexer)
+	-> Result<Expression, ParseError> {
+	if Literal::starts_here(lexer) {
+		return Ok(Literal::parse(lexer)?.into());
+	}
+
+	if Tuple::starts_here(lexer) {
+		return Ok(Tuple::parse(lexer)?.into());
+	}
+
+	if VariableReference::starts_here(lexer) {
+		return Ok(VariableReference::parse(lexer)?.into());
+	}
+
+	if UnaryOperation::starts_here(lexer) {
+		return Ok(UnaryOperation::parse(lexer)?.into());
+	}
+
+	Err(MissingExpression {
+		at: lexer.span().end.into(),
+	}.into())
+}
+
 impl Parse for Expression {
     type Err = ParseError;
 
@@ -58,29 +82,17 @@ impl Parse for Expression {
             .into());
         }
 
-        if Literal::starts_here(lexer) {
-            return Ok(Literal::parse(lexer)?.into());
-        }
-
-		if Tuple::starts_here(lexer) {
-			return Ok(Tuple::parse(lexer)?.into());
+		let call = Call::parse(lexer)?;
+		if call.name_parts.len() > 1 {
+			return Ok(call.into())
 		}
 
-        Ok(match lexer.peek().unwrap() {
-            Token::Id => {
-                let call = Call::parse(lexer)?;
-                if call.name_parts.len() > 1 {
-                    call.into()
-                } else {
-                    VariableReference {
-                        name: call.name_parts.first().unwrap().clone().try_into().unwrap(),
-                    }
-                    .into()
-                }
-            }
-            Token::Plus | Token::Minus => UnaryOperation::parse(lexer)?.into(),
-            t => unreachable!("unexpected token {} at start of expression", t),
-        })
+		Ok(match call.name_parts.first().unwrap() {
+			CallNamePart::Argument(arg) => arg.clone(),
+			CallNamePart::Text(t) => VariableReference {
+				name: t.clone(),
+			}.into(),
+		})
     }
 }
 

@@ -4,7 +4,7 @@ use ast_derive::AST;
 
 use derive_more::{From, TryInto};
 
-use super::Expression;
+use super::{Expression, parse_atomic_expression};
 
 use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, StringWithOffset, Token};
 
@@ -34,7 +34,7 @@ impl Parse for CallNamePart {
         Ok(if let Ok(text) = token {
             text.into()
         } else {
-            Expression::parse(lexer)?.into()
+            parse_atomic_expression(lexer)?.into()
         })
     }
 }
