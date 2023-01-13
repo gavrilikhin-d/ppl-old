@@ -3,7 +3,7 @@ use super::Statement;
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{error::ParseError, Lexer, Parse};
+use crate::syntax::{error::ParseError, Lexer, Parse, Context};
 
 /// Any PPL statement
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -16,11 +16,11 @@ impl Parse for Module {
     type Err = ParseError;
 
     /// Parse all statements in module
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
         let mut statements = Vec::new();
 
-        while lexer.peek().is_some() {
-            statements.push(Statement::parse(lexer)?);
+        while context.lexer.peek().is_some() {
+            statements.push(Statement::parse(context)?);
         }
 
         Ok(Module { statements })

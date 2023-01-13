@@ -21,7 +21,7 @@ use ast_derive::AST;
 
 use crate::syntax::{
     error::{MissingExpression, ParseError},
-    Lexer, Parse, Ranged, StartsHere, Token,
+    Lexer, Parse, Ranged, StartsHere, Token, Context,
 };
 
 use derive_more::{From, TryInto};
@@ -41,9 +41,9 @@ pub enum Expression {
 
 impl StartsHere for Expression {
     /// Check that expression 100% starts at current lexer position
-    fn starts_here(lexer: &mut impl Lexer) -> bool {
-        !Declaration::starts_here(lexer) &&
-		lexer.peek().map_or(
+    fn starts_here(context: &mut Context<impl Lexer>) -> bool {
+        !Declaration::starts_here(context) &&
+		context.lexer.peek().map_or(
 			false,
 			|t| t != Token::Error && t != Token::Newline && t != Token::RParen
 		)
@@ -51,41 +51,41 @@ impl StartsHere for Expression {
 }
 
 /// Parse atomic expression
-pub(crate) fn parse_atomic_expression(lexer: &mut impl Lexer)
+pub(crate) fn parse_atomic_expression(context: &mut Context<impl Lexer>)
 	-> Result<Expression, ParseError> {
-	if Literal::starts_here(lexer) {
-		return Ok(Literal::parse(lexer)?.into());
+	if Literal::starts_here(context) {
+		return Ok(Literal::parse(context)?.into());
 	}
 
-	if Tuple::starts_here(lexer) {
-		return Ok(Tuple::parse(lexer)?.into());
+	if Tuple::starts_here(context) {
+		return Ok(Tuple::parse(context)?.into());
 	}
 
-	if VariableReference::starts_here(lexer) {
-		return Ok(VariableReference::parse(lexer)?.into());
+	if VariableReference::starts_here(context) {
+		return Ok(VariableReference::parse(context)?.into());
 	}
 
-	if UnaryOperation::starts_here(lexer) {
-		return Ok(UnaryOperation::parse(lexer)?.into());
+	if UnaryOperation::starts_here(context) {
+		return Ok(UnaryOperation::parse(context)?.into());
 	}
 
 	Err(MissingExpression {
-		at: lexer.span().end.into(),
+		at: context.lexer.span().end.into(),
 	}.into())
 }
 
 /// Parse binary expression
-pub(crate) fn parse_binary_expression(lexer: &mut impl Lexer)
+pub(crate) fn parse_binary_expression(context: &mut Context<impl Lexer>)
 	-> Result<Expression, ParseError> {
-	let mut left = parse_atomic_expression(lexer)?;
+	let mut left = parse_atomic_expression(context)?;
 
-	while lexer.peek().is_some_and(|t| t.is_operator()) {
-		lexer.consume_one_of(
+	while context.lexer.peek().is_some_and(|t| t.is_operator()) {
+		context.lexer.consume_one_of(
 			&[Token::Operator, Token::Less, Token::Greater]
 		)?;
-		let operator = lexer.string_with_offset();
+		let operator = context.lexer.string_with_offset();
 
-		let right = parse_atomic_expression(lexer)?;
+		let right = parse_atomic_expression(context)?;
 
 		// TODO: handle precedence and associativity
 		left = BinaryOperation {
@@ -102,15 +102,15 @@ impl Parse for Expression {
     type Err = ParseError;
 
     /// Parse expression using lexer
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
-        if !Expression::starts_here(lexer) {
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        if !Expression::starts_here(context) {
             return Err(MissingExpression {
-                at: lexer.span().end.into(),
+                at: context.lexer.span().end.into(),
             }
             .into());
         }
 
-		let call = Call::parse(lexer)?;
+		let call = Call::parse(context)?;
 		if call.name_parts.len() > 1 {
 			return Ok(call.into())
 		}

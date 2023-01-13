@@ -13,16 +13,16 @@ extern crate runtime;
 
 /// Parse and compile single statement
 fn process_single_statement<'llvm>(
-    lexer: &mut impl Lexer,
+    parse_context: &mut ppl::syntax::Context<impl Lexer>,
     ast_lowering_context: &mut ASTLoweringContext,
     llvm: &'llvm inkwell::context::Context,
     engine: &mut ExecutionEngine<'llvm>,
 ) -> miette::Result<()> {
-    let ast = Statement::parse(lexer)?;
-    println!("AST: {:#?}", ast);
+    let ast = Statement::parse(parse_context)?;
+	dbg!(&ast);
 
     let hir = ast.lower_to_hir_within_context(ast_lowering_context)?;
-    println!("HIR: {:#?}", hir);
+    dbg!(&hir);
 
     let module = llvm.create_module("main");
     let mut context = ir::ModuleContext::new(module);
@@ -73,7 +73,7 @@ fn process_single_statement<'llvm>(
 
 /// Read-Evaluate-Print Loop
 fn repl() {
-    let mut context = ASTLoweringContext::new("repl");
+    let mut ast_context = ASTLoweringContext::new("repl");
     let llvm = inkwell::context::Context::create();
     let builtin = hir::Module::builtin().lower_to_ir(&llvm);
 	builtin.print_to_stderr();
@@ -104,16 +104,23 @@ fn repl() {
 	add_global_mapping!(integer_star_integer);
 
 
-    let mut lexer = InteractiveLexer::new();
+    let mut parse_context = ppl::syntax::Context::new(
+		InteractiveLexer::new()
+	);
     loop {
-		lexer.override_next_prompt(">>> ");
+		parse_context.lexer.override_next_prompt(">>> ");
 
-        if let Err(err) = process_single_statement(&mut lexer, &mut context, &llvm, &mut engine) {
+        if let Err(err) = process_single_statement(
+			&mut parse_context,
+			&mut ast_context,
+			&llvm,
+			&mut engine
+		) {
             println!(
                 "{:?}",
                 err.with_source_code(miette::NamedSource::new(
                     "stdin",
-                    String::from(lexer.source())
+                    String::from(parse_context.lexer.source())
                 ))
             )
         }

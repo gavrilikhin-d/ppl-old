@@ -2,7 +2,7 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use crate::ast::Expression;
-use crate::syntax::StartsHere;
+use crate::syntax::{StartsHere, Context};
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
 
 /// AST for assignment
@@ -16,8 +16,8 @@ pub struct Assignment {
 
 impl StartsHere for Assignment {
     /// Check that assignment may start at current lexer position
-    fn starts_here(lexer: &mut impl Lexer) -> bool {
-        Expression::starts_here(lexer)
+    fn starts_here(context: &mut Context<impl Lexer>) -> bool {
+        Expression::starts_here(context)
     }
 }
 
@@ -25,12 +25,12 @@ impl Parse for Assignment {
     type Err = ParseError;
 
     /// Parse assignment using lexer
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
-        let target = Expression::parse(lexer)?;
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        let target = Expression::parse(context)?;
 
-        lexer.consume(Token::Assign)?;
+        context.lexer.consume(Token::Assign)?;
 
-        let value = Expression::parse(lexer)?;
+        let value = Expression::parse(context)?;
 
         Ok(Assignment { target, value })
     }

@@ -5,7 +5,7 @@ use derive_more::From;
 
 use crate::{
     ast::{Annotation, Statement, Expression},
-    syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token},
+    syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token, Context},
 };
 
 /// Parameter of function
@@ -21,15 +21,15 @@ impl Parse for Parameter {
     type Err = ParseError;
 
     /// Parse parameter using lexer
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
-        let name = lexer
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        let name = context.lexer
             .consume(Token::Id)
             .ok()
-            .unwrap_or_else(|| StringWithOffset::from("").at(lexer.span().end));
+            .unwrap_or_else(|| StringWithOffset::from("").at(context.lexer.span().end));
 
-        lexer.consume(Token::Colon)?;
+        context.lexer.consume(Token::Colon)?;
 
-        let ty = lexer.consume(Token::Id)?;
+        let ty = context.lexer.consume(Token::Id)?;
 
         Ok(Parameter { name, ty })
     }
@@ -46,24 +46,24 @@ impl Parse for FunctionNamePart {
     type Err = ParseError;
 
     /// Parse function name part using lexer
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
-        let token = lexer.consume_one_of(&[
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        let token = context.lexer.consume_one_of(&[
 			Token::Id,
 			Token::Less, Token::Greater,
 			Token::Operator,
 		])?;
         match token {
             Token::Id | Token::Greater | Token::Operator
-				=> Ok(lexer.string_with_offset().into()),
+				=> Ok(context.lexer.string_with_offset().into()),
             Token::Less => {
 				// '<' here is an operator
-				if lexer.peek() == Some(Token::Less) {
-					return Ok(lexer.string_with_offset().into())
+				if context.lexer.peek() == Some(Token::Less) {
+					return Ok(context.lexer.string_with_offset().into())
 				}
 
-                let p = Parameter::parse(lexer)?;
+                let p = Parameter::parse(context)?;
 
-                lexer.consume(Token::Greater)?;
+                context.lexer.consume(Token::Greater)?;
 
                 Ok(p.into())
             }
@@ -91,8 +91,8 @@ pub struct FunctionDeclaration {
 
 impl StartsHere for FunctionDeclaration {
     /// Check that function declaration may start at current lexer position
-    fn starts_here(lexer: &mut impl Lexer) -> bool {
-        lexer.try_match(Token::Fn).is_ok()
+    fn starts_here(context: &mut Context<impl Lexer>) -> bool {
+        context.lexer.try_match(Token::Fn).is_ok()
     }
 }
 
@@ -100,16 +100,16 @@ impl Parse for FunctionDeclaration {
     type Err = ParseError;
 
     /// Parse function declaration using lexer
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
-        lexer.consume(Token::Fn)?;
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        context.lexer.consume(Token::Fn)?;
 
         let mut name_parts = Vec::new();
 
         loop {
-            let part = FunctionNamePart::parse(lexer)?;
+            let part = FunctionNamePart::parse(context)?;
             name_parts.push(part);
 
-            match lexer.peek() {
+            match context.lexer.peek() {
                 None
                 | Some(Token::Arrow)
                 | Some(Token::FatArrow)
@@ -119,29 +119,29 @@ impl Parse for FunctionDeclaration {
             }
         }
 
-        let return_type = if lexer.consume(Token::Arrow).is_ok() {
-            Some(lexer.consume(Token::Id)?)
+        let return_type = if context.lexer.consume(Token::Arrow).is_ok() {
+            Some(context.lexer.consume(Token::Id)?)
         } else {
             None
         };
 
         let mut body = None;
 		let mut implicit_return = false;
-        if lexer.consume(Token::FatArrow).is_ok() {
-            body = Some(vec![Expression::parse(lexer)?.into()]);
+        if context.lexer.consume(Token::FatArrow).is_ok() {
+            body = Some(vec![Expression::parse(context)?.into()]);
 			implicit_return = true;
-        } else if lexer.consume(Token::Colon).is_ok() {
-            lexer.consume(Token::Newline)?;
+        } else if context.lexer.consume(Token::Colon).is_ok() {
+            context.lexer.consume(Token::Newline)?;
 
             let mut stmts = Vec::new();
 
-            let indentation = lexer.indentation() + 1;
+            let indentation = context.lexer.indentation() + 1;
             loop {
-                lexer.skip_indentation();
-                stmts.push(Statement::parse(lexer)?);
+                context.lexer.skip_indentation();
+                stmts.push(Statement::parse(context)?);
                 // FIXME: last indentation may be already skipped
-                lexer.skip_indentation();
-                if lexer.indentation() < indentation {
+                context.lexer.skip_indentation();
+                if context.lexer.indentation() < indentation {
                     break;
                 }
             }

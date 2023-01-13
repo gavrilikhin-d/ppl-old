@@ -6,7 +6,7 @@ use derive_more::{From, TryInto};
 
 use super::{Expression, parse_binary_expression};
 
-use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, StringWithOffset, Token};
+use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, StringWithOffset, Token, Context};
 
 /// Cell of function
 #[derive(Debug, PartialEq, Eq, AST, Clone, From, TryInto)]
@@ -29,8 +29,8 @@ impl Parse for CallNamePart {
     type Err = ParseError;
 
     /// Parse function call cell using lexer
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
-   		let expr = parse_binary_expression(lexer)?;
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+   		let expr = parse_binary_expression(context)?;
 		Ok(match expr {
 			Expression::VariableReference(var) => var.name.into(),
 			_ => expr.into(),
@@ -65,8 +65,8 @@ impl Call {
 
 impl StartsHere for Call {
     /// Check that call may start at current lexer position
-    fn starts_here(lexer: &mut impl Lexer) -> bool {
-        lexer.try_match(Token::Id).is_ok()
+    fn starts_here(context: &mut Context<impl Lexer>) -> bool {
+        context.lexer.try_match(Token::Id).is_ok()
     }
 }
 
@@ -81,13 +81,13 @@ impl Parse for Call {
     type Err = ParseError;
 
     /// Parse function call using lexer
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
         let mut name_parts = Vec::new();
 
         loop {
-            name_parts.push(CallNamePart::parse(lexer)?);
+            name_parts.push(CallNamePart::parse(context)?);
 
-            let token = lexer.peek();
+            let token = context.lexer.peek();
             if token.map_or(
 				true, |t| t == Token::Newline || t == Token::RParen
 			) {

@@ -12,7 +12,7 @@ use ast_derive::AST;
 
 use crate::syntax::{
     error::{MissingDeclaration, ParseError},
-    Lexer, Parse, StartsHere, Token,
+    Lexer, Parse, StartsHere, Token, Context,
 };
 
 use derive_more::From;
@@ -27,10 +27,10 @@ pub enum Declaration {
 
 impl StartsHere for Declaration {
     /// Check literal may start at current lexer position
-    fn starts_here(lexer: &mut impl Lexer) -> bool {
-        VariableDeclaration::starts_here(lexer)
-            || TypeDeclaration::starts_here(lexer)
-            || FunctionDeclaration::starts_here(lexer)
+    fn starts_here(context: &mut Context<impl Lexer>) -> bool {
+        VariableDeclaration::starts_here(context)
+            || TypeDeclaration::starts_here(context)
+            || FunctionDeclaration::starts_here(context)
     }
 }
 
@@ -38,18 +38,18 @@ impl Parse for Declaration {
     type Err = ParseError;
 
     /// Parse declaration using lexer
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
-        if !Declaration::starts_here(lexer) {
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        if !Declaration::starts_here(context) {
             return Err(MissingDeclaration {
-                at: lexer.span().end.into(),
+                at: context.lexer.span().end.into(),
             }
             .into());
         }
 
-        match lexer.peek().unwrap() {
-            Token::Type => TypeDeclaration::parse(lexer).map(Declaration::Type),
-            Token::Let => VariableDeclaration::parse(lexer).map(Declaration::Variable),
-            Token::Fn => FunctionDeclaration::parse(lexer).map(Declaration::Function),
+        match context.lexer.peek().unwrap() {
+            Token::Type => TypeDeclaration::parse(context).map(Declaration::Type),
+            Token::Let => VariableDeclaration::parse(context).map(Declaration::Variable),
+            Token::Fn => FunctionDeclaration::parse(context).map(Declaration::Function),
             _ => unreachable!("unexpected token in start of declaration"),
         }
     }

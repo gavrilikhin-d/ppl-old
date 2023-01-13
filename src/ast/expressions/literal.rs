@@ -1,7 +1,7 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, Token};
+use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, Token, Context};
 
 /// AST for compile time known values
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -16,8 +16,8 @@ pub enum Literal {
 
 impl StartsHere for Literal {
     /// Check that literal may start at current lexer position
-    fn starts_here(lexer: &mut impl Lexer) -> bool {
-        lexer
+    fn starts_here(context: &mut Context<impl Lexer>) -> bool {
+        context.lexer
             .try_match_one_of(&[Token::None, Token::Integer, Token::String])
             .is_ok()
     }
@@ -27,20 +27,20 @@ impl Parse for Literal {
     type Err = ParseError;
 
     /// Parse literal using lexer
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
-        let token = lexer.consume_one_of(&[Token::None, Token::Integer, Token::String])?;
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        let token = context.lexer.consume_one_of(&[Token::None, Token::Integer, Token::String])?;
 
         Ok(match token {
             Token::None => Literal::None {
-                offset: lexer.span().start,
+                offset: context.lexer.span().start,
             },
             Token::Integer => Literal::Integer {
-                offset: lexer.span().start,
-                value: lexer.slice().to_string(),
+                offset: context.lexer.span().start,
+                value: context.lexer.slice().to_string(),
             },
             Token::String => Literal::String {
-                offset: lexer.span().start,
-                value: lexer.slice()[1..lexer.span().len() - 1].to_string(),
+                offset: context.lexer.span().start,
+                value: context.lexer.slice()[1..context.lexer.span().len() - 1].to_string(),
             },
 
             _ => unreachable!("consume_one_of returned unexpected token"),

@@ -4,7 +4,7 @@ use std::fmt::Display;
 use ast_derive::AST;
 
 use super::{Expression, parse_atomic_expression};
-use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, Token, WithOffset, StringWithOffset};
+use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, Token, WithOffset, StringWithOffset, Context};
 
 
 /// AST for unary expression
@@ -28,16 +28,16 @@ impl BinaryOperation {
 impl Parse for BinaryOperation {
     type Err = ParseError;
 
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
-        let mut left = parse_atomic_expression(lexer)?;
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        let mut left = parse_atomic_expression(context)?;
 
 		loop {
-			lexer.consume_one_of(
+			context.lexer.consume_one_of(
 				&[Token::Operator, Token::Less, Token::Greater]
 			)?;
-			let operator = lexer.string_with_offset();
+			let operator = context.lexer.string_with_offset();
 
-			let right = parse_atomic_expression(lexer)?;
+			let right = parse_atomic_expression(context)?;
 
 			// TODO: handle precedence and associativity
 			left = BinaryOperation {
@@ -46,7 +46,7 @@ impl Parse for BinaryOperation {
 				right: Box::new(right),
 			}.into();
 
-			if !lexer.peek().is_some_and(|t| t.is_operator()) {
+			if !context.lexer.peek().is_some_and(|t| t.is_operator()) {
 				break;
 			}
 		}

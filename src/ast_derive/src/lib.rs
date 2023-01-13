@@ -19,18 +19,20 @@ fn impl_ast_macro(ast: &syn::DeriveInput) -> TokenStream {
 			type Err = <#name as Parse>::Err;
 
 			fn from_str(s: &str) -> Result<Self, Self::Err> {
-				let mut lexer = crate::syntax::FullSourceLexer::new(s);
+				let mut context = crate::syntax::Context::new(
+					crate::syntax::FullSourceLexer::new(s)
+				);
 
-				lexer.skip_spaces();
+				context.lexer.skip_spaces();
 
-				let res = #name::parse(&mut lexer);
+				let res = #name::parse(&mut context);
 
-				let token = lexer.skip_spaces().next();
+				let token = context.lexer.skip_spaces().next();
 				if token.is_some() {
 					return Err(
 						crate::syntax::error::ExtraToken {
 							token: token.unwrap(),
-							at: lexer.span().into()
+							at: context.lexer.span().into()
 						}.into()
 					);
 				}

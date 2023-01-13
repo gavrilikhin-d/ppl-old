@@ -4,7 +4,7 @@ use ast_derive::AST;
 use crate::ast::Expression;
 use crate::mutability::{Mutability, Mutable};
 use crate::syntax::error::{MissingVariableName, ParseError};
-use crate::syntax::{Lexer, Parse, StartsHere, StringWithOffset, Token};
+use crate::syntax::{Lexer, Parse, StartsHere, StringWithOffset, Token, Context};
 
 /// Declaration of the variable
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -26,8 +26,8 @@ impl Mutable for VariableDeclaration {
 
 impl StartsHere for VariableDeclaration {
     /// Check that variable declaration may start at current lexer position
-    fn starts_here(lexer: &mut impl Lexer) -> bool {
-        lexer.try_match(Token::Let).is_ok()
+    fn starts_here(context: &mut Context<impl Lexer>) -> bool {
+        context.lexer.try_match(Token::Let).is_ok()
     }
 }
 
@@ -35,24 +35,24 @@ impl Parse for VariableDeclaration {
     type Err = ParseError;
 
     /// Parse variable declaration using lexer
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
-        lexer.consume(Token::Let)?;
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        context.lexer.consume(Token::Let)?;
 
-        let mutable = lexer.consume(Token::Mut).is_ok();
+        let mutable = context.lexer.consume(Token::Mut).is_ok();
 
-        lexer.consume(Token::Id).or_else(|_| {
+        context.lexer.consume(Token::Id).or_else(|_| {
             Err(MissingVariableName {
-                at: lexer.span().end.into(),
+                at: context.lexer.span().end.into(),
             })
         })?;
 
-        let name = StringWithOffset::from(lexer.slice()).at(lexer.span().start);
+        let name = StringWithOffset::from(context.lexer.slice()).at(context.lexer.span().start);
 
-        lexer.consume(Token::Assign)?;
+        context.lexer.consume(Token::Assign)?;
 
         Ok(VariableDeclaration {
             name,
-            initializer: Expression::parse(lexer)?,
+            initializer: Expression::parse(context)?,
             mutability: match mutable {
                 true => Mutability::Mutable,
                 false => Mutability::Immutable,

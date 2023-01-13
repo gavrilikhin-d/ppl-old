@@ -3,7 +3,7 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use super::{Expression, parse_atomic_expression};
-use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, Token, WithOffset, StringWithOffset};
+use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, Token, WithOffset, StringWithOffset, Context};
 
 /// Kind of unary operator
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -36,19 +36,19 @@ impl UnaryOperation {
 
 impl StartsHere for UnaryOperation {
     /// Check that unary operation may start at current lexer position
-    fn starts_here(lexer: &mut impl Lexer) -> bool {
-        lexer.peek().is_some_and(|t| t.is_operator())
+    fn starts_here(context: &mut Context<impl Lexer>) -> bool {
+        context.lexer.peek().is_some_and(|t| t.is_operator())
     }
 }
 
 impl Parse for UnaryOperation {
     type Err = ParseError;
 
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
 		// TODO: postfix expressions
-        let operator = lexer.consume(Token::Operator)?;
+        let operator = context.lexer.consume(Token::Operator)?;
 
-        let operand = parse_atomic_expression(lexer)?;
+        let operand = parse_atomic_expression(context)?;
 
         Ok(UnaryOperation {
             operand: Box::new(operand),

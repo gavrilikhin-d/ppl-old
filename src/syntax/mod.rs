@@ -14,3 +14,6 @@ pub use ranged::*;
 
 mod parse;
 pub use parse::*;
+
+mod precedence;
+pub use precedence::*;

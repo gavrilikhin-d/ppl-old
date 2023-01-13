@@ -9,7 +9,7 @@ use ast_derive::AST;
 
 use crate::ast::{Declaration, Expression};
 use crate::syntax::error::MissingStatement;
-use crate::syntax::StartsHere;
+use crate::syntax::{StartsHere, Context};
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
 
 use derive_more::From;
@@ -27,12 +27,12 @@ pub enum Statement {
 
 impl StartsHere for Statement {
     /// Check that statement may start at current lexer position
-    fn starts_here(lexer: &mut impl Lexer) -> bool {
-        Annotation::starts_here(lexer)
-            || Declaration::starts_here(lexer)
-            || Expression::starts_here(lexer)
-            || Assignment::starts_here(lexer)
-			|| Return::starts_here(lexer)
+    fn starts_here(context: &mut Context<impl Lexer>) -> bool {
+        Annotation::starts_here(context)
+            || Declaration::starts_here(context)
+            || Expression::starts_here(context)
+            || Assignment::starts_here(context)
+			|| Return::starts_here(context)
     }
 }
 
@@ -40,43 +40,43 @@ impl Parse for Statement {
     type Err = ParseError;
 
     /// Parse statement using lexer
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
-        lexer.skip_spaces();
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        context.lexer.skip_spaces();
 
-        if !Statement::starts_here(lexer) {
+        if !Statement::starts_here(context) {
             return Err(MissingStatement {
-                at: lexer.span().end.into(),
+                at: context.lexer.span().end.into(),
             }
             .into());
         }
 
         let mut annotations = Vec::new();
-        while Annotation::starts_here(lexer) {
-            annotations.push(Annotation::parse(lexer)?);
-            lexer.skip_spaces();
+        while Annotation::starts_here(context) {
+            annotations.push(Annotation::parse(context)?);
+            context.lexer.skip_spaces();
         }
 
 
 
-        let mut res: Statement = if Declaration::starts_here(lexer) {
-			Declaration::parse(lexer)?.into()
+        let mut res: Statement = if Declaration::starts_here(context) {
+			Declaration::parse(context)?.into()
 		}
-		else if Expression::starts_here(lexer) {
-			let target = Expression::parse(lexer)?;
+		else if Expression::starts_here(context) {
+			let target = Expression::parse(context)?;
 
-			if lexer.consume(Token::Assign).is_err() {
+			if context.lexer.consume(Token::Assign).is_err() {
 				target.into()
 			} else {
 				Assignment {
 					target,
-					value: Expression::parse(lexer)?,
+					value: Expression::parse(context)?,
 				}
 				.into()
 			}
 		}
 		else {
-			match lexer.peek() {
-				Some(Token::Return) => Return::parse(lexer)?.into(),
+			match context.lexer.peek() {
+				Some(Token::Return) => Return::parse(context)?.into(),
 				t => unreachable!(
 					"Unexpected token {:#?} at start of statement", t
 				),
@@ -91,8 +91,8 @@ impl Parse for Statement {
             }
         }
 
-        if lexer.peek().is_some() {
-            lexer.consume(Token::Newline)?;
+        if context.lexer.peek().is_some() {
+            context.lexer.consume(Token::Newline)?;
         }
 
         Ok(res)

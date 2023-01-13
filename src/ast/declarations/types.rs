@@ -1,7 +1,7 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token};
+use crate::syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token, Context};
 
 /// Declaration of type
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -12,8 +12,8 @@ pub struct TypeDeclaration {
 
 impl StartsHere for TypeDeclaration {
     /// Check that type declaration may start at current lexer position
-    fn starts_here(lexer: &mut impl Lexer) -> bool {
-        lexer.try_match(Token::Type).is_ok()
+    fn starts_here(context: &mut Context<impl Lexer>) -> bool {
+        context.lexer.try_match(Token::Type).is_ok()
     }
 }
 
@@ -21,12 +21,12 @@ impl Parse for TypeDeclaration {
     type Err = ParseError;
 
     /// Parse type declaration using lexer
-    fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
-        lexer.consume(Token::Type)?;
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        context.lexer.consume(Token::Type)?;
 
-        lexer.consume(Token::Id)?;
+        context.lexer.consume(Token::Id)?;
 
-        let name = lexer.string_with_offset();
+        let name = context.lexer.string_with_offset();
 
         Ok(TypeDeclaration { name })
     }
