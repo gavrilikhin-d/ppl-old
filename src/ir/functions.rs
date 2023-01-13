@@ -7,6 +7,19 @@ pub struct Functions<'llvm, 'm> {
     module: &'m Module<'llvm>,
 }
 
+// Macro to add builtin function
+macro_rules! add_builtin_function {
+	($name:ident, $ret:ident, $($args:ident),*) => {
+		pub fn $name(&self) -> FunctionValue<'llvm> {
+			let types = Types::new(self.module.get_context());
+			self.get_or_add_function(
+				stringify!($name),
+				types.$ret().fn_type(&[$(types.$args().into()),*], false),
+			)
+		}
+	};
+}
+
 impl<'llvm, 'm> Functions<'llvm, 'm> {
     /// Initialize LLVM IR for PPL's functions
     pub fn new(module: &'m Module<'llvm>) -> Self {
@@ -30,11 +43,8 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
         self.module.add_function(name, ty, None)
     }
 
-    /// LLVM IR for default constructor of [`None`](Type::None) type
-    pub fn none(&self) -> FunctionValue<'llvm> {
-        let types = Types::new(self.module.get_context());
-        self.get_or_add_function("none", types.none().fn_type(&[], false))
-    }
+    // LLVM IR for default constructor of [`None`](Type::None) type
+	add_builtin_function!(none, none,);
 
     /// LLVM IR for constructor of [`Integer`](Type::Integer) type from i64
     pub fn integer_from_i64(&self) -> FunctionValue<'llvm> {
@@ -45,14 +55,8 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
         )
     }
 
-    /// LLVM IR for constructor of [`Integer`](Type::Integer) type from C string
-    pub fn integer_from_c_string(&self) -> FunctionValue<'llvm> {
-        let types = Types::new(self.module.get_context());
-        self.get_or_add_function(
-            "integer_from_c_string",
-            types.integer().fn_type(&[types.c_string().into()], false),
-        )
-    }
+    // LLVM IR for constructor of [`Integer`](Type::Integer) type from C string
+	add_builtin_function!(integer_from_c_string, integer, c_string);
 
     /// LLVM IR for constructor of [`String`](Type::String) type from C string
     /// and its length
@@ -66,32 +70,20 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
         )
     }
 
-    /// LLVM IR for "<:Integer> as String -> String" builtin function
-    pub fn integer_as_string(&self) -> FunctionValue<'llvm> {
-        let types = Types::new(self.module.get_context());
-        self.get_or_add_function(
-            "integer_as_string",
-            types.string().fn_type(&[types.integer().into()], false),
-        )
-    }
+    // LLVM IR for "<:Integer> as String -> String" builtin function
+	add_builtin_function!(integer_as_string, string, integer);
 
-    /// LLVM IR for "print <str: String> -> None" builtin function
-    pub fn print_string(&self) -> FunctionValue<'llvm> {
-        let types = Types::new(self.module.get_context());
-        self.get_or_add_function(
-            "print_string",
-            types.none().fn_type(&[types.string().into()], false),
-        )
-    }
+    // LLVM IR for "print <str: String> -> None" builtin function
+	add_builtin_function!(print_string, none, string);
 
-    /// LLVM IR for "- <:Integer> -> Integer" builtin function
-    pub fn minus_integer(&self) -> FunctionValue<'llvm> {
-        let types = Types::new(self.module.get_context());
-        self.get_or_add_function(
-            "minus_integer",
-            types.integer().fn_type(&[types.integer().into()], false),
-        )
-    }
+    // LLVM IR for "- <:Integer> -> Integer" builtin function
+	add_builtin_function!(minus_integer, integer, integer);
+
+	// LLVM IR for "<:Integer> + <:Integer> -> Integer" builtin function
+   	add_builtin_function!(integer_plus_integer, integer, integer, integer);
+
+   	// LLVM IR for "<:Integer> * <:Integer> -> Integer" builtin function
+	add_builtin_function!(integer_star_integer, integer, integer, integer);
 
     // IMPORTANT: don't forget to update global mapping when adding new function!!!
 }

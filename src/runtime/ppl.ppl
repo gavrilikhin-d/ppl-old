@@ -25,3 +25,11 @@ fn + <x: Integer> => x
 
 @mangle_as("minus_integer")
 fn - <:Integer> -> Integer
+
+@mangle_as("integer_plus_integer")
+fn <:Integer> + <:Integer> -> Integer
+
+fn <x: Integer> - <y: Integer> => x + -y
+
+@mangle_as("integer_star_integer")
+fn <:Integer> * <:Integer> -> Integer

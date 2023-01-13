@@ -83,31 +83,26 @@ fn repl() {
 
     let functions = ir::Functions::new(&builtin);
 
-    engine.add_global_mapping(&functions.none(), runtime::none as usize);
-    engine.add_global_mapping(
-        &functions.integer_from_i64(),
-        runtime::integer_from_i64 as usize,
-    );
-    engine.add_global_mapping(
-        &functions.integer_from_c_string(),
-        runtime::integer_from_c_string as usize,
-    );
-    engine.add_global_mapping(
-        &functions.string_from_c_string_and_length(),
-        runtime::string_from_c_string_and_length as usize,
-    );
-    engine.add_global_mapping(
-		&functions.integer_as_string(),
-		runtime::integer_as_string as usize
-	);
-    engine.add_global_mapping(
-		&functions.print_string(),
-		runtime::print_string as usize
-	);
-    engine.add_global_mapping(
-		&functions.minus_integer(),
-		runtime::minus_integer as usize
-	);
+	/// Macro to add global mapping
+	macro_rules! add_global_mapping {
+		($name:ident) => {
+			engine.add_global_mapping(
+				&functions.$name(),
+				runtime::$name as usize
+			);
+		};
+	}
+
+	add_global_mapping!(none);
+    add_global_mapping!(integer_from_i64);
+	add_global_mapping!(integer_from_c_string);
+	add_global_mapping!(string_from_c_string_and_length);
+	add_global_mapping!(integer_as_string);
+	add_global_mapping!(print_string);
+	add_global_mapping!(minus_integer);
+	add_global_mapping!(integer_plus_integer);
+	add_global_mapping!(integer_star_integer);
+
 
     let mut lexer = InteractiveLexer::new();
     loop {

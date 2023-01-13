@@ -98,4 +98,34 @@ pub extern "C" fn minus_integer(i: *const Integer) -> *mut Integer {
 	Box::into_raw(boxed)
 }
 
+/// Add 2 integers
+///
+/// Runtime for builtin ppl's function:
+/// ```ppl
+/// fn <:Integer> + <:Integer> -> Integer
+/// ```
+#[no_mangle]
+pub extern "C" fn integer_plus_integer(x: *const Integer, y: *const Integer) -> *mut Integer {
+	if x.is_null() || y.is_null() {
+		panic!("null pointer passed to integer_as_string");
+	}
+	let boxed = Box::new(Integer::from(unsafe { &*x } + unsafe { &*y }));
+	Box::into_raw(boxed)
+}
+
+/// Multiply 2 integers
+///
+/// Runtime for builtin ppl's function:
+/// ```ppl
+/// fn <:Integer> * <:Integer> -> Integer
+/// ```
+#[no_mangle]
+pub extern "C" fn integer_star_integer(x: *const Integer, y: *const Integer) -> *mut Integer {
+	if x.is_null() || y.is_null() {
+		panic!("null pointer passed to integer_as_string");
+	}
+	let boxed = Box::new(Integer::from(unsafe { &*x } * unsafe { &*y }));
+	Box::into_raw(boxed)
+}
+
 // IMPORTANT: don't forget to update global mapping after adding new function!!!
