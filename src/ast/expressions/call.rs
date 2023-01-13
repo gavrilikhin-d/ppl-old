@@ -4,7 +4,7 @@ use ast_derive::AST;
 
 use derive_more::{From, TryInto};
 
-use super::{Expression, parse_atomic_expression, parse_binary_expression};
+use super::{Expression, parse_binary_expression};
 
 use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, StringWithOffset, Token};
 
@@ -30,12 +30,11 @@ impl Parse for CallNamePart {
 
     /// Parse function call cell using lexer
     fn parse(lexer: &mut impl Lexer) -> Result<Self, Self::Err> {
-        let token = lexer.consume(Token::Id);
-        Ok(if let Ok(text) = token {
-            text.into()
-        } else {
-            parse_binary_expression(lexer)?.into()
-        })
+   		let expr = parse_binary_expression(lexer)?;
+		Ok(match expr {
+			Expression::VariableReference(var) => var.name.into(),
+			_ => expr.into(),
+		})
     }
 }
 
