@@ -154,8 +154,8 @@ impl Display for NoFunction {
 		match self.kind {
 			CallKind::Call =>
 				write!(f, "no function \"{}\"", self.name),
-			CallKind::UnaryOperation =>
-				write!(f, "no unary operator \"{}\"", self.name),
+			CallKind::Operation =>
+				write!(f, "no operator \"{}\"", self.name),
 		}
 	}
 }
@@ -174,9 +174,21 @@ impl Diagnostic for NoFunction {
                 ),
             )))
         } else {
-            Some(Box::new(self.arguments.iter().map(|(t, s)| {
-                miette::LabeledSpan::new_with_span(Some(format!("<:{}>", t)), *s)
-            })))
+			let mut labels = Vec::new();
+			if self.kind == CallKind::Operation {
+				labels.push(miette::LabeledSpan::new_with_span(
+					Some("for this operator".to_string()),
+					self.at,
+				))
+			}
+			labels.extend(
+				self.arguments.iter().map(
+					|(t, s)| miette::LabeledSpan::new_with_span(
+						Some(format!("<:{}>", t)), *s
+					)
+				)
+			);
+            Some(Box::new(labels.into_iter()))
         }
     }
 

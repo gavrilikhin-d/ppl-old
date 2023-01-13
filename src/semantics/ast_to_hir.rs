@@ -306,10 +306,40 @@ impl ASTLoweringWithinContext for ast::UnaryOperation {
 		];
 
 		let function = context.get_function(
-			self.range(),
+			self.operator.range(),
 			self.name_format().as_str(),
 			&args,
-			CallKind::UnaryOperation
+			CallKind::Operation
+		)?;
+
+        Ok(hir::Call {
+            function,
+            range: self.range().into(),
+            args,
+        })
+    }
+}
+
+impl ASTLoweringWithinContext for ast::BinaryOperation {
+    type HIR = hir::Call;
+
+    /// Lower [`ast::BinaryOperation`] to [`hir::Call`] within lowering context.
+    ///
+    /// **Note**: Binary operation is actually a call to function.
+    fn lower_to_hir_within_context(
+        &self,
+        context: &mut ASTLoweringContext,
+    ) -> Result<Self::HIR, Error> {
+        let args = vec![
+			self.left.lower_to_hir_within_context(context)?,
+			self.right.lower_to_hir_within_context(context)?
+		];
+
+		let function = context.get_function(
+			self.operator.range(),
+			self.name_format().as_str(),
+			&args,
+			CallKind::Operation
 		)?;
 
         Ok(hir::Call {
@@ -437,15 +467,19 @@ impl ASTLoweringWithinContext for ast::Expression {
         context: &mut ASTLoweringContext,
     ) -> Result<Self::HIR, Error> {
         Ok(match self {
-            ast::Expression::Literal(l) => l.lower_to_hir_within_context(context)?.into(),
-            ast::Expression::VariableReference(var) => {
-                var.lower_to_hir_within_context(context)?.into()
-            }
-            ast::Expression::UnaryOperation(op) => op.lower_to_hir_within_context(context)?.into(),
-            ast::Expression::Call(call) => call.lower_to_hir_within_context(context)?.into(),
-			ast::Expression::Tuple(t) => t.lower_to_hir_within_context(context)?.into(),
-			ast::Expression::BinaryOperation(op) => todo!()
-        })
+            ast::Expression::Literal(l) =>
+				l.lower_to_hir_within_context(context)?.into(),
+            ast::Expression::VariableReference(var) =>
+                var.lower_to_hir_within_context(context)?.into(),
+            ast::Expression::UnaryOperation(op) =>
+				op.lower_to_hir_within_context(context)?.into(),
+            ast::Expression::Call(call) =>
+				call.lower_to_hir_within_context(context)?.into(),
+			ast::Expression::Tuple(t) =>
+				t.lower_to_hir_within_context(context)?.into(),
+			ast::Expression::BinaryOperation(op) =>
+				op.lower_to_hir_within_context(context)?.into(),
+		})
     }
 }
 

@@ -7,7 +7,7 @@ use std::sync::Arc;
 /// Kind of function call
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum CallKind {
-	UnaryOperation,
+	Operation,
 	Call
 }
 
