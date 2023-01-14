@@ -21,7 +21,7 @@ use ast_derive::AST;
 
 use crate::syntax::{
     error::{MissingExpression, ParseError},
-    Lexer, Parse, Ranged, StartsHere, Token, Context,
+    Lexer, Parse, Ranged, StartsHere, Token, Context, StringWithOffset,
 };
 
 use derive_more::{From, TryInto};
@@ -74,28 +74,44 @@ pub(crate) fn parse_atomic_expression(context: &mut Context<impl Lexer>)
 	}.into())
 }
 
-/// Parse binary expression
-pub(crate) fn parse_binary_expression(context: &mut Context<impl Lexer>)
-	-> Result<Expression, ParseError> {
-	let mut left = parse_atomic_expression(context)?;
-
+/// Parse right hand side of binary expression
+fn parse_binary_rhs(
+	context: &mut Context<impl Lexer>,
+	prev_op: Option<&str>,
+	mut left: Expression
+)
+	-> Result<Expression, ParseError>
+{
 	while context.lexer.peek().is_some_and(|t| t.is_operator()) {
-		context.lexer.consume_one_of(
-			&[Token::Operator, Token::Less, Token::Greater]
-		)?;
-		let operator = context.lexer.string_with_offset();
+		let op = context.lexer.consume_operator()?;
 
-		let right = parse_atomic_expression(context)?;
+		if prev_op.is_some_and(|prev_op| context.precedence_groups.has_less_precedence(&op, prev_op)) {
+			break;
+		}
 
-		// TODO: handle precedence and associativity
+		let mut right = parse_atomic_expression(context)?;
+		if  context.lexer.peek().is_some_and(|t| t.is_operator()) {
+			let next_op = context.lexer.peek_slice();
+		   	if context.precedence_groups.has_greater_precedence(next_op, &op) {
+				right = parse_binary_rhs(context, Some(&op), right)?;
+			}
+		}
+
 		left = BinaryOperation {
 			left: Box::new(left),
-			operator,
-			right: Box::new(right),
+			operator: op,
+			right: Box::new(right)
 		}.into();
 	}
 
 	Ok(left)
+}
+
+/// Parse binary expression
+pub(crate) fn parse_binary_expression(context: &mut Context<impl Lexer>)
+	-> Result<Expression, ParseError> {
+	let left = parse_atomic_expression(context)?;
+	parse_binary_rhs(context, None, left)
 }
 
 impl Parse for Expression {

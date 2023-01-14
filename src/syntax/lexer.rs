@@ -183,6 +183,38 @@ pub trait Lexer: Iterator<Item = Token> {
         Ok(token)
     }
 
+	/// Lex next token if it's an operator
+    ///
+    /// **Note:** doesn't lex, on failure
+    ///
+    /// # Example
+    /// ```
+    /// use ppl::syntax::{Token, Lexer, FullSourceLexer, error::*};
+    ///
+    /// let mut lexer = FullSourceLexer::new("+");
+    /// assert_eq!(lexer.consume_operator(), Ok("+".into()));
+    ///
+    /// let mut lexer = FullSourceLexer::new("42");
+    /// assert_eq!(
+    /// 	lexer.consume_operator(),
+    /// 	Err(
+    /// 		UnexpectedToken {
+    /// 			expected: vec![
+	/// 				Token::Operator, Token::Less, Token::Greater
+	/// 			],
+    /// 			got: Token::Integer,
+    /// 			at: lexer.peek_span().into()
+    /// 		}.into()
+    /// 	)
+    /// );
+    /// ```
+	fn consume_operator(&mut self) -> Result<StringWithOffset, LexerError> {
+		self.consume_one_of(
+			&[Token::Operator, Token::Less, Token::Greater]
+		)?;
+		Ok(self.string_with_offset())
+	}
+
     /// Skip space tokens
     ///
     /// # Example

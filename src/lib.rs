@@ -2,6 +2,7 @@
 #![feature(once_cell)]
 #![feature(iterator_try_collect)]
 #![feature(is_some_and)]
+#![feature(let_chains)]
 
 pub mod mutability;
 pub mod named;
