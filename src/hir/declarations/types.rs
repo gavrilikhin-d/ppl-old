@@ -20,6 +20,11 @@ impl TypeDeclaration {
 		self.is_builtin && self.name == "None"
 	}
 
+	/// Is this a builtin "Bool" type?
+	pub fn is_bool(&self) -> bool {
+		self.is_builtin && self.name == "Bool"
+	}
+
 	/// Is this a builtin "Integer" type?
 	pub fn is_integer(&self) -> bool {
 		self.is_builtin && self.name == "Integer"

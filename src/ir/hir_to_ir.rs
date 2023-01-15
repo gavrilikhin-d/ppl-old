@@ -166,6 +166,9 @@ impl<'llvm> HIRTypesLowering<'llvm> for TypeDeclaration {
 		if self.is_none() {
 			return context.types().none().into();
 		}
+		else if self.is_bool() {
+			return context.types().bool().into();
+		}
         context.types().class(&self.name).into()
     }
 }

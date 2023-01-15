@@ -5,6 +5,9 @@ type Bool
 type Integer
 type String
 
+// IMPORTANT: when adding new special type,
+// don't forget to threat it as special in TypeDeclaration and hir_to_ir.rs
+
 /// Convert `None` to `String`
 fn <:None> as String => "none"
 
