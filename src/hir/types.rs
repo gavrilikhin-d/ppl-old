@@ -60,6 +60,11 @@ impl Type {
 		Type::get_builtin("None")
 	}
 
+	/// Get builtin "Bool" type
+	pub fn bool() -> Type {
+		Type::get_builtin("Bool")
+	}
+
 	/// Get builtin "Integer" type
 	pub fn integer() -> Type {
 		Type::get_builtin("Integer")

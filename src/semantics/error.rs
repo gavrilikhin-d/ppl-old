@@ -92,6 +92,19 @@ pub struct ArgumentTypeMismatch {
     pub got_span: SourceSpan,
 }
 
+/// Diagnostic for mismatched condition type
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("condition must have \"Bool\" type, got \"{got}\"")]
+#[diagnostic(code(semantics::condition_type_mismatch))]
+pub struct ConditionTypeMismatch {
+    /// Real type
+    pub got: Type,
+
+    /// Span of got type
+    #[label("this expression has {got} type")]
+    pub at: SourceSpan,
+}
+
 /// Diagnostic for unresolved unary operator
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 #[error("no unary operator '{name}'")]
@@ -240,37 +253,31 @@ pub struct ReturnTypeMismatch {
 	pub expected: Type,
 }
 
-/// Possible semantics errors
-#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-pub enum Error {
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    UndefinedVariable(#[from] UndefinedVariable),
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    AssignmentToImmutable(#[from] AssignmentToImmutable),
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    TypeMismatch(#[from] TypeMismatch),
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    ArgumentTypeMismatch(#[from] ArgumentTypeMismatch),
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    UnknownType(#[from] UnknownType),
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    UnknownAnnotation(#[from] UnknownAnnotation),
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    NoFunction(#[from] NoFunction),
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    ReturnOutsideFunction(#[from] ReturnOutsideFunction),
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    MissingReturnValue(#[from] MissingReturnValue),
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    ReturnTypeMismatch(#[from] ReturnTypeMismatch),
+/// Helper macro to create error enumeration
+macro_rules! error_enum {
+	($($name:ident),*) => {
+		/// Possible semantics errors
+		#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+		pub enum Error {
+			$(
+				#[error(transparent)]
+				#[diagnostic(transparent)]
+				$name(#[from] $name)
+			),*
+		}
+	};
 }
+
+error_enum!(
+	UndefinedVariable,
+	AssignmentToImmutable,
+    TypeMismatch,
+    ArgumentTypeMismatch,
+    ConditionTypeMismatch,
+    UnknownType,
+    UnknownAnnotation,
+    NoFunction,
+    ReturnOutsideFunction,
+    MissingReturnValue,
+    ReturnTypeMismatch
+);

@@ -1,6 +1,7 @@
 // IMPORTANT: add mapping for new functions with @mangle_as
 
 type None
+type Bool
 type Integer
 type String
 

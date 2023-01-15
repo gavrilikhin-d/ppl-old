@@ -8,7 +8,7 @@ use crate::named::HashByName;
 use crate::syntax::{Ranged, StringWithOffset};
 
 use super::error::*;
-use crate::ast::{self, CallNamePart, If};
+use crate::ast::{self, CallNamePart, If, ElseIf};
 
 /// AST to HIR lowering context
 pub struct ASTLoweringContext {
@@ -79,6 +79,15 @@ impl ASTLoweringContext {
 		}
 
 		Type::none()
+	}
+
+	/// Get builtin "Bool" type
+	pub fn bool(&self) -> Type {
+		if self.builtin.is_none() {
+			return self.module.types.get("Bool").unwrap().value.clone().into()
+		}
+
+		Type::bool()
 	}
 
 	/// Get builtin "Integer" type
@@ -487,6 +496,31 @@ impl ASTLoweringWithinContext for ast::Expression {
     }
 }
 
+
+/// Trait for lowering conditional expression
+trait Condition {
+	/// Lower expression that is a condition
+	fn lower_condition_to_hir(&self, context: &mut ASTLoweringContext)
+		-> Result<hir::Expression, Error>;
+}
+
+impl Condition for ast::Expression {
+	fn lower_condition_to_hir(&self, context: &mut ASTLoweringContext)
+			-> Result<hir::Expression, Error> {
+		let condition = self.lower_to_hir_within_context(context)?;
+		if condition.ty() != context.bool() {
+			return Err(
+				ConditionTypeMismatch {
+					got: condition.ty(),
+					at: condition.range().into()
+				}.into()
+			);
+		}
+
+		Ok(condition)
+	}
+}
+
 impl ASTLoweringWithinContext for ast::VariableDeclaration {
     type HIR = Arc<hir::VariableDeclaration>;
 
@@ -743,7 +777,25 @@ impl ASTLoweringWithinContext for If {
 			&self,
 			context: &mut ASTLoweringContext,
 		) -> Result<Self::HIR, Error> {
-		todo!()
+		Ok(hir::If {
+			condition: self.condition.lower_condition_to_hir(context)?,
+			body: self.body.iter().map(
+				|stmt| stmt.lower_to_hir_within_context(context)
+			).try_collect()?,
+			else_ifs: self.else_ifs.iter().map(
+				|else_if| Ok::<hir::ElseIf, Error>(hir::ElseIf {
+					condition:
+						else_if.condition.lower_condition_to_hir(context)?,
+					body:
+						else_if.body.iter().map(
+							|stmt| stmt.lower_to_hir_within_context(context)
+						).try_collect()?,
+				})
+			).try_collect()?,
+			else_block: self.else_block.iter().map(
+				|stmt| stmt.lower_to_hir_within_context(context)
+			).try_collect()?,
+		})
 	}
 }
 
