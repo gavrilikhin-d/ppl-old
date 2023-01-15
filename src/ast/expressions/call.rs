@@ -88,9 +88,7 @@ impl Parse for Call {
             name_parts.push(CallNamePart::parse(context)?);
 
             let token = context.lexer.peek();
-            if token.map_or(
-				true, |t| t == Token::Newline || t == Token::RParen
-			) {
+            if token.map_or(true, |t| t.ends_expression()) {
                 break;
             }
         }

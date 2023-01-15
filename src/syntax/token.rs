@@ -124,6 +124,14 @@ impl Token {
             _ => false,
         }
     }
+
+	/// Check if token ends expression
+	pub fn ends_expression(&self) -> bool {
+		matches!(
+			self,
+			Token::Newline | Token::RParen | Token::Colon | Token::Comma
+		)
+	}
 }
 
 impl Display for Token {
