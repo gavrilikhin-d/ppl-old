@@ -93,6 +93,14 @@ pub enum Token {
 	#[token("return")]
 	Return,
 
+	/// "if" token
+	#[token("if")]
+	If,
+
+	/// "else" token
+	#[token("else")]
+	Else,
+
     /// Error token
     #[error]
     #[regex("[ ]+", logos::skip)]
@@ -136,6 +144,8 @@ impl Display for Token {
             Token::Mut => write!(f, "mut"),
             Token::Type => write!(f, "type"),
 			Token::Return => write!(f, "return"),
+			Token::If => write!(f, "if"),
+			Token::Else => write!(f, "else"),
             _ => write!(f, "{:?}", self),
         }
     }
