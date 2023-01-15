@@ -80,7 +80,7 @@ pub struct FunctionDeclaration {
     /// Return type of function
     pub return_type: Option<StringWithOffset>,
     /// Body of function
-    pub body: Option<Vec<Statement>>,
+    pub body: Vec<Statement>,
 
 	/// Does this function use implicit return (=>)
 	pub implicit_return: bool,
@@ -125,28 +125,13 @@ impl Parse for FunctionDeclaration {
             None
         };
 
-        let mut body = None;
+        let mut body = Vec::new();
 		let mut implicit_return = false;
         if context.lexer.consume(Token::FatArrow).is_ok() {
-            body = Some(vec![Expression::parse(context)?.into()]);
+            body.push(Expression::parse(context)?.into());
 			implicit_return = true;
         } else if context.lexer.consume(Token::Colon).is_ok() {
-            context.lexer.consume(Token::Newline)?;
-
-            let mut stmts = Vec::new();
-
-            let indentation = context.lexer.indentation() + 1;
-            loop {
-                context.lexer.skip_indentation();
-                stmts.push(Statement::parse(context)?);
-                // FIXME: last indentation may be already skipped
-                context.lexer.skip_indentation();
-                if context.lexer.indentation() < indentation {
-                    break;
-                }
-            }
-
-            body = Some(stmts);
+            body = context.parse_block()?;
         }
 
         Ok(FunctionDeclaration {

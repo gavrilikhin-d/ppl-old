@@ -1,4 +1,6 @@
-use super::PrecedenceGroups;
+use crate::ast::Statement;
+
+use super::{PrecedenceGroups, Token, error::ParseError};
 
 /// Context for parsing
 pub struct Context<Lexer: super::Lexer> {
@@ -6,6 +8,27 @@ pub struct Context<Lexer: super::Lexer> {
 	pub lexer: Lexer,
 	/// Currently active precedence groups for operators
 	pub precedence_groups: PrecedenceGroups
+}
+
+impl<Lexer: super::Lexer> Context<Lexer> {
+	/// Parse block of statements
+	pub fn parse_block(&mut self) -> Result<Vec<Statement>, ParseError> {
+		self.lexer.consume(Token::Newline)?;
+
+		let mut stmts = Vec::new();
+		let indentation = self.lexer.indentation() + 1;
+		loop {
+			self.lexer.skip_indentation();
+			stmts.push(Statement::parse(self)?);
+			// FIXME: last indentation may be already skipped
+			self.lexer.skip_indentation();
+			if self.lexer.indentation() < indentation {
+				break;
+			}
+		}
+
+		Ok(stmts)
+	}
 }
 
 impl <'l, Lexer: super::Lexer> Context<Lexer> {

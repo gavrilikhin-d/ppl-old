@@ -229,7 +229,7 @@ trait EmitBody<'llvm> {
 impl<'llvm> EmitBody<'llvm> for FunctionDeclaration {
 	fn emit_body(&self, context: &mut ModuleContext<'llvm>) {
 		let f = context.functions().get(self.mangled_name()).expect("Function was not declared before emitting body");
-		if let Some(stmts) = &self.body {
+		if !self.body.is_empty() {
             let mut f_context = FunctionContext::new(context, f);
 			for (i, p) in self.parameters().filter(
 				|p| !p.name().is_empty() && !p.ty().is_none()
@@ -248,7 +248,7 @@ impl<'llvm> EmitBody<'llvm> for FunctionDeclaration {
 					f.get_nth_param(i as u32).unwrap()
 				);
 			}
-            for stmt in stmts {
+            for stmt in &self.body {
                 stmt.lower_local_to_ir(&mut f_context);
             }
         }

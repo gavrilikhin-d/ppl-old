@@ -66,7 +66,7 @@ pub struct FunctionDeclaration {
     /// Mangled name to use instead of default
     pub mangled_name: Option<String>,
     /// Body of function
-    pub body: Option<Vec<Statement>>,
+    pub body: Vec<Statement>,
 
     /// Cached format for name of function
     name_format: String,
@@ -110,7 +110,7 @@ pub struct FunctionDeclarationBuilder {
     /// Mangled name of function
     mangled_name: Option<String>,
     /// Body of function
-    body: Option<Vec<Statement>>,
+    body: Vec<Statement>,
 }
 
 impl FunctionDeclarationBuilder {
@@ -119,7 +119,7 @@ impl FunctionDeclarationBuilder {
         FunctionDeclarationBuilder {
             name_parts: Vec::new(),
             mangled_name: None,
-            body: None,
+            body: Vec::new(),
         }
     }
 
@@ -136,7 +136,7 @@ impl FunctionDeclarationBuilder {
     }
 
     /// Set body of function
-    pub fn with_body(mut self, body: Option<Vec<Statement>>) -> Self {
+    pub fn with_body(mut self, body: Vec<Statement>) -> Self {
         self.body = body;
         self
     }

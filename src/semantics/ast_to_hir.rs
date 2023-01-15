@@ -605,18 +605,14 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
 		context.module.insert_function(f.clone());
 
 		context.functions_stack.push(f);
-        let mut body = None;
-        if let Some(stmts) = &self.body {
-            let mut hir = Vec::new();
-            for stmt in stmts {
-                hir.push(stmt.lower_to_hir_within_context(context)?);
-            }
-            body = Some(hir);
+        let mut body = Vec::new();
+        for stmt in &self.body {
+            body.push(stmt.lower_to_hir_within_context(context)?);
         }
 		context.functions_stack.pop();
 
 		if self.implicit_return {
-			let expr: hir::Expression = body.as_mut().unwrap().pop().unwrap().try_into().unwrap();
+			let expr: hir::Expression = body.pop().unwrap().try_into().unwrap();
 			if self.return_type.is_none() {
 				return_type = expr.ty();
 			}
@@ -629,7 +625,7 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
 					}.into());
 				}
 			}
-			body = Some(vec![hir::Return{ value: Some(expr) }.into()]);
+			body = vec![hir::Return{ value: Some(expr) }.into()];
 		}
 
         let f = Arc::new(
