@@ -8,7 +8,7 @@ use crate::named::HashByName;
 use crate::syntax::{Ranged, StringWithOffset};
 
 use super::error::*;
-use crate::ast::{self, CallNamePart};
+use crate::ast::{self, CallNamePart, If};
 
 /// AST to HIR lowering context
 pub struct ASTLoweringContext {
@@ -231,12 +231,16 @@ impl ASTLoweringWithinContext for ast::Statement {
         context: &mut ASTLoweringContext,
     ) -> Result<Self::HIR, Error> {
         let stmt: hir::Statement = match self {
-            ast::Statement::Declaration(decl) => decl.lower_to_hir_within_context(context)?.into(),
-            ast::Statement::Assignment(assign) => {
-                assign.lower_to_hir_within_context(context)?.into()
-            }
-            ast::Statement::Expression(expr) => expr.lower_to_hir_within_context(context)?.into(),
-			ast::Statement::Return(ret) => ret.lower_to_hir_within_context(context)?.into(),
+            ast::Statement::Declaration(decl) =>
+				decl.lower_to_hir_within_context(context)?.into(),
+            ast::Statement::Assignment(assign) =>
+                assign.lower_to_hir_within_context(context)?.into(),
+            ast::Statement::Expression(expr) =>
+				expr.lower_to_hir_within_context(context)?.into(),
+			ast::Statement::Return(ret) =>
+				ret.lower_to_hir_within_context(context)?.into(),
+			ast::Statement::If(stmt) =>
+				stmt.lower_to_hir_within_context(context)?.into(),
         };
 
         Ok(stmt)
@@ -728,6 +732,18 @@ impl ASTLoweringWithinContext for ast::Return {
 		}
 
 		Ok(hir::Return { value })
+	}
+}
+
+impl ASTLoweringWithinContext for If {
+	type HIR = hir::If;
+
+	/// Lower [`ast::If`] to [`hir::If`] within lowering context
+	fn lower_to_hir_within_context(
+			&self,
+			context: &mut ASTLoweringContext,
+		) -> Result<Self::HIR, Error> {
+		todo!()
 	}
 }
 

@@ -25,7 +25,8 @@ pub enum Statement {
     Declaration(Declaration),
     Expression(Expression),
     Assignment(Assignment),
-	Return(Return)
+	Return(Return),
+	If(If),
 }
 
 impl StartsHere for Statement {
@@ -36,6 +37,7 @@ impl StartsHere for Statement {
             || Expression::starts_here(context)
             || Assignment::starts_here(context)
 			|| Return::starts_here(context)
+			|| If::starts_here(context)
     }
 }
 
@@ -80,6 +82,7 @@ impl Parse for Statement {
 		else {
 			match context.lexer.peek() {
 				Some(Token::Return) => Return::parse(context)?.into(),
+				Some(Token::If) => If::parse(context)?.into(),
 				t => unreachable!(
 					"Unexpected token {:#?} at start of statement", t
 				),

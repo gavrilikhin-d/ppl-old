@@ -21,12 +21,10 @@ use ast_derive::AST;
 
 use crate::syntax::{
     error::{MissingExpression, ParseError},
-    Lexer, Parse, Ranged, StartsHere, Token, Context, StringWithOffset,
+    Lexer, Parse, Ranged, StartsHere, Context,
 };
 
 use derive_more::{From, TryInto};
-
-use super::Declaration;
 
 /// Any PPL expression
 #[derive(Debug, PartialEq, Eq, AST, Clone, From, TryInto)]
@@ -42,11 +40,10 @@ pub enum Expression {
 impl StartsHere for Expression {
     /// Check that expression 100% starts at current lexer position
     fn starts_here(context: &mut Context<impl Lexer>) -> bool {
-        !Declaration::starts_here(context) &&
-		context.lexer.peek().map_or(
-			false,
-			|t| t != Token::Error && t != Token::Newline && t != Token::RParen
-		)
+        Literal::starts_here(context) ||
+		VariableReference::starts_here(context) ||
+		UnaryOperation::starts_here(context) ||
+		Tuple::starts_here(context)
     }
 }
 

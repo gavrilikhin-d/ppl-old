@@ -4,6 +4,9 @@ pub use assignment::*;
 mod ret;
 pub use ret::*;
 
+mod r#if;
+pub use r#if::*;
+
 use derive_more::{From, TryInto};
 
 use crate::hir::{Declaration, Expression};
@@ -15,4 +18,5 @@ pub enum Statement {
     Expression(Expression),
     Assignment(Assignment),
 	Return(Return),
+	If(If),
 }

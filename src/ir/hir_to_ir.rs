@@ -418,7 +418,7 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
     fn lower_global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
         match self {
             Statement::Declaration(d) => d.lower_global_to_ir(context),
-            Statement::Assignment(a) => {
+            Statement::Assignment(_) | Statement::If(_) => {
                 let function = context.module.add_function(
                     "execute",
                     context.llvm().void_type().fn_type(&[], false),
@@ -426,7 +426,7 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
                 );
 
                 let mut context = FunctionContext::new(context, function);
-                a.lower_to_ir(&mut context);
+                self.lower_local_to_ir(&mut context);
             }
             Statement::Expression(expr) => {
                 let function = context.module.add_function(
@@ -468,6 +468,9 @@ impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Statement {
 			Statement::Return(ret) => {
 				ret.lower_to_ir(context);
 			}
+			Statement::If(if_stmt) => {
+				if_stmt.lower_to_ir(context);
+			}
         };
     }
 }
@@ -485,6 +488,15 @@ impl HIRLoweringWithinFunctionContext<'_, '_> for Return {
 		} else {
 			context.builder.build_return(None);
 		}
+	}
+}
+
+impl HIRLoweringWithinFunctionContext<'_, '_> for If {
+	type IR = ();
+
+	/// Lower [`If`] to LLVM IR
+	fn lower_to_ir(&self, context: &mut FunctionContext) -> Self::IR {
+		todo!()
 	}
 }
 
