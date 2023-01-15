@@ -36,12 +36,23 @@ impl Parse for Literal {
 
     /// Parse literal using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        let token = context.lexer.consume_one_of(&[Token::None, Token::Integer, Token::String])?;
+        let token = context.lexer.consume_one_of(
+			&[
+				Token::None,
+				Token::False, Token::True,
+				Token::Integer,
+				Token::String
+			]
+		)?;
 
         Ok(match token {
             Token::None => Literal::None {
                 offset: context.lexer.span().start,
             },
+			Token::False | Token::True => Literal::Bool {
+				offset: context.lexer.span().start,
+				value: token == Token::True
+			},
             Token::Integer => Literal::Integer {
                 offset: context.lexer.span().start,
                 value: context.lexer.slice().to_string(),

@@ -154,7 +154,7 @@ impl Display for Token {
             Token::At => write!(f, "@"),
             Token::LParen => write!(f, "("),
             Token::RParen => write!(f, ")"),
-            _ => write!(f, "{:?}", self.to_string().to_lowercase()),
+            _ => write!(f, "{}", format!("{:?}", self).to_lowercase()),
         }
     }
 }
