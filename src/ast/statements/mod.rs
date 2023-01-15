@@ -4,6 +4,9 @@ pub use assignment::*;
 mod ret;
 pub use ret::*;
 
+mod r#if;
+pub use r#if::*;
+
 extern crate ast_derive;
 use ast_derive::AST;
 
