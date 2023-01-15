@@ -101,6 +101,14 @@ pub enum Token {
 	#[token("else")]
 	Else,
 
+	/// "true" token
+	#[token("true")]
+	True,
+
+	/// "false" token
+	#[token("false")]
+	False,
+
     /// Error token
     #[error]
     #[regex("[ ]+", logos::skip)]
@@ -137,24 +145,16 @@ impl Token {
 impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Token::None => write!(f, "none"),
-            Token::Assign => write!(f, "="),
+			Token::Assign => write!(f, "="),
             Token::Colon => write!(f, ":"),
             Token::Less => write!(f, "<"),
             Token::Greater => write!(f, ">"),
-            Token::Fn => write!(f, "fn"),
             Token::Arrow => write!(f, "->"),
             Token::FatArrow => write!(f, "=>"),
             Token::At => write!(f, "@"),
             Token::LParen => write!(f, "("),
             Token::RParen => write!(f, ")"),
-            Token::Let => write!(f, "let"),
-            Token::Mut => write!(f, "mut"),
-            Token::Type => write!(f, "type"),
-			Token::Return => write!(f, "return"),
-			Token::If => write!(f, "if"),
-			Token::Else => write!(f, "else"),
-            _ => write!(f, "{:?}", self),
+            _ => write!(f, "{:?}", self.to_string().to_lowercase()),
         }
     }
 }

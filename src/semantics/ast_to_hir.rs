@@ -265,17 +265,26 @@ impl ASTLoweringWithinContext for ast::Literal {
         context: &mut ASTLoweringContext,
     ) -> Result<Self::HIR, Error> {
         Ok(match self {
-            ast::Literal::None { offset } => hir::Literal::None { offset: *offset, ty: context.none() },
-            ast::Literal::Integer { value, .. } => hir::Literal::Integer {
-                span: self.range(),
-                value: value.parse::<rug::Integer>().unwrap(),
-				ty: context.integer(),
-            },
-            ast::Literal::String { value, .. } => hir::Literal::String {
-                span: self.range(),
-                value: value.clone(),
-				ty: context.string(),
-            },
+            ast::Literal::None { offset } =>
+				hir::Literal::None { offset: *offset, ty: context.none() },
+			ast::Literal::Bool { offset, value } =>
+				hir::Literal::Bool {
+					offset: *offset,
+					value: *value,
+					ty: context.bool()
+				},
+            ast::Literal::Integer { value, .. } =>
+				hir::Literal::Integer {
+					span: self.range(),
+					value: value.parse::<rug::Integer>().unwrap(),
+					ty: context.integer(),
+				},
+            ast::Literal::String { value, .. } =>
+				hir::Literal::String {
+					span: self.range(),
+					value: value.clone(),
+					ty: context.string(),
+				},
         })
     }
 }

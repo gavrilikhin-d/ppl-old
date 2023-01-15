@@ -262,6 +262,8 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Literal {
     fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         Some(match self {
             Literal::None { .. } => return None,
+			Literal::Bool { value, .. } =>
+				context.types().bool().const_int(*value as u64, false).into(),
             Literal::Integer { value, .. } => {
                 if let Some(value) = value.to_i64() {
                     return Some(context

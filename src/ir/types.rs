@@ -17,6 +17,11 @@ impl<'llvm> Types<'llvm> {
         self.llvm.void_type()
     }
 
+	/// LLVM bool type
+	pub fn bool(&self) -> IntType<'llvm> {
+		self.llvm.bool_type()
+	}
+
     /// LLVM int type
     pub fn i(&self, bits: u32) -> IntType<'llvm> {
         self.llvm.custom_width_int_type(bits)
