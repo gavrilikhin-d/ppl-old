@@ -11,6 +11,9 @@ pub trait Lexer: Iterator<Item = Token> {
     /// Get source code of lexer
     fn source(&self) -> &str;
 
+	/// Get current token
+	fn token(&self) -> Option<Token>;
+
     /// Peek next token
     fn peek(&self) -> Option<Token>;
 
@@ -247,6 +250,8 @@ pub struct FullSourceLexer<'source> {
     lexer: RefCell<logos::Lexer<'source, Token>>,
     /// Span of current token
     span: Span,
+	/// Current token
+	token: Option<Token>,
     /// Peeked token
     peeked: RefCell<Option<Token>>,
     /// Current indentation level
@@ -267,6 +272,7 @@ impl<'source> FullSourceLexer<'source> {
         Self {
             lexer: Token::lexer(source).into(),
             span: 0..0,
+			token: None,
             peeked: None.into(),
             indentation: 0,
         }
@@ -282,11 +288,17 @@ impl<'source> Iterator for FullSourceLexer<'source> {
 			self.indentation = 0;
 		}
         self.span = self.lexer.get_mut().span();
-        self.peeked.take()
+        self.token = self.peeked.take();
+		self.token()
     }
 }
 
 impl Lexer for FullSourceLexer<'_> {
+	/// Get current token
+	fn token(&self) -> Option<Token> {
+		self.token.clone()
+	}
+
     /// Get source code of lexer
     fn source(&self) -> &str {
         self.lexer.borrow().source()
@@ -309,6 +321,11 @@ impl Lexer for FullSourceLexer<'_> {
     fn peek(&self) -> Option<Token> {
         if self.peeked.borrow().is_none() {
             *self.peeked.borrow_mut() = self.lexer.borrow_mut().next();
+			if self.token == Some(Token::Newline) {
+				while *self.peeked.borrow() == Some(Token::Newline) {
+					*self.peeked.borrow_mut() = self.lexer.borrow_mut().next();
+				}
+			}
         }
         self.peeked.borrow().clone()
     }
@@ -401,6 +418,8 @@ pub struct InteractiveLexer {
     source: RefCell<String>,
     /// Span of current token
     span: Span,
+	/// Current token
+	token: Option<Token>,
     /// Current indentation level
     indentation: usize,
 }
@@ -413,6 +432,7 @@ impl InteractiveLexer {
 			next_prompt: None.into(),
             source: String::new().into(),
             span: 0..0,
+			token: None,
             indentation: 0,
         }
     }
@@ -458,13 +478,19 @@ impl Iterator for InteractiveLexer {
     /// Lex next token
     fn next(&mut self) -> Option<Token> {
         self.maybe_request_line();
-        let mut lexer = self.lexer();
-        let token = lexer.next();
-        self.span = lexer.span();
-		if token == Some(Token::Newline) {
+		let mut lexer = self.lexer();
+        let mut peeked = lexer.next();
+		if self.token == Some(Token::Newline) {
+			while peeked == Some(Token::Newline) {
+				peeked = lexer.next();
+			}
+		}
+		self.span = lexer.span();
+		self.token = peeked;
+		if self.token == Some(Token::Newline) {
 			self.indentation = 0;
 		}
-        token
+        self.token()
     }
 }
 
@@ -474,10 +500,22 @@ impl Lexer for InteractiveLexer {
         unsafe { &*self.source.as_ptr() }
     }
 
+	/// Get current token
+	fn token(&self) -> Option<Token> {
+		self.token.clone()
+	}
+
     /// Peek next token
     fn peek(&self) -> Option<Token> {
         self.maybe_request_line();
-        self.lexer().next()
+		let mut lexer = self.lexer();
+        let mut peeked = lexer.next();
+		if self.token == Some(Token::Newline) {
+			while peeked == Some(Token::Newline) {
+				peeked = lexer.next();
+			}
+		}
+		peeked
     }
 
     /// Get span of next token
