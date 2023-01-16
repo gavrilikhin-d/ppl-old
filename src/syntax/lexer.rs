@@ -278,7 +278,9 @@ impl<'source> Iterator for FullSourceLexer<'source> {
 
     /// Lex next token
     fn next(&mut self) -> Option<Token> {
-        self.peek();
+        if self.peek() != Some(Token::Tab) {
+			self.indentation = 0;
+		}
         self.span = self.lexer.get_mut().span();
         self.peeked.take()
     }
@@ -381,7 +383,6 @@ impl Lexer for FullSourceLexer<'_> {
     /// Skip indentation.
     /// Changes current indentation level to the amount of tabs skipped
     fn skip_indentation(&mut self) -> &mut Self {
-        self.indentation = 0;
         while self.peek() == Some(Token::Tab) {
             self.next();
             self.indentation += 1;
@@ -460,6 +461,9 @@ impl Iterator for InteractiveLexer {
         let mut lexer = self.lexer();
         let token = lexer.next();
         self.span = lexer.span();
+		if token != Some(Token::Tab) {
+			self.indentation = 0;
+		}
         token
     }
 }
@@ -550,7 +554,6 @@ impl Lexer for InteractiveLexer {
     /// Skip indentation.
     /// Changes current indentation level to the amount of tabs skipped
     fn skip_indentation(&mut self) -> &mut Self {
-        self.indentation = 0;
         while self.peek() == Some(Token::Tab) {
             self.next();
             self.indentation += 1;
