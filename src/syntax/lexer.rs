@@ -278,7 +278,7 @@ impl<'source> Iterator for FullSourceLexer<'source> {
 
     /// Lex next token
     fn next(&mut self) -> Option<Token> {
-        if self.peek() != Some(Token::Tab) {
+        if self.peek() == Some(Token::Newline) {
 			self.indentation = 0;
 		}
         self.span = self.lexer.get_mut().span();
@@ -461,7 +461,7 @@ impl Iterator for InteractiveLexer {
         let mut lexer = self.lexer();
         let token = lexer.next();
         self.span = lexer.span();
-		if token != Some(Token::Tab) {
+		if token == Some(Token::Newline) {
 			self.indentation = 0;
 		}
         token
