@@ -1,8 +1,10 @@
 use std::{collections::HashMap, sync::Arc};
 
-use crate::{named::{HashByName, Named}, hir::{VariableDeclaration, ParameterOrVariable}};
+use inkwell::basic_block::BasicBlock;
 
-use super::{Types, Functions};
+use crate::{named::{HashByName, Named}, hir::{VariableDeclaration, ParameterOrVariable, Statement}};
+
+use super::{Types, Functions, LocalHIRLowering};
 
 /// Trait for common context methods
 pub trait Context<'llvm> {
@@ -129,6 +131,25 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
 			}
 		}
     }
+
+	/// Build a new block for the current function.
+	/// Optionally jump to other block.
+	/// Doesn't change insert point
+	pub fn build_block(&mut self, name: &str, statements: &[Statement], jump_to: Option<BasicBlock<'llvm>>) -> BasicBlock<'llvm> {
+		let entry = self.builder.get_insert_block().unwrap();
+
+		let block = self.llvm().append_basic_block(self.function, name);
+		self.builder.position_at_end(block);
+		for stmt in statements {
+			stmt.lower_local_to_ir(self);
+		}
+		if block.get_terminator().is_none() && jump_to.is_some(){
+			self.builder.build_unconditional_branch(jump_to.unwrap());
+		}
+		self.builder.position_at_end(entry);
+
+		block
+	}
 }
 
 impl Drop for FunctionContext<'_, '_> {

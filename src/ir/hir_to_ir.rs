@@ -501,7 +501,72 @@ impl HIRLoweringWithinFunctionContext<'_, '_> for If {
 
 	/// Lower [`If`] to LLVM IR
 	fn lower_to_ir(&self, context: &mut FunctionContext) -> Self::IR {
-		todo!()
+		let entry_block = context.builder.get_insert_block().unwrap();
+
+		let merge_block = context.llvm().append_basic_block(context.function, "");
+
+		let if_true = context.build_block("if_true", &self.body, Some(merge_block));
+		if_true.move_after(entry_block).unwrap();
+
+		let last_block = if self.else_block.is_empty() {
+			merge_block.clone()
+		}
+		else {
+			let else_block = context.build_block(
+				"else",
+				&self.else_block,
+				Some(merge_block)
+			);
+			else_block.move_after(if_true).unwrap();
+			else_block
+		};
+
+		let else_if_conditions = self.else_ifs.iter().map(|_| {
+			context.llvm().append_basic_block(context.function, "else_if")
+		}).collect::<Vec<_>>();
+		let else_if_bodies = self.else_ifs.iter().map(|else_if| {
+			context.build_block(
+				"else_if_true",
+				&else_if.body,
+				Some(merge_block)
+			)
+		}).collect::<Vec<_>>();
+		for (i, else_if) in self.else_ifs.iter().enumerate() {
+			context.builder.position_at_end(else_if_conditions[i]);
+			let condition = else_if.condition.lower_to_ir(context).unwrap().into_int_value();
+			if i + 1 < else_if_conditions.len() {
+				context.builder.build_conditional_branch(
+					condition,
+					else_if_bodies[i],
+					else_if_conditions[i + 1]
+				);
+			} else {
+				context.builder.build_conditional_branch(
+					condition,
+					else_if_bodies[i],
+					last_block
+				);
+			}
+			else_if_bodies[i].move_after(else_if_conditions[i]).unwrap()
+		}
+
+		context.builder.position_at_end(entry_block);
+		let condition = self.condition.lower_to_ir(context).unwrap().into_int_value();
+		if let Some(else_if) = else_if_conditions.first() {
+			context.builder.build_conditional_branch(
+				condition,
+				if_true,
+				*else_if
+			);
+		} else {
+			context.builder.build_conditional_branch(
+				condition,
+				if_true,
+				last_block
+			);
+		}
+
+		context.builder.position_at_end(merge_block);
 	}
 }
 
