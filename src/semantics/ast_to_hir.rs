@@ -1,14 +1,14 @@
-use std::collections::{HashSet, HashMap};
+use std::collections::HashSet;
 use std::ops::Range;
 use std::sync::Arc;
 
-use crate::hir::{self, Module, Type, Typed, ParameterOrVariable, CallKind, FunctionNamePart, VariableReference};
+use crate::hir::{self, Module, Type, Typed, ParameterOrVariable, CallKind, FunctionNamePart};
 use crate::mutability::Mutable;
 use crate::named::HashByName;
 use crate::syntax::{Ranged, StringWithOffset};
 
 use super::error::*;
-use crate::ast::{self, CallNamePart, If, ElseIf};
+use crate::ast::{self, CallNamePart, If};
 
 /// AST to HIR lowering context
 pub struct ASTLoweringContext {

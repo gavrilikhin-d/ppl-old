@@ -3,7 +3,7 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use super::{Expression, parse_atomic_expression};
-use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, Token, WithOffset, StringWithOffset, Context};
+use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, Token, StringWithOffset, Context};
 
 /// Kind of unary operator
 #[derive(Debug, PartialEq, Eq, Clone)]

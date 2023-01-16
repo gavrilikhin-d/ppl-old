@@ -1,10 +1,8 @@
 extern crate ast_derive;
-use std::fmt::Display;
-
 use ast_derive::AST;
 
 use super::{Expression, parse_atomic_expression};
-use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, Token, WithOffset, StringWithOffset, Context};
+use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, Token, StringWithOffset, Context};
 
 
 /// AST for unary expression
