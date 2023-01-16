@@ -133,6 +133,9 @@ impl Parse for FunctionDeclaration {
         } else if context.lexer.consume(Token::Colon).is_ok() {
             body = context.parse_block()?;
         }
+		else {
+			context.consume_eol()?;
+		}
 
         Ok(FunctionDeclaration {
             name_parts,

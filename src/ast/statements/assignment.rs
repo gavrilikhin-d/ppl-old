@@ -32,6 +32,8 @@ impl Parse for Assignment {
 
         let value = Expression::parse(context)?;
 
+		context.consume_eol()?;
+
         Ok(Assignment { target, value })
     }
 }

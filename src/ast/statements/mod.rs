@@ -97,9 +97,14 @@ impl Parse for Statement {
             }
         }
 
-        if context.lexer.peek().is_some() {
-            context.lexer.consume(Token::Newline)?;
-        }
+		if matches!(
+				res,
+				Statement::Assignment(_) |
+				Statement::Expression(_)
+			)
+		{
+			context.consume_eol()?;
+		}
 
         Ok(res)
     }

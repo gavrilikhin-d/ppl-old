@@ -1,6 +1,6 @@
 use crate::ast::Statement;
 
-use super::{PrecedenceGroups, Token, error::ParseError};
+use super::{PrecedenceGroups, Token, error::{ParseError, LexerError}, StringWithOffset};
 
 /// Context for parsing
 pub struct Context<Lexer: super::Lexer> {
@@ -11,6 +11,14 @@ pub struct Context<Lexer: super::Lexer> {
 }
 
 impl<Lexer: super::Lexer> Context<Lexer> {
+	/// Consume end of line (newline or eof)
+	pub fn consume_eol(&mut self) -> Result<Option<StringWithOffset>, LexerError> {
+		if self.lexer.peek().is_some() {
+			return Ok(Some(self.lexer.consume(Token::Newline)?))
+		}
+		Ok(None)
+	}
+
 	/// Parse block of statements
 	pub fn parse_block(&mut self) -> Result<Vec<Statement>, ParseError> {
 		self.lexer.consume(Token::Newline)?;

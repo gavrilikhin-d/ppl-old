@@ -48,6 +48,8 @@ impl Parse for Return {
 			None
 		};
 
+		context.consume_eol()?;
+
 		Ok(Return { offset, value })
 	}
 }

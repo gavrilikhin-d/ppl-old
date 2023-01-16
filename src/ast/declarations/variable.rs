@@ -40,19 +40,21 @@ impl Parse for VariableDeclaration {
 
         let mutable = context.lexer.consume(Token::Mut).is_ok();
 
-        context.lexer.consume(Token::Id).or_else(|_| {
+		let name = context.lexer.consume(Token::Id).or_else(|_| {
             Err(MissingVariableName {
                 at: context.lexer.span().end.into(),
             })
         })?;
 
-        let name = StringWithOffset::from(context.lexer.slice()).at(context.lexer.span().start);
-
         context.lexer.consume(Token::Assign)?;
+
+		let initializer = Expression::parse(context)?;
+
+		context.consume_eol()?;
 
         Ok(VariableDeclaration {
             name,
-            initializer: Expression::parse(context)?,
+            initializer,
             mutability: match mutable {
                 true => Mutability::Mutable,
                 false => Mutability::Immutable,

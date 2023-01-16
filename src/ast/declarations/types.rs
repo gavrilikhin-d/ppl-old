@@ -24,9 +24,9 @@ impl Parse for TypeDeclaration {
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
         context.lexer.consume(Token::Type)?;
 
-        context.lexer.consume(Token::Id)?;
+        let name = context.lexer.consume(Token::Id)?;
 
-        let name = context.lexer.string_with_offset();
+		context.consume_eol()?;
 
         Ok(TypeDeclaration { name })
     }
