@@ -19,8 +19,10 @@ impl Parse for Module {
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
         let mut statements = Vec::new();
 
+		context.lexer.skip_spaces();
         while context.lexer.peek().is_some() {
-            statements.push(Statement::parse(context)?);
+			statements.push(Statement::parse(context)?);
+			context.lexer.skip_spaces();
         }
 
         Ok(Module { statements })
