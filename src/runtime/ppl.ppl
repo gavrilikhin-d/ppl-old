@@ -45,4 +45,11 @@ fn <x: Integer> - <y: Integer> => x + -y
 @mangle_as("integer_star_integer")
 fn <:Integer> * <:Integer> -> Integer
 
+/// Negate boolean value
+fn not <x:Bool> -> Bool:
+	if x:
+		return false
+	return true
+
 // IMPORTANT: add mapping for new functions with @mangle_as
+// IMPORTANT: add precedence for new binary operators
