@@ -1,6 +1,37 @@
 use std::fmt::Display;
 
-use logos::Logos;
+use logos::{Logos, Lexer};
+
+/// Kind of operator
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum OperatorKind {
+	Prefix,
+	Infix,
+	Postfix,
+}
+
+/// Decide which kind of operator it is
+fn operator(lexer: &mut Lexer<Token>) -> OperatorKind {
+	let before = lexer.span().start - 1;
+	let after = lexer.span().end;
+
+	if before < 0 {
+		return OperatorKind::Prefix;
+	}
+	if after >= lexer.source().len() {
+		return OperatorKind::Postfix;
+	}
+
+	let before = lexer.source().chars().nth(before as usize).unwrap();
+	let after = lexer.source().chars().nth(after as usize).unwrap();
+	if before.is_whitespace() == after.is_whitespace() {
+		OperatorKind::Infix
+	} else if after.is_whitespace() {
+		OperatorKind::Postfix
+	} else {
+		OperatorKind::Prefix
+	}
+}
 
 /// The different kinds of tokens that can be lexed.
 #[derive(Logos, Debug, PartialEq, Eq, Clone)]
@@ -18,8 +49,8 @@ pub enum Token {
     Assign,
 
     /// Token for operator
-	#[regex(r"[-+*/=<>?!~|&^%$#\\]+")]
-	Operator,
+	#[regex(r"[-+*/=<>?!~|&^%$#\\]+", operator)]
+	Operator(OperatorKind),
 
     /// Identifier
     #[regex("[_a-zA-Z][_a-zA-Z0-9]*")]
@@ -119,11 +150,21 @@ pub enum Token {
 impl Token {
     /// Check if token is an operator
     pub fn is_operator(&self) -> bool {
-        match self {
-            Token::Assign | Token::Less | Token::Greater | Token::Operator => true,
-            _ => false,
-        }
+		matches!(
+			self,
+			Token::Assign | Token::Less | Token::Greater |
+			Token::Operator(_)
+		)
     }
+
+	/// Check if token is an infix operator
+	pub fn is_infix_operator(&self) -> bool {
+		matches!(
+			self,
+			Token::Assign | Token::Less | Token::Greater |
+			Token::Operator(OperatorKind::Infix)
+		)
+	}
 
     /// Check if token is a whitespace token
     pub fn is_whitespace(&self) -> bool {

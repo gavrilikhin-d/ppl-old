@@ -5,7 +5,7 @@ use derive_more::From;
 
 use crate::{
     ast::{Annotation, Statement, Expression},
-    syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token, Context},
+    syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token, Context, OperatorKind},
 };
 
 /// Parameter of function
@@ -50,10 +50,12 @@ impl Parse for FunctionNamePart {
         let token = context.lexer.consume_one_of(&[
 			Token::Id,
 			Token::Less, Token::Greater,
-			Token::Operator,
+			Token::Operator(OperatorKind::Prefix),
+			Token::Operator(OperatorKind::Infix),
+			Token::Operator(OperatorKind::Postfix)
 		])?;
         match token {
-            Token::Id | Token::Greater | Token::Operator
+            Token::Id | Token::Greater | Token::Operator(_)
 				=> Ok(context.lexer.string_with_offset().into()),
             Token::Less => {
 				// '<' here is an operator

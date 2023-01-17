@@ -3,7 +3,7 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use super::{Expression, parse_atomic_expression};
-use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, Token, StringWithOffset, Context};
+use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, Token, StringWithOffset, Context, OperatorKind};
 
 /// Kind of unary operator
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -46,7 +46,9 @@ impl Parse for UnaryOperation {
 
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
 		// TODO: postfix expressions
-        let operator = context.lexer.consume(Token::Operator)?;
+        let operator = context.lexer.consume(
+			Token::Operator(OperatorKind::Prefix)
+		)?;
 
         let operand = parse_atomic_expression(context)?;
 

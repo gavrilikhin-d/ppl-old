@@ -2,7 +2,7 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use super::{Expression, parse_atomic_expression};
-use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, Token, StringWithOffset, Context};
+use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StringWithOffset, Context};
 
 
 /// AST for unary expression
@@ -30,9 +30,7 @@ impl Parse for BinaryOperation {
         let mut left = parse_atomic_expression(context)?;
 
 		loop {
-			context.lexer.consume_one_of(
-				&[Token::Operator, Token::Less, Token::Greater]
-			)?;
+			context.lexer.consume_operator()?;
 			let operator = context.lexer.string_with_offset();
 
 			let right = parse_atomic_expression(context)?;

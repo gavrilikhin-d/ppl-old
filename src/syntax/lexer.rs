@@ -4,7 +4,7 @@ use logos::{Logos, Span};
 
 use crate::syntax::error::{InvalidToken, LexerError, MissingToken, UnexpectedToken};
 
-use super::{StringWithOffset, Token};
+use super::{StringWithOffset, Token, OperatorKind};
 
 /// Trait for PPL's lexers
 pub trait Lexer: Iterator<Item = Token> {
@@ -213,7 +213,12 @@ pub trait Lexer: Iterator<Item = Token> {
     /// ```
 	fn consume_operator(&mut self) -> Result<StringWithOffset, LexerError> {
 		self.consume_one_of(
-			&[Token::Operator, Token::Less, Token::Greater]
+			&[Token::Operator(OperatorKind::Prefix),
+			  Token::Operator(OperatorKind::Infix),
+			  Token::Operator(OperatorKind::Postfix),
+			  Token::Less,
+			  Token::Greater
+			]
 		)?;
 		Ok(self.string_with_offset())
 	}

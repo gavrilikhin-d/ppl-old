@@ -79,7 +79,7 @@ fn parse_binary_rhs(
 )
 	-> Result<Expression, ParseError>
 {
-	while context.lexer.peek().is_some_and(|t| t.is_operator()) {
+	while context.lexer.peek().is_some_and(|t| t.is_infix_operator()) {
 		let op = context.lexer.consume_operator()?;
 
 		if prev_op.is_some_and(|prev_op| context.precedence_groups.has_less_precedence(&op, prev_op)) {
@@ -87,7 +87,7 @@ fn parse_binary_rhs(
 		}
 
 		let mut right = parse_atomic_expression(context)?;
-		if  context.lexer.peek().is_some_and(|t| t.is_operator()) {
+		if  context.lexer.peek().is_some_and(|t| t.is_infix_operator()) {
 			let next_op = context.lexer.peek_slice();
 		   	if context.precedence_groups.has_greater_precedence(next_op, &op) {
 				right = parse_binary_rhs(context, Some(&op), right)?;
