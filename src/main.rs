@@ -63,6 +63,19 @@ fn process_single_statement<'llvm>(
 					let result = unsafe { result.into_pointer::<String>() };
 					println!("{:?}", unsafe { &*result });
 				}
+				else if c.is_bool() {
+					let result = result.as_int(false);
+					if result == 0 {
+						println!("false");
+					}
+					else {
+						println!("true");
+					}
+				}
+				else
+				{
+					unreachable!("forgot to handle builtin class");
+				}
 			},
             Type::Function { .. } => unimplemented!("returning functions"),
         }
