@@ -6,6 +6,7 @@ use ppl::ast::*;
 use ppl::hir::{self, Type, Typed};
 use ppl::ir::GlobalHIRLowering;
 use ppl::ir::{self, HIRModuleLowering};
+use ppl::named::Named;
 use ppl::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
 use ppl::syntax::{InteractiveLexer, Lexer, Parse};
 
@@ -52,10 +53,9 @@ fn process_single_statement<'llvm>(
         match expr.ty() {
             Type::Class(c) => {
 				if !c.is_builtin() {
-					unimplemented!("Returning user-defined classes")
+					println!("<object of type \"{}\">", c.name())
 				}
-
-				if c.is_integer() {
+				else if c.is_integer() {
 					let result = unsafe { result.into_pointer::<rug::Integer>() };
 					println!("{}", unsafe { &*result });
 				}
