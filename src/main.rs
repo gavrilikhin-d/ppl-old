@@ -72,7 +72,7 @@ fn process_single_statement<'llvm>(
 						println!("true");
 					}
 				}
-				else
+				else if !c.is_none()
 				{
 					unreachable!("forgot to handle builtin class");
 				}
