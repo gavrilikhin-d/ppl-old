@@ -57,5 +57,11 @@ fn <x: Bool> and <y: Bool> -> Bool:
 		return y
 	return false
 
+/// Logic-or function
+fn <x: Bool> or <y: Bool> -> Bool:
+	if x:
+		return true
+	return y
+
 // IMPORTANT: add mapping for new functions with @mangle_as
 // IMPORTANT: add precedence for new binary operators
