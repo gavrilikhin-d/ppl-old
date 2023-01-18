@@ -192,7 +192,7 @@ pub trait Lexer: Iterator<Item = Token> {
     ///
     /// # Example
     /// ```
-    /// use ppl::syntax::{Token, Lexer, FullSourceLexer, error::*};
+    /// use ppl::syntax::{Token, OperatorKind, Lexer, FullSourceLexer, error::*};
     ///
     /// let mut lexer = FullSourceLexer::new("+");
     /// assert_eq!(lexer.consume_operator(), Ok("+".into()));
@@ -203,7 +203,11 @@ pub trait Lexer: Iterator<Item = Token> {
     /// 	Err(
     /// 		UnexpectedToken {
     /// 			expected: vec![
-	/// 				Token::Operator, Token::Less, Token::Greater
+	/// 				Token::Operator(OperatorKind::Prefix),
+	/// 				Token::Operator(OperatorKind::Infix),
+	/// 				Token::Operator(OperatorKind::Postfix),
+	/// 				Token::Less,
+	/// 				Token::Greater
 	/// 			],
     /// 			got: Token::Integer,
     /// 			at: lexer.peek_span().into()

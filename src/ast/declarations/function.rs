@@ -174,7 +174,7 @@ fn test_function_declaration() {
             ],
             return_type: Some(StringWithOffset::from("Distance").at(45).into()),
             annotations: vec![],
-            body: None,
+            body: vec![],
 			implicit_return: false,
         }
     );
@@ -191,7 +191,7 @@ fn test_function_with_single_line_body() {
             name_parts: vec![StringWithOffset::from("test").at(3).into(),],
             return_type: None,
             annotations: vec![],
-            body: Some(vec![
+            body: vec![
                 Statement::Expression(
                     Literal::Integer {
                         value: "1".into(),
@@ -199,7 +199,7 @@ fn test_function_with_single_line_body() {
                     }
                     .into()
                 ),
-            ]),
+            ],
 			implicit_return: true
         }
     );

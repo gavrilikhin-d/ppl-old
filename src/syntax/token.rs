@@ -12,18 +12,16 @@ pub enum OperatorKind {
 
 /// Decide which kind of operator it is
 fn operator(lexer: &mut Lexer<Token>) -> OperatorKind {
-	let before = lexer.span().start - 1;
-	let after = lexer.span().end;
 
-	if before < 0 {
+	if lexer.span().start == 0 {
 		return OperatorKind::Prefix;
 	}
-	if after >= lexer.source().len() {
+	if lexer.span().end == lexer.source().len() {
 		return OperatorKind::Postfix;
 	}
 
-	let before = lexer.source().chars().nth(before as usize).unwrap();
-	let after = lexer.source().chars().nth(after as usize).unwrap();
+	let before = lexer.source().chars().nth(lexer.span().start - 1).unwrap();
+	let after = lexer.source().chars().nth(lexer.span().end).unwrap();
 	if before.is_whitespace() == after.is_whitespace() {
 		OperatorKind::Infix
 	} else if after.is_whitespace() {
