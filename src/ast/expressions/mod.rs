@@ -21,7 +21,7 @@ use ast_derive::AST;
 
 use crate::syntax::{
     error::{MissingExpression, ParseError},
-    Lexer, Parse, Ranged, StartsHere, Context,
+    Lexer, Parse, Ranged, StartsHere, Context, OperatorKind, Token,
 };
 
 use derive_more::{From, TryInto};
@@ -48,7 +48,7 @@ impl StartsHere for Expression {
 }
 
 /// Parse atomic expression
-pub(crate) fn parse_atomic_expression(context: &mut Context<impl Lexer>)
+fn parse_atomic_expression(context: &mut Context<impl Lexer>)
 	-> Result<Expression, ParseError> {
 	if Literal::starts_here(context) {
 		return Ok(Literal::parse(context)?.into());
@@ -62,14 +62,50 @@ pub(crate) fn parse_atomic_expression(context: &mut Context<impl Lexer>)
 		return Ok(VariableReference::parse(context)?.into());
 	}
 
-	if UnaryOperation::starts_here(context) {
-		return Ok(UnaryOperation::parse(context)?.into());
-	}
-
 	Err(MissingExpression {
 		at: context.lexer.span().end.into(),
 	}.into())
 }
+
+/// postfix-expression: atomic-expression postfix-operator?
+fn parse_postfix_expression(context: &mut Context<impl Lexer>)
+	-> Result<Expression, ParseError> {
+	let operand = parse_atomic_expression(context)?;
+
+	Ok(
+		if let Ok(operator) = context.lexer.consume(Token::Operator(OperatorKind::Postfix)) {
+			UnaryOperation {
+				operand: Box::new(operand),
+				operator,
+				kind: UnaryOperatorKind::Postfix,
+			}.into()
+		}
+		else {
+			operand
+		}
+	)
+}
+
+/// prefix-expression: prefix-operator? postfix-expression
+fn parse_prefix_expression(context: &mut Context<impl Lexer>)
+	-> Result<Expression, ParseError> {
+	let operator = context.lexer.consume(Token::Operator(OperatorKind::Prefix));
+	let operand = parse_postfix_expression(context)?;
+
+	Ok(
+		if let Ok(operator) = operator {
+			UnaryOperation {
+				operand: Box::new(operand),
+				operator,
+				kind: UnaryOperatorKind::Prefix,
+			}.into()
+		}
+		else {
+			operand
+		}
+	)
+}
+
 
 /// Parse right hand side of binary expression
 fn parse_binary_rhs(
@@ -86,7 +122,7 @@ fn parse_binary_rhs(
 			break;
 		}
 
-		let mut right = parse_atomic_expression(context)?;
+		let mut right = parse_prefix_expression(context)?;
 		if  context.lexer.peek().is_some_and(|t| t.is_infix_operator()) {
 			let next_op = context.lexer.peek_slice();
 		   	if context.precedence_groups.has_greater_precedence(next_op, &op) {
@@ -107,7 +143,7 @@ fn parse_binary_rhs(
 /// Parse binary expression
 pub(crate) fn parse_binary_expression(context: &mut Context<impl Lexer>)
 	-> Result<Expression, ParseError> {
-	let left = parse_atomic_expression(context)?;
+	let left = parse_prefix_expression(context)?;
 	parse_binary_rhs(context, None, left)
 }
 
