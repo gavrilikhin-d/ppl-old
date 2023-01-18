@@ -14,18 +14,15 @@ use crate::ast::{self, CallNamePart, If};
 pub struct ASTLoweringContext {
     /// Module, which is being lowered
     pub module: Module,
-    /// Builtin module (set to None, when lowering builtin module itself)
-    pub builtin: Option<Arc<Module>>,
 	/// Stack of functions, which are being lowered
 	pub functions_stack: Vec<Arc<hir::FunctionDeclaration>>,
 }
 
 impl ASTLoweringContext {
     /// Create new lowering context
-    pub fn new(name: &str) -> Self {
+    pub fn new(module: hir::Module) -> Self {
         Self {
-            module: Module::new(name, ""),
-            builtin: Some(Module::builtin()),
+            module,
 			functions_stack: Vec::new(),
 		}
     }
@@ -39,23 +36,23 @@ impl ASTLoweringContext {
 		}
 
         let var = self.module.variables.get(name);
-        if var.is_some() {
-            var
-        } else {
-            self.builtin.as_ref().and_then(|m| m.variables.get(name))
+        if var.is_some() || self.module.is_builtin {
+            var.map(|v| v.value.clone().into())
         }
-        .map(|x| x.value.clone().into())
-    }
+		else {
+			Module::builtin().variables.get(name).map(|v| v.value.clone().into())
+		}
+	}
 
     /// Recursively find type starting from current scope
     pub fn find_type(&self, name: &str) -> Option<Type> {
         let ty = self.module.types.get(name);
-        if ty.is_some() {
-            ty
-        } else {
-            self.builtin.as_ref().and_then(|m| m.types.get(name))
+        if ty.is_some() || self.module.is_builtin {
+        	ty.map(|t| t.value.clone().into())
         }
-        .map(|t| t.value.clone().into())
+		else {
+			Module::builtin().types.get(name).map(|t| t.value.clone().into())
+		}
     }
 
     /// Recursively find type starting from current scope, or return error
@@ -74,38 +71,38 @@ impl ASTLoweringContext {
 
 	/// Get builtin "None" type
 	pub fn none(&self) -> Type {
-		if self.builtin.is_none() {
-			return self.module.types.get("None").unwrap().value.clone().into()
+		if !self.module.is_builtin {
+			return Type::none()
 		}
 
-		Type::none()
+		self.module.types.get("None").unwrap().value.clone().into()
 	}
 
 	/// Get builtin "Bool" type
 	pub fn bool(&self) -> Type {
-		if self.builtin.is_none() {
-			return self.module.types.get("Bool").unwrap().value.clone().into()
+		if !self.module.is_builtin {
+			return Type::bool()
 		}
 
-		Type::bool()
+		self.module.types.get("Bool").unwrap().value.clone().into()
 	}
 
 	/// Get builtin "Integer" type
 	pub fn integer(&self) -> Type {
-		if self.builtin.is_none() {
-			return self.module.types.get("Integer").unwrap().value.clone().into()
+		if !self.module.is_builtin {
+			return Type::integer()
 		}
 
-		Type::integer()
+		self.module.types.get("Integer").unwrap().value.clone().into()
 	}
 
 	/// Get builtin "String" type
 	pub fn string(&self) -> Type {
-		if self.builtin.is_none() {
-			return self.module.types.get("String").unwrap().value.clone().into()
+		if !self.module.is_builtin {
+			return Type::string()
 		}
 
-		Type::string()
+		self.module.types.get("String").unwrap().value.clone().into()
 	}
 
     /// Recursively find all functions with same name format
@@ -119,13 +116,16 @@ impl ASTLoweringContext {
             .get(format)
             .cloned()
             .unwrap_or_default();
-        let builtins = self
-            .builtin
-            .as_ref()
-            .and_then(|m| m.functions.get(format))
-            .cloned()
-            .unwrap_or_default();
-        funcs.union(&builtins).cloned().collect()
+		if !self.module.is_builtin {
+    		return funcs.union(
+				&Module::builtin()
+					.functions
+						.get(format)
+						.cloned()
+						.unwrap_or_default()
+			).cloned().collect()
+		}
+        funcs
     }
 
 	/// Get candidates for function call
@@ -138,9 +138,9 @@ impl ASTLoweringContext {
 	{
 		let mut functions = self.module.functions.values().flatten().map(|f| f.value.clone()).collect::<Vec<_>>();
 
-		if let Some(builtin) = &self.builtin {
+		if !self.module.is_builtin {
 			functions.extend(
-				builtin.functions.values().flatten().map(|f| f.value.clone())
+				Module::builtin().functions.values().flatten().map(|f| f.value.clone())
 			)
 		}
 
@@ -218,6 +218,12 @@ impl ASTLoweringContext {
         }
 
         Ok(f.unwrap().value.clone())
+	}
+}
+
+impl Default for ASTLoweringContext {
+	fn default() -> Self {
+		Self::new(Module::default())
 	}
 }
 
@@ -560,7 +566,7 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
     ) -> Result<Self::HIR, Error> {
         let ty = Arc::new(hir::TypeDeclaration {
             name: self.name.clone(),
-			is_builtin: context.builtin.is_none()
+			is_builtin: context.module.is_builtin,
         });
 
         context.module.types.insert(ty.clone().into());
@@ -609,6 +615,54 @@ impl ASTLoweringWithinContext for ast::Annotation {
     }
 }
 
+/// Trait to predeclare function in module
+trait Predeclare {
+	/// Predeclare function in module
+	fn predeclare(&self, context: &mut ASTLoweringContext)
+		-> Result<Arc<hir::FunctionDeclaration>, Error>;
+}
+
+impl Predeclare for ast::FunctionDeclaration {
+	fn predeclare(&self, context: &mut ASTLoweringContext)
+		-> Result<Arc<hir::FunctionDeclaration>, Error> {
+		let mut name_parts: Vec<hir::FunctionNamePart> = Vec::new();
+		for part in &self.name_parts {
+			match part {
+				ast::FunctionNamePart::Text(t) =>
+					name_parts.push(t.clone().into()),
+				ast::FunctionNamePart::Parameter(p) => {
+					name_parts.push(p.lower_to_hir_within_context(context)?.into())
+				}
+			}
+		}
+
+		let return_type = match &self.return_type {
+			Some(ty) => context.ty(ty)?,
+			None => context.none(),
+		};
+
+		let annotations = self
+			.annotations
+			.iter()
+			.map(|a| a.lower_to_hir_within_context(context))
+			.collect::<Result<Vec<_>, _>>()?;
+		let mangled_name = annotations.iter().find_map(|a| match a {
+			hir::Annotation::MangleAs(name) => Some(name.clone()),
+		});
+
+		let f = Arc::new(
+			hir::FunctionDeclaration::build()
+				.with_name(name_parts.clone())
+				.with_mangled_name(mangled_name.clone())
+				.with_return_type(return_type.clone()),
+		);
+
+		context.module.insert_function(f.clone());
+
+		Ok(f)
+	}
+}
+
 impl ASTLoweringWithinContext for ast::FunctionDeclaration {
     type HIR = Arc<hir::FunctionDeclaration>;
 
@@ -617,47 +671,16 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
         &self,
         context: &mut ASTLoweringContext,
     ) -> Result<Self::HIR, Error> {
-        let mut name_parts: Vec<hir::FunctionNamePart> = Vec::new();
-        for part in &self.name_parts {
-            match part {
-                ast::FunctionNamePart::Text(t) =>
-					name_parts.push(t.clone().into()),
-                ast::FunctionNamePart::Parameter(p) => {
-                    name_parts.push(p.lower_to_hir_within_context(context)?.into())
-                }
-            }
-        }
+       	let f = self.predeclare(context)?;
 
-        let mut return_type = match &self.return_type {
-            Some(ty) => context.ty(ty)?,
-            None => context.none(),
-        };
-
-        let annotations = self
-            .annotations
-            .iter()
-            .map(|a| a.lower_to_hir_within_context(context))
-            .collect::<Result<Vec<_>, _>>()?;
-        let mangled_name = annotations.iter().find_map(|a| match a {
-            hir::Annotation::MangleAs(name) => Some(name.clone()),
-        });
-
-        let f = Arc::new(
-            hir::FunctionDeclaration::build()
-                .with_name(name_parts.clone())
-                .with_mangled_name(mangled_name.clone())
-                .with_return_type(return_type.clone()),
-        );
-
-		context.module.insert_function(f.clone());
-
-		context.functions_stack.push(f);
+		context.functions_stack.push(f.clone());
         let mut body = Vec::new();
         for stmt in &self.body {
             body.push(stmt.lower_to_hir_within_context(context)?);
         }
 		context.functions_stack.pop();
 
+		let mut return_type = f.return_type.clone();
 		if self.implicit_return {
 			let expr: hir::Expression = body.pop().unwrap().try_into().unwrap();
 			if self.return_type.is_none() {
@@ -677,14 +700,13 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
 
         let f = Arc::new(
             hir::FunctionDeclaration::build()
-                .with_name(name_parts)
-                .with_mangled_name(mangled_name)
+                .with_name(f.name_parts.clone())
+                .with_mangled_name(f.mangled_name.clone())
 				.with_body(body)
                 .with_return_type(return_type),
         );
 
-		// Replace declaration with definition
-		context.module.functions.get_mut(f.name_format()).unwrap().replace(f.clone().into());
+		context.module.define_function(f.clone());
 
         Ok(f)
     }
@@ -808,6 +830,45 @@ impl ASTLoweringWithinContext for If {
 	}
 }
 
+impl ASTLoweringWithinContext for ast::Module {
+	type HIR = hir::Module;
+
+	/// Lower [`ast::Module`] to [`hir::Module`] within lowering context
+	fn lower_to_hir_within_context(
+			&self,
+			context: &mut ASTLoweringContext,
+		) -> Result<Self::HIR, Error> {
+		let types = self.statements.iter().filter_map(
+			|stmt|
+			if let ast::Statement::Declaration(ast::Declaration::Type(_)) = stmt {
+				Some(stmt.lower_to_hir_within_context(context))
+			}
+			else {
+				None
+			}
+		).try_collect::<Vec<_>>()?;
+
+		for stmt in &self.statements {
+			if let ast::Statement::Declaration(ast::Declaration::Function(f)) = stmt {
+				f.predeclare(context)?;
+			}
+		}
+
+		let mut current_type = types.iter();
+		for stmt in &self.statements {
+			let stmt = if let ast::Statement::Declaration(ast::Declaration::Type(_)) = stmt {
+				current_type.next().unwrap().clone()
+			}
+			else {
+				stmt.lower_to_hir_within_context(context)?
+			};
+            context.module.statements.push(stmt);
+        }
+
+        Ok(context.module.clone())
+    }
+}
+
 /// Trait for lowering and adding statements to module
 pub trait ASTLowering {
     type HIR;
@@ -821,23 +882,7 @@ impl<T: ASTLoweringWithinContext> ASTLowering for T {
 
     /// Lower AST to HIR
     fn lower_to_hir(&self) -> Result<Self::HIR, Error> {
-        let mut context = ASTLoweringContext::new("main");
+        let mut context = ASTLoweringContext::default();
         self.lower_to_hir_within_context(&mut context)
-    }
-}
-
-impl ASTLowering for ast::Module {
-    type HIR = Module;
-
-    /// Lower [`ast::Module`] to [`semantics::Module`](Module)
-    fn lower_to_hir(&self) -> Result<Self::HIR, Error> {
-        let mut context = ASTLoweringContext::new("main");
-
-        for stmt in &self.statements {
-			let stmt = stmt.lower_to_hir_within_context(&mut context)?;
-            context.module.statements.push(stmt);
-        }
-
-        Ok(context.module)
     }
 }

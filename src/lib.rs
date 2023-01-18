@@ -3,6 +3,7 @@
 #![feature(iterator_try_collect)]
 #![feature(is_some_and)]
 #![feature(let_chains)]
+#![feature(associated_type_defaults)]
 
 pub mod mutability;
 pub mod named;

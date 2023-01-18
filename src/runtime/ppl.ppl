@@ -1,49 +1,25 @@
-type None
-type Bool
-type Integer
-type String
-
 // IMPORTANT: when adding new special type,
 // don't forget to threat it as special in TypeDeclaration and hir_to_ir.rs
+// IMPORTANT: add mapping for new functions with @mangle_as
+// IMPORTANT: add precedence for new binary operators
+
+//=================================
+//              None
+//=================================
+type None
 
 /// Convert `None` to `String`
 fn <:None> as String => "none"
 
-/// Convert `Bool` to `String`
-fn <x: Bool> as String -> String:
-	if x:
-		return "true"
-	return "false"
-
-/// Convert `Integer` to `String`
-@mangle_as("integer_as_string")
-fn <:Integer> as String -> String
-
-/// Prints string to stdout with newline
-@mangle_as("print_string")
-fn print <:String>
-
 /// Prints "none" to stdout with newline
 fn print <:None> => print "none"
+//---------------------------------
 
-/// Prints bool to stdout with newline
-fn print <x: Bool> => print (x as String)
 
-/// Prints integer to stdout with newline
-fn print <x: Integer> => print (x as String)
-
-fn + <x: Integer> => x
-
-@mangle_as("minus_integer")
-fn - <:Integer> -> Integer
-
-@mangle_as("integer_plus_integer")
-fn <:Integer> + <:Integer> -> Integer
-
-fn <x: Integer> - <y: Integer> => x + -y
-
-@mangle_as("integer_star_integer")
-fn <:Integer> * <:Integer> -> Integer
+//=================================
+//              Bool
+//=================================
+type Bool
 
 /// Negate boolean value
 fn not <x:Bool> -> Bool:
@@ -63,5 +39,49 @@ fn <x: Bool> or <y: Bool> -> Bool:
 		return true
 	return y
 
-// IMPORTANT: add mapping for new functions with @mangle_as
-// IMPORTANT: add precedence for new binary operators
+/// Convert `Bool` to `String`
+fn <x: Bool> as String -> String:
+	if x:
+		return "true"
+	return "false"
+
+/// Prints bool to stdout with newline
+fn print <x: Bool> => print (x as String)
+//---------------------------------
+
+
+//=================================
+//            Integer
+//=================================
+type Integer
+
+fn + <x: Integer> => x
+
+@mangle_as("minus_integer")
+fn - <:Integer> -> Integer
+
+@mangle_as("integer_plus_integer")
+fn <:Integer> + <:Integer> -> Integer
+
+fn <x: Integer> - <y: Integer> => x + -y
+
+@mangle_as("integer_star_integer")
+fn <:Integer> * <:Integer> -> Integer
+
+/// Convert `Integer` to `String`
+@mangle_as("integer_as_string")
+fn <:Integer> as String -> String
+
+/// Prints integer to stdout with newline
+fn print <x: Integer> => print (x as String)
+//---------------------------------
+
+//=================================
+//            String
+//=================================
+type String
+
+/// Prints string to stdout with newline
+@mangle_as("print_string")
+fn print <:String>
+//---------------------------------

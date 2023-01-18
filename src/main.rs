@@ -86,7 +86,9 @@ fn process_single_statement<'llvm>(
 
 /// Read-Evaluate-Print Loop
 fn repl() {
-    let mut ast_context = ASTLoweringContext::new("repl");
+    let mut ast_context = ASTLoweringContext::new(
+		hir::Module::new("repl", "")
+	);
     let llvm = inkwell::context::Context::create();
     let builtin = hir::Module::builtin().lower_to_ir(&llvm);
 	builtin.print_to_stderr();
