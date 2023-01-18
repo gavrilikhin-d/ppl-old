@@ -1,7 +1,7 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use super::{Expression, parse_atomic_expression};
+use super::{Expression, parse_binary_expression};
 use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StringWithOffset, Context};
 
 
@@ -27,27 +27,13 @@ impl Parse for BinaryOperation {
     type Err = ParseError;
 
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        let mut left = parse_atomic_expression(context)?;
+        let expr = parse_binary_expression(context)?;
 
-		loop {
-			context.lexer.consume_operator()?;
-			let operator = context.lexer.string_with_offset();
-
-			let right = parse_atomic_expression(context)?;
-
-			// TODO: handle precedence and associativity
-			left = BinaryOperation {
-				left: Box::new(left),
-				operator,
-				right: Box::new(right),
-			}.into();
-
-			if !context.lexer.peek().is_some_and(|t| t.is_operator()) {
-				break;
-			}
+		if !matches!(expr, Expression::BinaryOperation(_)) {
+			todo!("expected binary expression error")
 		}
 
-		Ok(left.try_into().unwrap())
+		Ok(expr.try_into().unwrap())
     }
 }
 
