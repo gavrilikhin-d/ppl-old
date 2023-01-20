@@ -775,19 +775,20 @@ impl ASTLoweringWithinContext for ast::Return {
 		).transpose()?;
 
 		if let Some(f) = context.functions_stack.last() {
-			if value.is_none() && !f.return_type.is_none() {
+			if let Some(value) = &value {
+				if value.ty() != f.return_type {
+					return Err(ReturnTypeMismatch {
+						got: value.ty(),
+						got_span: value.range().into(),
+
+						expected: f.return_type.clone(),
+					}.into());
+				}
+			}
+			else if !f.return_type.is_none() {
 				return Err(MissingReturnValue {
 					ty: f.return_type.clone(),
 					at: self.range().end.into(),
-				}.into());
-			}
-			let value = value.as_ref().unwrap();
-			if value.ty() != f.return_type {
-				return Err(ReturnTypeMismatch {
-					got: value.ty(),
-					got_span: value.range().into(),
-
-					expected: f.return_type.clone(),
 				}.into());
 			}
 		}
