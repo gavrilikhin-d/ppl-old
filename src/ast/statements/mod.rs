@@ -7,6 +7,9 @@ pub use ret::*;
 mod r#if;
 pub use r#if::*;
 
+mod r#loop;
+pub use r#loop::*;
+
 extern crate ast_derive;
 use ast_derive::AST;
 
@@ -27,6 +30,7 @@ pub enum Statement {
     Assignment(Assignment),
 	Return(Return),
 	If(If),
+	Loop(Loop),
 }
 
 impl StartsHere for Statement {
@@ -38,6 +42,7 @@ impl StartsHere for Statement {
             || Assignment::starts_here(context)
 			|| Return::starts_here(context)
 			|| If::starts_here(context)
+			|| Loop::starts_here(context)
     }
 }
 
@@ -83,6 +88,7 @@ impl Parse for Statement {
 			match context.lexer.peek() {
 				Some(Token::Return) => Return::parse(context)?.into(),
 				Some(Token::If) => If::parse(context)?.into(),
+				Some(Token::Loop) => Loop::parse(context)?.into(),
 				t => unreachable!(
 					"Unexpected token {:#?} at start of statement", t
 				),

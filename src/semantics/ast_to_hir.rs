@@ -256,6 +256,8 @@ impl ASTLoweringWithinContext for ast::Statement {
 				ret.lower_to_hir_within_context(context)?.into(),
 			ast::Statement::If(stmt) =>
 				stmt.lower_to_hir_within_context(context)?.into(),
+			ast::Statement::Loop(stmt) =>
+				stmt.lower_to_hir_within_context(context)?.into(),
         };
 
         Ok(stmt)
@@ -824,6 +826,22 @@ impl ASTLoweringWithinContext for If {
 				})
 			).try_collect()?,
 			else_block: self.else_block.iter().map(
+				|stmt| stmt.lower_to_hir_within_context(context)
+			).try_collect()?,
+		})
+	}
+}
+
+impl ASTLoweringWithinContext for ast::Loop {
+	type HIR = hir::Loop;
+
+	/// Lower [`ast::Loop`] to [`hir::Loop`] within lowering context
+	fn lower_to_hir_within_context(
+		&self,
+		context: &mut ASTLoweringContext,
+	) -> Result<Self::HIR, Error> {
+		Ok(hir::Loop {
+			body: self.body.iter().map(
 				|stmt| stmt.lower_to_hir_within_context(context)
 			).try_collect()?,
 		})

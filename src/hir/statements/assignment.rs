@@ -1,9 +1,9 @@
 use crate::hir::Expression;
 
-/// Assignment of a value to a
+/// Assignment of a value to a reference
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Assignment {
-    /// Variable to assign to
+    /// Reference to assign to
     pub target: Expression,
     /// Value to assign
     pub value: Expression,

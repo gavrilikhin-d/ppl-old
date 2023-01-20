@@ -138,6 +138,10 @@ pub enum Token {
 	#[token("false")]
 	False,
 
+	/// "loop" token
+	#[token("loop")]
+	Loop,
+
     /// Error token
     #[error]
     #[regex("[ ]+", logos::skip)]
