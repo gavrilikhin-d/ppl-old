@@ -55,6 +55,11 @@ fn print <x: Bool> => print (x as String)
 //=================================
 type Integer
 
+@mangle_as("integer_eq_integer")
+fn <:Integer> == <:Integer> -> Bool
+
+fn <x:Integer> != <y:Integer> => not (x == y)
+
 fn + <x: Integer> => x
 
 @mangle_as("minus_integer")

@@ -128,4 +128,18 @@ pub extern "C" fn integer_star_integer(x: *const Integer, y: *const Integer) -> 
 	Box::into_raw(boxed)
 }
 
+/// Compare 2 integers for equality
+///
+/// Runtime for builtin ppl's function:
+/// ```ppl
+/// fn <:Integer> == <:Integer> -> Bool
+/// ```
+#[no_mangle]
+pub extern "C" fn integer_eq_integer(x: *const Integer, y: *const Integer) -> bool {
+	if x.is_null() || y.is_null() {
+		panic!("null pointer passed to integer_as_string");
+	}
+	unsafe { *x == *y }
+}
+
 // IMPORTANT: don't forget to update global mapping after adding new function!!!

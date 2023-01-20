@@ -5,6 +5,7 @@ use std::collections::HashMap;
 pub enum Associativity {
 	Left,
 	Right,
+	Chain, // For operators like ==, !=, <, >, <=, >=
 }
 
 pub struct PrecedenceGroup {
@@ -33,8 +34,6 @@ impl PrecedenceGroups {
 
 	/// Check that next operator has greater precedence than previous
 	pub fn has_greater_precedence(&self, next: &str, prev: &str) -> bool {
-		dbg!(&prev);
-		dbg!(&next);
 		let next_group_index =
 			self.get_precedence_group_index(next);
 		let prev_group_index =
@@ -49,8 +48,6 @@ impl PrecedenceGroups {
 
 	/// Check that next operator has less precedence than previous
 	pub fn has_less_precedence(&self, next: &str, prev: &str) -> bool {
-		dbg!(&prev);
-		dbg!(&next);
 		let next_group_index =
 			self.get_precedence_group_index(next);
 		let prev_group_index =
@@ -73,6 +70,10 @@ impl Default for PrecedenceGroups {
 					associativity: Associativity::Left,
 				},
 				PrecedenceGroup {
+					name: "EqualityPrecedence".to_string(),
+					associativity: Associativity::Chain,
+				},
+				PrecedenceGroup {
 					name: "AdditionPrecedence".to_string(),
 					associativity: Associativity::Left,
 				},
@@ -82,10 +83,12 @@ impl Default for PrecedenceGroups {
 				},
 			],
 			operators_mapping: vec![
-				("+".to_string(), 1),
-				("-".to_string(), 1),
-				("*".to_string(), 2),
-				("/".to_string(), 2),
+				("==".to_string(), 1),
+				("!=".to_string(), 1),
+				("+".to_string(),  2),
+				("-".to_string(),  2),
+				("*".to_string(),  3),
+				("/".to_string(),  3),
 			].into_iter().collect(),
 		}
 	}
