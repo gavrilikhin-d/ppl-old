@@ -70,7 +70,7 @@ impl Default for PrecedenceGroups {
 					associativity: Associativity::Left,
 				},
 				PrecedenceGroup {
-					name: "EqualityPrecedence".to_string(),
+					name: "ComparisonPrecedence".to_string(),
 					associativity: Associativity::Chain,
 				},
 				PrecedenceGroup {
@@ -85,6 +85,10 @@ impl Default for PrecedenceGroups {
 			operators_mapping: vec![
 				("==".to_string(), 1),
 				("!=".to_string(), 1),
+				("<".to_string(),  1),
+				(">".to_string(),  1),
+				("<=".to_string(), 1),
+				(">=".to_string(), 1),
 				("+".to_string(),  2),
 				("-".to_string(),  2),
 				("*".to_string(),  3),

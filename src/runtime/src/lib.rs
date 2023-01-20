@@ -142,4 +142,18 @@ pub extern "C" fn integer_eq_integer(x: *const Integer, y: *const Integer) -> bo
 	unsafe { *x == *y }
 }
 
+/// Is one integer less than another?
+///
+/// Runtime for builtin ppl's function:
+/// ```ppl
+/// fn <:Integer> < <:Integer> -> Bool
+/// ```
+#[no_mangle]
+pub extern "C" fn integer_less_integer(x: *const Integer, y: *const Integer) -> bool {
+	if x.is_null() || y.is_null() {
+		panic!("null pointer passed to integer_as_string");
+	}
+	unsafe { *x < *y }
+}
+
 // IMPORTANT: don't forget to update global mapping after adding new function!!!

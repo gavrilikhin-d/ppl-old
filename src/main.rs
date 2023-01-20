@@ -118,6 +118,7 @@ fn repl() {
 	add_global_mapping!(integer_plus_integer);
 	add_global_mapping!(integer_star_integer);
 	add_global_mapping!(integer_eq_integer);
+	add_global_mapping!(integer_less_integer);
 
 
     let mut parse_context = ppl::syntax::Context::new(

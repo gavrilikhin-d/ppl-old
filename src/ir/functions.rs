@@ -88,5 +88,8 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
 	// LLVM IR for "<:Integer> == <:Integer> -> Bool" builtin function
 	add_builtin_function!(integer_eq_integer, bool, integer, integer);
 
+	// LLVM IR for "<:Integer> < <:Integer> -> Bool" builtin function
+	add_builtin_function!(integer_less_integer, bool, integer, integer);
+
     // IMPORTANT: don't forget to update global mapping when adding new function!!!
 }

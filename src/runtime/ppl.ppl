@@ -58,7 +58,16 @@ type Integer
 @mangle_as("integer_eq_integer")
 fn <:Integer> == <:Integer> -> Bool
 
-fn <x:Integer> != <y:Integer> => not (x == y)
+fn <x: Integer> != <y: Integer> => not (x == y)
+
+@mangle_as("integer_less_integer")
+fn <:Integer> < <:Integer> -> Bool
+
+fn <x: Integer> > <y: Integer> => y < x
+
+fn <x: Integer> <= <y: Integer> => not (x > y)
+
+fn <x: Integer> >= <y: Integer> => not (x < y)
 
 fn + <x: Integer> => x
 
