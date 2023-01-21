@@ -615,6 +615,8 @@ impl HIRLoweringWithinFunctionContext<'_, '_> for While {
 		context.builder.position_at_end(condition_block);
 		let condition = self.condition.lower_to_ir(context).unwrap().into_int_value();
 		context.builder.build_conditional_branch(condition, loop_block, merge_block);
+
+		context.builder.position_at_end(merge_block);
 	}
 }
 
