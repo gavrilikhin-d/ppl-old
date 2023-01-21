@@ -512,7 +512,7 @@ impl HIRLoweringWithinFunctionContext<'_, '_> for If {
 
 		let merge_block = context.llvm().append_basic_block(context.function, "");
 
-		let if_true = context.build_block("if_true", &self.body, Some(merge_block));
+		let if_true = context.build_block("if.body", &self.body, Some(merge_block));
 		if_true.move_after(entry_block).unwrap();
 
 		let last_block = if self.else_block.is_empty() {
@@ -529,11 +529,11 @@ impl HIRLoweringWithinFunctionContext<'_, '_> for If {
 		};
 
 		let else_if_conditions = self.else_ifs.iter().map(|_| {
-			context.llvm().append_basic_block(context.function, "else_if")
+			context.llvm().append_basic_block(context.function, "else_if.condition")
 		}).collect::<Vec<_>>();
 		let else_if_bodies = self.else_ifs.iter().map(|else_if| {
 			context.build_block(
-				"else_if_true",
+				"else_if.body",
 				&else_if.body,
 				Some(merge_block)
 			)
@@ -557,7 +557,14 @@ impl HIRLoweringWithinFunctionContext<'_, '_> for If {
 			else_if_bodies[i].move_after(else_if_conditions[i]).unwrap()
 		}
 
+
+		let condition_block = context.llvm().append_basic_block(context.function, "if.condition");
+		condition_block.move_after(entry_block).unwrap();
+
 		context.builder.position_at_end(entry_block);
+		context.builder.build_unconditional_branch(condition_block);
+
+		context.builder.position_at_end(condition_block);
 		let condition = self.condition.lower_to_ir(context).unwrap().into_int_value();
 		if let Some(else_if) = else_if_conditions.first() {
 			context.builder.build_conditional_branch(
