@@ -10,6 +10,9 @@ pub use r#if::*;
 mod r#loop;
 pub use r#loop::*;
 
+mod r#while;
+pub use r#while::*;
+
 use derive_more::{From, TryInto};
 
 use crate::hir::{Declaration, Expression};
@@ -22,5 +25,6 @@ pub enum Statement {
     Assignment(Assignment),
 	Return(Return),
 	If(If),
-	Loop(Loop)
+	Loop(Loop),
+	While(While),
 }

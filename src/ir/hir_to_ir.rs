@@ -426,7 +426,8 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
 
             Statement::Assignment(_) |
 			Statement::If(_) |
-			Statement::Loop(_) => {
+			Statement::Loop(_) |
+			Statement::While(_) => {
                 let function = context.module.add_function(
                     "execute",
                     context.llvm().void_type().fn_type(&[], false),
@@ -481,6 +482,7 @@ impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Statement {
 				if_stmt.lower_to_ir(context);
 			}
 			Statement::Loop(loop_stmt) => loop_stmt.lower_to_ir(context),
+			Statement::While(while_stmt) => while_stmt.lower_to_ir(context),
         };
     }
 }
@@ -588,6 +590,31 @@ impl HIRLoweringWithinFunctionContext<'_, '_> for Loop {
 			context.builder.position_at_end(loop_block);
 			context.builder.build_unconditional_branch(loop_block);
 		}
+	}
+}
+
+impl HIRLoweringWithinFunctionContext<'_, '_> for While {
+	type IR = ();
+
+	/// Lower [`While`] to LLVM IR
+	fn lower_to_ir(&self, context: &mut FunctionContext) -> Self::IR {
+		let condition_block = context.llvm().append_basic_block(context.function, "while.condition");
+
+		context.builder.build_unconditional_branch(condition_block);
+
+		let loop_block = context.build_block(
+			"while.body",
+			&self.body,
+			Some(condition_block)
+		);
+
+		let merge_block = context.llvm().append_basic_block(
+			context.function, ""
+		);
+
+		context.builder.position_at_end(condition_block);
+		let condition = self.condition.lower_to_ir(context).unwrap().into_int_value();
+		context.builder.build_conditional_branch(condition, loop_block, merge_block);
 	}
 }
 

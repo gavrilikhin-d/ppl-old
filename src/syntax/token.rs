@@ -142,6 +142,10 @@ pub enum Token {
 	#[token("loop")]
 	Loop,
 
+	/// "while" token
+	#[token("while")]
+	While,
+
     /// Error token
     #[error]
     #[regex("[ ]+", logos::skip)]

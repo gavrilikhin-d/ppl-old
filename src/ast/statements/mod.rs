@@ -10,6 +10,9 @@ pub use r#if::*;
 mod r#loop;
 pub use r#loop::*;
 
+mod r#while;
+pub use r#while::*;
+
 extern crate ast_derive;
 use ast_derive::AST;
 
@@ -31,6 +34,7 @@ pub enum Statement {
 	Return(Return),
 	If(If),
 	Loop(Loop),
+	While(While),
 }
 
 impl StartsHere for Statement {
@@ -43,6 +47,7 @@ impl StartsHere for Statement {
 			|| Return::starts_here(context)
 			|| If::starts_here(context)
 			|| Loop::starts_here(context)
+			|| While::starts_here(context)
     }
 }
 
@@ -89,6 +94,7 @@ impl Parse for Statement {
 				Some(Token::Return) => Return::parse(context)?.into(),
 				Some(Token::If) => If::parse(context)?.into(),
 				Some(Token::Loop) => Loop::parse(context)?.into(),
+				Some(Token::While) => While::parse(context)?.into(),
 				t => unreachable!(
 					"Unexpected token {:#?} at start of statement", t
 				),
