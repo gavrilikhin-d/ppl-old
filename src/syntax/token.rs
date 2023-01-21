@@ -158,7 +158,7 @@ impl Token {
     pub fn is_operator(&self) -> bool {
 		matches!(
 			self,
-			Token::Assign | Token::Less | Token::Greater |
+			Token::Less | Token::Greater |
 			Token::Operator(_)
 		)
     }
@@ -167,7 +167,7 @@ impl Token {
 	pub fn is_infix_operator(&self) -> bool {
 		matches!(
 			self,
-			Token::Assign | Token::Less | Token::Greater |
+			Token::Less | Token::Greater |
 			Token::Operator(OperatorKind::Infix)
 		)
 	}
@@ -184,7 +184,11 @@ impl Token {
 	pub fn ends_expression(&self) -> bool {
 		matches!(
 			self,
-			Token::Newline | Token::RParen | Token::Colon | Token::Comma
+			Token::Newline |
+			Token::RParen |
+			Token::Colon |
+			Token::Comma |
+			Token::Assign
 		)
 	}
 }
