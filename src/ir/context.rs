@@ -24,9 +24,6 @@ pub trait Context<'llvm> {
 pub struct ModuleContext<'llvm> {
     /// Currently built module
     pub module: inkwell::module::Module<'llvm>,
-    /// Global variables
-    pub variables:
-        HashMap<HashByName<Arc<VariableDeclaration>>, inkwell::values::PointerValue<'llvm>>,
 	/// Builder for debug info
 	pub dibuilder: inkwell::debug_info::DebugInfoBuilder<'llvm>,
 	/// Compile unit for debug info
@@ -65,7 +62,6 @@ impl<'llvm> ModuleContext<'llvm> {
 
         Self {
             module,
-            variables: HashMap::new(),
 			dibuilder,
 			compile_unit
         }
@@ -127,7 +123,7 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
 				self.parameters.get(p.name()).cloned()
 			}
 			ParameterOrVariable::Variable(v) => {
-				self.module_context.variables.get(v.name()).cloned()
+				self.module_context.module.get_global(v.name()).map(|v| v.as_pointer_value())
 			}
 		}
     }

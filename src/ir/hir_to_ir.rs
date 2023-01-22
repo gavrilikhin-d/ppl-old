@@ -128,10 +128,6 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Arc<VariableDeclaration> {
     fn lower_global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
         let global = self.declare_global(context);
 
-        context
-            .variables
-            .insert(self.clone().into(), global.clone().as_pointer_value());
-
         global.set_initializer(&self.ty().lower_to_ir(context).try_into_basic_type().expect("non-basic type global initializer").const_zero());
 
         let initialize = context.module.add_function(
