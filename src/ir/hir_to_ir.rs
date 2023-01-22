@@ -150,7 +150,12 @@ impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Arc<VariableDeclaration> {
 
     /// Lower local [`VariableDeclaration`] to LLVM IR
     fn lower_local_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        unimplemented!("Local variable declaration")
+        let ty = self.ty().lower_to_ir(context).try_into_basic_type().expect("non-basic type local variable");
+		let value = self.initializer.lower_to_ir(context).expect("initializer return None or Void");
+		let alloca = context.builder.build_alloca(ty, &self.name);
+		context.builder.build_store(alloca, value);
+		context.variables.insert(self.name.to_string(), alloca.clone());
+		alloca
     }
 }
 

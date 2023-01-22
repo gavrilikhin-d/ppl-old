@@ -90,6 +90,11 @@ pub struct FunctionContext<'llvm, 'm> {
 	pub parameters: HashMap<
 		String,
 		inkwell::values::PointerValue<'llvm>
+	>,
+	/// Local variables
+	pub variables: HashMap<
+		String,
+		inkwell::values::PointerValue<'llvm>
 	>
 }
 
@@ -109,7 +114,8 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
             module_context,
             function,
             builder,
-			parameters: HashMap::new()
+			parameters: HashMap::new(),
+			variables: HashMap::new()
         }
     }
 
@@ -123,6 +129,10 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
 				self.parameters.get(p.name()).cloned()
 			}
 			ParameterOrVariable::Variable(v) => {
+				if let Some(var) = self.variables.get(v.name()) {
+					return Some(*var);
+				}
+
 				self.module_context.module.get_global(v.name()).map(|v| v.as_pointer_value())
 			}
 		}
