@@ -7,6 +7,9 @@ pub use types::*;
 mod variable;
 pub use variable::*;
 
+mod r#trait;
+pub use r#trait::*;
+
 use derive_more::{From, TryInto};
 
 use std::sync::Arc;
@@ -19,6 +22,7 @@ pub enum Declaration {
     Variable(Arc<VariableDeclaration>),
     Type(Arc<TypeDeclaration>),
     Function(Arc<FunctionDeclaration>),
+	Trait(Arc<TraitDeclaration>),
 }
 
 impl Named for Declaration {
@@ -27,6 +31,7 @@ impl Named for Declaration {
             Declaration::Variable(decl) => decl.name(),
             Declaration::Type(decl) => decl.name(),
             Declaration::Function(decl) => decl.name(),
+			Declaration::Trait(decl) => decl.name(),
         }
     }
 }

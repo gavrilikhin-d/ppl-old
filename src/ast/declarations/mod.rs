@@ -7,6 +7,9 @@ pub use types::*;
 mod variable;
 pub use variable::*;
 
+mod r#trait;
+pub use r#trait::*;
+
 extern crate ast_derive;
 use ast_derive::AST;
 
@@ -23,6 +26,7 @@ pub enum Declaration {
     Variable(VariableDeclaration),
     Type(TypeDeclaration),
     Function(FunctionDeclaration),
+	Trait(TraitDeclaration),
 }
 
 impl StartsHere for Declaration {
@@ -31,6 +35,7 @@ impl StartsHere for Declaration {
         VariableDeclaration::starts_here(context)
             || TypeDeclaration::starts_here(context)
             || FunctionDeclaration::starts_here(context)
+			|| TraitDeclaration::starts_here(context)
     }
 }
 
@@ -46,11 +51,12 @@ impl Parse for Declaration {
             .into());
         }
 
-        match context.lexer.peek().unwrap() {
-            Token::Type => TypeDeclaration::parse(context).map(Declaration::Type),
-            Token::Let => VariableDeclaration::parse(context).map(Declaration::Variable),
-            Token::Fn => FunctionDeclaration::parse(context).map(Declaration::Function),
+        Ok(match context.lexer.peek().unwrap() {
+            Token::Type => TypeDeclaration::parse(context)?.into(),
+            Token::Let => VariableDeclaration::parse(context)?.into(),
+            Token::Fn => FunctionDeclaration::parse(context)?.into(),
+			Token::Trait => TraitDeclaration::parse(context)?.into(),
             _ => unreachable!("unexpected token in start of declaration"),
-        }
+        })
     }
 }

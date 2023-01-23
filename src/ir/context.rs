@@ -1,8 +1,8 @@
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 use inkwell::basic_block::BasicBlock;
 
-use crate::{named::{HashByName, Named}, hir::{VariableDeclaration, ParameterOrVariable, Statement}};
+use crate::{named::Named, hir::{ParameterOrVariable, Statement}};
 
 use super::{Types, Functions, LocalHIRLowering};
 

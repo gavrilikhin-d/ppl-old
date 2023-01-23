@@ -146,6 +146,10 @@ pub enum Token {
 	#[token("while")]
 	While,
 
+	/// "trait" token
+	#[token("trait")]
+	Trait,
+
     /// Error token
     #[error]
     #[regex("[ ]+", logos::skip)]

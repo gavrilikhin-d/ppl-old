@@ -716,6 +716,18 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
     }
 }
 
+impl ASTLoweringWithinContext for ast::TraitDeclaration {
+	type HIR = Arc<hir::TraitDeclaration>;
+
+	/// Lower [`ast::TraitDeclaration`] to [`hir::TraitDeclaration`] within lowering context
+	fn lower_to_hir_within_context(
+		&self,
+		context: &mut ASTLoweringContext,
+	) -> Result<Self::HIR, Error> {
+		todo!("traits lowering to hir")
+	}
+}
+
 impl ASTLoweringWithinContext for ast::Declaration {
     type HIR = hir::Declaration;
 
@@ -725,9 +737,14 @@ impl ASTLoweringWithinContext for ast::Declaration {
         context: &mut ASTLoweringContext,
     ) -> Result<Self::HIR, Error> {
         Ok(match self {
-            ast::Declaration::Variable(decl) => decl.lower_to_hir_within_context(context)?.into(),
-            ast::Declaration::Type(decl) => decl.lower_to_hir_within_context(context)?.into(),
-            ast::Declaration::Function(decl) => decl.lower_to_hir_within_context(context)?.into(),
+            ast::Declaration::Variable(decl)
+				=> decl.lower_to_hir_within_context(context)?.into(),
+            ast::Declaration::Type(decl)
+				=> decl.lower_to_hir_within_context(context)?.into(),
+            ast::Declaration::Function(decl)
+				=> decl.lower_to_hir_within_context(context)?.into(),
+			ast::Declaration::Trait(decl)
+				=> decl.lower_to_hir_within_context(context)?.into(),
         })
     }
 }
