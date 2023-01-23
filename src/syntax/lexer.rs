@@ -475,6 +475,18 @@ impl InteractiveLexer {
         }
     }
 
+	/// Implementation of peek without requesting new line
+	fn peek_impl(&self) -> Option<Token> {
+		let mut lexer = self.lexer();
+        let mut peeked = lexer.next();
+		if self.token == Some(Token::Newline) {
+			while peeked == Some(Token::Newline) {
+				peeked = lexer.next();
+			}
+		}
+		peeked
+	}
+
 	/// Override next prompt
 	pub fn override_next_prompt(&mut self, prompt: &str) {
 		self.next_prompt = Some(prompt.to_string()).into()
@@ -516,13 +528,10 @@ impl Lexer for InteractiveLexer {
 
     /// Peek next token
     fn peek(&self) -> Option<Token> {
-        self.maybe_request_line();
-		let mut lexer = self.lexer();
-        let mut peeked = lexer.next();
-		if self.token == Some(Token::Newline) {
-			while peeked == Some(Token::Newline) {
-				peeked = lexer.next();
-			}
+		let mut peeked = self.peek_impl();
+		if peeked.is_none() {
+			self.request_line();
+			peeked = self.peek_impl();
 		}
 		peeked
     }
