@@ -56,8 +56,6 @@ impl Parse for Statement {
 
     /// Parse statement using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        context.lexer.skip_spaces();
-
         if !Statement::starts_here(context) {
             return Err(MissingStatement {
                 at: context.lexer.span().end.into(),
