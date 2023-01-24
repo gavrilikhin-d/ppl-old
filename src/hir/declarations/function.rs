@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use derive_more::From;
 
-use crate::hir::{Statement, Type, Typed};
+use crate::hir::{Statement, Type, Typed, FunctionType};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::StringWithOffset;
@@ -203,16 +203,17 @@ impl Named for FunctionDeclaration {
 
 impl Typed for FunctionDeclaration {
     fn ty(&self) -> Type {
-        Type::Function {
-            return_type: Box::new(self.return_type.clone()),
-            parameters: self
-                .name_parts
-                .iter()
-                .filter_map(|part| match part {
-                    FunctionNamePart::Parameter(parameter) => Some(parameter.ty()),
-                    _ => None,
-                })
-                .collect(),
-        }
+        FunctionType::build()
+			.with_parameters(
+				self.name_parts
+					.iter()
+					.filter_map(|part| match part {
+						FunctionNamePart::Parameter(p) => Some(p.ty()),
+						_ => None,
+					})
+					.collect()
+			)
+			.with_return_type(self.return_type.clone())
+			.into()
     }
 }

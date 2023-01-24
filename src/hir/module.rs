@@ -1,11 +1,42 @@
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
+use derive_more::From;
+
 use crate::ast;
 use crate::hir::{FunctionDeclaration, Statement, TypeDeclaration, VariableDeclaration};
 use crate::named::{HashByName, Named};
 use crate::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
 use std::sync::{Arc, LazyLock};
+
+use super::{Type, TraitDeclaration};
+
+/// Class or trait
+#[derive(Debug, PartialEq, Eq, Clone, From)]
+pub enum ClassOrTrait {
+	/// Class declaration
+	Class(Arc<TypeDeclaration>),
+	/// Trait declaration
+	Trait(Arc<TraitDeclaration>),
+}
+
+impl From<ClassOrTrait> for Type {
+	fn from(class_or_trait: ClassOrTrait) -> Self {
+		match class_or_trait {
+			ClassOrTrait::Class(c) => Type::Class(c),
+			ClassOrTrait::Trait(t) => Type::Trait(t),
+		}
+	}
+}
+
+impl Named for ClassOrTrait {
+	fn name(&self) -> &str {
+		match self {
+			ClassOrTrait::Class(c) => c.name(),
+			ClassOrTrait::Trait(t) => t.name(),
+		}
+	}
+}
 
 /// Module with PPL code
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -23,7 +54,7 @@ pub struct Module {
     pub variables: HashSet<HashByName<Arc<VariableDeclaration>>>,
 
     /// Types, declared in this module
-    pub types: HashSet<HashByName<Arc<TypeDeclaration>>>,
+    pub types: HashSet<HashByName<ClassOrTrait>>,
 
     /// Functions, declared in this module
     pub functions: HashMap<

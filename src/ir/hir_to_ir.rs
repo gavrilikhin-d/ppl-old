@@ -51,6 +51,8 @@ impl<'llvm> HIRTypesLowering<'llvm> for Type {
     fn lower_to_ir(&self, context: &impl Context<'llvm>) -> Self::IR {
         match self {
             Type::Class(ty) => ty.lower_to_ir(context).into(),
+			Type::SelfType => unreachable!("Self must not be lowered to IR"),
+			Type::Trait(_) => unreachable!("Trait must not be lowered to IR"),
             Type::Function { .. } => unimplemented!("Function type lowering"),
         }
     }
@@ -184,15 +186,13 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionDeclaration {
     /// Declare global function without defining it
     fn declare_global(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
         let ty = match self.ty() {
-            Type::Function {
-                parameters,
-                return_type,
-            } => {
-                let parameters = parameters
-                    .iter()
-                    .filter_map(|p| p.lower_to_ir(context).try_into().ok())
-                    .collect::<Vec<BasicMetadataTypeEnum>>();
-                let return_type = return_type.lower_to_ir(context);
+            Type::Function(f) => {
+                let parameters =
+					f.parameters
+						.iter()
+						.filter_map(|p| p.lower_to_ir(context).try_into().ok())
+						.collect::<Vec<BasicMetadataTypeEnum>>();
+                let return_type = f.return_type.lower_to_ir(context);
                 return_type.fn_type(&parameters, false)
             }
             _ => unreachable!("FunctionDeclaration::ty() returned non-function type"),

@@ -78,6 +78,10 @@ fn process_single_statement<'llvm>(
 				}
 			},
             Type::Function { .. } => unimplemented!("returning functions"),
+			Type::Trait { .. } => unimplemented!("returning traits"),
+			Type::SelfType => unreachable!(
+				"Self may not be returned as result of expression"
+			),
         }
     }
 

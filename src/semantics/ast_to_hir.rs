@@ -573,7 +573,7 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
 			is_builtin: context.module.is_builtin,
         });
 
-        context.module.types.insert(ty.clone().into());
+        context.module.types.insert(HashByName { value: ty.clone().into() });
 
         Ok(ty)
     }
@@ -724,7 +724,14 @@ impl ASTLoweringWithinContext for ast::TraitDeclaration {
 		&self,
 		context: &mut ASTLoweringContext,
 	) -> Result<Self::HIR, Error> {
-		todo!("traits lowering to hir")
+		let tr = Arc::new(hir::TraitDeclaration {
+            name: self.name.clone(),
+			functions: vec![] // TODO: implement
+        });
+
+        context.module.types.insert(HashByName { value: tr.clone().into() });
+
+        Ok(tr)
 	}
 }
 
@@ -895,7 +902,9 @@ impl ASTLoweringWithinContext for ast::Module {
 		) -> Result<Self::HIR, Error> {
 		let types = self.statements.iter().filter_map(
 			|stmt|
-			if let ast::Statement::Declaration(ast::Declaration::Type(_)) = stmt {
+			if let ast::Statement::Declaration(
+				ast::Declaration::Type(_) | ast::Declaration::Trait(_)
+			) = stmt {
 				Some(stmt.lower_to_hir_within_context(context))
 			}
 			else {

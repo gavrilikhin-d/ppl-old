@@ -10,9 +10,6 @@ type None
 
 /// Convert `None` to `String`
 fn <:None> as String => "none"
-
-/// Prints "none" to stdout with newline
-fn print <:None> => print "none"
 //---------------------------------
 
 
@@ -44,9 +41,6 @@ fn <x: Bool> as String -> String:
 	if x:
 		return "true"
 	return "false"
-
-/// Prints bool to stdout with newline
-fn print <x: Bool> => print (x as String)
 //---------------------------------
 
 
@@ -85,9 +79,6 @@ fn <:Integer> * <:Integer> -> Integer
 /// Convert `Integer` to `String`
 @mangle_as("integer_as_string")
 fn <:Integer> as String -> String
-
-/// Prints integer to stdout with newline
-fn print <x: Integer> => print (x as String)
 //---------------------------------
 
 //=================================
@@ -98,4 +89,11 @@ type String
 /// Prints string to stdout with newline
 @mangle_as("print_string")
 fn print <:String>
+
+/// Trait for things that may be interpreted as string
+trait AsString:
+	fn <:Self> as String -> String
+
+/// Print anything that may be interpreted as String
+fn print <x: AsString> => print (x as String)
 //---------------------------------
