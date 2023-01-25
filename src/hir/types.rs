@@ -153,7 +153,7 @@ impl Type {
 
 	/// Get builtin type by name
 	fn get_builtin(name: &str) -> Type {
-		Module::builtin().types.get(name).unwrap().value.clone().into()
+		Module::builtin().types.get(name).unwrap().clone().into()
 	}
 
 	/// Get builtin "None" type

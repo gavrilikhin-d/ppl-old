@@ -1,11 +1,11 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::path::Path;
 
 use derive_more::From;
 
 use crate::ast;
 use crate::hir::{FunctionDeclaration, Statement, TypeDeclaration, VariableDeclaration};
-use crate::named::{HashByName, Named};
+use crate::named::Named;
 use crate::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
 use std::sync::{Arc, LazyLock};
 
@@ -38,6 +38,9 @@ impl Named for ClassOrTrait {
 	}
 }
 
+pub type Format = String;
+pub type Name = String;
+
 /// Module with PPL code
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Module {
@@ -51,15 +54,18 @@ pub struct Module {
 	pub is_builtin: bool,
 
     /// Variables, declared in this module
-    pub variables: HashSet<HashByName<Arc<VariableDeclaration>>>,
+    pub variables: HashMap<Name, Arc<VariableDeclaration>>,
 
     /// Types, declared in this module
-    pub types: HashSet<HashByName<ClassOrTrait>>,
+    pub types: HashMap<Name, ClassOrTrait>,
 
     /// Functions, declared in this module
     pub functions: HashMap<
-        String, // Name format
-        HashSet<HashByName<Arc<FunctionDeclaration>>>,
+        Format,
+       	HashMap<
+			Name,
+			Arc<FunctionDeclaration>
+		>
     >,
 
     /// Statements in this module
@@ -76,8 +82,8 @@ impl Module {
             name: name.to_string(),
 			filename: filename.to_string(),
 			is_builtin: false,
-            variables: HashSet::new(),
-            types: HashSet::new(),
+            variables: HashMap::new(),
+            types: HashMap::new(),
             functions: HashMap::new(),
             statements: vec![],
         }
@@ -154,21 +160,21 @@ impl Module {
 		let set =
 			self.functions
 				.entry(function.name_format().to_string())
-				.or_insert_with(HashSet::new);
-		set.insert(function.into());
+				.or_insert_with(HashMap::new);
+		set.insert(function.name().to_string(), function.into());
 	}
 
 	/// Define previously declared function
 	pub fn define_function(&mut self, function: Arc<FunctionDeclaration>) {
 		self.functions
 			.get_mut(function.name_format())
-			.expect("function was not predeclared")
-			.replace(function.clone().into());
+			.unwrap()
+			.insert(function.name().to_string(), function);
 	}
 
 	/// Iterate over all functions with `n` name parts
 	pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = Arc<FunctionDeclaration>> + '_ {
-		self.functions.values().flatten().map(|f| f.value.clone())
+		self.functions.values().flat_map(|m| m.values().cloned())
 	}
 }
 

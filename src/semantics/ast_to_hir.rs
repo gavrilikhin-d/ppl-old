@@ -1,10 +1,10 @@
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::ops::Range;
 use std::sync::Arc;
 
-use crate::hir::{self, Module, Type, Typed, ParameterOrVariable, CallKind, FunctionNamePart};
+use crate::hir::{self, Module, Type, Typed, ParameterOrVariable, CallKind, FunctionNamePart, Name};
 use crate::mutability::Mutable;
-use crate::named::HashByName;
+use crate::named::Named;
 use crate::syntax::Ranged;
 
 use super::error::*;
@@ -37,10 +37,10 @@ impl ASTLoweringContext {
 
         let var = self.module.variables.get(name);
         if var.is_some() || self.module.is_builtin {
-            var.map(|v| v.value.clone().into())
+            var.map(|v| v.clone().into())
         }
 		else {
-			Module::builtin().variables.get(name).map(|v| v.value.clone().into())
+			Module::builtin().variables.get(name).map(|v| v.clone().into())
 		}
 	}
 
@@ -48,10 +48,10 @@ impl ASTLoweringContext {
     pub fn find_type(&self, name: &str) -> Option<Type> {
         let ty = self.module.types.get(name);
         if ty.is_some() || self.module.is_builtin {
-        	ty.map(|t| t.value.clone().into())
+        	ty.map(|t| t.clone().into())
         }
 		else {
-			Module::builtin().types.get(name).map(|t| t.value.clone().into())
+			Module::builtin().types.get(name).map(|t| t.clone().into())
 		}
     }
 
@@ -61,7 +61,7 @@ impl ASTLoweringContext {
 			return Type::none()
 		}
 
-		self.module.types.get("None").unwrap().value.clone().into()
+		self.module.types.get("None").unwrap().clone().into()
 	}
 
 	/// Get builtin "Bool" type
@@ -70,7 +70,7 @@ impl ASTLoweringContext {
 			return Type::bool()
 		}
 
-		self.module.types.get("Bool").unwrap().value.clone().into()
+		self.module.types.get("Bool").unwrap().clone().into()
 	}
 
 	/// Get builtin "Integer" type
@@ -79,7 +79,7 @@ impl ASTLoweringContext {
 			return Type::integer()
 		}
 
-		self.module.types.get("Integer").unwrap().value.clone().into()
+		self.module.types.get("Integer").unwrap().clone().into()
 	}
 
 	/// Get builtin "String" type
@@ -88,28 +88,28 @@ impl ASTLoweringContext {
 			return Type::string()
 		}
 
-		self.module.types.get("String").unwrap().value.clone().into()
+		self.module.types.get("String").unwrap().clone().into()
 	}
 
     /// Recursively find all functions with same name format
     pub fn find_functions_with_format(
         &self,
         format: &str,
-    ) -> HashSet<HashByName<Arc<hir::FunctionDeclaration>>> {
-        let funcs = self
+    ) -> HashMap<Name, Arc<hir::FunctionDeclaration>> {
+        let mut funcs = self
             .module
             .functions
             .get(format)
             .cloned()
             .unwrap_or_default();
 		if !self.module.is_builtin {
-    		return funcs.union(
-				&Module::builtin()
+			funcs.extend(
+				Module::builtin()
 					.functions
 						.get(format)
 						.cloned()
 						.unwrap_or_default()
-			).cloned().collect()
+			)
 		}
         funcs
     }
@@ -194,8 +194,8 @@ impl ASTLoweringContext {
         let f = functions.get(name.as_str());
         if f.is_none() {
             let mut candidates: Vec<CandidateNotViable> = Vec::new();
-            for candidate in functions {
-                for (param, arg) in candidate.value.parameters().zip(args) {
+            for candidate in functions.values() {
+                for (param, arg) in candidate.parameters().zip(args) {
                     if param.ty() != arg.ty() {
                         candidates.push(CandidateNotViable {
                             reason: ArgumentTypeMismatch {
@@ -222,7 +222,7 @@ impl ASTLoweringContext {
 			);
         }
 
-        Ok(f.unwrap().value.clone())
+        Ok(f.unwrap().clone())
 	}
 }
 
@@ -587,7 +587,7 @@ impl ASTLoweringWithinContext for ast::VariableDeclaration {
             mutability: self.mutability.clone(),
         });
 
-        context.module.variables.insert(var.clone().into());
+        context.module.variables.insert(var.name().to_string(), var.clone());
 
         Ok(var)
     }
@@ -606,7 +606,7 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
 			is_builtin: context.module.is_builtin,
         });
 
-        context.module.types.insert(HashByName { value: ty.clone().into() });
+        context.module.types.insert(ty.name().to_string(), ty.clone().into());
 
         Ok(ty)
     }
@@ -761,7 +761,7 @@ impl ASTLoweringWithinContext for ast::TraitDeclaration {
 			functions: vec![] // TODO: implement
         });
 
-        context.module.types.insert(HashByName { value: tr.clone().into() });
+        context.module.types.insert(tr.name().to_string(), tr.clone().into());
 
         Ok(tr)
 	}
