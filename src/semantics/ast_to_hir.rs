@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use std::ops::Range;
+use std::slice::Iter;
 use std::sync::Arc;
 
 use crate::hir::{self, Module, Type, Typed, ParameterOrVariable, CallKind, FunctionNamePart};
@@ -136,21 +137,43 @@ impl ASTLoweringContext {
 	)
 		-> Vec<Arc<hir::FunctionDeclaration>>
 	{
-		let mut functions = self.module.functions.values().flatten().map(|f| f.value.clone()).collect::<Vec<_>>();
+		// Add functions from current module
+		let mut functions: Vec<_> = self.module.functions_with_n_name_parts(
+			name_parts.len()
+		).collect();
 
+		// Add builtin functions
 		if !self.module.is_builtin {
 			functions.extend(
-				Module::builtin().functions.values().flatten().map(|f| f.value.clone())
+				Module::builtin().functions_with_n_name_parts(
+					name_parts.len()
+				)
 			)
 		}
 
-		let mut candidates = Vec::new();
-		for f in functions {
-			if f.name_parts.len() != name_parts.len() {
-				continue;
-			}
+		// Add functions from traits
+		functions.extend(
+			args_cache
+				.iter()
+				.filter_map(|a| a.as_ref())
+				.filter_map(
+					|a| if let Type::Trait(tr) = a.ty() {
+						return Some(tr)
+					}
+					else {
+						None
+					}
+				)
+				.flat_map(
+					|tr| tr.functions_with_n_name_parts(name_parts.len())
+							.collect::<Vec<_>>()
+				)
+		);
 
-			if f.name_parts.iter()
+		// Filter functions by name parts
+		functions.iter().filter(
+			|f| f.name_parts
+			    .iter()
 				.zip(name_parts)
 				.enumerate()
 				.all(
@@ -160,11 +183,7 @@ impl ASTLoweringContext {
 					(FunctionNamePart::Parameter(_), CallNamePart::Text(_)) => args_cache[i].is_some(),
 					_ => false,
 				})
-			{
-				candidates.push(f.clone())
-			}
-		}
-		candidates
+		).cloned().collect()
 	}
 
 	/// Recursively find function with same name format and arguments

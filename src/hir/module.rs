@@ -165,6 +165,11 @@ impl Module {
 			.expect("function was not predeclared")
 			.replace(function.clone().into());
 	}
+
+	/// Iterate over all functions with `n` name parts
+	pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = Arc<FunctionDeclaration>> + '_ {
+		self.functions.values().flatten().map(|f| f.value.clone())
+	}
 }
 
 impl Named for Module {
