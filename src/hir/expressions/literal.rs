@@ -1,4 +1,5 @@
 use crate::hir::{Type, Typed};
+use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 
 /// AST for compile time known values
@@ -50,4 +51,11 @@ impl Typed for Literal {
             Literal::String { ty, .. } => ty,
         }.clone()
     }
+}
+
+impl Mutable for Literal {
+	/// Literal is always immutable
+	fn is_immutable(&self) -> bool {
+		true
+	}
 }

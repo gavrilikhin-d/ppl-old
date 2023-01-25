@@ -4,7 +4,7 @@ use ast_derive::AST;
 use derive_more::From;
 
 use crate::{
-    ast::{Annotation, Statement, Expression},
+    ast::{Annotation, Statement, Expression, TypeReference},
     syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token, Context, OperatorKind},
 };
 
@@ -14,7 +14,7 @@ pub struct Parameter {
     /// Parameter's name
     pub name: StringWithOffset,
     /// Parameter's type
-    pub ty: StringWithOffset,
+    pub ty: TypeReference,
 }
 
 impl Parse for Parameter {
@@ -29,7 +29,7 @@ impl Parse for Parameter {
 
         context.lexer.consume(Token::Colon)?;
 
-        let ty = context.lexer.consume(Token::Id)?;
+        let ty = TypeReference::parse(context)?;
 
         Ok(Parameter { name, ty })
     }
@@ -80,7 +80,7 @@ pub struct FunctionDeclaration {
     /// Name parts of function
     pub name_parts: Vec<FunctionNamePart>,
     /// Return type of function
-    pub return_type: Option<StringWithOffset>,
+    pub return_type: Option<TypeReference>,
     /// Body of function
     pub body: Vec<Statement>,
 
@@ -122,7 +122,7 @@ impl Parse for FunctionDeclaration {
         }
 
         let return_type = if context.lexer.consume(Token::Arrow).is_ok() {
-            Some(context.lexer.consume(Token::Id)?)
+            Some(TypeReference::parse(context)?)
         } else {
             None
         };
@@ -162,17 +162,23 @@ fn test_function_declaration() {
                 StringWithOffset::from("from").at(12).into(),
                 Parameter {
                     name: StringWithOffset::from("a").at(18).into(),
-                    ty: StringWithOffset::from("Point").at(21).into(),
+                    ty: TypeReference {
+						name: StringWithOffset::from("Point").at(21).into()
+					},
                 }
                 .into(),
                 StringWithOffset::from("to").at(28).into(),
                 Parameter {
                     name: StringWithOffset::from("b").at(32).into(),
-                    ty: StringWithOffset::from("Point").at(35).into(),
+                    ty: TypeReference {
+						name: StringWithOffset::from("Point").at(35).into()
+					},
                 }
                 .into(),
             ],
-            return_type: Some(StringWithOffset::from("Distance").at(45).into()),
+            return_type: Some(TypeReference {
+				name: StringWithOffset::from("Distance").at(45).into()
+			}),
             annotations: vec![],
             body: vec![],
 			implicit_return: false,

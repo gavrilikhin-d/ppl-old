@@ -1,12 +1,11 @@
 use std::collections::HashSet;
 use std::ops::Range;
-use std::slice::Iter;
 use std::sync::Arc;
 
 use crate::hir::{self, Module, Type, Typed, ParameterOrVariable, CallKind, FunctionNamePart};
 use crate::mutability::Mutable;
 use crate::named::HashByName;
-use crate::syntax::{Ranged, StringWithOffset};
+use crate::syntax::Ranged;
 
 use super::error::*;
 use crate::ast::{self, CallNamePart, If};
@@ -54,20 +53,6 @@ impl ASTLoweringContext {
 		else {
 			Module::builtin().types.get(name).map(|t| t.value.clone().into())
 		}
-    }
-
-    /// Recursively find type starting from current scope, or return error
-    pub fn ty(&self, name: &StringWithOffset) -> Result<Type, UnknownType> {
-        let t = self.find_type(&name);
-        if t.is_none() {
-            return Err(UnknownType {
-                name: name.into(),
-                at: name.range().into(),
-            }
-            .into());
-        }
-
-        Ok(t.unwrap())
     }
 
 	/// Get builtin "None" type
@@ -510,6 +495,32 @@ impl ASTLoweringWithinContext for ast::Tuple {
 	}
 }
 
+impl ASTLoweringWithinContext for ast::TypeReference {
+	type HIR = hir::TypeReference;
+
+	/// Lower [`ast::TypeReference`] to [`hir::TypeReference`] within lowering context
+	fn lower_to_hir_within_context(
+			&self,
+			context: &mut ASTLoweringContext,
+		) -> Result<Self::HIR, Error> {
+		let ty = context.find_type(&self.name);
+		if ty.is_none() {
+			return Err(
+				UnknownType {
+					name: self.name.clone().into(),
+					at: self.name.range().into(),
+				}.into()
+			);
+		}
+		Ok(
+			hir::TypeReference {
+				span: self.range().into(),
+				referenced_type: ty.unwrap(),
+			}
+		)
+	}
+}
+
 impl ASTLoweringWithinContext for ast::Expression {
     type HIR = hir::Expression;
 
@@ -531,6 +542,8 @@ impl ASTLoweringWithinContext for ast::Expression {
 				t.lower_to_hir_within_context(context)?.into(),
 			ast::Expression::BinaryOperation(op) =>
 				op.lower_to_hir_within_context(context)?.into(),
+			ast::Expression::TypeReference(t) =>
+				t.lower_to_hir_within_context(context)?.into(),
 		})
     }
 }
@@ -607,11 +620,9 @@ impl ASTLoweringWithinContext for ast::Parameter {
         &self,
         context: &mut ASTLoweringContext,
     ) -> Result<Self::HIR, Error> {
-        let ty = context.ty(&self.ty)?;
-
         Ok(Arc::new(hir::Parameter {
             name: self.name.clone(),
-            ty,
+            ty: self.ty.lower_to_hir_within_context(context)?.referenced_type
         }))
     }
 }
@@ -661,7 +672,8 @@ impl Predeclare for ast::FunctionDeclaration {
 		}
 
 		let return_type = match &self.return_type {
-			Some(ty) => context.ty(ty)?,
+			Some(ty) =>
+				ty.lower_to_hir_within_context(context)?.referenced_type,
 			None => context.none(),
 		};
 

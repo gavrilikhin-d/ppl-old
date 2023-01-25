@@ -16,6 +16,9 @@ pub use binary::*;
 mod tuple;
 pub use tuple::*;
 
+mod r#type;
+pub use r#type::*;
+
 extern crate ast_derive;
 use ast_derive::AST;
 
@@ -35,6 +38,7 @@ pub enum Expression {
 	BinaryOperation(BinaryOperation),
     Call(Call),
 	Tuple(Tuple),
+	TypeReference(TypeReference),
 }
 
 impl StartsHere for Expression {
@@ -183,6 +187,7 @@ impl Ranged for Expression {
 			Expression::BinaryOperation(op) => op.range(),
             Expression::Call(call) => call.range(),
 			Expression::Tuple(tuple) => tuple.range(),
+			Expression::TypeReference(ty_ref) => ty_ref.range(),
         }
     }
 }
