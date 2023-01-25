@@ -1,6 +1,6 @@
 use std::{sync::Arc, collections::HashMap};
 
-use crate::{hir::{ClassOrTrait, ParameterOrVariable, FunctionDeclaration, Module, TraitDeclaration, Type, Format, Name}, named::Named};
+use crate::{hir::{ClassOrTrait, ParameterOrVariable, FunctionDeclaration, Module, TraitDeclaration, Type, Format, Name, FunctionNamePart, Expression, Typed}, named::Named, ast::CallNamePart};
 
 /// Trait for various AST lowering contexts
 pub trait Context {
@@ -21,6 +21,53 @@ pub trait Context {
 			Arc<FunctionDeclaration>
 		>
 	>;
+
+	/// Get candidates for function call
+	fn get_candidates(
+		&self,
+		name_parts: &[CallNamePart],
+		args_cache: &[Option<Expression>]
+	)
+		-> Vec<Arc<FunctionDeclaration>>
+	{
+		// Add functions from current module
+		let mut functions: Vec<_> = self.functions().values().flat_map(
+			|f| f.values().filter(|f| f.name_parts.len() == name_parts.len())
+		).cloned().collect();
+
+		// Add functions from traits
+		functions.extend(
+			args_cache
+				.iter()
+				.filter_map(|a| a.as_ref())
+				.filter_map(
+					|a| if let Type::Trait(tr) = a.ty() {
+						return Some(tr)
+					}
+					else {
+						None
+					}
+				)
+				.flat_map(
+					|tr| tr.functions_with_n_name_parts(name_parts.len()).collect::<Vec<_>>()
+				)
+		);
+
+		// Filter functions by name parts
+		functions.iter().filter(
+			|f| f.name_parts
+			    .iter()
+				.zip(name_parts)
+				.enumerate()
+				.all(
+					|(i, (f_part, c_part))| match (f_part, c_part) {
+					(FunctionNamePart::Text(text1), CallNamePart::Text(text2)) => text1.as_str() == text2.as_str(),
+					(FunctionNamePart::Parameter(_), CallNamePart::Argument(_)) => true,
+					(FunctionNamePart::Parameter(_), CallNamePart::Text(_)) => args_cache[i].is_some(),
+					_ => false,
+				})
+		).cloned().collect()
+	}
 }
 
 /// Helper struct to get builtin things
