@@ -17,7 +17,7 @@ pub struct InvalidToken {
 
 /// Diagnostic for unwanted extra tokens
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq, Eq)]
-#[error("extra {token:?}")]
+#[error("extra {token}")]
 #[diagnostic(code(lexer::extra_token))]
 pub struct ExtraToken {
     /// Extra token

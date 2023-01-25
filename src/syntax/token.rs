@@ -150,6 +150,15 @@ pub enum Token {
 	#[token("trait")]
 	Trait,
 
+	/// "Self" token
+	#[token("Self")]
+	SelfType,
+
+	/// "self" token
+	#[token("self")]
+	SelfLiteral,
+
+
     /// Error token
     #[error]
     #[regex("[ ]+", logos::skip)]
@@ -209,6 +218,8 @@ impl Display for Token {
             Token::At => write!(f, "@"),
             Token::LParen => write!(f, "("),
             Token::RParen => write!(f, ")"),
+			Token::SelfType => write!(f, "Self"),
+			Token::SelfLiteral => writeln!(f, "self"),
             _ => write!(f, "{}", format!("{:?}", self).to_lowercase()),
         }
     }
