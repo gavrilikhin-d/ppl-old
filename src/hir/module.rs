@@ -174,7 +174,7 @@ impl Module {
 
 	/// Iterate over all functions with `n` name parts
 	pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = Arc<FunctionDeclaration>> + '_ {
-		self.functions.values().flat_map(|m| m.values().cloned())
+		self.functions.values().flat_map(|m| m.values()).filter(move |f| f.name_parts.len() == n).cloned()
 	}
 }
 
