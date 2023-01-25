@@ -1,4 +1,4 @@
-use std::{fmt::Display, sync::Arc};
+use std::{fmt::Display, sync::{Arc, Weak}};
 
 use crate::{mutability::Mutable, named::Named};
 
@@ -74,6 +74,26 @@ impl FunctionTypeBuilder {
 	}
 }
 
+/// Self type is used to represent type of self in trait methods
+#[derive(Debug, Clone)]
+pub struct SelfType {
+	/// Trait associated with self type
+	pub associated_trait: Weak<TraitDeclaration>,
+}
+
+impl PartialEq for SelfType {
+	fn eq(&self, other: &Self) -> bool {
+		self.associated_trait.ptr_eq(&other.associated_trait)
+	}
+}
+impl Eq for SelfType {}
+
+impl Named for SelfType {
+	fn name(&self) -> &str {
+		"Self"
+	}
+}
+
 /// Type of values
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum Type {
@@ -81,13 +101,24 @@ pub enum Type {
     Class(Arc<TypeDeclaration>),
 	/// User defined trait
 	Trait(Arc<TraitDeclaration>),
-	/// Self type, used in traits
-	SelfType,
+	/// Self type and trait it represents
+	SelfType(SelfType),
     /// Function type
     Function(FunctionType),
 }
 
 impl Type {
+	/// Check if this type is convertible to other type
+	pub fn convertible_to(&self, other: Type) -> bool {
+		match (self, &other) {
+			(Type::Trait(tr), Type::SelfType(s))
+				=> Arc::ptr_eq(tr, &s.associated_trait.upgrade().unwrap()),
+			// TODO: this needs context of all visible functions to check if class implements trait
+			// (Type::Class(c), Type::Trait(tr)) => c.implements(tr),
+			_ => self == &other
+		}
+	}
+
 	/// Is this a builtin type?
 	pub fn is_builtin(&self) -> bool {
 		match self {
@@ -157,7 +188,7 @@ impl Named for Type {
 		match self {
 			Type::Class(class) => class.name(),
 			Type::Trait(tr) => tr.name(),
-			Type::SelfType => "Self",
+			Type::SelfType(s) => s.name(),
 			Type::Function(f) => f.name()
 		}
 	}

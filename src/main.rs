@@ -77,9 +77,9 @@ fn process_single_statement<'llvm>(
 					unreachable!("forgot to handle builtin class");
 				}
 			},
-            Type::Function { .. } => unimplemented!("returning functions"),
-			Type::Trait { .. } => unimplemented!("returning traits"),
-			Type::SelfType => unreachable!(
+            Type::Function(_) => unimplemented!("returning functions"),
+			Type::Trait(_) => unimplemented!("returning traits"),
+			Type::SelfType(_) => unreachable!(
 				"Self may not be returned as result of expression"
 			),
         }

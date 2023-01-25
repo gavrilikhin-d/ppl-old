@@ -196,6 +196,7 @@ impl ASTLoweringContext {
 	) -> Result<Arc<hir::FunctionDeclaration>, Error>
 	{
         let functions = self.find_functions_with_format(format);
+		// TODO: Add functions from traits
         let mut name = format.to_string();
         for arg in args {
             name = name.replacen("<>", format!("<:{}>", arg.ty()).as_str(), 1);
@@ -438,7 +439,7 @@ impl ASTLoweringWithinContext for ast::Call {
 					FunctionNamePart::Text(_) => continue,
 					FunctionNamePart::Parameter(p) => {
 						let arg = args_cache[i].as_ref().unwrap();
-						if arg.ty() != p.ty() {
+						if !arg.ty().convertible_to(p.ty()) {
 							candidates_not_viable.push(
 								CandidateNotViable {
 									reason: ArgumentTypeMismatch {
