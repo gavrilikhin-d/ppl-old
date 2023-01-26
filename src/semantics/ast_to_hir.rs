@@ -663,8 +663,8 @@ impl Predeclare for ast::FunctionDeclaration {
 			match part {
 				ast::FunctionNamePart::Text(t) =>
 					name_parts.push(t.clone().into()),
-				ast::FunctionNamePart::Parameter(p) => {
-					name_parts.push(p.lower_to_hir_within_context(context)?.into())
+				ast::FunctionNamePart::Parameter{parameter, ..} => {
+					name_parts.push(parameter.lower_to_hir_within_context(context)?.into())
 				}
 			}
 		}
@@ -705,7 +705,7 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
         &self,
         context: &mut ASTLoweringContext,
     ) -> Result<Self::HIR, Error> {
-       	let mut f = self.predeclare(context)?;
+       	let f = self.predeclare(context)?;
 
 		context.functions_stack.push(f.clone());
         let mut body = Vec::new();
@@ -718,10 +718,18 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
 			let return_type = f.return_type.clone();
 			let expr: hir::Expression = body.pop().unwrap().try_into().unwrap();
 			if self.return_type.is_none() {
-				// TODO: check if no recursive calls
-				unsafe {
-					(*Arc::as_ptr(&f).cast_mut()).return_type = expr.ty().clone();
-				 }
+				// One reference is held by module
+				// Another reference is held by f itself
+				if Arc::strong_count(&f) > 2 {
+					return Err(CantDeduceReturnType {
+						at: self.name_parts.range().into()
+					}.into());
+				}
+				else {
+					unsafe {
+						(*Arc::as_ptr(&f).cast_mut()).return_type = expr.ty().clone();
+					}
+				}
 			}
 			else {
 				if expr.ty() != return_type {

@@ -253,6 +253,16 @@ pub struct ReturnTypeMismatch {
 	pub expected: Type,
 }
 
+/// Diagnostic for recursive implicit return type
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("can't deduce implicit return type of function")]
+#[diagnostic(code(semantics::cant_deduce_return_type))]
+pub struct CantDeduceReturnType {
+	/// Span of function
+	#[label("Can't deduce return type of this function")]
+	pub at: SourceSpan,
+}
+
 /// Helper macro to create error enumeration
 macro_rules! error_enum {
 	($($name:ident),*) => {
@@ -279,5 +289,6 @@ error_enum!(
     NoFunction,
     ReturnOutsideFunction,
     MissingReturnValue,
-    ReturnTypeMismatch
+    ReturnTypeMismatch,
+	CantDeduceReturnType
 );

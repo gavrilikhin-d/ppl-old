@@ -15,3 +15,9 @@ pub trait Ranged {
         self.start()..self.end()
     }
 }
+
+impl<T: Ranged> Ranged for Vec<T> {
+	fn range(&self) -> std::ops::Range<usize> {
+		self.first().map(|x| x.start()).unwrap_or(0)..self.last().map(|x| x.end()).unwrap_or(0)
+	}
+}

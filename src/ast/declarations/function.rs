@@ -5,7 +5,7 @@ use derive_more::From;
 
 use crate::{
     ast::{Annotation, Statement, Expression, TypeReference},
-    syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token, Context, OperatorKind},
+    syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token, Context, OperatorKind, Ranged},
 };
 
 /// Parameter of function
@@ -15,6 +15,13 @@ pub struct Parameter {
     pub name: StringWithOffset,
     /// Parameter's type
     pub ty: TypeReference,
+}
+
+impl Ranged for Parameter {
+	/// Get range of parameter
+	fn range(&self) -> std::ops::Range<usize> {
+		self.name.range().start..self.ty.range().end
+	}
 }
 
 impl Parse for Parameter {
@@ -39,7 +46,21 @@ impl Parse for Parameter {
 #[derive(Debug, PartialEq, Eq, AST, Clone, From)]
 pub enum FunctionNamePart {
     Text(StringWithOffset),
-    Parameter(Parameter),
+    Parameter{
+		less: usize,
+		parameter: Parameter,
+		greater: usize,
+	},
+}
+
+impl Ranged for FunctionNamePart {
+	/// Get range of function name part
+	fn range(&self) -> std::ops::Range<usize> {
+		match self {
+			FunctionNamePart::Text(s) => s.range(),
+			FunctionNamePart::Parameter{less, greater, ..} => *less..*greater + 1,
+		}
+	}
 }
 
 impl Parse for FunctionNamePart {
@@ -63,11 +84,19 @@ impl Parse for FunctionNamePart {
 					return Ok(context.lexer.string_with_offset().into())
 				}
 
-                let p = Parameter::parse(context)?;
+				let less = context.lexer.span().start;
 
-                context.lexer.consume(Token::Greater)?;
+                let parameter = Parameter::parse(context)?;
 
-                Ok(p.into())
+                let greater = context.lexer.consume(Token::Greater)?.start();
+
+                Ok(
+					FunctionNamePart::Parameter{
+						less,
+						parameter,
+						greater,
+					}
+				)
             }
             _ => unreachable!("consume_one_of returned unexpected token"),
         }
