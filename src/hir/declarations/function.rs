@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::fmt::Display;
 use std::sync::Arc;
 
@@ -63,11 +64,9 @@ pub struct FunctionDeclaration {
     pub name_parts: Vec<FunctionNamePart>,
     /// Type of returned value
     pub return_type: Type,
-    /// Mangled name to use instead of default
-    pub mangled_name: Option<String>,
-    /// Body of function
-    pub body: Vec<Statement>,
 
+	/// Mangled name to use instead of default
+    mangled_name: Option<String>,
     /// Cached format for name of function
     name_format: String,
     /// Cached name of function
@@ -75,6 +74,16 @@ pub struct FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
+	/// Create a new builder for a function declaration
+	pub fn build() -> FunctionDeclarationBuilder {
+		FunctionDeclarationBuilder::new()
+	}
+
+	/// Get name parts of function
+	pub fn name_parts(&self) -> &[FunctionNamePart] {
+		&self.name_parts
+	}
+
     /// Format for the function's name
     ///
     /// # Example
@@ -103,14 +112,36 @@ impl FunctionDeclaration {
     }
 }
 
+impl Named for FunctionDeclaration {
+    /// Get name of function
+    fn name(&self) -> &str {
+        &self.name
+    }
+}
+
+impl Typed for FunctionDeclaration {
+    fn ty(&self) -> Type {
+        FunctionType::build()
+			.with_parameters(
+				self.name_parts
+					.iter()
+					.filter_map(|part| match part {
+						FunctionNamePart::Parameter(p) => Some(p.ty()),
+						_ => None,
+					})
+					.collect()
+			)
+			.with_return_type(self.return_type.clone())
+			.into()
+    }
+}
+
 /// Builder for a function declaration
 pub struct FunctionDeclarationBuilder {
     /// Type's name
     name_parts: Vec<FunctionNamePart>,
     /// Mangled name of function
     mangled_name: Option<String>,
-    /// Body of function
-    body: Vec<Statement>,
 }
 
 impl FunctionDeclarationBuilder {
@@ -119,7 +150,6 @@ impl FunctionDeclarationBuilder {
         FunctionDeclarationBuilder {
             name_parts: Vec::new(),
             mangled_name: None,
-            body: Vec::new(),
         }
     }
 
@@ -132,12 +162,6 @@ impl FunctionDeclarationBuilder {
     /// Set mangled name of function
     pub fn with_mangled_name(mut self, mangled_name: Option<String>) -> Self {
         self.mangled_name = mangled_name;
-        self
-    }
-
-    /// Set body of function
-    pub fn with_body(mut self, body: Vec<Statement>) -> Self {
-        self.body = body;
         self
     }
 
@@ -182,38 +206,116 @@ impl FunctionDeclarationBuilder {
             name_format,
             name,
             mangled_name: self.mangled_name,
-            body: self.body,
         }
     }
 }
 
-impl FunctionDeclaration {
-    /// Create a new builder for a function declaration
-    pub fn build() -> FunctionDeclarationBuilder {
-        FunctionDeclarationBuilder::new()
+/// Declaration of a type
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct FunctionDefinition {
+	/// Declaration of function
+    pub declaration: Arc<FunctionDeclaration>,
+	/// Body of function
+    pub body: Vec<Statement>,
+}
+
+impl FunctionDefinition {
+	/// Get name parts of function
+	pub fn name_parts(&self) -> &[FunctionNamePart] {
+		&self.declaration.name_parts
+	}
+
+	/// Get name format of function
+	pub fn name_format(&self) -> &str {
+        self.declaration.name_format()
+    }
+
+    /// Get iterator over function's parameters
+    pub fn parameters(&self) -> impl Iterator<Item = Arc<Parameter>> + '_ {
+        self.declaration.parameters()
+    }
+
+    /// Get mangled name of function
+    pub fn mangled_name(&self) -> &str {
+        self.declaration.mangled_name()
     }
 }
 
-impl Named for FunctionDeclaration {
-    /// Get name of function
-    fn name(&self) -> &str {
-        &self.name
-    }
+impl Typed for FunctionDefinition {
+	fn ty(&self) -> Type {
+		self.declaration.ty()
+	}
 }
 
-impl Typed for FunctionDeclaration {
-    fn ty(&self) -> Type {
-        FunctionType::build()
-			.with_parameters(
-				self.name_parts
-					.iter()
-					.filter_map(|part| match part {
-						FunctionNamePart::Parameter(p) => Some(p.ty()),
-						_ => None,
-					})
-					.collect()
-			)
-			.with_return_type(self.return_type.clone())
-			.into()
+impl Named for FunctionDefinition {
+	fn name(&self) -> &str {
+		self.declaration.name()
+	}
+}
+
+/// Function definition or declaration
+#[derive(Debug, PartialEq, Eq, Clone, From)]
+pub enum Function {
+	Declaration(Arc<FunctionDeclaration>),
+	Definition(Arc<FunctionDefinition>),
+}
+
+impl Function {
+	pub fn name_parts(&self) -> &[FunctionNamePart] {
+		match self {
+			Function::Declaration(declaration) => declaration.name_parts(),
+			Function::Definition(definition) => definition.name_parts(),
+		}
+	}
+
+	/// Get name format of function
+	pub fn name_format(&self) -> &str {
+        match self {
+			Function::Declaration(declaration) => declaration.name_format(),
+			Function::Definition(definition) => definition.name_format(),
+		}
     }
+
+    /// Get iterator over function's parameters
+    pub fn parameters(&self) -> impl Iterator<Item = Arc<Parameter>> + '_ {
+		match self {
+			Function::Declaration(declaration) => declaration.parameters(),
+			Function::Definition(definition)
+				=> definition.declaration.parameters(),
+		}
+    }
+
+    /// Get mangled name of function
+    pub fn mangled_name(&self) -> &str {
+		match self {
+			Function::Declaration(declaration) => declaration.mangled_name(),
+			Function::Definition(definition) => definition.mangled_name(),
+		}
+    }
+
+	/// Get declaration of function
+	pub fn declaration(&self) -> Arc<FunctionDeclaration> {
+		match self {
+			Function::Declaration(declaration) => declaration.clone(),
+			Function::Definition(definition) => definition.declaration.clone(),
+		}
+	}
+}
+
+impl Typed for Function {
+	fn ty(&self) -> Type {
+		match self {
+			Function::Declaration(declaration) => declaration.ty(),
+			Function::Definition(definition) => definition.ty(),
+		}
+	}
+}
+
+impl Named for Function {
+	fn name(&self) -> &str {
+		match self {
+			Function::Declaration(declaration) => declaration.name(),
+			Function::Definition(definition) => definition.name(),
+		}
+	}
 }

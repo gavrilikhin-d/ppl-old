@@ -9,7 +9,7 @@ use crate::named::Named;
 use crate::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
 use std::sync::{Arc, LazyLock};
 
-use super::{Type, TraitDeclaration};
+use super::{Type, TraitDeclaration, Function, FunctionDefinition};
 
 /// Class or trait
 #[derive(Debug, PartialEq, Eq, Clone, From)]
@@ -64,7 +64,7 @@ pub struct Module {
         Format,
        	HashMap<
 			Name,
-			Arc<FunctionDeclaration>
+			Function
 		>
     >,
 
@@ -156,7 +156,7 @@ impl Module {
     }
 
 	/// Insert function to module
-	pub fn insert_function(&mut self, function: Arc<FunctionDeclaration>) {
+	pub fn insert_function(&mut self, function: Function) {
 		let set =
 			self.functions
 				.entry(function.name_format().to_string())
@@ -165,16 +165,26 @@ impl Module {
 	}
 
 	/// Define previously declared function
-	pub fn define_function(&mut self, function: Arc<FunctionDeclaration>) {
+	pub fn define_function(&mut self, function: Arc<FunctionDefinition>) {
 		self.functions
 			.get_mut(function.name_format())
 			.unwrap()
-			.insert(function.name().to_string(), function);
+			.insert(function.name().to_string(), function.into());
+	}
+
+	/// Iterate all functions
+	pub fn iter_functions(&self) -> impl Iterator<Item = &Function> + '_ {
+		self.functions.values().flat_map(|m| m.values())
 	}
 
 	/// Iterate over all functions with `n` name parts
 	pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = Arc<FunctionDeclaration>> + '_ {
-		self.functions.values().flat_map(|m| m.values()).filter(move |f| f.name_parts.len() == n).cloned()
+		self.iter_functions()
+			.filter(move |f| f.name_parts().len() == n)
+			.map(|f| match f {
+				Function::Declaration(d) => d.clone(),
+				Function::Definition(d) => d.declaration.clone(),
+			})
 	}
 }
 

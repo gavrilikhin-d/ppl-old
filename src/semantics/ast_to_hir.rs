@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::ops::Range;
 use std::sync::Arc;
 
-use crate::hir::{self, Module, Type, Typed, ParameterOrVariable, CallKind, FunctionNamePart, Name};
+use crate::hir::{self, Module, Type, Typed, ParameterOrVariable, CallKind, FunctionNamePart, Name, FunctionDefinition};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
@@ -96,20 +96,18 @@ impl ASTLoweringContext {
         &self,
         format: &str,
     ) -> HashMap<Name, Arc<hir::FunctionDeclaration>> {
-        let mut funcs = self
-            .module
-            .functions
-            .get(format)
-            .cloned()
-            .unwrap_or_default();
+		let mut funcs = HashMap::new();
+		if let Some(current) = self.module.functions.get(format) {
+			for (n, f) in current {
+				funcs.insert(n.clone(), f.declaration());
+			}
+		}
 		if !self.module.is_builtin {
-			funcs.extend(
-				Module::builtin()
-					.functions
-						.get(format)
-						.cloned()
-						.unwrap_or_default()
-			)
+			if let Some(builtin) = Module::builtin().functions.get(format) {
+				for (n, f) in builtin {
+					funcs.insert(n.clone(), f.declaration());
+				}
+			}
 		}
         funcs
     }
@@ -350,7 +348,7 @@ impl ASTLoweringWithinContext for ast::UnaryOperation {
 		)?;
 
         Ok(hir::Call {
-            function: Arc::downgrade(&function),
+            function,
             range: self.range().into(),
             args,
         })
@@ -380,7 +378,7 @@ impl ASTLoweringWithinContext for ast::BinaryOperation {
 		)?;
 
         Ok(hir::Call {
-            function: Arc::downgrade(&function),
+            function,
             range: self.range().into(),
             args,
         })
@@ -447,7 +445,7 @@ impl ASTLoweringWithinContext for ast::Call {
 				return Ok(
 					hir::Call {
 						range: self.range(),
-						function: Arc::downgrade(&f),
+						function: f,
 						args
 					}
 				)
@@ -693,21 +691,21 @@ impl Predeclare for ast::FunctionDeclaration {
 				.with_return_type(return_type.clone()),
 		);
 
-		context.module.insert_function(f.clone());
+		context.module.insert_function(f.clone().into());
 
 		Ok(f)
 	}
 }
 
 impl ASTLoweringWithinContext for ast::FunctionDeclaration {
-    type HIR = Arc<hir::FunctionDeclaration>;
+    type HIR = hir::Function;
 
-    /// Lower [`ast::FunctionDeclaration`] to [`hir::FunctionDeclaration`] within lowering context
+    /// Lower [`ast::FunctionDeclaration`] to [`hir::Function`] within lowering context
     fn lower_to_hir_within_context(
         &self,
         context: &mut ASTLoweringContext,
     ) -> Result<Self::HIR, Error> {
-       	let f = self.predeclare(context)?;
+       	let mut f = self.predeclare(context)?;
 
 		context.functions_stack.push(f.clone());
         let mut body = Vec::new();
@@ -716,11 +714,26 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
         }
 		context.functions_stack.pop();
 
-		let mut return_type = f.return_type.clone();
 		if self.implicit_return {
+			let return_type = f.return_type.clone();
 			let expr: hir::Expression = body.pop().unwrap().try_into().unwrap();
 			if self.return_type.is_none() {
-				return_type = expr.ty();
+				// TODO: check if no recursive calls
+				// Replace return type with inferred
+				f = Arc::new(
+					hir::FunctionDeclaration::build()
+						.with_name(f.name_parts.clone())
+						.with_mangled_name(
+							if f.mangled_name() != f.name() {
+								Some(f.mangled_name().to_string())
+							}
+							else {
+								None
+							}
+						)
+						.with_return_type(expr.ty().clone()
+					)
+				);
 			}
 			else {
 				if expr.ty() != return_type {
@@ -734,17 +747,18 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
 			body = vec![hir::Return{ value: Some(expr) }.into()];
 		}
 
-        let f = Arc::new(
-            hir::FunctionDeclaration::build()
-                .with_name(f.name_parts.clone())
-                .with_mangled_name(f.mangled_name.clone())
-				.with_body(body)
-                .with_return_type(return_type),
-        );
+		if body.is_empty() {
+			return Ok(f.into())
+		}
+
+		let f = Arc::new(FunctionDefinition {
+			declaration: f.clone(),
+			body,
+		});
 
 		context.module.define_function(f.clone());
 
-        Ok(f)
+        Ok(f.into())
     }
 }
 

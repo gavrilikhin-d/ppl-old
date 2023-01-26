@@ -206,11 +206,7 @@ impl<'llvm> GlobalHIRLowering<'llvm> for FunctionDeclaration {
 
     /// Lower global [`FunctionDeclaration`] to LLVM IR
     fn lower_global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
-        let f = self.declare_global(context);
-
-		self.emit_body(context);
-
-        f
+        self.declare_global(context)
     }
 }
 
@@ -220,11 +216,42 @@ impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for FunctionDeclaration {
     /// Lower local [`FunctionDeclaration`] to LLVM IR
     fn lower_local_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         // TODO: limit function visibility, capture variables, etc.
-        let f = self.declare_global(context.module_context);
+        self.declare_global(context.module_context)
+    }
+}
+
+impl<'llvm> DeclareGlobal<'llvm> for FunctionDefinition {
+    type IR = inkwell::values::FunctionValue<'llvm>;
+
+    /// Declare global function without defining it
+    fn declare_global(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+        self.declaration.declare_global(context)
+    }
+}
+
+impl<'llvm> GlobalHIRLowering<'llvm> for FunctionDefinition {
+    type IR = inkwell::values::FunctionValue<'llvm>;
+
+    /// Lower global [`FunctionDefinition`] to LLVM IR
+    fn lower_global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+        let f = self.declaration.lower_global_to_ir(context);
+
+		self.emit_body(context);
+
+		f
+    }
+}
+
+impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for FunctionDefinition {
+    type IR = inkwell::values::FunctionValue<'llvm>;
+
+    /// Lower local [`FunctionDefinition`] to LLVM IR
+    fn lower_local_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+        let f = self.declaration.lower_local_to_ir(context);
 
 		self.emit_body(context.module_context);
 
-        f
+		f
     }
 }
 
@@ -234,7 +261,7 @@ trait EmitBody<'llvm> {
 	fn emit_body(&self, context: &mut ModuleContext<'llvm>);
 }
 
-impl<'llvm> EmitBody<'llvm> for FunctionDeclaration {
+impl<'llvm> EmitBody<'llvm> for FunctionDefinition {
 	fn emit_body(&self, context: &mut ModuleContext<'llvm>) {
 		let f = context.functions().get(self.mangled_name()).expect("Function was not declared before emitting body");
 		if !self.body.is_empty() {
@@ -261,6 +288,30 @@ impl<'llvm> EmitBody<'llvm> for FunctionDeclaration {
             }
         }
 	}
+}
+
+impl<'llvm> GlobalHIRLowering<'llvm> for Function {
+    type IR = inkwell::values::FunctionValue<'llvm>;
+
+    /// Lower global [`Function`] to LLVM IR
+    fn lower_global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+        match self {
+			Function::Declaration(decl) => decl.lower_global_to_ir(context),
+			Function::Definition(def) => def.lower_global_to_ir(context),
+		}
+    }
+}
+
+impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Function {
+    type IR = inkwell::values::FunctionValue<'llvm>;
+
+    /// Lower local [`Function`] to LLVM IR
+    fn lower_local_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+        match self {
+			Function::Declaration(decl) => decl.lower_local_to_ir(context),
+			Function::Definition(def) => def.lower_local_to_ir(context),
+		}
+    }
 }
 
 impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Literal {
@@ -352,8 +403,8 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
     fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         let function = context
             .functions()
-            .get(self.function.upgrade().unwrap().mangled_name())
-            .or_else(|| Some(self.function.upgrade().unwrap().declare_global(context.module_context)))
+            .get(self.function.mangled_name())
+            .or_else(|| Some(self.function.declare_global(context.module_context)))
             .unwrap();
 
         let arguments = self
