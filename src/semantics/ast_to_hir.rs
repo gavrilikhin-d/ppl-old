@@ -350,7 +350,7 @@ impl ASTLoweringWithinContext for ast::UnaryOperation {
 		)?;
 
         Ok(hir::Call {
-            function,
+            function: Arc::downgrade(&function),
             range: self.range().into(),
             args,
         })
@@ -380,7 +380,7 @@ impl ASTLoweringWithinContext for ast::BinaryOperation {
 		)?;
 
         Ok(hir::Call {
-            function,
+            function: Arc::downgrade(&function),
             range: self.range().into(),
             args,
         })
@@ -447,7 +447,7 @@ impl ASTLoweringWithinContext for ast::Call {
 				return Ok(
 					hir::Call {
 						range: self.range(),
-						function: f.clone(),
+						function: Arc::downgrade(&f),
 						args
 					}
 				)

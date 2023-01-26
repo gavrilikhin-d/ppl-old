@@ -352,8 +352,8 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
     fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         let function = context
             .functions()
-            .get(self.function.mangled_name())
-            .or_else(|| Some(self.function.declare_global(context.module_context)))
+            .get(self.function.upgrade().unwrap().mangled_name())
+            .or_else(|| Some(self.function.upgrade().unwrap().declare_global(context.module_context)))
             .unwrap();
 
         let arguments = self

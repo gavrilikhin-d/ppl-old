@@ -2,7 +2,7 @@ use crate::hir::{Expression, FunctionDeclaration, Type, Typed};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 use std::ops::Range;
-use std::sync::Arc;
+use std::sync::Weak;
 
 /// Kind of function call
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -12,15 +12,24 @@ pub enum CallKind {
 }
 
 /// AST for function call
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, Clone)]
 pub struct Call {
     /// Range of function call
     pub range: Range<usize>,
     /// Called function
-    pub function: Arc<FunctionDeclaration>,
+    pub function: Weak<FunctionDeclaration>,
     /// Arguments to the function call
     pub args: Vec<Expression>,
 }
+
+impl PartialEq for Call {
+	fn eq(&self, other: &Self) -> bool {
+		self.range == other.range &&
+		self.function.ptr_eq(&other.function) &&
+		self.args == other.args
+	}
+}
+impl Eq for Call {}
 
 impl Ranged for Call {
     fn range(&self) -> std::ops::Range<usize> {
@@ -30,12 +39,12 @@ impl Ranged for Call {
 
 impl Typed for Call {
     fn ty(&self) -> Type {
-        self.function.return_type.clone()
+        self.function.upgrade().unwrap().return_type.clone()
     }
 }
 
 impl Mutable for Call {
     fn is_mutable(&self) -> bool {
-        self.function.return_type.is_mutable()
+        self.ty().is_mutable()
     }
 }
