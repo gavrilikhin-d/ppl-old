@@ -719,21 +719,9 @@ impl ASTLoweringWithinContext for ast::FunctionDeclaration {
 			let expr: hir::Expression = body.pop().unwrap().try_into().unwrap();
 			if self.return_type.is_none() {
 				// TODO: check if no recursive calls
-				// Replace return type with inferred
-				f = Arc::new(
-					hir::FunctionDeclaration::build()
-						.with_name(f.name_parts.clone())
-						.with_mangled_name(
-							if f.mangled_name() != f.name() {
-								Some(f.mangled_name().to_string())
-							}
-							else {
-								None
-							}
-						)
-						.with_return_type(expr.ty().clone()
-					)
-				);
+				unsafe {
+					(*Arc::as_ptr(&f).cast_mut()).return_type = expr.ty().clone();
+				 }
 			}
 			else {
 				if expr.ty() != return_type {
