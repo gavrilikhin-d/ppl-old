@@ -108,14 +108,11 @@ pub enum Type {
 }
 
 impl Type {
-	/// Check if this type is convertible to other type
-	pub fn convertible_to(&self, other: Type) -> bool {
-		match (self, &other) {
-			(Type::Trait(tr), Type::SelfType(s))
-				=> Arc::ptr_eq(tr, &s.associated_trait.upgrade().unwrap()),
-			// TODO: this needs context of all visible functions to check if class implements trait
-			// (Type::Class(c), Type::Trait(tr)) => c.implements(tr),
-			_ => self == &other
+	/// Map self type to given type
+	pub fn map_self<'s>(&'s self, ty: &'s Type) -> &'s Type {
+		match self {
+			Type::SelfType(_) => ty,
+			_ => self
 		}
 	}
 

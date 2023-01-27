@@ -1,7 +1,8 @@
 use std::sync::{Arc, Weak};
 
-use crate::hir::{self, Typed, CallKind, FunctionNamePart, FunctionDefinition};
+use crate::hir::{self, Typed, CallKind, FunctionNamePart, FunctionDefinition, Type};
 use crate::mutability::Mutable;
+use crate::named::Named;
 use crate::syntax::Ranged;
 
 use super::{error::*, Context, ModuleContext, FunctionContext, TraitContext};
@@ -174,6 +175,90 @@ impl ASTLoweringWithinContext for ast::BinaryOperation {
     }
 }
 
+/// Trait to check if one type is convertible to another within context
+trait ConvertibleTo {
+	/// Is this type convertible to another?
+	fn convertible_to(&self, ty: hir::Type) -> ConvertibleToCheck;
+}
+
+impl ConvertibleTo for hir::Type {
+	fn convertible_to(&self, ty: hir::Type) -> ConvertibleToCheck {
+		ConvertibleToCheck {
+			from: self.clone(),
+			to: ty
+		}
+	}
+}
+
+/// Helper struct to perform check within context
+struct ConvertibleToCheck {
+	from: Type,
+	to: Type
+}
+
+impl ConvertibleToCheck {
+	pub fn within(&self, context: &impl Context) -> bool {
+		match (&self.from, &self.to) {
+			(Type::Trait(tr), Type::SelfType(s))
+				=> Arc::ptr_eq(&tr, &s.associated_trait.upgrade().unwrap()),
+			// TODO: this needs context of all visible functions to check if class implements trait
+			(Type::Class(c), Type::Trait(tr))
+				=> c.implements(tr.clone()).within(context),
+			_ => self.from == self.to
+		}
+	}
+}
+
+/// Trait to check if type implements trait
+trait Implements {
+	/// Does this class implement given trait?
+	fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck;
+}
+
+impl Implements for Arc<hir::TypeDeclaration> {
+	fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck {
+		ImplementsCheck {
+			ty: self.clone().into(),
+			tr: tr
+		}
+	}
+}
+
+/// Helper struct to do check within context
+struct ImplementsCheck {
+	ty: Type,
+	tr: Arc<hir::TraitDeclaration>
+}
+
+impl ImplementsCheck {
+	pub fn within(&self, context: &impl Context) -> bool {
+		for generic in &self.tr.functions {
+			let funcs =
+				context.functions_with_n_name_parts(generic.name_parts().len());
+			if !funcs.iter().any(
+				|f| {
+					generic.name_parts().iter().zip(f.name_parts()).all(
+						|(a, b)| {
+							match (a, b) {
+								(FunctionNamePart::Text(a), FunctionNamePart::Text(b))
+									=> a.as_str() == b.as_str(),
+								(FunctionNamePart::Parameter(a), FunctionNamePart::Parameter(b))
+									=> a.ty().map_self(&self.ty) == &b.ty(),
+								_ => false
+							}
+						}
+					) && generic.return_type().map_self(&self.ty) == &f.return_type()
+				}
+			) {
+				return false;
+			}
+		}
+		true
+	}
+}
+
+
+
 impl ASTLoweringWithinContext for ast::Call {
     type HIR = hir::Call;
 
@@ -211,7 +296,7 @@ impl ASTLoweringWithinContext for ast::Call {
 					FunctionNamePart::Text(_) => continue,
 					FunctionNamePart::Parameter(p) => {
 						let arg = args_cache[i].as_ref().unwrap();
-						if !arg.ty().convertible_to(p.ty()) {
+						if !arg.ty().convertible_to(p.ty()).within(context) {
 							candidates_not_viable.push(
 								CandidateNotViable {
 									reason: ArgumentTypeMismatch {
