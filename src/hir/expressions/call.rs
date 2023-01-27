@@ -22,6 +22,13 @@ pub struct Call {
     pub args: Vec<Expression>,
 }
 
+impl Call {
+	/// Is this a call to generic function?
+	pub fn is_generic(&self) -> bool {
+		self.function.is_generic()
+	}
+}
+
 impl Ranged for Call {
     fn range(&self) -> std::ops::Range<usize> {
         self.range.clone()

@@ -18,6 +18,13 @@ pub struct Parameter {
     pub ty: Type,
 }
 
+impl Parameter {
+	/// Is this a generic parameter?
+	pub fn is_generic(&self) -> bool {
+		self.ty.is_generic()
+	}
+}
+
 impl Named for Parameter {
     /// Get name of parameter
     fn name(&self) -> &str {
@@ -76,6 +83,11 @@ impl FunctionDeclaration {
 	/// Create a new builder for a function declaration
 	pub fn build() -> FunctionDeclarationBuilder {
 		FunctionDeclarationBuilder::new()
+	}
+
+	/// Is this a generic function?
+	pub fn is_generic(&self) -> bool {
+		self.parameters().any(|p| p.is_generic())
 	}
 
 	/// Get name parts of function
@@ -219,6 +231,11 @@ pub struct FunctionDefinition {
 }
 
 impl FunctionDefinition {
+	/// Is this a generic function?
+	pub fn is_generic(&self) -> bool {
+		self.declaration.is_generic()
+	}
+
 	/// Get name parts of function
 	pub fn name_parts(&self) -> &[FunctionNamePart] {
 		&self.declaration.name_parts
@@ -265,6 +282,12 @@ pub enum Function {
 }
 
 impl Function {
+	/// Is this a generic function?
+	pub fn is_generic(&self) -> bool {
+		self.declaration().is_generic()
+	}
+
+	/// Get name parts of function
 	pub fn name_parts(&self) -> &[FunctionNamePart] {
 		match self {
 			Function::Declaration(declaration) => declaration.name_parts(),

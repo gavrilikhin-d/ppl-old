@@ -119,6 +119,11 @@ impl Type {
 		}
 	}
 
+	/// Is this a generic type?
+	pub fn is_generic(&self) -> bool {
+		matches!(self, Type::SelfType(_) | Type::Trait(_))
+	}
+
 	/// Is this a builtin type?
 	pub fn is_builtin(&self) -> bool {
 		match self {

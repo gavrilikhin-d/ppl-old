@@ -71,7 +71,9 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Declaration {
                 ty.lower_to_ir(context);
             }
             Declaration::Function(f) => {
-                f.lower_global_to_ir(context);
+				if !f.is_generic() {
+                	f.lower_global_to_ir(context);
+				}
             }
 			// Traits have no effect on ir
 			Declaration::Trait(_) => ()
@@ -92,7 +94,9 @@ impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Declaration {
                 ty.lower_to_ir(context);
             }
             Declaration::Function(f) => {
-                f.lower_local_to_ir(context);
+				if !f.is_generic() {
+					f.lower_local_to_ir(context);
+				}
             }
 			// Traits have no effect on ir
 			Declaration::Trait(_) => ()

@@ -1,10 +1,10 @@
-use std::sync::Arc;
+use std::sync::{Arc, Weak};
 
 use crate::hir::{self, Typed, CallKind, FunctionNamePart, FunctionDefinition};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 
-use super::{error::*, Context, ModuleContext, FunctionContext};
+use super::{error::*, Context, ModuleContext, FunctionContext, TraitContext};
 use crate::ast::{self, CallNamePart, If};
 
 /// Lower AST inside some context
@@ -569,10 +569,32 @@ impl ASTLoweringWithinContext for ast::TraitDeclaration {
 		&self,
 		context: &mut impl Context,
 	) -> Result<Self::HIR, Error> {
-		let tr = Arc::new(hir::TraitDeclaration {
-            name: self.name.clone(),
-			functions: vec![] // TODO: implement
-        });
+		let mut error = None;
+		let tr = Arc::new_cyclic(
+			|trait_weak| {
+				let mut context = TraitContext {
+					tr: hir::TraitDeclaration {
+						name: self.name.clone(),
+						functions: vec![]
+					},
+					trait_weak: trait_weak.clone(),
+					parent: context,
+				};
+
+				for f in &self.functions {
+					error = f.lower_to_hir_within_context(&mut context).err();
+					if error.is_some() {
+						break;
+					}
+				}
+
+				context.tr
+			}
+		);
+
+		if let Some(error) = error {
+			return Err(error);
+		}
 
         context.add_trait(tr.clone());
 
