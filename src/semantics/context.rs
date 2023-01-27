@@ -136,6 +136,25 @@ pub trait Context {
 
 		Ok(f.unwrap().clone())
 	}
+
+	/// Find concrete function for trait function
+	fn find_implementation(&self, trait_fn: &Function, self_type: &Type) -> Option<Function> {
+		let funcs =
+		self.functions_with_n_name_parts(trait_fn.name_parts().len());
+		funcs.iter().find(
+			|f| trait_fn.name_parts().iter().zip(f.name_parts()).all(
+				|(a, b)| {
+					match (a, b) {
+						(FunctionNamePart::Text(a), FunctionNamePart::Text(b))
+							=> a.as_str() == b.as_str(),
+						(FunctionNamePart::Parameter(a), FunctionNamePart::Parameter(b))
+							=> a.ty().map_self(self_type) == &b.ty(),
+						_ => false
+					}
+				}
+			) && trait_fn.return_type().map_self(self_type) == &f.return_type()
+		).cloned()
+	}
 }
 
 /// Helper struct to get builtin things

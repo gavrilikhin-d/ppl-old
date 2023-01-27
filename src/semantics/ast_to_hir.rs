@@ -232,28 +232,9 @@ struct ImplementsCheck {
 
 impl ImplementsCheck {
 	pub fn within(&self, context: &impl Context) -> bool {
-		for generic in &self.tr.functions {
-			let funcs =
-				context.functions_with_n_name_parts(generic.name_parts().len());
-			if !funcs.iter().any(
-				|f| {
-					generic.name_parts().iter().zip(f.name_parts()).all(
-						|(a, b)| {
-							match (a, b) {
-								(FunctionNamePart::Text(a), FunctionNamePart::Text(b))
-									=> a.as_str() == b.as_str(),
-								(FunctionNamePart::Parameter(a), FunctionNamePart::Parameter(b))
-									=> a.ty().map_self(&self.ty) == &b.ty(),
-								_ => false
-							}
-						}
-					) && generic.return_type().map_self(&self.ty) == &f.return_type()
-				}
-			) {
-				return false;
-			}
-		}
-		true
+		self.tr.functions.iter().all(
+			|f| context.find_implementation(&f, &self.ty).is_some()
+		)
 	}
 }
 
