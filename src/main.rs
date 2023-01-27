@@ -7,7 +7,7 @@ use ppl::hir::{self, Type, Typed};
 use ppl::ir::GlobalHIRLowering;
 use ppl::ir::{self, HIRModuleLowering};
 use ppl::named::Named;
-use ppl::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
+use ppl::semantics::{ASTLoweringWithinContext, ModuleContext};
 use ppl::syntax::{InteractiveLexer, Lexer, Parse};
 
 extern crate runtime;
@@ -15,7 +15,7 @@ extern crate runtime;
 /// Parse and compile single statement
 fn process_single_statement<'llvm>(
     parse_context: &mut ppl::syntax::Context<impl Lexer>,
-    ast_lowering_context: &mut ASTLoweringContext,
+    ast_lowering_context: &mut ModuleContext,
     llvm: &'llvm inkwell::context::Context,
     engine: &mut ExecutionEngine<'llvm>,
 ) -> miette::Result<()> {
@@ -90,9 +90,9 @@ fn process_single_statement<'llvm>(
 
 /// Read-Evaluate-Print Loop
 fn repl() {
-    let mut ast_context = ASTLoweringContext::new(
-		hir::Module::new("repl", "")
-	);
+    let mut ast_context = ModuleContext {
+		module:	hir::Module::new("repl", "")
+	};
     let llvm = inkwell::context::Context::create();
     let builtin = hir::Module::builtin().lower_to_ir(&llvm);
 	builtin.print_to_stderr();

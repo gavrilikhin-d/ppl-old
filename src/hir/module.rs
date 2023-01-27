@@ -4,9 +4,9 @@ use std::path::Path;
 use derive_more::From;
 
 use crate::ast;
-use crate::hir::{FunctionDeclaration, Statement, TypeDeclaration, VariableDeclaration};
+use crate::hir::{Statement, TypeDeclaration, VariableDeclaration};
 use crate::named::Named;
-use crate::semantics::{ASTLoweringContext, ASTLoweringWithinContext};
+use crate::semantics::{ModuleContext, ASTLoweringWithinModule};
 use std::sync::{Arc, LazyLock};
 
 use super::{Type, TraitDeclaration, Function, FunctionDefinition};
@@ -72,8 +72,8 @@ pub struct Module {
     pub statements: Vec<Statement>,
 }
 
-static BUILTIN: LazyLock<Arc<Module>> =
-	LazyLock::new(|| Arc::new(Module::create_builtin()));
+static BUILTIN: LazyLock<Module> =
+	LazyLock::new(|| Module::create_builtin());
 
 impl Module {
     /// Create an empty module
@@ -106,9 +106,11 @@ impl Module {
 			path.to_str().unwrap()
 		);
 		module.is_builtin = is_builtin;
-		let mut context = ASTLoweringContext::new(module);
 
-		Ok(ast.lower_to_hir_within_context(&mut context)?)
+		let mut context = ModuleContext { module };
+		ast.lower_to_hir_within_context(&mut context)?;
+
+		Ok(context.module)
 	}
 
 	/// Create module from file
@@ -151,8 +153,8 @@ impl Module {
     ///
     /// let module = Module::builtin();
     /// ```
-    pub fn builtin() -> Arc<Self> {
-        BUILTIN.clone()
+    pub fn builtin() -> &'static Self {
+        &BUILTIN
     }
 
 	/// Insert function to module
@@ -178,13 +180,9 @@ impl Module {
 	}
 
 	/// Iterate over all functions with `n` name parts
-	pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = Arc<FunctionDeclaration>> + '_ {
+	pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = &Function> + '_ {
 		self.iter_functions()
 			.filter(move |f| f.name_parts().len() == n)
-			.map(|f| match f {
-				Function::Declaration(d) => d.clone(),
-				Function::Definition(d) => d.declaration.clone(),
-			})
 	}
 }
 

@@ -238,6 +238,11 @@ impl FunctionDefinition {
     pub fn mangled_name(&self) -> &str {
         self.declaration.mangled_name()
     }
+
+	/// Get return type of function
+	pub fn return_type(&self) -> Type {
+		self.declaration.return_type.clone()
+	}
 }
 
 impl Typed for FunctionDefinition {
@@ -291,6 +296,11 @@ impl Function {
 			Function::Definition(definition) => definition.mangled_name(),
 		}
     }
+
+	/// Get return type of function
+	pub fn return_type(&self) -> Type {
+		self.declaration().return_type.clone()
+	}
 
 	/// Get declaration of function
 	pub fn declaration(&self) -> Arc<FunctionDeclaration> {

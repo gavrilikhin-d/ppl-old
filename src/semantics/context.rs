@@ -1,40 +1,49 @@
-use std::{sync::Arc, collections::HashMap};
+use std::{sync::{Arc, Weak}, ops::Range, collections::HashMap};
 
-use crate::{hir::{ClassOrTrait, ParameterOrVariable, FunctionDeclaration, Module, TraitDeclaration, Type, Format, Name, FunctionNamePart, Expression, Typed}, named::Named, ast::CallNamePart};
+use crate::{hir::{ParameterOrVariable, Module, TraitDeclaration, Type, FunctionNamePart, Expression, Typed, Function, FunctionDefinition, SelfType, TypeDeclaration, VariableDeclaration, CallKind, Name}, named::Named, ast::CallNamePart, syntax::Ranged};
+
+use super::error::{CandidateNotViable, ArgumentTypeMismatch, NoFunction, Error};
 
 /// Trait for various AST lowering contexts
 pub trait Context {
+	/// Is this a context for builtin module?
+	fn is_for_builtin_module(&self) -> bool;
+
 	/// Get module context of builtin module
 	fn builtin(&self) -> BuiltinContext;
 
+	/// Get current function
+	fn function(&self) -> Option<&FunctionDefinition>;
+
 	/// Find type by name
-	fn find_type(&self, name: &str) -> Option<ClassOrTrait>;
+	fn find_type(&self, name: &str) -> Option<Type>;
 
 	/// Find variable by name
 	fn find_variable(&self, name: &str) -> Option<ParameterOrVariable>;
 
-	/// Get visible functions
-	fn functions(&self) -> HashMap<
-		Format,
-		HashMap<
-			Name,
-			Arc<FunctionDeclaration>
-		>
-	>;
+	/// Add type to context
+	fn add_type(&mut self, ty: Arc<TypeDeclaration>);
+
+	/// Add trait to context
+	fn add_trait(&mut self, tr: Arc<TraitDeclaration>);
+
+	/// Add function to context
+	fn add_function(&mut self, f: Function);
+
+	/// Add variable to context
+	fn add_variable(&mut self, v: Arc<VariableDeclaration>);
+
+	/// Get all visible functions
+	fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function>;
 
 	/// Get candidates for function call
-	fn get_candidates(
+	fn candidates(
 		&self,
 		name_parts: &[CallNamePart],
 		args_cache: &[Option<Expression>]
-	)
-		-> Vec<Arc<FunctionDeclaration>>
+	) -> Vec<Function>
 	{
-		// Add functions from current module
-		let mut functions: Vec<_> = self.functions().values().flat_map(
-			|f| f.values().filter(|f| f.name_parts.len() == name_parts.len())
-		).cloned().collect();
-
+		let mut functions = self.functions_with_n_name_parts(name_parts.len());
 		// Add functions from traits
 		functions.extend(
 			args_cache
@@ -49,14 +58,16 @@ pub trait Context {
 					}
 				)
 				.flat_map(
-					|tr| tr.functions_with_n_name_parts(name_parts.len()).collect::<Vec<_>>()
+					|tr| tr.functions_with_n_name_parts(name_parts.len())
+							.cloned()
+							.collect::<Vec<_>>()
 				)
 		);
 
 		// Filter functions by name parts
 		functions.iter().filter(
-			|f| f.name_parts
-			    .iter()
+			|f| f.name_parts()
+				.iter()
 				.zip(name_parts)
 				.enumerate()
 				.all(
@@ -68,28 +79,85 @@ pub trait Context {
 				})
 		).cloned().collect()
 	}
+
+	/// Get all functions with same name format
+	fn functions_with_format(&self, format: &str) -> HashMap<Name, Function>;
+
+	/// Recursively find function with same name format and arguments
+	fn get_function(
+		&self,
+		range: Range<usize>,
+		format: &str,
+		args: &[Expression],
+		kind: CallKind,
+	) -> Result<Function, Error>
+	{
+		let functions = self.functions_with_format(format);
+		// TODO: Add functions from traits
+		let mut name = format.to_string();
+		for arg in args {
+			name = name.replacen("<>", format!("<:{}>", arg.ty()).as_str(), 1);
+		}
+		let arguments = args
+			.iter()
+			.map(|arg| (arg.ty(), arg.range().into()))
+			.collect::<Vec<_>>();
+
+		let f = functions.get(name.as_str());
+		if f.is_none() {
+			let mut candidates: Vec<CandidateNotViable> = Vec::new();
+			for candidate in functions.values() {
+				for (param, arg) in candidate.parameters().zip(args) {
+					if param.ty() != arg.ty() {
+						candidates.push(CandidateNotViable {
+							reason: ArgumentTypeMismatch {
+								expected: param.ty(),
+								expected_span: param.name.range().into(),
+								got: arg.ty(),
+								got_span: arg.range().into(),
+							}
+							.into(),
+						});
+						break;
+					}
+				}
+			}
+
+			return Err(
+				NoFunction {
+					kind,
+					name,
+					at: range.into(),
+					arguments,
+					candidates,
+				}.into()
+			);
+		}
+
+		Ok(f.unwrap().clone())
+	}
 }
 
 /// Helper struct to get builtin things
-pub struct BuiltinContext {
+pub struct BuiltinContext<'m> {
 	/// Builtin module
-	module: Arc<Module>
+	module: &'m Module
 }
 
-impl BuiltinContext {
+impl<'m> BuiltinContext<'m> {
 	/// Get builtin types
-	pub fn types(&self) -> BuiltinTypes {
-		BuiltinTypes { module: self.module.clone() }
+	pub fn types(&self) -> BuiltinTypes<'m> {
+		BuiltinTypes { module: self.module }
 	}
 }
 
 /// Helper struct to get builtin types
-pub struct BuiltinTypes {
+pub struct BuiltinTypes<'m> {
 	/// Builtin module
-	module: Arc<Module>
+	module: &'m Module
 }
 
-impl BuiltinTypes {
+impl BuiltinTypes<'_> {
 	/// Get builtin type by name
 	fn get_type(&self, name: &str) -> Type {
 		self.module.types.get(name).unwrap().clone().into()
@@ -119,67 +187,115 @@ impl BuiltinTypes {
 /// Context for lowering content of module
 pub struct ModuleContext {
     /// Module, which is being lowered
-    pub module: Arc<Module>,
-	/// Builtin module context
-	pub builtin: Option<Box<ModuleContext>>
+    pub module: Module
+}
+
+impl Default for ModuleContext {
+	fn default() -> Self {
+		Self {
+			module: Module::default(),
+		}
+	}
 }
 
 impl Context for ModuleContext {
+	fn is_for_builtin_module(&self) -> bool {
+		self.module.is_builtin
+	}
+
 	fn builtin(&self) -> BuiltinContext {
-		BuiltinContext {
-			module:
-				self.builtin.as_ref()
-					.map(|c| c.module.clone())
-					.unwrap_or_else(|| self.module.clone())
+		if self.module.is_builtin {
+			BuiltinContext {
+				module: &self.module
+			}
+		}
+		else {
+			BuiltinContext {
+				module: Module::builtin()
+			}
 		}
 	}
 
-	fn find_type(&self, name: &str) -> Option<ClassOrTrait> {
-		self.module
-			.types.get(name).cloned()
-			.or_else(|| self.builtin.as_ref().and_then(|b| b.find_type(name)))
+	fn function(&self) -> Option<&FunctionDefinition> { None }
+
+	fn find_type(&self, name: &str) -> Option<Type> {
+		let ty = self.module.types.get(name).cloned().map(|t| t.into());
+		if ty.is_none() && !self.module.is_builtin {
+			return Module::builtin().types.get(name).cloned().map(|t| t.into());
+		}
+		ty
 	}
 
 	fn find_variable(&self, name: &str) -> Option<ParameterOrVariable> {
-		self.module
-			.variables.get(name).cloned().map(|v| v.into())
-			.or_else(
-				|| self.builtin.as_ref().and_then(|b| b.find_variable(name))
-			)
+		let var = self.module.variables.get(name).cloned().map(|v| v.into());
+		if var.is_none() && !self.module.is_builtin {
+			return Module::builtin().variables.get(name).cloned().map(|v| v.into());
+		}
+		var
 	}
 
-	fn functions(&self) -> HashMap<
-			Format,
-			HashMap<
-				Name,
-				Arc<FunctionDeclaration>
-			>
-		> {
-		let mut functions = self.module.functions.clone();
-		functions.extend(
-			self.builtin.as_ref()
-				.map(|b| b.functions())
-				.unwrap_or_else(HashMap::new)
-		);
+	/// Add type to context
+	fn add_type(&mut self, ty: Arc<TypeDeclaration>) {
+		self.module.types.insert(ty.name().to_string(), ty.into());
+	}
+
+	fn add_trait(&mut self, tr: Arc<TraitDeclaration>) {
+		self.module.types.insert(tr.name().to_string(), tr.into());
+	}
+
+	fn add_function(&mut self, f: Function) {
+		self.module.insert_function(f);
+	}
+
+	fn add_variable(&mut self, v: Arc<VariableDeclaration>) {
+		self.module.variables.insert(v.name().to_string(), v);
+	}
+
+	/// Get all visible functions
+	fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
+		let mut functions: Vec<_> =
+			self.module.functions_with_n_name_parts(n).cloned().collect();
+		if !self.module.is_builtin {
+			functions.extend(
+				Module::builtin().functions_with_n_name_parts(n).cloned()
+			);
+		}
 		functions
+	}
+
+	fn functions_with_format(&self, format: &str) -> HashMap<Name, Function>
+	{
+		let mut funcs = self.module.functions.get(format).cloned().unwrap_or_default();
+		if !self.module.is_builtin {
+			funcs.extend(
+				Module::builtin().functions.get(format).cloned().unwrap_or_default()
+			)
+		}
+		funcs
 	}
 }
 
 /// Context for lowering body of function
-pub struct FunctionContext<Parent: Context> {
+pub struct FunctionContext<'p> {
 	/// Function, which is being lowered
-	pub function: Arc<FunctionDeclaration>,
+	pub function: FunctionDefinition,
 
 	/// Parent context for this function
-	pub parent: Parent
+	pub parent: &'p mut dyn Context
 }
 
-impl<T: Context> Context for FunctionContext<T> {
+impl Context for FunctionContext<'_> {
+	fn is_for_builtin_module(&self) -> bool {
+		self.parent.is_for_builtin_module()
+	}
+
 	fn builtin(&self) -> BuiltinContext {
 		self.parent.builtin()
 	}
 
-	fn find_type(&self, name: &str) -> Option<ClassOrTrait> {
+	fn function(&self) -> Option<&FunctionDefinition> { Some(&self.function) }
+
+	fn find_type(&self, name: &str) -> Option<Type> {
 		self.parent.find_type(name)
 	}
 
@@ -190,45 +306,60 @@ impl<T: Context> Context for FunctionContext<T> {
 				.or_else(|| self.parent.find_variable(name))
 	}
 
-	fn functions(&self) -> HashMap<
-		Format,
-		HashMap<
-			Name,
-			Arc<FunctionDeclaration>
-		>
-	> {
-		// First insert this function
-		let mut functions: HashMap<
-			Format,
-			HashMap<
-				Name,
-				Arc<FunctionDeclaration>
-			>
-		> = HashMap::new();
-		functions.insert(
-			self.function.name_format().to_string(),
-			vec![(self.function.name().to_string(), self.function.clone())].into_iter().collect()
-		);
-		functions.extend(self.parent.functions());
-		functions
+	fn add_type(&mut self, ty: Arc<TypeDeclaration>) {
+		todo!("local types")
+	}
+
+	fn add_trait(&mut self, tr: Arc<TraitDeclaration>) {
+		todo!("local traits")
+	}
+
+	fn add_function(&mut self, f: Function) {
+		todo!("local functions")
+	}
+
+	fn add_variable(&mut self, v: Arc<VariableDeclaration>) {
+		todo!("local variables")
+	}
+
+	fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
+		self.parent.functions_with_n_name_parts(n)
+	}
+
+	fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
+		self.parent.functions_with_format(format)
 	}
 }
 
 /// Context for lowering body of trait
-pub struct TraitContext<Parent: Context> {
+pub struct TraitContext<'p> {
 	/// Trait, which is being lowered
-	pub tr: Arc<TraitDeclaration>,
+	pub tr: TraitDeclaration,
+
+	/// Uninitialized weak pointer to trait
+	pub trait_weak: Weak<TraitDeclaration>,
 
 	/// Parent context for this function
-	pub parent: Parent
+	pub parent: &'p mut dyn Context
 }
 
-impl<T: Context> Context for TraitContext<T> {
+impl Context for TraitContext<'_> {
+	fn is_for_builtin_module(&self) -> bool {
+		self.parent.is_for_builtin_module()
+	}
+
 	fn builtin(&self) -> BuiltinContext {
 		self.parent.builtin()
 	}
 
-	fn find_type(&self, name: &str) -> Option<ClassOrTrait> {
+	fn function(&self) -> Option<&FunctionDefinition> { self.parent.function() }
+
+	fn find_type(&self, name: &str) -> Option<Type> {
+		if name == "Self" {
+			return Some(SelfType {
+				associated_trait: self.trait_weak.clone()
+			}.into())
+		}
 		self.parent.find_type(name)
 	}
 
@@ -236,14 +367,33 @@ impl<T: Context> Context for TraitContext<T> {
 		self.parent.find_variable(name)
 	}
 
-	fn functions(&self) -> HashMap<
-			Format,
-			HashMap<
-				Name,
-				Arc<FunctionDeclaration>
-			>
-		> {
-		// TODO: insert functions from trait
-		self.parent.functions()
+	fn add_type(&mut self, ty: Arc<TypeDeclaration>) {
+		todo!("types in traits")
+	}
+
+	fn add_trait(&mut self, tr: Arc<TraitDeclaration>) {
+		todo!("traits in traits?")
+	}
+
+	fn add_function(&mut self, f: Function) {
+		self.tr.functions.push(f)
+	}
+
+	fn add_variable(&mut self, v: Arc<VariableDeclaration>) {
+		todo!("variables in traits")
+	}
+
+	fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
+		let mut functions = self.parent.functions_with_n_name_parts(n);
+		functions.extend(
+			self.tr.functions.iter()
+				.filter(move |f| f.name_parts().len() == n)
+				.cloned()
+		);
+		functions
+	}
+
+	fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
+		todo!("functions with format in traits")
 	}
 }

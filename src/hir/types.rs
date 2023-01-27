@@ -135,6 +135,14 @@ impl Type {
 		}
 	}
 
+	/// Is this a builtin "Bool" type?
+	pub fn is_bool(&self) -> bool {
+		match self {
+			Type::Class(c) => c.is_bool(),
+			_ => false
+		}
+	}
+
 	/// Is this a builtin "Integer" type?
 	pub fn is_integer(&self) -> bool {
 		match self {
