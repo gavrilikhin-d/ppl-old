@@ -1,6 +1,6 @@
 use std::{sync::{Arc, Weak}, ops::Range, collections::HashMap};
 
-use crate::{hir::{ParameterOrVariable, Module, TraitDeclaration, Type, FunctionNamePart, Expression, Typed, Function, FunctionDefinition, SelfType, TypeDeclaration, VariableDeclaration, CallKind, Name}, named::Named, ast::CallNamePart, syntax::Ranged};
+use crate::{hir::{ParameterOrVariable, Module, TraitDeclaration, Type, FunctionNamePart, Expression, Typed, Function, FunctionDefinition, SelfType, TypeDeclaration, VariableDeclaration, CallKind, Name, FunctionDeclaration, Parameter}, named::Named, ast::CallNamePart, syntax::Ranged};
 
 use super::error::{CandidateNotViable, ArgumentTypeMismatch, NoFunction, Error};
 
@@ -154,6 +154,55 @@ pub trait Context {
 				}
 			) && trait_fn.return_type().map_self(self_type) == &f.return_type()
 		).cloned()
+	}
+
+	/// Monomorphize generic function
+	fn monomorphize(&mut self, f: &Function, args: &[Expression])
+		-> Arc<FunctionDeclaration> {
+		// Get mapping of generic types to concrete types
+		let mut mapping = HashMap::new();
+		for (param, arg) in f.parameters().zip(args) {
+			match param.ty() {
+				Type::Trait(tr) => {
+					mapping.insert(Arc::as_ptr(&tr), arg.ty());
+				},
+				_ => {}
+			}
+		}
+
+		let mut arg = args.into_iter().map(|arg| arg.ty());
+		let name_parts = f.name_parts().iter().map(
+			|part| match part {
+				FunctionNamePart::Text(text) => text.clone().into(),
+				FunctionNamePart::Parameter(param) =>
+					Arc::new(
+						Parameter {
+							name: param.name.clone(),
+							ty: {
+								let arg_ty = arg.next().unwrap();
+								match param.ty() {
+									Type::Trait(_) => arg_ty,
+									_ => param.ty()
+								}
+							}
+						}
+					).into()
+			}
+		).collect::<Vec<_>>();
+
+		let declaration = Arc::new(
+			FunctionDeclaration::build()
+				.with_name(name_parts)
+				.with_return_type(f.return_type())
+		);
+
+		if let Function::Definition(def) = f {
+			todo!("Monomorphize function definition")
+		}
+
+		// self.add_function(declaration.clone().into());
+
+		declaration
 	}
 }
 

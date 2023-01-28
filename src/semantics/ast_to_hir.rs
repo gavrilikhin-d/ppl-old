@@ -297,10 +297,17 @@ impl ASTLoweringWithinContext for ast::Call {
 			}
 
 			if !failed {
+				let function = if f.is_generic() {
+					context.monomorphize(&f, &args)
+				}
+				else
+				{
+					f.declaration()
+				};
 				return Ok(
 					hir::Call {
 						range: self.range(),
-						function: f.declaration(),
+						function,
 						args
 					}
 				)
