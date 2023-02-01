@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{hir::{Call, FunctionDeclaration, Type, FunctionNamePart, Parameter, Typed, Statement, Expression, Function, FunctionDefinition, ParameterOrVariable, Return, Assignment, If, ElseIf, Loop, While}, named::Named, semantics::FunctionContext};
+use crate::{hir::{Call, FunctionDeclaration, Type, FunctionNamePart, Parameter, Typed, Statement, Expression, Function, FunctionDefinition, ParameterOrVariable, Return, Assignment, If, ElseIf, Loop, While, VariableReference}, named::Named, semantics::FunctionContext};
 
 use super::Context;
 
@@ -88,7 +88,8 @@ impl Monomorphized for Expression {
 	fn monomorphized(&self, context: &mut impl Context) -> Self {
 		match self {
 			Expression::Call(c) => c.monomorphized(context).into(),
-			Expression::VariableReference(var) => todo!(),
+			Expression::VariableReference(var)
+				=> var.monomorphized(context).into(),
 			Expression::TypeReference(_) => todo!(),
 			Expression::Literal(_) => self.clone()
 		}
@@ -97,17 +98,23 @@ impl Monomorphized for Expression {
 
 impl Monomorphized for Call {
 	fn monomorphized(&self, context: &mut impl Context) -> Self {
-		if self.function.is_generic() {
-			Call {
-				function: self.function.monomorphized(
-					context,
-					self.args.iter().map(|arg| arg.ty())
-				),
-				..self.clone()
-			}
-		} else
-		{
-			self.clone()
+		let args = self.args.monomorphized(context);
+		Call {
+			function: self.function.monomorphized(
+				context,
+				args.iter().map(|arg| arg.ty())
+			),
+			args,
+			..self.clone()
+		}
+	}
+}
+
+impl Monomorphized for VariableReference {
+	fn monomorphized(&self, context: &mut impl Context) -> Self {
+		VariableReference {
+			span: self.span.clone(),
+			variable: context.find_variable(self.variable.name()).unwrap()
 		}
 	}
 }
