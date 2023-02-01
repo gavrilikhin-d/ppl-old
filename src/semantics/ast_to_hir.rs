@@ -5,7 +5,7 @@ use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
 
-use super::{error::*, Context, ModuleContext, FunctionContext, TraitContext};
+use super::{error::*, Context, ModuleContext, FunctionContext, TraitContext, Monomorphized, MonomorphizedWithArgs};
 use crate::ast::{self, CallNamePart, If};
 
 /// Lower AST inside some context
@@ -130,15 +130,23 @@ impl ASTLoweringWithinContext for ast::UnaryOperation {
 			self.operand.lower_to_hir_within_context(context)?
 		];
 
-		let function = context.get_function(
+		let f = context.get_function(
 			self.operator.range(),
 			self.name_format().as_str(),
 			&args,
 			CallKind::Operation
 		)?;
 
+		let function =
+			f.monomorphized(
+				context,
+				args.iter().map(|arg| arg.ty())
+			);
+		let generic = if f.is_generic() { Some(f) } else { None };
+
         Ok(hir::Call {
-            function: function.declaration(),
+            function,
+			generic,
             range: self.range().into(),
             args,
         })
@@ -160,15 +168,23 @@ impl ASTLoweringWithinContext for ast::BinaryOperation {
 			self.right.lower_to_hir_within_context(context)?
 		];
 
-		let function = context.get_function(
+		let f = context.get_function(
 			self.operator.range(),
 			self.name_format().as_str(),
 			&args,
 			CallKind::Operation
 		)?;
 
+		let function =
+			f.monomorphized(
+				context,
+				args.iter().map(|arg| arg.ty())
+			);
+		let generic = if f.is_generic() { Some(f) } else { None };
+
         Ok(hir::Call {
-            function: function.declaration(),
+            function,
+			generic,
             range: self.range().into(),
             args,
         })
@@ -297,17 +313,17 @@ impl ASTLoweringWithinContext for ast::Call {
 			}
 
 			if !failed {
-				let function = if f.is_generic() {
-					context.monomorphize(&f, &args)
-				}
-				else
-				{
-					f.declaration()
-				};
+				let function =
+					f.monomorphized(
+						context,
+						args.iter().map(|a| a.ty())
+					);
+				let generic = if f.is_generic() { Some(f) } else { None };
 				return Ok(
 					hir::Call {
 						range: self.range(),
 						function,
+						generic,
 						args
 					}
 				)
@@ -576,7 +592,7 @@ impl Define for ast::FunctionDeclaration {
 		}
 
 		let mut f_context = FunctionContext {
-			function: FunctionDefinition { declaration, body: vec![] },
+			function: declaration.clone(),
 			parent: context,
 		};
 
@@ -586,19 +602,20 @@ impl Define for ast::FunctionDeclaration {
 		}
 
 		if self.implicit_return {
-			let return_type = f_context.function.return_type().clone();
+			let return_type = f_context.function.return_type.clone();
 			let expr: hir::Expression = body.pop().unwrap().try_into().unwrap();
 			if self.return_type.is_none() {
 				// One reference is held by module
-				// Another reference is held by f itself
-				if Arc::strong_count(&f_context.function.declaration) > 2 {
+				// Another reference is held by declaration itself
+				// Last reference is inside context
+				if Arc::strong_count(&declaration) > 3 {
 					return Err(CantDeduceReturnType {
 						at: self.name_parts.range().into()
 					}.into());
 				}
 				else {
 					unsafe {
-						(*Arc::as_ptr(&f_context.function.declaration).cast_mut()).return_type = expr.ty().clone();
+						(*Arc::as_ptr(&declaration).cast_mut()).return_type = expr.ty().clone();
 					}
 				}
 			}
@@ -614,7 +631,12 @@ impl Define for ast::FunctionDeclaration {
 			body = vec![hir::Return{ value: Some(expr) }.into()];
 		}
 
-		let f = Arc::new(f_context.function);
+		let f = Arc::new(
+			FunctionDefinition {
+				declaration,
+				body,
+			}
+		);
 
 		context.add_function(f.clone().into());
 
@@ -741,7 +763,7 @@ impl ASTLoweringWithinContext for ast::Return {
 		).transpose()?;
 
 		if let Some(f) = context.function() {
-			let return_type = f.return_type();
+			let return_type = f.return_type.clone();
 			if let Some(value) = &value {
 				if value.ty() != return_type {
 					return Err(ReturnTypeMismatch {

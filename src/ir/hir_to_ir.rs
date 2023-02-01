@@ -408,8 +408,13 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
         let function = context
             .functions()
             .get(self.function.mangled_name())
-            .or_else(|| Some(self.function.declare_global(context.module_context)))
-            .unwrap();
+			.unwrap_or_else(
+				|| if self.generic.is_none() {
+					self.function.declaration().declare_global(context.module_context)
+				} else {
+					self.function.lower_local_to_ir(context)
+				}
+			);
 
         let arguments = self
             .args

@@ -1,8 +1,7 @@
-use crate::hir::{Expression, FunctionDeclaration, Type, Typed};
+use crate::hir::{Expression, Type, Typed, Function};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 use std::ops::Range;
-use std::sync::Arc;
 
 /// Kind of function call
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -17,16 +16,11 @@ pub struct Call {
     /// Range of function call
     pub range: Range<usize>,
     /// Called function
-    pub function: Arc<FunctionDeclaration>,
+    pub function: Function,
+	/// Generic version of called function
+	pub generic: Option<Function>,
     /// Arguments to the function call
     pub args: Vec<Expression>,
-}
-
-impl Call {
-	/// Is this a call to generic function?
-	pub fn is_generic(&self) -> bool {
-		self.function.is_generic()
-	}
 }
 
 impl Ranged for Call {
@@ -37,7 +31,7 @@ impl Ranged for Call {
 
 impl Typed for Call {
     fn ty(&self) -> Type {
-        self.function.return_type.clone()
+        self.function.return_type().clone()
     }
 }
 

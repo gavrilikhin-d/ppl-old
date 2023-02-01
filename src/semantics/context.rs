@@ -13,7 +13,7 @@ pub trait Context {
 	fn builtin(&self) -> BuiltinContext;
 
 	/// Get current function
-	fn function(&self) -> Option<&FunctionDefinition>;
+	fn function(&self) -> Option<Arc<FunctionDeclaration>>;
 
 	/// Find type by name
 	fn find_type(&self, name: &str) -> Option<Type>;
@@ -79,6 +79,9 @@ pub trait Context {
 				})
 		).cloned().collect()
 	}
+
+	/// Get function with same name
+	fn function_with_name(&self, name: &str) -> Option<Function>;
 
 	/// Get all functions with same name format
 	fn functions_with_format(&self, format: &str) -> HashMap<Name, Function>;
@@ -154,55 +157,6 @@ pub trait Context {
 				}
 			) && trait_fn.return_type().map_self(self_type) == &f.return_type()
 		).cloned()
-	}
-
-	/// Monomorphize generic function
-	fn monomorphize(&mut self, f: &Function, args: &[Expression])
-		-> Arc<FunctionDeclaration> {
-		// Get mapping of generic types to concrete types
-		let mut mapping = HashMap::new();
-		for (param, arg) in f.parameters().zip(args) {
-			match param.ty() {
-				Type::Trait(tr) => {
-					mapping.insert(Arc::as_ptr(&tr), arg.ty());
-				},
-				_ => {}
-			}
-		}
-
-		let mut arg = args.into_iter().map(|arg| arg.ty());
-		let name_parts = f.name_parts().iter().map(
-			|part| match part {
-				FunctionNamePart::Text(text) => text.clone().into(),
-				FunctionNamePart::Parameter(param) =>
-					Arc::new(
-						Parameter {
-							name: param.name.clone(),
-							ty: {
-								let arg_ty = arg.next().unwrap();
-								match param.ty() {
-									Type::Trait(_) => arg_ty,
-									_ => param.ty()
-								}
-							}
-						}
-					).into()
-			}
-		).collect::<Vec<_>>();
-
-		let declaration = Arc::new(
-			FunctionDeclaration::build()
-				.with_name(name_parts)
-				.with_return_type(f.return_type())
-		);
-
-		if let Function::Definition(def) = f {
-			todo!("Monomorphize function definition")
-		}
-
-		// self.add_function(declaration.clone().into());
-
-		declaration
 	}
 }
 
@@ -284,7 +238,7 @@ impl Context for ModuleContext {
 		}
 	}
 
-	fn function(&self) -> Option<&FunctionDefinition> { None }
+	fn function(&self) -> Option<Arc<FunctionDeclaration>> { None }
 
 	fn find_type(&self, name: &str) -> Option<Type> {
 		let ty = self.module.types.get(name).cloned().map(|t| t.into());
@@ -319,7 +273,18 @@ impl Context for ModuleContext {
 		self.module.variables.insert(v.name().to_string(), v);
 	}
 
-	/// Get all visible functions
+	fn function_with_name(&self, name: &str) -> Option<Function> {
+		let f = self.module.functions.values().find_map(
+			|fs| fs.get(name).cloned()
+		);
+		if f.is_none() && !self.module.is_builtin {
+			return Module::builtin().functions.values().find_map(
+				|fs| fs.get(name).cloned()
+			);
+		}
+		f
+	}
+
 	fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
 		let mut functions: Vec<_> =
 			self.module.functions_with_n_name_parts(n).cloned().collect();
@@ -346,7 +311,7 @@ impl Context for ModuleContext {
 /// Context for lowering body of function
 pub struct FunctionContext<'p> {
 	/// Function, which is being lowered
-	pub function: FunctionDefinition,
+	pub function: Arc<FunctionDeclaration>,
 
 	/// Parent context for this function
 	pub parent: &'p mut dyn Context
@@ -361,7 +326,9 @@ impl Context for FunctionContext<'_> {
 		self.parent.builtin()
 	}
 
-	fn function(&self) -> Option<&FunctionDefinition> { Some(&self.function) }
+	fn function(&self) -> Option<Arc<FunctionDeclaration>> {
+		Some(self.function.clone())
+	}
 
 	fn find_type(&self, name: &str) -> Option<Type> {
 		self.parent.find_type(name)
@@ -383,11 +350,16 @@ impl Context for FunctionContext<'_> {
 	}
 
 	fn add_function(&mut self, f: Function) {
-		todo!("local functions")
+		// TODO: local functions
+		self.parent.add_function(f)
 	}
 
 	fn add_variable(&mut self, v: Arc<VariableDeclaration>) {
 		todo!("local variables")
+	}
+
+	fn function_with_name(&self, name: &str) -> Option<Function> {
+		self.parent.function_with_name(name)
 	}
 
 	fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
@@ -420,7 +392,9 @@ impl Context for TraitContext<'_> {
 		self.parent.builtin()
 	}
 
-	fn function(&self) -> Option<&FunctionDefinition> { self.parent.function() }
+	fn function(&self) -> Option<Arc<FunctionDeclaration>> {
+		self.parent.function()
+	}
 
 	fn find_type(&self, name: &str) -> Option<Type> {
 		if name == "Self" {
@@ -451,6 +425,10 @@ impl Context for TraitContext<'_> {
 		todo!("variables in traits")
 	}
 
+	fn function_with_name(&self, name: &str) -> Option<Function> {
+		self.parent.function_with_name(name)
+	}
+
 	fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
 		let mut functions = self.parent.functions_with_n_name_parts(n);
 		functions.extend(
@@ -462,6 +440,6 @@ impl Context for TraitContext<'_> {
 	}
 
 	fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
-		todo!("functions with format in traits")
+		self.parent.functions_with_format(format)
 	}
 }
