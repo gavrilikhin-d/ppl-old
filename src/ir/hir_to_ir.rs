@@ -380,12 +380,16 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Literal {
 }
 
 impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for VariableReference {
-    type IR = inkwell::values::PointerValue<'llvm>;
+    type IR = Option<inkwell::values::PointerValue<'llvm>>;
 
     /// Lower [`VariableReference`] to LLVM IR
     fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+		if self.variable.ty().is_none() {
+			return None;
+		}
+
         if let Some(var) = context.get_variable(&self.variable) {
-            return var;
+            return Some(var);
         }
 
 		match &self.variable {
@@ -393,9 +397,11 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for VariableReferenc
 				"Parameter {:?} not found", p.name()
 			),
 			ParameterOrVariable::Variable(var) =>
-				var
-           	 		.declare_global(context.module_context)
-            		.as_pointer_value()
+				Some(
+					var
+           	 			.declare_global(context.module_context)
+            			.as_pointer_value()
+				)
     	}
 	}
 }
@@ -442,7 +448,14 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
         context: &mut FunctionContext<'llvm, 'm>,
     ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
         match self {
-            Expression::VariableReference(var) => Some(var.lower_to_ir(context).into()),
+            Expression::VariableReference(var) => {
+				let var = var.lower_to_ir(context);
+				if var.is_none() {
+					return None;
+				}
+
+				Some(var.unwrap().into())
+			},
 
             Expression::Literal(l) => l.lower_to_ir(context),
             Expression::Call(call) => call
@@ -464,7 +477,15 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
         match self {
             Expression::VariableReference(var) => {
                 let var = var.lower_to_ir(context);
-                context.builder.build_load(var, "").into()
+				if var.is_none() {
+					return None;
+				}
+
+                Some(
+					context.builder.build_load(
+						var.unwrap(), ""
+					).into()
+				)
             }
             _ => self.lower_to_ir_without_load(context),
         }
