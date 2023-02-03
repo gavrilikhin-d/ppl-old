@@ -161,9 +161,16 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
 			}
 		).collect::<Vec<_>>();
 
+		let name = Function::build_name(&name_parts);
+
 		Arc::new(
 			FunctionDeclaration::build()
 				.with_name(name_parts)
+				.with_mangled_name(
+					context.function_with_name(&name).map(
+						|f| f.declaration().mangled_name.clone()
+					).flatten()
+				)
 				.with_return_type(self.return_type.clone())
 		)
 	}

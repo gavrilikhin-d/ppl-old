@@ -72,7 +72,7 @@ pub struct FunctionDeclaration {
     pub return_type: Type,
 
 	/// Mangled name to use instead of default
-    mangled_name: Option<String>,
+    pub(crate) mangled_name: Option<String>,
     /// Cached format for name of function
     name_format: String,
     /// Cached name of function
@@ -193,18 +193,7 @@ impl FunctionDeclarationBuilder {
 
     /// Build function's name
     fn build_name(&self) -> String {
-        let mut name = String::new();
-        for (i, part) in self.name_parts.iter().enumerate() {
-            if i > 0 {
-                name.push_str(" ");
-            }
-
-            match part {
-                FunctionNamePart::Text(text) => name.push_str(&text),
-                FunctionNamePart::Parameter(p) => name.push_str(format!("<:{}>", p.ty()).as_str()),
-            }
-        }
-        name
+		Function::build_name(&self.name_parts)
     }
 
     /// Set the return type of the function and return the declaration
@@ -282,6 +271,22 @@ pub enum Function {
 }
 
 impl Function {
+	/// Build function name from name parts
+	pub fn build_name(name_parts: &[FunctionNamePart]) -> String {
+        let mut name = String::new();
+        for (i, part) in name_parts.iter().enumerate() {
+            if i > 0 {
+                name.push_str(" ");
+            }
+
+            match part {
+                FunctionNamePart::Text(text) => name.push_str(&text),
+                FunctionNamePart::Parameter(p) => name.push_str(format!("<:{}>", p.ty()).as_str()),
+            }
+        }
+        name
+	}
+
 	/// Is this a generic function?
 	pub fn is_generic(&self) -> bool {
 		self.declaration().is_generic()
