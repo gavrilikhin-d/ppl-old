@@ -113,30 +113,39 @@ trait DeclareGlobal<'llvm> {
 }
 
 impl<'llvm> DeclareGlobal<'llvm> for VariableDeclaration {
-    type IR = inkwell::values::GlobalValue<'llvm>;
+    type IR = Option<inkwell::values::GlobalValue<'llvm>>;
 
     /// Declare global variable without defining it
     fn declare_global(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
-        let ty = self.ty().lower_to_ir(context);
-		if ty.is_void_type() {
-			todo!("handle void type globals")
+		if self.ty().is_none() {
+			return None;
 		}
-        let global = context.module.add_global(ty.try_into_basic_type().expect("non-basic type global"), None, &self.name);
+
+        let ty = self.ty().lower_to_ir(context);
+        let global = context.module.add_global(
+			ty.try_into_basic_type().unwrap(),
+			None,
+			&self.name
+		);
 
         if self.is_immutable() {
             global.set_constant(true);
         }
 
-        global
+       	Some(global)
     }
 }
 
 impl<'llvm> GlobalHIRLowering<'llvm> for Arc<VariableDeclaration> {
-    type IR = inkwell::values::GlobalValue<'llvm>;
+    type IR = Option<inkwell::values::GlobalValue<'llvm>>;
 
     /// Lower global [`VariableDeclaration`] to LLVM IR
     fn lower_global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
         let global = self.declare_global(context);
+		if global.is_none() {
+			return None;
+		}
+		let global = global.unwrap();
 
         global.set_initializer(&self.ty().lower_to_ir(context).try_into_basic_type().expect("non-basic type global initializer").const_zero());
 
@@ -151,7 +160,7 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Arc<VariableDeclaration> {
             .builder
             .build_store(global.as_pointer_value(), value.expect("initializer return None or Void"));
 
-        global
+        Some(global)
     }
 }
 
@@ -400,6 +409,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for VariableReferenc
 				Some(
 					var
            	 			.declare_global(context.module_context)
+						.unwrap()
             			.as_pointer_value()
 				)
     	}
@@ -493,15 +503,25 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
 }
 
 impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Assignment {
-    type IR = inkwell::values::InstructionValue<'llvm>;
+    type IR = Option<inkwell::values::InstructionValue<'llvm>>;
 
     /// Lower [`Assignment`] to LLVM IR
     fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         let target = self.target.lower_to_ir_without_load(context);
         let value = self.value.lower_to_ir(context);
-        context
-            .builder
-            .build_store(target.expect("Assignment to none").into_pointer_value(), value.expect("Assigning none"))
+
+		if target.is_none() {
+			return None;
+		}
+
+        Some(
+			context
+				.builder
+				.build_store(
+					target.unwrap().into_pointer_value(),
+					value.expect("Assigning none")
+				)
+		)
     }
 }
 
