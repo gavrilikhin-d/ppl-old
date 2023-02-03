@@ -161,6 +161,8 @@ impl Parse for FunctionDeclaration {
         if context.lexer.consume(Token::FatArrow).is_ok() {
             body.push(Expression::parse(context)?.into());
 			implicit_return = true;
+
+			context.consume_eol()?;
         } else if context.lexer.consume(Token::Colon).is_ok() {
             body = context.parse_block()?;
         }
