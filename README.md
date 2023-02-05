@@ -9,11 +9,15 @@
 * Readability
 * Safety
 
-## Expected Features
-
+## Done
 * Mixfix operators
 * Big integers
+* Generics (traits)
+
+## To-do
 * Rationals by default
-* Generics
+* Algebraic effects
+* Types arithmetics
 * Pattern matching
 * Metaprogramming
+* Documentation
