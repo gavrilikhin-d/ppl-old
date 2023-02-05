@@ -191,21 +191,29 @@ fn test_function_declaration() {
             name_parts: vec![
                 StringWithOffset::from("distance").at(3).into(),
                 StringWithOffset::from("from").at(12).into(),
-                Parameter {
-                    name: StringWithOffset::from("a").at(18).into(),
-                    ty: TypeReference {
-						name: StringWithOffset::from("Point").at(21).into()
-					},
-                }
-                .into(),
+				FunctionNamePart::Parameter{
+					less: 17,
+					parameter:
+						Parameter {
+							name: StringWithOffset::from("a").at(18).into(),
+							ty: TypeReference {
+								name: StringWithOffset::from("Point").at(21).into()
+							},
+						},
+					greater: 26,
+				},
                 StringWithOffset::from("to").at(28).into(),
-                Parameter {
-                    name: StringWithOffset::from("b").at(32).into(),
-                    ty: TypeReference {
-						name: StringWithOffset::from("Point").at(35).into()
-					},
-                }
-                .into(),
+				FunctionNamePart::Parameter{
+					less: 31,
+					parameter:
+						Parameter {
+							name: StringWithOffset::from("b").at(32).into(),
+							ty: TypeReference {
+								name: StringWithOffset::from("Point").at(35).into()
+							},
+						},
+					greater: 40,
+				},
             ],
             return_type: Some(TypeReference {
 				name: StringWithOffset::from("Distance").at(45).into()
