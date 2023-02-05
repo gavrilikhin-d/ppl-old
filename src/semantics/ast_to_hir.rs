@@ -479,13 +479,31 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
     ) -> Result<Self::HIR, Error> {
         let ty = Arc::new(hir::TypeDeclaration {
             name: self.name.clone(),
-			is_builtin: context.is_for_builtin_module()
+			is_builtin: context.is_for_builtin_module(),
+			members: self.members.iter().map(
+				|m| m.lower_to_hir_within_context(context)
+			).try_collect()?,
         });
 
         context.add_type(ty.clone());
 
         Ok(ty)
     }
+}
+
+impl ASTLoweringWithinContext for ast::Member {
+	type HIR = Arc<hir::Member>;
+
+	/// Lower [`ast::Member`] to [`hir::Member`] within lowering context
+	fn lower_to_hir_within_context(
+		&self,
+		context: &mut impl Context,
+	) -> Result<Self::HIR, Error> {
+		Ok(Arc::new(hir::Member {
+			name: self.name.clone(),
+			ty: self.ty.lower_to_hir_within_context(context)?.referenced_type,
+		}))
+	}
 }
 
 impl ASTLoweringWithinContext for ast::Parameter {
