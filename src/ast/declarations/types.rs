@@ -1,13 +1,45 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token, Context};
+use crate::{syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token, Context}, ast::TypeReference};
+
+/// Member of type
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct Member {
+	/// Name of member
+	pub name: StringWithOffset,
+	/// Type of member
+	pub ty: TypeReference,
+}
+
+/// Parse single or multiple members, if they are separated by comma
+pub fn parse_members(context: &mut Context<impl Lexer>)
+	-> Result<Vec<Member>, ParseError> {
+	let mut names = Vec::new();
+	loop {
+		names.push(context.lexer.consume(Token::Id)?);
+
+		if context.lexer.consume(Token::Colon).is_ok() {
+			break;
+		}
+
+		context.lexer.consume(Token::Comma)?;
+	}
+
+	let ty = TypeReference::parse(context)?;
+
+	context.consume_eol()?;
+
+	Ok(names.into_iter().map(|name| Member { name, ty: ty.clone() }).collect())
+}
 
 /// Declaration of type
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct TypeDeclaration {
     /// Name of type
     pub name: StringWithOffset,
+	/// Members of type
+	pub members: Vec<Member>,
 }
 
 impl StartsHere for TypeDeclaration {
@@ -26,9 +58,18 @@ impl Parse for TypeDeclaration {
 
         let name = context.lexer.consume(Token::Id)?;
 
-		context.consume_eol()?;
+		let mut members = Vec::new();
+		if context.lexer.consume(Token::Colon).is_ok() {
+			members =
+				context.parse_block(parse_members)?
+					.into_iter()
+					.flatten()
+					.collect();
+		} else {
+			context.consume_eol()?;
+		}
 
-        Ok(TypeDeclaration { name })
+        Ok(TypeDeclaration { name, members })
     }
 }
 
@@ -45,7 +86,8 @@ mod tests {
 		assert_eq!(
 			type_decl,
 			TypeDeclaration {
-				name: StringWithOffset::from("x").at(5)
+				name: StringWithOffset::from("x").at(5),
+				members: vec![],
 			}
 		);
 	}
@@ -56,10 +98,24 @@ mod tests {
 			include_str!("../../../examples/point.ppl")
 				.parse::<TypeDeclaration>()
 				.unwrap();
+
+		let ty = TypeReference {
+			name: StringWithOffset::from("Integer").at(19),
+		};
 		assert_eq!(
 			type_decl,
 			TypeDeclaration {
-				name: StringWithOffset::from("Point").at(5)
+				name: StringWithOffset::from("Point").at(5),
+				members: vec![
+					Member {
+						name: StringWithOffset::from("x").at(13),
+						ty: ty.clone(),
+					},
+					Member {
+						name: StringWithOffset::from("y").at(16),
+						ty: ty.clone(),
+					},
+				],
 			}
 		);
 	}
