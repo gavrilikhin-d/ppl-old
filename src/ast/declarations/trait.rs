@@ -1,7 +1,7 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::{syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token, Context}, ast::Statement};
+use crate::{syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token, Context}, ast::Statement, hir::Function};
 
 use super::{FunctionDeclaration, Declaration};
 
@@ -32,13 +32,7 @@ impl Parse for TraitDeclaration {
 
 		context.lexer.consume(Token::Colon)?;
 
-		let functions = context.parse_block()?.into_iter().map(|decl| {
-			match decl {
-				Statement::Declaration(Declaration::Function(func))
-					=> Ok::<FunctionDeclaration, ParseError>(func),
-				_ => todo!("error on wrong declaration in trait body")
-			}
-		}).try_collect::<Vec<_>>()?;
+		let functions = context.parse_block(FunctionDeclaration::parse)?;
 
         Ok(TraitDeclaration { name, functions })
     }

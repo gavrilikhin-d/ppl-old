@@ -19,16 +19,21 @@ impl<Lexer: super::Lexer> Context<Lexer> {
 		Ok(None)
 	}
 
-	/// Parse block of statements
-	pub fn parse_block(&mut self) -> Result<Vec<Statement>, ParseError> {
+	/// Parse block of items
+	pub fn parse_block<T>(
+		&mut self,
+		parse: impl Fn(&mut Self) -> Result<T, ParseError>
+	) -> Result<Vec<T>, ParseError> {
 		let indentation = self.lexer.indentation() + 1;
 
 		self.lexer.consume(Token::Newline)?;
 		self.lexer.skip_indentation();
 
 		let mut stmts = Vec::new();
-		while self.lexer.indentation() == indentation {
-			stmts.push(Statement::parse(self)?);
+		while self.lexer.indentation() == indentation &&
+			  self.lexer.peek().is_some()
+		{
+			stmts.push(parse(self)?);
 			self.lexer.skip_indentation();
 		}
 		Ok(stmts)

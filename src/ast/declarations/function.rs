@@ -164,7 +164,7 @@ impl Parse for FunctionDeclaration {
 
 			context.consume_eol()?;
         } else if context.lexer.consume(Token::Colon).is_ok() {
-            body = context.parse_block()?;
+            body = context.parse_block(Statement::parse)?;
         }
 		else {
 			context.consume_eol()?;

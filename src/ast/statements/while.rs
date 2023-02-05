@@ -32,7 +32,7 @@ impl Parse for While {
 
         context.lexer.consume(Token::Colon)?;
 
-        let body = context.parse_block()?;
+        let body = context.parse_block(Statement::parse)?;
 
         Ok(While { condition, body })
     }

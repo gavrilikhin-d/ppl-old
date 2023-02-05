@@ -46,7 +46,7 @@ impl Parse for If {
 
 		context.lexer.consume(Token::Colon)?;
 
-		let body = context.parse_block()?;
+		let body = context.parse_block(Statement::parse)?;
 
 		let mut else_ifs = Vec::new();
 		let mut else_block = Vec::new();
@@ -59,11 +59,11 @@ impl Parse for If {
 				let condition = Expression::parse(context)?;
 
 				context.lexer.consume(Token::Colon)?;
-				let body = context.parse_block()?;
+				let body = context.parse_block(Statement::parse)?;
 				else_ifs.push(ElseIf { condition, body });
 			} else {
 				context.lexer.consume(Token::Colon)?;
-				else_block = context.parse_block()?;
+				else_block = context.parse_block(Statement::parse)?;
 				break;
 			}
 		}
