@@ -1,0 +1,2 @@
+type Point:
+	x, y: Integer

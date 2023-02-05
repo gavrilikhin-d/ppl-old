@@ -32,13 +32,35 @@ impl Parse for TypeDeclaration {
     }
 }
 
-#[test]
-fn test_type() {
-    let type_decl = "type x".parse::<TypeDeclaration>().unwrap();
-    assert_eq!(
-        type_decl,
-        TypeDeclaration {
-            name: StringWithOffset::from("x").at(5)
-        }
-    );
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn test_type_without_body() {
+		let type_decl =
+			"type x"
+				.parse::<TypeDeclaration>()
+				.unwrap();
+		assert_eq!(
+			type_decl,
+			TypeDeclaration {
+				name: StringWithOffset::from("x").at(5)
+			}
+		);
+	}
+
+	#[test]
+	fn test_type_with_body() {
+		let type_decl =
+			include_str!("../../../examples/point.ppl")
+				.parse::<TypeDeclaration>()
+				.unwrap();
+		assert_eq!(
+			type_decl,
+			TypeDeclaration {
+				name: StringWithOffset::from("Point").at(5)
+			}
+		);
+	}
 }
