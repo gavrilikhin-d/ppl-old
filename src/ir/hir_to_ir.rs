@@ -189,7 +189,23 @@ impl<'llvm> HIRTypesLowering<'llvm> for TypeDeclaration {
 		else if self.is_bool() {
 			return context.types().bool().into();
 		}
-        context.types().class(&self.name).into()
+
+		if self.members.is_empty() {
+			return context.types().opaque(&self.name).into();
+		}
+
+		if let Some(ty) = context.llvm().get_struct_type(self.name()) {
+			return ty.into();
+		}
+
+		let ty = context.llvm().opaque_struct_type(self.name());
+		ty.set_body(
+			self.members.iter().filter_map(
+				|m| m.ty.lower_to_ir(context).try_into_basic_type().ok()
+			).collect::<Vec<_>>().as_slice(),
+			false
+		);
+		ty.into()
     }
 }
 

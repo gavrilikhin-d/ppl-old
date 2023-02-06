@@ -42,7 +42,7 @@ impl<'llvm> Types<'llvm> {
     }
 
     /// LLVM IR for [`Class`](Type::Class) type
-    pub fn class(&self, name: &str) -> PointerType<'llvm> {
+    pub fn opaque(&self, name: &str) -> PointerType<'llvm> {
         self.get_or_add_opaque_struct(name)
             .ptr_type(AddressSpace::Generic)
     }
@@ -54,12 +54,12 @@ impl<'llvm> Types<'llvm> {
 
     /// LLVM IR for [`Integer`](Type::Integer) type
     pub fn integer(&self) -> PointerType<'llvm> {
-        self.class("Integer")
+        self.opaque("Integer")
     }
 
     /// LLVM IR for [`String`](Type::String) type
     pub fn string(&self) -> PointerType<'llvm> {
-        self.class("String")
+        self.opaque("String")
     }
 
     /// LLVM IR for C string type
