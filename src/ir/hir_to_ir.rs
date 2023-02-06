@@ -451,32 +451,6 @@ trait HIRExpressionLoweringWithoutLoad<'llvm, 'm> {
     ) -> Option<inkwell::values::BasicValueEnum<'llvm>>;
 }
 
-// define void @evaluate() {
-// 	%1 = call %Integer* @integer_from_i64(i64 1)
-// 	call void @"print <:Integer>"(%Integer* %1)
-// 	ret void
-//   }
-
-//   define void @"print <:Integer>"(%Integer* %0) {
-// 	%x = alloca %Integer*, align 8
-// 	store %Integer* %0, %Integer** %x, align 8
-// 	%2 = load %Integer*, %Integer** %x, align 8
-// 	%3 = call %String* @"<:Integer> as String"(%Integer* %2)
-// 	call void @print_string(%String* %3)
-// 	ret void
-//   }
-
-// define %Integer* @"<:Integer> - <:Integer>"(%Integer* %0, %Integer* %1) {
-// 	%x = alloca %Integer*, align 8
-// 	store %Integer* %0, %Integer** %x, align 8
-// 	%y = alloca %Integer*, align 8
-// 	store %Integer* %1, %Integer** %y, align 8
-// 	%3 = load %Integer*, %Integer** %x, align 8
-// 	%4 = load %Integer*, %Integer** %y, align 8
-// 	%5 = call %Integer* @minus_integer(%Integer* %4)
-// 	%6 = call %Integer* @integer_plus_integer(%Integer* %3, %Integer* %5)
-// 	ret %Integer* %6
-//   }
 
 impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
     /// Lower [`Expression`] to LLVM IR without loading variables
