@@ -2,7 +2,7 @@ use std::{fmt::Display, sync::{Arc, Weak}};
 
 use crate::{mutability::Mutable, named::Named};
 
-use super::{TypeDeclaration, Module, TraitDeclaration};
+use super::{TypeDeclaration, Module, TraitDeclaration, Member};
 use derive_more::From;
 
 /// PPL's Function type
@@ -108,6 +108,14 @@ pub enum Type {
 }
 
 impl Type {
+	/// Get members of type
+	pub fn members(&self) -> &[Arc<Member>] {
+		match self {
+			Type::Class(c) => c.members(),
+			_ => &[]
+		}
+	}
+
 	/// Map self type to given type
 	pub fn map_self<'s>(&'s self, ty: &'s Type) -> &'s Type {
 		match self {

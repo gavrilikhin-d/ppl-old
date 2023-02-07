@@ -150,6 +150,10 @@ pub enum Token {
 	#[token("trait")]
 	Trait,
 
+	/// '.' token
+	#[token(".")]
+	Dot,
+
     /// Error token
     #[error]
     #[regex("[ ]+", logos::skip)]

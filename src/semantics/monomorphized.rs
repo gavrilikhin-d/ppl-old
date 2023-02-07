@@ -91,7 +91,9 @@ impl Monomorphized for Expression {
 			Expression::VariableReference(var)
 				=> var.monomorphized(context).into(),
 			Expression::TypeReference(_) => todo!(),
-			Expression::Literal(_) => self.clone()
+			Expression::Literal(_) => self.clone(),
+			// TODO: generic members reference
+			Expression::MemberReference(_) => self.clone(),
 		}
 	}
 }

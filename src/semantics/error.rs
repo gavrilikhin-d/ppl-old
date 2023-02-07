@@ -263,6 +263,24 @@ pub struct CantDeduceReturnType {
 	pub at: SourceSpan,
 }
 
+/// Diagnostic for missing members
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("no member \"{name}\" in \"{ty}\"")]
+#[diagnostic(code(semantics::cant_deduce_return_type))]
+pub struct NoMember {
+	/// Type of base expression
+	pub ty: Type,
+	/// Span of base expression
+	#[label("this has \"{ty}\" type")]
+	pub base_span: SourceSpan,
+
+	/// Span of function
+	#[label("no member \"{name}\" in \"{ty}\"")]
+	pub at: SourceSpan,
+	/// Name of member
+	pub name: String,
+}
+
 /// Helper macro to create error enumeration
 macro_rules! error_enum {
 	($($name:ident),*) => {
@@ -290,5 +308,6 @@ error_enum!(
     ReturnOutsideFunction,
     MissingReturnValue,
     ReturnTypeMismatch,
-	CantDeduceReturnType
+	CantDeduceReturnType,
+	NoMember
 );

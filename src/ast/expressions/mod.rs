@@ -19,6 +19,9 @@ pub use tuple::*;
 mod r#type;
 pub use r#type::*;
 
+mod member;
+pub use member::*;
+
 extern crate ast_derive;
 use ast_derive::AST;
 
@@ -39,6 +42,7 @@ pub enum Expression {
     Call(Call),
 	Tuple(Tuple),
 	TypeReference(TypeReference),
+	MemberReference(MemberReference),
 }
 
 impl StartsHere for Expression {
@@ -63,7 +67,21 @@ fn parse_atomic_expression(context: &mut Context<impl Lexer>)
 	}
 
 	if VariableReference::starts_here(context) {
-		return Ok(VariableReference::parse(context)?.into());
+		let var = VariableReference::parse(context)?;
+		if context.lexer.peek() != Some(Token::Dot) {
+			return Ok(var.into());
+		}
+		else {
+			let mut base = Box::new(Expression::from(var));
+			while context.lexer.consume(Token::Dot).is_ok() {
+				let name = context.lexer.consume(Token::Id)?;
+				base = Box::new(MemberReference {
+					base,
+					name,
+				}.into());
+			}
+			return Ok(*base);
+		}
 	}
 
 	Err(MissingExpression {
@@ -188,6 +206,7 @@ impl Ranged for Expression {
             Expression::Call(call) => call.range(),
 			Expression::Tuple(tuple) => tuple.range(),
 			Expression::TypeReference(ty_ref) => ty_ref.range(),
+			Expression::MemberReference(m) => m.range(),
         }
     }
 }

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{named::Named, syntax::StringWithOffset, hir::Type};
+use crate::{named::Named, syntax::StringWithOffset, hir::{Type, Typed}};
 
 /// Member of type
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -9,6 +9,20 @@ pub struct Member {
     pub name: StringWithOffset,
 	/// Member's type
 	pub ty: Type,
+}
+
+impl Named for Member {
+	/// Get name of member
+	fn name(&self) -> &str {
+		&self.name
+	}
+}
+
+impl Typed for Member {
+	/// Get type of member
+	fn ty(&self) -> Type {
+		self.ty.clone()
+	}
 }
 
 /// Declaration of a type
@@ -23,6 +37,11 @@ pub struct TypeDeclaration {
 }
 
 impl TypeDeclaration {
+	/// Get member by name
+	pub fn members(&self) -> &[Arc<Member>] {
+		self.members.as_slice()
+	}
+
 	/// Is this a builtin type?
 	pub fn is_builtin(&self) -> bool {
 		self.is_builtin

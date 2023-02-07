@@ -397,6 +397,37 @@ impl ASTLoweringWithinContext for ast::TypeReference {
 	}
 }
 
+impl ASTLoweringWithinContext for ast::MemberReference {
+	type HIR = hir::MemberReference;
+
+	/// Lower [`ast::MemberReference`] to [`hir::MemberReference`] within lowering context
+	fn lower_to_hir_within_context(
+		&self,
+		context: &mut impl Context,
+	) -> Result<Self::HIR, Error> {
+		let base = self.base.lower_to_hir_within_context(context)?;
+		if let Some((index, member)) = base.ty().members().iter().enumerate().find(|(i, m)| m.name() == self.name.as_str()) {
+			Ok(
+				hir::MemberReference {
+					span: self.range().into(),
+					base: Box::new(base),
+					member: member.clone(),
+					index
+				}
+			)
+		} else {
+			Err(
+				NoMember {
+					name: self.name.clone().into(),
+					at: self.name.range().into(),
+					ty: base.ty(),
+					base_span: base.range().into(),
+				}.into()
+			)
+		}
+	}
+}
+
 impl ASTLoweringWithinContext for ast::Expression {
     type HIR = hir::Expression;
 
@@ -420,6 +451,8 @@ impl ASTLoweringWithinContext for ast::Expression {
 				op.lower_to_hir_within_context(context)?.into(),
 			ast::Expression::TypeReference(t) =>
 				t.lower_to_hir_within_context(context)?.into(),
+			ast::Expression::MemberReference(m) =>
+				m.lower_to_hir_within_context(context)?.into(),
 		})
     }
 }

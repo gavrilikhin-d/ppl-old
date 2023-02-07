@@ -467,6 +467,28 @@ trait HIRExpressionLoweringWithoutLoad<'llvm, 'm> {
     ) -> Option<inkwell::values::BasicValueEnum<'llvm>>;
 }
 
+impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm>
+for MemberReference {
+	fn lower_to_ir_without_load(
+			&self,
+			context: &mut FunctionContext<'llvm, 'm>,
+		) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
+		let base = self.base.lower_to_ir_without_load(context);
+		if base.is_none() {
+			return None;
+		}
+
+		let base = base.unwrap().into_pointer_value();
+		Some(
+			context.builder.build_struct_gep(
+				base,
+				self.index as u32,
+				self.member.name()
+			).unwrap().into()
+		)
+	}
+}
+
 
 impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
     /// Lower [`Expression`] to LLVM IR without loading variables
@@ -492,6 +514,8 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
 			Expression::TypeReference(ty) => unimplemented!(
 				"TypeReference as expresssion"
 			),
+			Expression::MemberReference(m)
+				=> m.lower_to_ir_without_load(context),
         }
     }
 }
@@ -501,21 +525,22 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
 
     /// Lower [`Expression`] to LLVM IR with loading references
     fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        match self {
-            Expression::VariableReference(var) => {
-                let var = var.lower_to_ir(context);
-				if var.is_none() {
-					return None;
-				}
+        let value = self.lower_to_ir_without_load(context);
+		if value.is_none() {
+			return None;
+		}
 
-                Some(
-					context.builder.build_load(
-						var.unwrap(), ""
-					).into()
+		let value = value.unwrap();
+		if value.is_pointer_value() {
+			Some(
+				context.builder.build_load(
+					value.into_pointer_value(),
+					""
 				)
-            }
-            _ => self.lower_to_ir_without_load(context),
-        }
+			)
+		} else {
+			Some(value)
+		}
     }
 }
 
