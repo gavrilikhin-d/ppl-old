@@ -1,3 +1,5 @@
+use enum_dispatch::enum_dispatch;
+
 /// The mutability of a binding
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Mutability {
@@ -8,6 +10,7 @@ pub enum Mutability {
 }
 
 /// Trait for objects that may be checked for mutability
+#[enum_dispatch]
 pub trait Mutable {
     /// Is this binding mutable?
     fn is_mutable(&self) -> bool {

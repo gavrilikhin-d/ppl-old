@@ -46,6 +46,7 @@ pub enum Expression {
 	Tuple(Tuple),
 	TypeReference(TypeReference),
 	MemberReference(MemberReference),
+	Constructor(Constructor),
 }
 
 impl StartsHere for Expression {
@@ -69,21 +70,47 @@ fn parse_atomic_expression(context: &mut Context<impl Lexer>)
 		return Ok(Tuple::parse(context)?.into());
 	}
 
-	if VariableReference::starts_here(context) {
-		let var = VariableReference::parse(context)?;
-		if context.lexer.peek() != Some(Token::Dot) {
-			return Ok(var.into());
-		}
-		else {
-			let mut base = Box::new(Expression::from(var));
-			while context.lexer.consume(Token::Dot).is_ok() {
-				let name = context.lexer.consume(Token::Id)?;
-				base = Box::new(MemberReference {
-					base,
-					name,
-				}.into());
+	if let Ok(name) = context.lexer.consume(Token::Id) {
+		if let Ok(lbrace) = context.lexer.consume(Token::LBrace) {
+			let ty = TypeReference { name };
+
+			let lbrace = lbrace.start();
+			let mut initializers = Vec::new();
+			while context.lexer.peek() != Some(Token::RBrace) {
+				initializers.push(Initializer::parse(context)?);
+
+				if context.lexer.peek() == Some(Token::RBrace) {
+					break;
+				}
+
+				context.lexer.consume(Token::Comma)?;
 			}
-			return Ok(*base);
+			let rbrace = context.lexer.consume(Token::RBrace)?.start();
+
+			return Ok(Constructor {
+				ty,
+				lbrace,
+				initializers,
+				rbrace,
+			}.into())
+		}
+		else
+		{
+			let var = VariableReference { name };
+			if context.lexer.peek() != Some(Token::Dot) {
+				return Ok(var.into());
+			}
+			else {
+				let mut base = Box::new(Expression::from(var));
+				while context.lexer.consume(Token::Dot).is_ok() {
+					let name = context.lexer.consume(Token::Id)?;
+					base = Box::new(MemberReference {
+						base,
+						name,
+					}.into());
+				}
+				return Ok(*base);
+			}
 		}
 	}
 
@@ -210,6 +237,7 @@ impl Ranged for Expression {
 			Expression::Tuple(tuple) => tuple.range(),
 			Expression::TypeReference(ty_ref) => ty_ref.range(),
 			Expression::MemberReference(m) => m.range(),
+			Expression::Constructor(c) => c.range(),
         }
     }
 }

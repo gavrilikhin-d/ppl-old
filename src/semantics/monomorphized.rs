@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{hir::{Call, FunctionDeclaration, Type, FunctionNamePart, Parameter, Typed, Statement, Expression, Function, FunctionDefinition, ParameterOrVariable, Return, Assignment, If, ElseIf, Loop, While, VariableReference}, named::Named, semantics::FunctionContext};
+use crate::{hir::{Call, FunctionDeclaration, Type, FunctionNamePart, Parameter, Typed, Statement, Expression, Function, FunctionDefinition, ParameterOrVariable, Return, Assignment, If, ElseIf, Loop, While, VariableReference, Constructor}, named::Named, semantics::FunctionContext};
 
 use super::Context;
 
@@ -94,7 +94,15 @@ impl Monomorphized for Expression {
 			Expression::Literal(_) => self.clone(),
 			// TODO: generic members reference
 			Expression::MemberReference(_) => self.clone(),
+			Expression::Constructor(c) => c.monomorphized(context).into(),
 		}
+	}
+}
+
+impl Monomorphized for Constructor {
+	fn monomorphized(&self, context: &mut impl Context) -> Self {
+		// TODO: real monomorphization
+		self.clone()
 	}
 }
 

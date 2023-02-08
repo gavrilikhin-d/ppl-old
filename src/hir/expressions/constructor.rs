@@ -1,4 +1,5 @@
 use crate::hir::{Type, Typed, Member};
+use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 use std::ops::Range;
 use std::sync::Arc;
@@ -25,6 +26,10 @@ pub struct Constructor {
 	pub initializers: Vec<Initializer>,
 	/// Location of rbrace
 	pub rbrace: usize,
+}
+
+impl Mutable for Constructor {
+	fn is_mutable(&self) -> bool { false }
 }
 
 impl Ranged for Constructor {

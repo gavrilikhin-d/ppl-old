@@ -1,4 +1,7 @@
+use enum_dispatch::enum_dispatch;
+
 /// Trait for ranged things
+#[enum_dispatch]
 pub trait Ranged {
     /// Get start of range
     fn start(&self) -> usize {

@@ -428,6 +428,18 @@ impl ASTLoweringWithinContext for ast::MemberReference {
 	}
 }
 
+impl ASTLoweringWithinContext for ast::Constructor {
+	type HIR = hir::Constructor;
+
+	/// Lower [`ast::Constructor`] to [`hir::Constructor`] within lowering context
+	fn lower_to_hir_within_context(
+			&self,
+			context: &mut impl Context,
+		) -> Result<Self::HIR, Error> {
+		todo!()
+	}
+}
+
 impl ASTLoweringWithinContext for ast::Expression {
     type HIR = hir::Expression;
 
@@ -453,6 +465,8 @@ impl ASTLoweringWithinContext for ast::Expression {
 				t.lower_to_hir_within_context(context)?.into(),
 			ast::Expression::MemberReference(m) =>
 				m.lower_to_hir_within_context(context)?.into(),
+			ast::Expression::Constructor(c) =>
+				c.lower_to_hir_within_context(context)?.into(),
 		})
     }
 }

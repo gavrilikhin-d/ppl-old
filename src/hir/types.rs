@@ -4,6 +4,9 @@ use crate::{mutability::Mutable, named::Named};
 
 use super::{TypeDeclaration, Module, TraitDeclaration, Member};
 use derive_more::From;
+use enum_dispatch::enum_dispatch;
+
+use super::Expression;
 
 /// PPL's Function type
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -219,6 +222,7 @@ impl Mutable for Type {
 }
 
 /// Trait for values with a type
+#[enum_dispatch]
 pub trait Typed {
     /// Get type of value
     fn ty(&self) -> Type;

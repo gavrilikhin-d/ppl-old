@@ -458,6 +458,15 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
     }
 }
 
+impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm>
+for Constructor {
+	type IR = inkwell::values::StructValue<'llvm>;
+
+	fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+		todo!()
+	}
+}
+
 /// Trait for [`Expression`] to lower HIR to LLVM IR without loading references
 trait HIRExpressionLoweringWithoutLoad<'llvm, 'm> {
     /// Lower [`Expression`] to LLVM IR without loading variables
@@ -516,6 +525,7 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
 			),
 			Expression::MemberReference(m)
 				=> m.lower_to_ir_without_load(context),
+			Expression::Constructor(c) => Some(c.lower_to_ir(context).into()),
         }
     }
 }
