@@ -13,6 +13,9 @@ pub use r#type::*;
 mod member;
 pub use member::*;
 
+mod constructor;
+pub use constructor::*;
+
 use derive_more::{From, TryInto};
 
 use crate::hir::{Type, Typed};
