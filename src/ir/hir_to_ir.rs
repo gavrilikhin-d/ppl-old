@@ -558,16 +558,16 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
 		}
 
 		let value = value.unwrap();
-		if value.is_pointer_value() {
-			Some(
-				context.builder.build_load(
-					value.into_pointer_value(),
-					""
-				)
-			)
-		} else {
-			Some(value)
+		if !value.is_pointer_value() {
+			return Some(value);
 		}
+
+		let ptr = value.into_pointer_value();
+		let elem = ptr.get_type().get_element_type();
+		if elem.is_struct_type() && elem.into_struct_type().is_opaque() {
+			return Some(ptr.into());
+		}
+		Some(context.builder.build_load(ptr, ""))
     }
 }
 
