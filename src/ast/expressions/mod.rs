@@ -22,6 +22,9 @@ pub use r#type::*;
 mod member;
 pub use member::*;
 
+mod constructor;
+pub use constructor::*;
+
 extern crate ast_derive;
 use ast_derive::AST;
 

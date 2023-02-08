@@ -154,6 +154,14 @@ pub enum Token {
 	#[token(".")]
 	Dot,
 
+	/// '{' token
+	#[token("{")]
+	LBrace,
+
+	/// '}' token
+	#[token("}")]
+	RBrace,
+
     /// Error token
     #[error]
     #[regex("[ ]+", logos::skip)]
@@ -196,7 +204,8 @@ impl Token {
 			Token::RParen |
 			Token::Colon |
 			Token::Comma |
-			Token::Assign
+			Token::Assign |
+			Token::RBrace
 		)
 	}
 }
@@ -213,6 +222,10 @@ impl Display for Token {
             Token::At => write!(f, "@"),
             Token::LParen => write!(f, "("),
             Token::RParen => write!(f, ")"),
+			Token::LBrace => write!(f, "{{"),
+			Token::RBrace => write!(f, "}}"),
+			Token::Dot => write!(f, "."),
+			Token::Comma => write!(f, ","),
             _ => write!(f, "{}", format!("{:?}", self).to_lowercase()),
         }
     }
