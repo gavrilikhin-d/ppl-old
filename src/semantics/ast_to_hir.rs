@@ -1,3 +1,4 @@
+use std::mem;
 use std::sync::{Arc, Weak};
 
 use crate::hir::{self, Typed, CallKind, FunctionNamePart, FunctionDefinition, Type};
@@ -436,7 +437,48 @@ impl ASTLoweringWithinContext for ast::Constructor {
 			&self,
 			context: &mut impl Context,
 		) -> Result<Self::HIR, Error> {
-		todo!()
+		let ty = self.ty.lower_to_hir_within_context(context)?;
+
+		let initializers = self.initializers.iter().map(
+			|init| {
+				let name = init.name.clone().unwrap_or_else(
+					|| match &init.value {
+						ast::Expression::VariableReference(var)
+							=> var.name.clone(),
+						_ => unreachable!()
+					}
+				);
+				let value = init.value.lower_to_hir_within_context(context)?;
+
+				if let Some((index, member)) = ty.referenced_type.members().iter().enumerate().find(|(_, m)| m.name() == name.as_str()) {
+					Ok::<_, Error>(
+						hir::Initializer {
+							span: name.range(),
+							index,
+							member: member.clone(),
+							value
+						}
+					)
+				} else {
+					Err(
+						NoMember {
+								name: name.clone().into(),
+								at: name.range().into(),
+								ty: ty.referenced_type.clone(),
+								base_span: self.ty.range().into(),
+							}.into()
+					)
+				}
+			}
+		).try_collect::<Vec<_>>()?;
+
+		Ok(
+			hir::Constructor {
+				ty,
+				initializers,
+				rbrace: self.rbrace
+			}
+		)
 	}
 }
 

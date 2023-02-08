@@ -3,26 +3,24 @@ use ast_derive::AST;
 
 use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, Token, Context, StringWithOffset};
 
-use super::{Expression, TypeReference};
+use super::{Expression, TypeReference, VariableReference};
 
 /// Field initializer inside constructor
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct Initializer {
 	/// Name of member
-	pub name: StringWithOffset,
+	pub name: Option<StringWithOffset>,
 	/// Value to initialize with
-	pub value: Option<Expression>
+	pub value: Expression
 }
 
 impl Ranged for Initializer {
 	fn start(&self) -> usize {
-		self.name.start()
+		self.name.as_ref().map_or_else(|| self.value.start(), |n| n.start())
 	}
 
 	fn end(&self) -> usize {
-		self.value.as_ref().map(|v| v.end()).unwrap_or(
-			self.name.end()
-		)
+		self.value.end()
 	}
 }
 
@@ -30,12 +28,14 @@ impl Parse for Initializer {
 	type Err = ParseError;
 
 	fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-		let name = context.lexer.consume(Token::Id)?;
+		let id = context.lexer.consume(Token::Id)?;
 
+		let mut name = None;
 		let value = if context.lexer.consume(Token::Colon).is_ok() {
-			Some(Expression::parse(context)?)
+			name = Some(id);
+			Expression::parse(context)?
 		} else {
-			None
+			VariableReference { name: id }.into()
 		};
 
 		Ok(Initializer {

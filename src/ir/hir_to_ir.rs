@@ -460,10 +460,27 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
 
 impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm>
 for Constructor {
-	type IR = inkwell::values::StructValue<'llvm>;
+	type IR = inkwell::values::PointerValue<'llvm>;
 
 	fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-		todo!()
+		let ty = self.ty.referenced_type.lower_to_ir(context).into_struct_type();
+		let alloca = context.builder.build_alloca(ty, "");
+
+		for init in self.initializers.iter().filter(|i| !i.value.ty().is_none()) {
+			let field = context.builder.build_struct_gep(
+				alloca,
+				init.index as u32,
+				format!(
+					"{}.{}",
+					self.ty.referenced_type.name(),
+					init.member.name()
+				).as_str()
+			).unwrap();
+			let value = init.value.lower_to_ir(context);
+			context.builder.build_store(field, value.unwrap());
+		}
+
+		alloca
 	}
 }
 
