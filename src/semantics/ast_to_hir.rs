@@ -1,7 +1,7 @@
 use std::mem;
 use std::sync::{Arc, Weak};
 
-use crate::fromDecimal::FromDecimal;
+use crate::from_decimal::FromDecimal;
 use crate::hir::{self, Typed, CallKind, FunctionNamePart, FunctionDefinition, Type};
 use crate::mutability::Mutable;
 use crate::named::Named;
