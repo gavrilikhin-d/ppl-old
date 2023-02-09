@@ -15,6 +15,12 @@ pub enum Literal {
         value: rug::Integer,
 		ty: Type,
     },
+	/// Any precision decimal rational literal
+	Rational {
+		span: std::ops::Range<usize>,
+        value: rug::Rational,
+		ty: Type,
+	},
     /// String literal
     String {
         span: std::ops::Range<usize>,
@@ -28,14 +34,10 @@ impl Ranged for Literal {
     fn range(&self) -> std::ops::Range<usize> {
         match self {
             Literal::None { offset, .. } => *offset..*offset + "none".len(),
-			Literal::Bool { offset, value, .. } =>
-				if *value {
-					*offset..*offset + "true".len()
-				}
-				else {
-					*offset..*offset + "false".len()
-				}
+			Literal::Bool { offset, value, .. }
+				=> *offset..*offset + format!("{}", value).len(),
             Literal::Integer { span, .. } => span.clone(),
+			Literal::Rational { span, .. } => span.clone(),
             Literal::String { span, .. } => span.clone(),
         }
     }
@@ -48,6 +50,7 @@ impl Typed for Literal {
             Literal::None { ty, .. } => ty,
 			Literal::Bool { ty, .. } => ty,
             Literal::Integer { ty, .. } => ty,
+			Literal::Rational { ty, .. } => ty,
             Literal::String { ty, .. } => ty,
         }.clone()
     }

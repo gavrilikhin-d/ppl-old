@@ -59,6 +59,10 @@ fn process_single_statement<'llvm>(
 					let result = unsafe { result.into_pointer::<rug::Integer>() };
 					println!("{}", unsafe { &*result });
 				}
+				else if c.is_rational() {
+					let result = unsafe { result.into_pointer::<rug::Rational>() };
+					println!("{}", unsafe { &*result });
+				}
 			    else if c.is_string() {
 					let result = unsafe { result.into_pointer::<String>() };
 					println!("{:?}", unsafe { &*result });
@@ -112,9 +116,9 @@ fn repl() {
 		};
 	}
 
-	add_global_mapping!(none);
     add_global_mapping!(integer_from_i64);
 	add_global_mapping!(integer_from_c_string);
+	add_global_mapping!(rational_from_c_string);
 	add_global_mapping!(string_from_c_string_and_length);
 	add_global_mapping!(integer_as_string);
 	add_global_mapping!(print_string);

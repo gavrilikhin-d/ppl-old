@@ -12,6 +12,8 @@ pub enum Literal {
 	Bool { offset: usize, value: bool },
     /// Any precision decimal integer literal
     Integer { offset: usize, value: String },
+	/// Any precision decimal rational literal
+	Rational { offset: usize, value: String },
     /// String literal
     String { offset: usize, value: String },
 }
@@ -24,7 +26,7 @@ impl StartsHere for Literal {
 			Some(
 				Token::None |
 				Token::False | Token::True |
-				Token::Integer |
+				Token::Integer | Token::Rational |
 				Token::String
 			)
 		)
@@ -40,25 +42,29 @@ impl Parse for Literal {
 			&[
 				Token::None,
 				Token::False, Token::True,
-				Token::Integer,
+				Token::Integer, Token::Rational,
 				Token::String
 			]
 		)?;
 
+		let offset = context.lexer.span().start;
+
         Ok(match token {
-            Token::None => Literal::None {
-                offset: context.lexer.span().start,
-            },
+            Token::None => Literal::None {offset,},
 			Token::False | Token::True => Literal::Bool {
-				offset: context.lexer.span().start,
+				offset,
 				value: token == Token::True
 			},
             Token::Integer => Literal::Integer {
-                offset: context.lexer.span().start,
+                offset,
                 value: context.lexer.slice().to_string(),
             },
+			Token::Rational => Literal::Rational {
+				offset,
+				value: context.lexer.slice().to_string()
+			},
             Token::String => Literal::String {
-                offset: context.lexer.span().start,
+                offset,
                 value: context.lexer.slice()[1..context.lexer.span().len() - 1].to_string(),
             },
 
@@ -72,16 +78,14 @@ impl Ranged for Literal {
     fn range(&self) -> std::ops::Range<usize> {
         match self {
             Literal::None { offset } => *offset..*offset + "none".len(),
-			Literal::Bool { offset, value } =>
-				if *value {
-					*offset..*offset + "true".len()
-				}
-				else
-				{
-					*offset..*offset + "false".len()
-				}
-            Literal::Integer { offset, value } => *offset..*offset + value.len(),
-            Literal::String { offset, value } => *offset..*offset + value.len() + 2,
+			Literal::Bool { offset, value }
+				=> *offset..*offset + format!("{}", value).len(),
+            Literal::Integer { offset, value }
+				=> *offset..*offset + value.len(),
+			Literal::Rational { offset, value }
+				=> *offset..*offset + value.len(),
+            Literal::String { offset, value }
+				=> *offset..*offset + value.len() + 2,
         }
     }
 }

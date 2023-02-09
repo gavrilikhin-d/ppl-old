@@ -43,9 +43,6 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
         self.module.add_function(name, ty, None)
     }
 
-    // LLVM IR for default constructor of [`None`](Type::None) type
-	add_builtin_function!(none, none,);
-
     /// LLVM IR for constructor of [`Integer`](Type::Integer) type from i64
     pub fn integer_from_i64(&self) -> FunctionValue<'llvm> {
         let types = Types::new(self.module.get_context());
@@ -57,6 +54,9 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
 
     // LLVM IR for constructor of [`Integer`](Type::Integer) type from C string
 	add_builtin_function!(integer_from_c_string, integer, c_string);
+
+	// LLVM IR for constructor of `Rational` type from C string
+	add_builtin_function!(rational_from_c_string, rational, c_string);
 
     /// LLVM IR for constructor of [`String`](Type::String) type from C string
     /// and its length

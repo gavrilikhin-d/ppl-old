@@ -379,7 +379,22 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Literal {
                     .try_as_basic_value()
                     .left()
                     .unwrap()
-            }
+            },
+			Literal::Rational { value, .. } => {
+				let str = context
+					.builder
+					.build_global_string_ptr(&format!("{}", value), "");
+				context
+					.builder
+					.build_call(
+						context.functions().rational_from_c_string(),
+						&[str.as_pointer_value().into()],
+						"",
+					)
+					.try_as_basic_value()
+					.left()
+					.unwrap()
+			},
             Literal::String { value, .. } => {
                 let str = context.builder.build_global_string_ptr(&value, "");
                 context

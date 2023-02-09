@@ -15,3 +15,5 @@ pub mod hir;
 pub mod semantics;
 
 pub mod ir;
+
+pub mod fromDecimal;

@@ -1,6 +1,7 @@
 use std::mem;
 use std::sync::{Arc, Weak};
 
+use crate::fromDecimal::FromDecimal;
 use crate::hir::{self, Typed, CallKind, FunctionNamePart, FunctionDefinition, Type};
 use crate::mutability::Mutable;
 use crate::named::Named;
@@ -82,6 +83,12 @@ impl ASTLoweringWithinContext for ast::Literal {
 					span: self.range(),
 					value: value.parse::<rug::Integer>().unwrap(),
 					ty: context.builtin().types().integer(),
+				},
+			ast::Literal::Rational { value, .. } =>
+				hir::Literal::Rational {
+					span: self.range(),
+					value: rug::Rational::from_decimal(&value).unwrap(),
+					ty: context.builtin().types().rational(),
 				},
             ast::Literal::String { value, .. } =>
 				hir::Literal::String {

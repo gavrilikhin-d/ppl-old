@@ -62,6 +62,11 @@ impl TypeDeclaration {
 		self.is_builtin && self.name == "Integer"
 	}
 
+	/// Is this a builtin "Rational" type?
+	pub fn is_rational(&self) -> bool {
+		self.is_builtin && self.name == "Rational"
+	}
+
 	/// Is this a builtin "String" type?
 	pub fn is_string(&self) -> bool {
 		self.is_builtin && self.name == "String"

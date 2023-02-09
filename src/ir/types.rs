@@ -57,6 +57,11 @@ impl<'llvm> Types<'llvm> {
         self.opaque("Integer")
     }
 
+    /// LLVM IR for `Rational` type
+    pub fn rational(&self) -> PointerType<'llvm> {
+        self.opaque("Rational")
+    }
+
     /// LLVM IR for [`String`](Type::String) type
     pub fn string(&self) -> PointerType<'llvm> {
         self.opaque("String")

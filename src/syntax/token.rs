@@ -162,6 +162,10 @@ pub enum Token {
 	#[token("}")]
 	RBrace,
 
+	/// Rational literal
+	#[regex("[0-9]*.[0-9]+")]
+	Rational,
+
     /// Error token
     #[error]
     #[regex("[ ]+", logos::skip)]

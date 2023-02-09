@@ -200,6 +200,11 @@ impl BuiltinTypes<'_> {
 		self.get_type("Integer")
 	}
 
+	/// Get builtin "Rational" type
+	pub fn rational(&self) -> Type {
+		self.get_type("Rational")
+	}
+
 	/// Get builtin "String" type
 	pub fn string(&self) -> Type {
 		self.get_type("String")
