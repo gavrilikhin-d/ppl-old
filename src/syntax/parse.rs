@@ -22,6 +22,7 @@ impl<Lexer: super::Lexer> Context<Lexer> {
         Ok(None)
     }
 
+    /// Consume id or escaped id
     pub fn consume_id(&mut self) -> Result<StringWithOffset, LexerError> {
         if let Some(Token::EscapedId(id)) = self.lexer.peek() {
             self.lexer.next();
