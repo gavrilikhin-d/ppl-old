@@ -13,6 +13,9 @@ pub use r#loop::*;
 mod r#while;
 pub use r#while::*;
 
+mod r#use;
+pub use r#use::*;
+
 extern crate ast_derive;
 use ast_derive::AST;
 
@@ -35,6 +38,7 @@ pub enum Statement {
 	If(If),
 	Loop(Loop),
 	While(While),
+	Use(Use),
 }
 
 impl StartsHere for Statement {
@@ -48,6 +52,7 @@ impl StartsHere for Statement {
 			|| If::starts_here(context)
 			|| Loop::starts_here(context)
 			|| While::starts_here(context)
+			|| Use::starts_here(context)
     }
 }
 
@@ -93,6 +98,7 @@ impl Parse for Statement {
 				Some(Token::If) => If::parse(context)?.into(),
 				Some(Token::Loop) => Loop::parse(context)?.into(),
 				Some(Token::While) => While::parse(context)?.into(),
+				Some(Token::Use) => Use::parse(context)?.into(),
 				t => unreachable!(
 					"Unexpected token {:#?} at start of statement", t
 				),
@@ -110,7 +116,9 @@ impl Parse for Statement {
 		if matches!(
 				res,
 				Statement::Assignment(_) |
-				Statement::Expression(_)
+				Statement::Expression(_) |
+				Statement::Return(_) |
+				Statement::Use(_)
 			)
 		{
 			context.consume_eol()?;

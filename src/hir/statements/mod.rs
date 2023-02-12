@@ -13,6 +13,9 @@ pub use r#loop::*;
 mod r#while;
 pub use r#while::*;
 
+mod r#use;
+pub use r#use::*;
+
 use derive_more::{From, TryInto};
 
 use crate::hir::{Declaration, Expression};
@@ -27,4 +30,5 @@ pub enum Statement {
 	If(If),
 	Loop(Loop),
 	While(While),
+	Use(Use),
 }
