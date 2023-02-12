@@ -40,7 +40,7 @@ impl Parse for Use {
 
         let mut path = Vec::new();
         loop {
-            path.push(context.lexer.consume(Token::Id)?);
+            let segment = path.push(context.consume_id()?);
 
             if context.lexer.consume(Token::Dot).is_err() {
                 break;
