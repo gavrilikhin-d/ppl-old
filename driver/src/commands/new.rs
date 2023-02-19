@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::Parser;
 
-use super::Execute;
+use super::{Execute, Init};
 
 #[derive(Parser, Debug)]
 pub struct New {
@@ -14,5 +14,9 @@ pub struct New {
 impl Execute for New {
     fn execute(&self) {
         println!("Creating new project at {:?}", self.path);
+        Init {
+            path: self.path.clone(),
+        }
+        .execute();
     }
 }

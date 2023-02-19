@@ -11,6 +11,6 @@ path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.1.6", features = ["derive"] }
-enum_dispatch = "0.3.11"
+derive_more = "0.99.17"
 miette = { version = "5.5.0", features = ["fancy"] }
 thiserror = "1.0.38"
