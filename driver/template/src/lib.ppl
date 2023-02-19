@@ -1,0 +1,10 @@
+/// 2D Point
+type Point:
+	x, y: Rational
+
+/// Distance between two points
+fn distance from <a: Point> to <b: Point> -> Rational:
+	return sqrt((b.x - a.x)^2 + (b.y - a.y)^2)
+
+test distance:
+	assert (distance from Point{x: 0, y: 0} to Point{x: 3, y: 4}) == 5
