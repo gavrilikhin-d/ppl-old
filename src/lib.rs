@@ -16,4 +16,6 @@ pub mod semantics;
 
 pub mod ir;
 
+pub mod compilation;
+
 pub mod from_decimal;
