@@ -1,0 +1,16 @@
+[package]
+name = "driver"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "ppl"
+path = "src/main.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.1.6", features = ["derive"] }
+enum_dispatch = "0.3.11"
+miette = { version = "5.5.0", features = ["fancy"] }
+thiserror = "1.0.38"
