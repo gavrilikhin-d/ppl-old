@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::Parser;
 
-use super::{Execute, Init};
+use super::Execute;
 
 /// Command to create a new ppl project at <path>
 #[derive(Parser, Debug)]
@@ -13,12 +13,12 @@ pub struct New {
 }
 
 impl Execute for New {
+    type ReturnType = fs_extra::error::Result<()>;
+
     /// Create a new ppl project at <path>
-    fn execute(&self) {
-        println!("Creating new project at {:?}", self.path);
-        Init {
-            path: self.path.clone(),
-        }
-        .execute();
+    fn execute(&self) -> Self::ReturnType {
+        let options = fs_extra::dir::CopyOptions::default();
+        fs_extra::dir::copy("template", &self.path, &options)?;
+        Ok(())
     }
 }

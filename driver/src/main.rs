@@ -4,5 +4,5 @@ use driver::{commands::Execute, Args};
 
 fn main() {
     let args = Args::parse();
-    args.command.execute();
+    args.command.execute().unwrap();
 }

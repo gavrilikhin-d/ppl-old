@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use clap::Parser;
 
@@ -13,8 +13,12 @@ pub struct Init {
 }
 
 impl Execute for Init {
+    type ReturnType = Result<(), fs_extra::error::Error>;
+
     /// Create a new ppl package in an existing directory
-    fn execute(&self) {
-        println!("Initializing project at {:?}", self.path);
+    fn execute(&self) -> Self::ReturnType {
+        let options = fs_extra::dir::CopyOptions::default();
+        fs_extra::dir::copy("template", &self.path, &options)?;
+        Ok(())
     }
 }

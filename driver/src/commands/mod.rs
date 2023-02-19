@@ -21,6 +21,9 @@ pub enum Command {
 }
 
 impl Execute for Command {
+    type ReturnType = fs_extra::error::Result<()>;
+
+    /// Execute the command
     fn execute(&self) -> Self::ReturnType {
         match self {
             Command::New(new) => new.execute(),
