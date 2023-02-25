@@ -13,7 +13,7 @@ pub struct New {
 }
 
 impl Execute for New {
-    type ReturnType = fs_extra::error::Result<()>;
+    type ReturnType = <Init as Execute>::ReturnType;
 
     /// Create a new ppl project at <path>
     fn execute(&self) -> Self::ReturnType {
