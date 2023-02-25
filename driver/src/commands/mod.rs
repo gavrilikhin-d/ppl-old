@@ -43,8 +43,8 @@ impl Execute for Command {
         match self {
             Command::New(new) => new.execute(),
             Command::Init(init) => init.execute(),
-            Command::Run(run) => Ok(run.execute()),
-            Command::Build(build) => Ok(build.execute()),
+            Command::Run(run) => Ok(run.execute()?),
+            Command::Build(build) => Ok(build.execute()?),
             Command::Compile(compile) => Ok(compile.execute()),
         }
     }

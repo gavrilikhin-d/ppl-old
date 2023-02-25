@@ -7,7 +7,7 @@ use super::{Build, Execute};
 pub struct Run {}
 
 impl Execute for Run {
-    type ReturnType = ();
+    type ReturnType = <Build as Execute>::ReturnType;
 
     /// Run ppl binary package
     fn execute(&self) -> Self::ReturnType {
