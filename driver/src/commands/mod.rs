@@ -11,6 +11,12 @@ pub use new::*;
 mod init;
 pub use init::*;
 
+mod run;
+pub use run::*;
+
+mod build;
+pub use build::*;
+
 /// The subcommands of ppl
 #[derive(Subcommand, Debug, From)]
 pub enum Command {
@@ -18,6 +24,10 @@ pub enum Command {
     New(New),
     /// Create a new ppl package in an existing directory
     Init(Init),
+    /// Run ppl binary package
+    Run(Run),
+    /// Compile ppl package and all dependencies
+    Build(Build),
 }
 
 impl Execute for Command {
@@ -28,6 +38,8 @@ impl Execute for Command {
         match self {
             Command::New(new) => new.execute(),
             Command::Init(init) => init.execute(),
+            Command::Run(run) => Ok(run.execute()),
+            Command::Build(build) => Ok(build.execute()),
         }
     }
 }
