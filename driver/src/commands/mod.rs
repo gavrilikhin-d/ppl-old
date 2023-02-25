@@ -17,6 +17,9 @@ pub use run::*;
 mod build;
 pub use build::*;
 
+mod compile;
+pub use compile::*;
+
 /// The subcommands of ppl
 #[derive(Subcommand, Debug, From)]
 pub enum Command {
@@ -28,6 +31,8 @@ pub enum Command {
     Run(Run),
     /// Compile ppl package and all dependencies
     Build(Build),
+    /// Compile single ppl file
+    Compile(Compile),
 }
 
 impl Execute for Command {
@@ -40,6 +45,7 @@ impl Execute for Command {
             Command::Init(init) => init.execute(),
             Command::Run(run) => Ok(run.execute()),
             Command::Build(build) => Ok(build.execute()),
+            Command::Compile(compile) => Ok(compile.execute()),
         }
     }
 }
