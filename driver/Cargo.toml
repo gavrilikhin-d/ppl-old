@@ -14,5 +14,6 @@ clap = { version = "4.1.6", features = ["derive"] }
 derive_more = "0.99.17"
 fs_extra = "1.3.0"
 miette = { version = "5.5.0", features = ["fancy"] }
+serde = { version = "1.0.152", features = ["derive"] }
 thiserror = "1.0.38"
 toml = "0.7.2"
