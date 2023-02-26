@@ -1,26 +1,55 @@
 use std::path::PathBuf;
 
 use clap::Parser;
+use serde::Deserialize;
 
 use super::Execute;
 
 /// Build configuration
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 struct Config {
     /// Path to the config file
+    #[serde(skip)]
     pub path: PathBuf,
+    /// Package information
+    pub package: Package,
+}
+
+impl Config {
+    /// Name of the config file
+    const NAME: &'static str = "build.config";
+}
+
+/// Package information
+#[derive(Debug, Deserialize)]
+struct Package {
+    /// Name of the package
+    pub name: String,
 }
 
 impl Config {
     /// Recursively search for a config file and read it
     pub fn get() -> std::io::Result<Config> {
-        std::fs::read_dir(".")?
-            .filter_map(|entry| entry.ok())
-            .find(|entry| entry.file_name() == "build.config")
-            .map(|entry| Config { path: entry.path() })
+        let cwd = std::env::current_dir()?;
+        let path = cwd
+            .ancestors()
+            .map(|path| path.join(Config::NAME))
+            .find(|path| path.exists())
             .ok_or_else(|| {
-                std::io::Error::new(std::io::ErrorKind::NotFound, "build.config not found")
-            })
+                std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    format!(
+                        "{} not found in '{}' or parent directories",
+                        Config::NAME,
+                        cwd.display()
+                    ),
+                )
+            })?;
+
+        let content = std::fs::read_to_string(&path)?;
+        let mut config: Config = toml::from_str(&content).unwrap();
+        config.path = path;
+        Ok(config)
     }
 }
 
