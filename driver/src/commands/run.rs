@@ -11,6 +11,6 @@ impl Execute for Run {
 
     /// Run ppl binary package
     fn execute(&self) -> Self::ReturnType {
-        return Build {}.execute();
+        return Build::default().execute();
     }
 }
