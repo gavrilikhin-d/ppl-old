@@ -8,9 +8,9 @@ use super::Execute;
 /// Build configuration
 #[derive(Debug, Deserialize)]
 struct Config {
-    /// Path to the config file
+    /// Directory of the config file
     #[serde(skip)]
-    pub path: PathBuf,
+    pub dir: PathBuf,
     /// Package information
     pub package: Package,
 }
@@ -48,7 +48,7 @@ impl Config {
 
         let content = std::fs::read_to_string(&path)?;
         let mut config: Config = toml::from_str(&content).unwrap();
-        config.path = path;
+        config.dir = path.parent().unwrap().to_owned();
         Ok(config)
     }
 }
