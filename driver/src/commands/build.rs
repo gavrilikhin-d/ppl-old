@@ -4,7 +4,7 @@ use clap::{Parser, ValueEnum};
 
 use crate::Config;
 
-use super::Execute;
+use super::{Compile, Execute};
 
 /// Command to compile ppl package and all dependencies
 #[derive(Parser, Debug)]
@@ -56,7 +56,17 @@ impl Execute for Build {
         } else {
             config.dir.join(&self.target_dir)
         };
-        std::fs::create_dir_all(target_dir.join(self.profile.to_string()))?;
+        let output_dir = target_dir.join(self.profile.to_string());
+        std::fs::create_dir_all(&output_dir)?;
+        let source_dir = config.dir.join("src");
+        for entry in fs_extra::dir::get_dir_content(source_dir).unwrap().files {
+            let path = PathBuf::from(entry);
+            Compile {
+                file: path,
+                output_dir: output_dir.clone(),
+            }
+            .execute();
+        }
         Ok(())
     }
 }
