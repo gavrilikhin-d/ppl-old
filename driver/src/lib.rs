@@ -5,3 +5,6 @@ pub use args::*;
 
 pub mod commands;
 pub use commands::Command;
+
+pub mod config;
+pub use config::Config;
