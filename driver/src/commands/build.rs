@@ -12,8 +12,8 @@ struct Config {
 }
 
 impl Config {
-    /// Recursively search for a config file
-    pub fn find() -> std::io::Result<Config> {
+    /// Recursively search for a config file and read it
+    pub fn get() -> std::io::Result<Config> {
         std::fs::read_dir(".")?
             .filter_map(|entry| entry.ok())
             .find(|entry| entry.file_name() == "build.config")
@@ -33,7 +33,7 @@ impl Execute for Build {
 
     /// Compile ppl package and all dependencies
     fn execute(&self) -> Self::ReturnType {
-        let config = Config::find()?;
+        let config = Config::get()?;
         println!("{:?}", config);
         Ok(())
     }
