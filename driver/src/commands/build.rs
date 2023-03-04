@@ -59,14 +59,16 @@ impl Execute for Build {
         let output_dir = target_dir.join(self.profile.to_string());
         std::fs::create_dir_all(&output_dir)?;
         let source_dir = config.dir.join("src");
-        for entry in fs_extra::dir::get_dir_content(source_dir).unwrap().files {
-            let path = PathBuf::from(entry);
-            Compile {
-                file: path,
-                output_dir: output_dir.clone(),
-            }
-            .execute();
-        }
+        let files = fs_extra::dir::get_dir_content(source_dir).unwrap().files;
+        let sources = files
+            .iter()
+            .map(|entry| PathBuf::from(entry))
+            .filter(|path| path.extension().map(|str| str.to_str()).flatten() == Some("ppl"));
+        let compile_requests = sources.map(|src| Compile {
+            file: src,
+            output_dir: output_dir.clone(),
+        });
+        compile_requests.for_each(|r| r.execute());
         Ok(())
     }
 }
