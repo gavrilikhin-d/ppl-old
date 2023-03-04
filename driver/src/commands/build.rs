@@ -50,10 +50,16 @@ impl Display for Profile {
 pub enum Error {
     /// IO error
     #[error(transparent)]
-    IOError(#[from] std::io::Error),
+    IOError(#[from] fs_extra::error::Error),
     /// Error while reading configuration
     #[error(transparent)]
     ConfigurationError(#[from] config::Error),
+}
+
+impl From<std::io::Error> for Error {
+    fn from(err: std::io::Error) -> Self {
+        Self::IOError(err.into())
+    }
 }
 
 impl Execute for Build {
@@ -70,7 +76,7 @@ impl Execute for Build {
         let output_dir = target_dir.join(self.profile.to_string());
         std::fs::create_dir_all(&output_dir)?;
         let source_dir = config.dir.join("src");
-        let files = fs_extra::dir::get_dir_content(source_dir).unwrap().files;
+        let files = fs_extra::dir::get_dir_content(source_dir)?.files;
         let sources = files
             .iter()
             .map(|entry| PathBuf::from(entry))
