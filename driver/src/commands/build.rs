@@ -2,7 +2,7 @@ use std::{fmt::Display, path::PathBuf};
 
 use clap::{Parser, ValueEnum};
 
-use crate::Config;
+use crate::{config, Config};
 
 use super::{Compile, Execute};
 
@@ -45,8 +45,19 @@ impl Display for Profile {
     }
 }
 
+/// Errors that can occur during [`Build`] execution
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    /// IO error
+    #[error(transparent)]
+    IOError(#[from] std::io::Error),
+    /// Error while reading configuration
+    #[error(transparent)]
+    ConfigurationError(#[from] config::Error),
+}
+
 impl Execute for Build {
-    type ReturnType = std::io::Result<()>;
+    type ReturnType = Result<(), Error>;
 
     /// Compile ppl package and all dependencies
     fn execute(&self) -> Self::ReturnType {

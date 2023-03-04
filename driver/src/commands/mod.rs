@@ -35,17 +35,29 @@ pub enum Command {
     Compile(Compile),
 }
 
+/// Errors that can occur during [`Config::get`]
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    /// IO error
+    #[error(transparent)]
+    IOError(#[from] fs_extra::error::Error),
+    /// Error while building package
+    #[error(transparent)]
+    BuildError(#[from] build::Error),
+}
+
 impl Execute for Command {
-    type ReturnType = fs_extra::error::Result<()>;
+    type ReturnType = Result<(), Error>;
 
     /// Execute the command
     fn execute(&self) -> Self::ReturnType {
         match self {
-            Command::New(new) => new.execute(),
-            Command::Init(init) => init.execute(),
-            Command::Run(run) => Ok(run.execute()?),
-            Command::Build(build) => Ok(build.execute()?),
-            Command::Compile(compile) => Ok(compile.execute()),
-        }
+            Command::New(new) => new.execute()?,
+            Command::Init(init) => init.execute()?,
+            Command::Run(run) => run.execute()?,
+            Command::Build(build) => build.execute()?,
+            Command::Compile(compile) => compile.execute(),
+        };
+        Ok(())
     }
 }

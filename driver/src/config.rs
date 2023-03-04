@@ -24,9 +24,20 @@ pub struct Package {
     pub name: String,
 }
 
+/// Errors that can occur during [`Config::get`]
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    /// IO error
+    #[error(transparent)]
+    IOError(#[from] std::io::Error),
+    /// Configuration is invalid
+    #[error(transparent)]
+    InvalidConfig(#[from] toml::de::Error),
+}
+
 impl Config {
     /// Recursively search for a config file and read it
-    pub fn get() -> std::io::Result<Config> {
+    pub fn get() -> Result<Config, Error> {
         let cwd = std::env::current_dir()?;
         let path = cwd
             .ancestors()
@@ -44,7 +55,7 @@ impl Config {
             })?;
 
         let content = std::fs::read_to_string(&path)?;
-        let mut config: Config = toml::from_str(&content).unwrap();
+        let mut config: Config = toml::from_str(&content)?;
         // Unwrapping here is safe, this directory exists
         config.dir = path.parent().unwrap().to_owned();
         Ok(config)
