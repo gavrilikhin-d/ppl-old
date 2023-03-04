@@ -2,7 +2,12 @@ use clap::Parser;
 
 use driver::{commands::Execute, Args};
 
-fn main() {
+use miette::{bail, Result};
+
+fn main() -> Result<()> {
     let args = Args::parse();
-    args.command.execute().unwrap();
+    if let Err(err) = args.command.execute() {
+        bail!(err)
+    }
+    Ok(())
 }
