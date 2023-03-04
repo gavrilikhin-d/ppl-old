@@ -24,35 +24,7 @@ pub struct Package {
     pub name: String,
 }
 
-/// Errors that can occur during [`Config::get`]
-pub mod error {
-    use std::path::PathBuf;
-
-    use crate::Config;
-
-    /// Configuration file was not found
-    #[derive(thiserror::Error, Debug)]
-    #[error("'{}' not found in '{dir}' or parent directories", Config::NAME)]
-    pub struct NotFound {
-        /// The directory in which the search started
-        pub dir: PathBuf,
-    }
-
-    /// Errors that can occur during [`Config::get`]
-    #[derive(thiserror::Error, Debug)]
-    pub enum Error {
-        /// IO error
-        #[error(transparent)]
-        IOError(#[from] std::io::Error),
-        /// Configuration file was not found
-        #[error(transparent)]
-        NotFound(#[from] NotFound),
-        /// Configuration is invalid
-        #[error(transparent)]
-        InvalidConfig(#[from] toml::de::Error),
-    }
-}
-
+pub mod error;
 pub use error::Error;
 
 use self::error::NotFound;
