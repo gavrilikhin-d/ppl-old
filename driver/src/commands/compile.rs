@@ -20,10 +20,10 @@ impl Execute for Compile {
 
     /// Compile single ppl file
     fn execute(&self) -> Self::ReturnType {
-        println!(
-            "Compiling '{}' to '{}'",
-            self.file.display(),
-            self.output_dir.display()
-        );
+        let output = self
+            .output_dir
+            .join(self.file.file_stem().unwrap())
+            .with_extension("ll");
+        std::fs::File::create(output).unwrap();
     }
 }
