@@ -45,6 +45,7 @@ impl Config {
 
         let content = std::fs::read_to_string(&path)?;
         let mut config: Config = toml::from_str(&content).unwrap();
+        // Unwrapping here is safe, this directory exists
         config.dir = path.parent().unwrap().to_owned();
         Ok(config)
     }
