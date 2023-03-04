@@ -25,15 +25,37 @@ pub struct Package {
 }
 
 /// Errors that can occur during [`Config::get`]
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-    /// IO error
-    #[error(transparent)]
-    IOError(#[from] std::io::Error),
-    /// Configuration is invalid
-    #[error(transparent)]
-    InvalidConfig(#[from] toml::de::Error),
+pub mod error {
+    use std::path::PathBuf;
+
+    use crate::Config;
+
+    /// Configuration file was not found
+    #[derive(thiserror::Error, Debug)]
+    #[error("'{}' not found in '{dir}' or parent directories", Config::NAME)]
+    pub struct NotFound {
+        /// The directory in which the search started
+        pub dir: PathBuf,
+    }
+
+    /// Errors that can occur during [`Config::get`]
+    #[derive(thiserror::Error, Debug)]
+    pub enum Error {
+        /// IO error
+        #[error(transparent)]
+        IOError(#[from] std::io::Error),
+        /// Configuration file was not found
+        #[error(transparent)]
+        NotFound(#[from] NotFound),
+        /// Configuration is invalid
+        #[error(transparent)]
+        InvalidConfig(#[from] toml::de::Error),
+    }
 }
+
+pub use error::Error;
+
+use self::error::NotFound;
 
 impl Config {
     /// Recursively search for a config file and read it
@@ -43,16 +65,7 @@ impl Config {
             .ancestors()
             .map(|path| path.join(Config::NAME))
             .find(|path| path.exists())
-            .ok_or_else(|| {
-                std::io::Error::new(
-                    std::io::ErrorKind::NotFound,
-                    format!(
-                        "{} not found in '{}' or parent directories",
-                        Config::NAME,
-                        cwd.display()
-                    ),
-                )
-            })?;
+            .ok_or_else(|| NotFound { dir: cwd })?;
 
         let content = std::fs::read_to_string(&path)?;
         let mut config: Config = toml::from_str(&content)?;
