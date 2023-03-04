@@ -18,7 +18,7 @@ impl Execute for Init {
     /// Create a new ppl package in an existing directory
     fn execute(&self) -> Self::ReturnType {
         let files = std::fs::read_dir("template")
-            .unwrap()
+            .unwrap() // Unwrapping here is safe, as it's included in ppl
             .map(|entry| entry.unwrap().path())
             .collect::<Vec<_>>();
         let options = fs_extra::dir::CopyOptions::default();
