@@ -329,6 +329,10 @@ mod tests {
         assert!(rule.is_ok());
 
         let rule = rule.unwrap();
-        assert_eq!(rule.get("name").map(|m| m.as_str()), Some("Test"));
+        let name = rule.get("name");
+        assert_eq!(name.map(|m| m.as_str()), Some("Test"));
+
+        let name = name.unwrap();
+        assert_eq!(name.range(), 7..11);
     }
 }
