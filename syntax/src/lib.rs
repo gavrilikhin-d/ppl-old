@@ -1,4 +1,7 @@
-use std::{collections::HashMap, ops::Range};
+use std::{
+    collections::HashMap,
+    ops::{Index, Range},
+};
 
 use regex::Regex;
 
@@ -11,6 +14,53 @@ pub enum Pattern {
     Regex(Regex),
     /// Reference to another rule
     Rule(String),
+    /// Capture a pattern
+    Capture {
+        /// Name of the capture
+        name: String,
+        /// Pattern to capture
+        pattern: Box<Pattern>,
+    },
+}
+
+impl Pattern {
+    /// Apply pattern to source, starting at `start` position
+    pub fn apply<'t>(
+        &self,
+        source: &'t str,
+        start: usize,
+        parser: &Parser,
+    ) -> Result<PatternMatch<'t>, ()> {
+        match self {
+            Pattern::Regex(regex) => {
+                if let Some(m) = regex.find(&source[start..]) {
+                    Ok(RegexMatch {
+                        source,
+                        start: start,
+                        end: start + m.range().len(),
+                    }
+                    .into())
+                } else {
+                    Err(())
+                }
+            }
+            Pattern::Rule(rule) => Ok(parser
+                .rule(rule)
+                .ok_or(())?
+                .apply(source, start, parser)?
+                .into()),
+            Pattern::Capture { name, pattern } => {
+                if let Ok(m) = pattern.apply(source, start, parser) {
+                    Ok(PatternMatch::Capture {
+                        name: name.clone(),
+                        matched: Box::new(m),
+                    })
+                } else {
+                    Err(())
+                }
+            }
+        }
+    }
 }
 
 /// Syntax rule
@@ -38,27 +88,15 @@ impl Rule {
 
         for pattern in &self.patterns {
             if let Some(m) = ws.find(&source[pos..]) {
-                pos += m.end()
+                pos += m.range().len()
             }
 
-            match pattern {
-                Pattern::Regex(regex) => {
-                    if let Some(m) = regex.find(&source[pos..]) {
-                        pos += m.end();
-                        matches.push(PatternMatch::Regex(m));
-                    } else {
-                        return Err(());
-                    }
-                }
-                Pattern::Rule(rule) => {
-                    if let Ok(m) = parser.rule(rule).ok_or(())?.apply(source, pos, parser) {
-                        pos = m.end();
-                        matches.push(PatternMatch::Rule(m));
-                    } else {
-                        return Err(());
-                    }
-                }
+            let m = pattern.apply(source, pos, parser)?;
+            pos += m.range().len();
+            if let PatternMatch::Capture { name, .. } = &m {
+                named.insert(name.clone(), matches.len());
             }
+            matches.push(m);
         }
 
         Ok(RuleMatch {
@@ -74,9 +112,16 @@ impl Rule {
 #[derive(Debug, Clone, Eq, PartialEq, From)]
 pub enum PatternMatch<'t> {
     /// Matched with regex
-    Regex(regex::Match<'t>),
+    Regex(RegexMatch<'t>),
     /// Matched with another rule
     Rule(RuleMatch<'t>),
+    /// Captured pattern
+    Capture {
+        /// Name of the capture
+        name: String,
+        /// Matched pattern
+        matched: Box<PatternMatch<'t>>,
+    },
 }
 
 impl<'t> PatternMatch<'t> {
@@ -85,6 +130,7 @@ impl<'t> PatternMatch<'t> {
         match self {
             PatternMatch::Regex(m) => m.start(),
             PatternMatch::Rule(m) => m.start(),
+            PatternMatch::Capture { matched, .. } => matched.start(),
         }
     }
 
@@ -93,6 +139,7 @@ impl<'t> PatternMatch<'t> {
         match self {
             PatternMatch::Regex(m) => m.end(),
             PatternMatch::Rule(m) => m.end(),
+            PatternMatch::Capture { matched, .. } => matched.end(),
         }
     }
 
@@ -106,7 +153,57 @@ impl<'t> PatternMatch<'t> {
         match self {
             PatternMatch::Regex(m) => m.as_str(),
             PatternMatch::Rule(m) => m.as_str(),
+            PatternMatch::Capture { matched, .. } => matched.as_str(),
         }
+    }
+}
+
+/// Match represents a single match of a regex in a haystack.
+///
+/// The lifetime parameter `'t` refers to the lifetime of the matched text.
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct RegexMatch<'t> {
+    pub(crate) source: &'t str,
+    pub(crate) start: usize,
+    pub(crate) end: usize,
+}
+
+impl<'t> RegexMatch<'t> {
+    /// Returns the starting byte offset of the match in the haystack.
+    #[inline]
+    pub fn start(&self) -> usize {
+        self.start
+    }
+
+    /// Returns the ending byte offset of the match in the haystack.
+    #[inline]
+    pub fn end(&self) -> usize {
+        self.end
+    }
+
+    /// Returns the range over the starting and ending byte offsets of the
+    /// match in the haystack.
+    #[inline]
+    pub fn range(&self) -> Range<usize> {
+        self.start..self.end
+    }
+
+    /// Returns the matched text.
+    #[inline]
+    pub fn as_str(&self) -> &'t str {
+        &self.source[self.range()]
+    }
+}
+
+impl<'t> From<RegexMatch<'t>> for &'t str {
+    fn from(m: RegexMatch<'t>) -> &'t str {
+        m.as_str()
+    }
+}
+
+impl<'t> From<RegexMatch<'t>> for Range<usize> {
+    fn from(m: RegexMatch<'t>) -> Range<usize> {
+        m.range()
     }
 }
 
@@ -119,10 +216,11 @@ pub struct RuleMatch<'t> {
     source: &'t str,
     /// Matched patterns
     matches: Vec<PatternMatch<'t>>,
-    /// Named match patterns patterns
-    named: HashMap<String, PatternMatch<'t>>,
+    /// Matched named captures
+    named: HashMap<String, usize>,
 }
 
+// Implement rule["name"] syntax
 impl<'t> RuleMatch<'t> {
     /// Start position of the match in source in bytes
     pub fn start(&self) -> usize {
@@ -142,6 +240,19 @@ impl<'t> RuleMatch<'t> {
     /// Matched text
     pub fn as_str(&self) -> &'t str {
         &self.source[self.range()]
+    }
+
+    /// Get matched pattern by name
+    pub fn get(&self, name: &str) -> Option<&PatternMatch<'t>> {
+        self.named.get(name).map(|i| &self.matches[*i])
+    }
+}
+
+impl<'t> Index<&str> for RuleMatch<'t> {
+    type Output = PatternMatch<'t>;
+
+    fn index(&self, index: &str) -> &Self::Output {
+        self.get(index).unwrap()
     }
 }
 
@@ -173,7 +284,10 @@ impl Default for Parser {
                     name: "Syntax".into(),
                     patterns: vec![
                         r"^syntax".try_into().unwrap(),
-                        Pattern::Rule("Identifier".into()),
+                        Pattern::Capture {
+                            name: "name".into(),
+                            pattern: Box::new(Pattern::Rule("Identifier".into())),
+                        },
                     ],
                 },
                 Rule {
@@ -213,5 +327,8 @@ mod tests {
 
         let rule = parser.parse("syntax Test");
         assert!(rule.is_ok());
+
+        let rule = rule.unwrap();
+        assert_eq!(rule.get("name").map(|m| m.as_str()), Some("Test"));
     }
 }
