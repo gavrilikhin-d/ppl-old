@@ -17,3 +17,11 @@ fn <{ n, code }: NTimes>:
 Syntax is valid, if it's imported from the module.
 
 It's planned to implement all of the ppl syntax in this way.
+
+`token` statements are used to define tokens, which don't have spaces between them.
+
+Syntax for `syntax` statements:
+```ppl
+token Identifier = [a-zA-Z_][a-zA-Z0-9_]*
+syntax Pattern = Identifier
+```
