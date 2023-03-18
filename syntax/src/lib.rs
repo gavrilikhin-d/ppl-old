@@ -30,7 +30,7 @@ impl Pattern {
         source: &'t str,
         start: usize,
         parser: &Parser,
-    ) -> Result<PatternMatch<'t>, ()> {
+    ) -> Result<PatternMatch<'t>, Error> {
         match self {
             Pattern::Regex(regex) => {
                 if let Some(m) = regex.find(&source[start..]) {
@@ -41,14 +41,10 @@ impl Pattern {
                     }
                     .into())
                 } else {
-                    Err(())
+                    unimplemented!("error")
                 }
             }
-            Pattern::Rule(rule) => Ok(parser
-                .rule(rule)
-                .ok_or(())?
-                .apply(source, start, parser)?
-                .into()),
+            Pattern::Rule(rule) => Ok(parser.try_rule(rule)?.apply(source, start, parser)?.into()),
             Pattern::Capture { name, pattern } => {
                 if let Ok(m) = pattern.apply(source, start, parser) {
                     Ok(PatternMatch::Capture {
@@ -56,7 +52,7 @@ impl Pattern {
                         matched: Box::new(m),
                     })
                 } else {
-                    Err(())
+                    unimplemented!("error")
                 }
             }
         }
@@ -79,7 +75,7 @@ impl Rule {
         source: &'t str,
         start: usize,
         parser: &Parser,
-    ) -> Result<RuleMatch<'t>, ()> {
+    ) -> Result<RuleMatch<'t>, Error> {
         let mut pos = start;
         let mut matches = Vec::new();
         let mut named = HashMap::new();
@@ -264,6 +260,21 @@ impl TryFrom<&str> for Pattern {
     }
 }
 
+/// Error for unknown rule
+#[derive(Debug, thiserror::Error, PartialEq, Eq, Clone)]
+#[error("Unknown rule '{name}'")]
+pub struct UnknownRule {
+    /// Rule's name
+    name: String,
+}
+
+#[derive(Debug, thiserror::Error, PartialEq, Eq, Clone)]
+pub enum Error {
+    /// Unknown rule
+    #[error(transparent)]
+    UnknownRule(#[from] UnknownRule),
+}
+
 /// Syntax parser
 #[derive(Debug)]
 pub struct Parser {
@@ -303,7 +314,7 @@ impl Default for Parser {
 }
 
 impl Parser {
-    /// Get a rule by name
+    /// Get a rule by name or return None
     pub fn rule(&self, name: &str) -> Option<&Rule> {
         let index = self.rules_mapping.get(name)?;
         let rule = &self.rules[*index];
@@ -311,15 +322,33 @@ impl Parser {
         Some(rule)
     }
 
+    /// Get a rule by name, or return an error
+    pub fn try_rule(&self, name: &str) -> Result<&Rule, UnknownRule> {
+        self.rule(name)
+            .ok_or_else(|| UnknownRule { name: name.into() })
+    }
+
     /// Parse a string, starting from root rule
-    pub fn parse<'t>(&self, source: &'t str) -> Result<RuleMatch<'t>, ()> {
-        self.rule(&self.root).ok_or(())?.apply(source, 0, self)
+    pub fn parse<'t>(&self, source: &'t str) -> Result<RuleMatch<'t>, Error> {
+        self.try_rule(&self.root)?.apply(source, 0, self)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn unknown_rule() {
+        let parser = Parser::default();
+        let rule = parser.try_rule("Unknown");
+        assert_eq!(
+            rule.err(),
+            Some(UnknownRule {
+                name: "Unknown".into()
+            })
+        );
+    }
 
     #[test]
     fn rule() {
