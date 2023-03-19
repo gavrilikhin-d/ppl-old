@@ -15,7 +15,6 @@ pub struct MatchError<'source> {
     pub end: usize,
     /// Error payload
     #[source]
-    #[backtrace]
     pub payload: Error,
 }
 
