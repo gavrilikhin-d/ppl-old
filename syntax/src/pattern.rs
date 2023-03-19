@@ -1,7 +1,7 @@
 use derive_more::From;
 use regex::Regex;
 
-use crate::{CaptureMatch, Error, Parser, PatternMatch, RegexMatch};
+use crate::{error::UnexpectedToken, CaptureMatch, MatchError, Parser, PatternMatch, RegexMatch};
 
 /// Syntax pattern
 #[derive(Debug, From)]
@@ -26,21 +26,43 @@ impl Pattern {
         source: &'source str,
         start: usize,
         parser: &Parser,
-    ) -> Result<PatternMatch<'source>, Error> {
+    ) -> Result<PatternMatch<'source>, MatchError<'source>> {
         match self {
             Pattern::Regex(regex) => {
                 if let Some(m) = regex.find(&source[start..]) {
                     Ok(RegexMatch {
                         source,
-                        start: start,
+                        start,
                         end: start + m.range().len(),
                     }
                     .into())
                 } else {
-                    unimplemented!("error")
+                    let end = start
+                        + source[start..]
+                            .find(char::is_whitespace)
+                            .unwrap_or(source.len() - start);
+                    Err(MatchError {
+                        source,
+                        start,
+                        end,
+                        payload: UnexpectedToken {
+                            expected: regex.to_string(),
+                            got: source[start..end].to_string(),
+                        }
+                        .into(),
+                    })
                 }
             }
-            Pattern::Rule(rule) => Ok(parser.try_rule(rule)?.apply(source, start, parser)?.into()),
+            Pattern::Rule(rule) => Ok(parser
+                .try_rule(rule)
+                .map_err(|e| MatchError {
+                    source,
+                    start,
+                    end: start,
+                    payload: e.into(),
+                })?
+                .apply(source, start, parser)?
+                .into()),
             Pattern::Capture { name, pattern } => {
                 if let Ok(m) = pattern.apply(source, start, parser) {
                     Ok(CaptureMatch {

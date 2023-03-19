@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{error::UnknownRule, Error, Pattern, Rule, RuleMatch};
+use crate::{error::UnknownRule, Error, MatchError, Pattern, Rule, RuleMatch};
 
 /// Syntax parser
 #[derive(Debug)]
@@ -29,8 +29,18 @@ impl Parser {
     }
 
     /// Parse a string, starting from root rule
-    pub fn parse<'t>(&self, source: &'t str) -> Result<RuleMatch<'t>, Error> {
-        self.try_rule(&self.root)?.apply(source, 0, self)
+    pub fn parse<'source>(
+        &self,
+        source: &'source str,
+    ) -> Result<RuleMatch<'source>, MatchError<'source>> {
+        self.try_rule(&self.root)
+            .map_err(|e| MatchError {
+                source,
+                start: 0,
+                end: 0,
+                payload: e.into(),
+            })?
+            .apply(source, 0, self)
     }
 }
 

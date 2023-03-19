@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use regex::Regex;
 
-use crate::{Error, Match, Parser, Pattern, PatternMatch, RuleMatch};
+use crate::{Match, MatchError, Parser, Pattern, PatternMatch, RuleMatch};
 
 /// Syntax rule
 #[derive(Debug)]
@@ -25,7 +25,7 @@ impl Rule {
         source: &'source str,
         start: usize,
         parser: &Parser,
-    ) -> Result<RuleMatch<'source>, Error> {
+    ) -> Result<RuleMatch<'source>, MatchError<'source>> {
         assert!(!self.patterns.is_empty());
 
         let mut pos = start;
