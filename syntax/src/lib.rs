@@ -12,3 +12,6 @@ pub use pattern::*;
 
 mod rule;
 pub use rule::*;
+
+mod subslice;
+pub use subslice::*;

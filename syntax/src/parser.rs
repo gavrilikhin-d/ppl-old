@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Range};
 
 use crate::{error::UnknownRule, Error, MatchError, Pattern, Rule, RuleMatch};
 
@@ -28,10 +28,13 @@ impl Parser {
             .ok_or_else(|| UnknownRule { name: name.into() })
     }
 
-    /// Parse a string, starting from root rule
-    pub fn parse<'source>(
+    /// Parse a list of tokens, starting from the root rule.
+    ///
+    /// Tokens must be subslices of `source`.
+    pub fn parse<'source, Tokens: IntoIterator<Item = &'source str>>(
         &self,
         source: &'source str,
+        tokens: Tokens,
     ) -> Result<RuleMatch<'source>, MatchError<'source>> {
         self.try_rule(&self.root)
             .map_err(|e| MatchError {
@@ -93,7 +96,9 @@ mod tests {
     fn rule() {
         let parser = Parser::default();
 
-        let rule = parser.parse("syntax Test");
+        let source = "syntax Test";
+        let tokens = source.split_whitespace();
+        let rule = parser.parse(source, tokens);
         assert!(rule.is_ok());
 
         let rule = rule.unwrap();
