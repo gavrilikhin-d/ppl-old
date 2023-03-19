@@ -3,6 +3,9 @@ use std::ops::Range;
 mod capture;
 pub use capture::*;
 
+mod error;
+pub use error::*;
+
 mod pattern;
 pub use pattern::*;
 
@@ -59,3 +62,4 @@ impl_from_match!(RegexMatch);
 impl_from_match!(RuleMatch);
 impl_from_match!(CaptureMatch);
 impl_from_match!(PatternMatch);
+impl_from_match!(MatchError);
