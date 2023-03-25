@@ -1,36 +1,28 @@
 use derive_more::From;
 
-use crate::{CaptureMatch, Match, MatchError, RegexMatch, RuleMatch};
+use crate::{CaptureMatch, Error, RuleMatch};
 
 /// Pattern match info
 #[derive(Debug, Clone, Eq, PartialEq, From)]
 pub enum PatternMatch<'source> {
     /// Matched with regex
-    Regex(RegexMatch<'source>),
+    Regex(&'source str),
     /// Matched with another rule
     Rule(RuleMatch<'source>),
     /// Captured pattern
     Capture(CaptureMatch<'source>),
     /// Error node
-    Error(MatchError<'source>),
+    Error(Error),
 }
 
-impl<'source> Match<'source> for PatternMatch<'source> {
-    fn source(&self) -> &'source str {
+impl<'source> PatternMatch<'source> {
+    /// Get matched tokens
+    pub fn tokens(&self) -> Box<dyn Iterator<Item = &'source str> + '_> {
         match self {
-            PatternMatch::Regex(m) => m.source(),
-            PatternMatch::Rule(m) => m.source(),
-            PatternMatch::Capture(m) => m.source(),
-            PatternMatch::Error(m) => m.source(),
-        }
-    }
-
-    fn range(&self) -> std::ops::Range<usize> {
-        match self {
-            PatternMatch::Regex(m) => m.range(),
-            PatternMatch::Rule(m) => m.range(),
-            PatternMatch::Capture(m) => m.range(),
-            PatternMatch::Error(m) => m.range(),
+            PatternMatch::Regex(s) => Box::new(std::iter::once(*s)),
+            PatternMatch::Rule(r) => r.tokens(),
+            PatternMatch::Capture(c) => c.tokens(),
+            PatternMatch::Error(_) => Box::new(std::iter::empty()),
         }
     }
 }

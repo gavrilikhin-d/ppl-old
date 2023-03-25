@@ -24,4 +24,6 @@ pub struct UnexpectedToken {
     pub expected: String,
     /// Got token
     pub got: String,
+    /// Start position of the `got` token
+    pub at: usize,
 }

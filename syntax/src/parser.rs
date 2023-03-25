@@ -1,6 +1,6 @@
-use std::{collections::HashMap, ops::Range};
+use std::collections::HashMap;
 
-use crate::{error::UnknownRule, Error, MatchError, Pattern, Rule, RuleMatch};
+use crate::{error::UnknownRule, Error, Pattern, Rule, RuleMatch};
 
 /// Syntax parser
 #[derive(Debug)]
@@ -14,6 +14,17 @@ pub struct Parser {
 }
 
 impl Parser {
+    /// Add a rule to the parser
+    pub fn add_rule(&mut self, rule: Rule) -> Result<(), ()> {
+        if self.rules_mapping.contains_key(rule.name()) {
+            return Err(());
+        }
+        let index = self.rules.len();
+        self.rules_mapping.insert(rule.name().into(), index);
+        self.rules.push(rule);
+        Ok(())
+    }
+
     /// Get a rule by name or return None
     pub fn rule(&self, name: &str) -> Option<&Rule> {
         let index = self.rules_mapping.get(name)?;
@@ -31,53 +42,46 @@ impl Parser {
     /// Parse a list of tokens, starting from the root rule.
     ///
     /// Tokens must be subslices of `source`.
-    pub fn parse<'source, Tokens: IntoIterator<Item = &'source str>>(
+    pub fn parse<'source>(
         &self,
         source: &'source str,
-        tokens: Tokens,
-    ) -> Result<RuleMatch<'source>, MatchError<'source>> {
-        self.try_rule(&self.root)
-            .map_err(|e| MatchError {
-                source,
-                start: 0,
-                end: 0,
-                payload: e.into(),
-            })?
-            .apply(source, 0, self)
+        mut token: impl Iterator<Item = &'source str>,
+    ) -> Result<RuleMatch<'source>, Error> {
+        self.try_rule(&self.root)?.apply(source, &mut token, self)
     }
 }
 
 impl Default for Parser {
     fn default() -> Self {
-        Parser {
+        let mut parser = Parser {
             root: "Syntax".into(),
-            rules: vec![
-                Rule {
-                    name: "Syntax".into(),
-                    patterns: vec![
-                        r"^syntax".try_into().unwrap(),
-                        Pattern::Capture {
-                            name: "name".into(),
-                            pattern: Box::new(Pattern::Rule("Identifier".into())),
-                        },
-                    ],
-                },
-                Rule {
-                    name: "Identifier".into(),
-                    patterns: vec![r"^[a-zA-Z_][a-zA-Z0-9_]*".try_into().unwrap()],
-                },
-            ],
-            rules_mapping: vec![("Syntax".into(), 0), ("Identifier".into(), 1)]
-                .into_iter()
-                .collect(),
-        }
+            rules: Vec::new(),
+            rules_mapping: HashMap::new(),
+        };
+        parser
+            .add_rule(Rule {
+                name: "Syntax".into(),
+                patterns: vec![
+                    "syntax".try_into().unwrap(),
+                    Pattern::Capture {
+                        name: "name".into(),
+                        pattern: Box::new(Pattern::Rule("Identifier".into())),
+                    },
+                ],
+            })
+            .unwrap();
+        parser
+            .add_rule(Rule {
+                name: "Identifier".into(),
+                patterns: vec![r"[a-zA-Z_][a-zA-Z0-9_]*".try_into().unwrap()],
+            })
+            .unwrap();
+        parser
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::Match;
-
     use super::*;
 
     #[test]
@@ -103,9 +107,6 @@ mod tests {
 
         let rule = rule.unwrap();
         let name = rule.get("name");
-        assert_eq!(name.map(|m| m.as_str()), Some("Test"));
-
-        let name = name.unwrap();
-        assert_eq!(name.range(), 7..11);
+        assert_eq!(name.map(|m| m.tokens().next()).flatten(), Some("Test"));
     }
 }

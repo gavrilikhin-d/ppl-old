@@ -1,7 +1,7 @@
 use derive_more::From;
 use regex::Regex;
 
-use crate::{error::UnexpectedToken, CaptureMatch, MatchError, Parser, PatternMatch, RegexMatch};
+use crate::{error::UnexpectedToken, CaptureMatch, Error, Parser, PatternMatch, SubsliceOffset};
 
 /// Syntax pattern
 #[derive(Debug, From)]
@@ -24,47 +24,33 @@ impl Pattern {
     pub fn apply<'source>(
         &self,
         source: &'source str,
-        start: usize,
+        tokens: &mut impl Iterator<Item = &'source str>,
         parser: &Parser,
-    ) -> Result<PatternMatch<'source>, MatchError<'source>> {
+    ) -> Result<PatternMatch<'source>, Error> {
         match self {
             Pattern::Regex(regex) => {
-                if let Some(m) = regex.find(&source[start..]) {
-                    Ok(RegexMatch {
-                        source,
-                        start,
-                        end: start + m.range().len(),
+                let token = tokens.next();
+                if token.is_none() {
+                    unimplemented!("error")
+                }
+                let token = token.unwrap();
+
+                if regex.is_match(token) {
+                    Ok(token.into())
+                } else {
+                    Err(UnexpectedToken {
+                        expected: regex.to_string(),
+                        got: token.into(),
+                        at: token
+                            .offset_in(source)
+                            .expect("Token isn't a subslice of source"),
                     }
                     .into())
-                } else {
-                    let end = start
-                        + source[start..]
-                            .find(char::is_whitespace)
-                            .unwrap_or(source.len() - start);
-                    Err(MatchError {
-                        source,
-                        start,
-                        end,
-                        payload: UnexpectedToken {
-                            expected: regex.to_string(),
-                            got: source[start..end].to_string(),
-                        }
-                        .into(),
-                    })
                 }
             }
-            Pattern::Rule(rule) => Ok(parser
-                .try_rule(rule)
-                .map_err(|e| MatchError {
-                    source,
-                    start,
-                    end: start,
-                    payload: e.into(),
-                })?
-                .apply(source, start, parser)?
-                .into()),
+            Pattern::Rule(rule) => Ok(parser.try_rule(rule)?.apply(source, tokens, parser)?.into()),
             Pattern::Capture { name, pattern } => {
-                if let Ok(m) = pattern.apply(source, start, parser) {
+                if let Ok(m) = pattern.apply(source, tokens, parser) {
                     Ok(CaptureMatch {
                         name: name.clone(),
                         matched: Box::new(m),
@@ -82,6 +68,6 @@ impl TryFrom<&str> for Pattern {
     type Error = regex::Error;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Ok(Pattern::Regex(Regex::new(value)?))
+        Ok(Pattern::Regex(Regex::new(&format!("^{value}$"))?))
     }
 }

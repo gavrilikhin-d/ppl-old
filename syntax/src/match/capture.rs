@@ -1,6 +1,4 @@
-use std::ops::Range;
-
-use crate::{Match, PatternMatch};
+use crate::PatternMatch;
 
 /// Captured pattern
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -11,12 +9,9 @@ pub struct CaptureMatch<'source> {
     pub matched: Box<PatternMatch<'source>>,
 }
 
-impl<'source> Match<'source> for CaptureMatch<'source> {
-    fn source(&self) -> &'source str {
-        self.matched.source()
-    }
-
-    fn range(&self) -> Range<usize> {
-        self.matched.range()
+impl<'source> CaptureMatch<'source> {
+    /// Get matched tokens
+    pub fn tokens(&self) -> Box<dyn Iterator<Item = &'source str> + '_> {
+        self.matched.tokens()
     }
 }
