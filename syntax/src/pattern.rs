@@ -1,7 +1,9 @@
 use derive_more::From;
 use regex::Regex;
 
-use crate::{error::UnexpectedToken, CaptureMatch, Error, Parser, PatternMatch, SubsliceOffset};
+use crate::{
+    error::UnexpectedToken, CaptureMatch, Error, GroupMatch, Parser, PatternMatch, SubsliceOffset,
+};
 
 /// Syntax pattern
 #[derive(Debug, From)]
@@ -16,6 +18,11 @@ pub enum Pattern {
         name: String,
         /// Pattern to capture
         pattern: Box<Pattern>,
+    },
+    /// Match a group of patterns
+    Group {
+        /// Patterns to match
+        patterns: Vec<Pattern>,
     },
 }
 
@@ -59,6 +66,16 @@ impl Pattern {
                 } else {
                     unimplemented!("error")
                 }
+            }
+            Pattern::Group { patterns } => {
+                let mut matched = Vec::new();
+
+                for pattern in patterns {
+                    let m = pattern.apply(source, tokens, parser)?;
+                    matched.push(m);
+                }
+
+                Ok(GroupMatch { matched }.into())
             }
         }
     }
