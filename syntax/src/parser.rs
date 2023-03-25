@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{error::UnknownRule, Error, Pattern, Rule, RuleMatch};
+use crate::{error::UnknownRule, Pattern, Rule, RuleMatch};
 
 /// Syntax parser
 #[derive(Debug)]
@@ -46,8 +46,13 @@ impl Parser {
         &self,
         source: &'source str,
         mut token: impl Iterator<Item = &'source str>,
-    ) -> Result<RuleMatch<'source>, Error> {
-        self.try_rule(&self.root)?.apply(source, &mut token, self)
+    ) -> RuleMatch<'source> {
+        let rule = self.try_rule(&self.root);
+        if let Ok(rule) = rule {
+            rule.apply(source, &mut token, self)
+        } else {
+            rule.err().unwrap().into()
+        }
     }
 }
 
@@ -82,6 +87,8 @@ impl Default for Parser {
 
 #[cfg(test)]
 mod tests {
+    use crate::Match;
+
     use super::*;
 
     #[test]
@@ -105,7 +112,6 @@ mod tests {
         let rule = parser.parse(source, tokens);
         assert!(rule.is_ok());
 
-        let rule = rule.unwrap();
         let name = rule.get("name");
         assert_eq!(name.map(|m| m.tokens().next()).flatten(), Some("Test"));
     }

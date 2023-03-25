@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{Error, Parser, Pattern, PatternMatch, RuleMatch};
+use crate::{Parser, Pattern, PatternMatch, RuleMatch};
 
 /// Syntax rule
 #[derive(Debug)]
@@ -23,12 +23,12 @@ impl Rule {
         source: &'source str,
         token: &mut impl Iterator<Item = &'source str>,
         parser: &Parser,
-    ) -> Result<RuleMatch<'source>, Error> {
+    ) -> RuleMatch<'source> {
         let mut matched = Vec::new();
         let mut named = HashMap::new();
 
         for pattern in &self.patterns {
-            let m = pattern.apply(source, token, parser)?;
+            let m = pattern.apply(source, token, parser);
 
             if let PatternMatch::Capture(c) = &m {
                 named.insert(c.name.clone(), matched.len());
@@ -36,10 +36,10 @@ impl Rule {
             matched.push(m);
         }
 
-        Ok(RuleMatch {
+        RuleMatch {
             rule: self.name.clone(),
             matched,
             named,
-        })
+        }
     }
 }

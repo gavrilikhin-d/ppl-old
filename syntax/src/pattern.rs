@@ -33,7 +33,7 @@ impl Pattern {
         source: &'source str,
         tokens: &mut impl Iterator<Item = &'source str>,
         parser: &Parser,
-    ) -> Result<PatternMatch<'source>, Error> {
+    ) -> PatternMatch<'source> {
         match self {
             Pattern::Regex(regex) => {
                 let token = tokens.next();
@@ -43,39 +43,43 @@ impl Pattern {
                 let token = token.unwrap();
 
                 if regex.is_match(token) {
-                    Ok(token.into())
+                    token.into()
                 } else {
-                    Err(UnexpectedToken {
+                    Error::from(UnexpectedToken {
                         expected: regex.to_string(),
                         got: token.into(),
                         at: token
                             .offset_in(source)
                             .expect("Token isn't a subslice of source"),
-                    }
-                    .into())
+                    })
+                    .into()
                 }
             }
-            Pattern::Rule(rule) => Ok(parser.try_rule(rule)?.apply(source, tokens, parser)?.into()),
-            Pattern::Capture { name, pattern } => {
-                if let Ok(m) = pattern.apply(source, tokens, parser) {
-                    Ok(CaptureMatch {
-                        name: name.clone(),
-                        matched: Box::new(m),
-                    }
-                    .into())
+            Pattern::Rule(rule) => {
+                let rule = parser.try_rule(rule);
+                if let Ok(rule) = rule {
+                    rule.apply(source, tokens, parser).into()
                 } else {
-                    unimplemented!("error")
+                    Error::from(rule.err().unwrap()).into()
                 }
+            }
+            Pattern::Capture { name, pattern } => {
+                let m = pattern.apply(source, tokens, parser);
+                CaptureMatch {
+                    name: name.clone(),
+                    matched: Box::new(m),
+                }
+                .into()
             }
             Pattern::Group { patterns } => {
                 let mut matched = Vec::new();
 
                 for pattern in patterns {
-                    let m = pattern.apply(source, tokens, parser)?;
+                    let m = pattern.apply(source, tokens, parser);
                     matched.push(m);
                 }
 
-                Ok(GroupMatch { matched }.into())
+                GroupMatch { matched }.into()
             }
         }
     }

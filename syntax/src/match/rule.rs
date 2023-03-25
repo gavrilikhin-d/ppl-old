@@ -1,6 +1,6 @@
 use std::{collections::HashMap, ops::Index};
 
-use crate::PatternMatch;
+use crate::{error::UnknownRule, Error, Match, PatternMatch};
 
 /// Rule match info
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -11,13 +11,6 @@ pub struct RuleMatch<'source> {
     pub matched: Vec<PatternMatch<'source>>,
     /// Matched named captures
     pub named: HashMap<String, usize>,
-}
-
-impl<'source> RuleMatch<'source> {
-    /// Get matched tokens
-    pub fn tokens(&self) -> Box<dyn Iterator<Item = &'source str> + '_> {
-        Box::new(self.matched.iter().map(|m| m.tokens()).flatten())
-    }
 }
 
 impl<'source> RuleMatch<'source> {
@@ -32,5 +25,27 @@ impl<'source> Index<&str> for RuleMatch<'source> {
 
     fn index(&self, index: &str) -> &Self::Output {
         self.get(index).unwrap()
+    }
+}
+
+impl<'source> Match<'source> for RuleMatch<'source> {
+    /// Check if match has no error nodes
+    fn is_ok(&self) -> bool {
+        self.matched.iter().all(|m| m.is_ok())
+    }
+
+    /// Get matched tokens
+    fn tokens(&self) -> Box<dyn Iterator<Item = &'source str> + '_> {
+        Box::new(self.matched.iter().map(|m| m.tokens()).flatten())
+    }
+}
+
+impl From<UnknownRule> for RuleMatch<'_> {
+    fn from(e: UnknownRule) -> Self {
+        Self {
+            rule: e.name.clone(),
+            matched: vec![Error::from(e).into()],
+            named: HashMap::new(),
+        }
     }
 }

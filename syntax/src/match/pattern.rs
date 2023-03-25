@@ -1,6 +1,6 @@
 use derive_more::From;
 
-use crate::{CaptureMatch, Error, GroupMatch, RuleMatch};
+use crate::{CaptureMatch, Error, GroupMatch, Match, RuleMatch};
 
 /// Pattern match info
 #[derive(Debug, Clone, Eq, PartialEq, From)]
@@ -17,9 +17,18 @@ pub enum PatternMatch<'source> {
     Error(Error),
 }
 
-impl<'source> PatternMatch<'source> {
-    /// Get matched tokens
-    pub fn tokens(&self) -> Box<dyn Iterator<Item = &'source str> + '_> {
+impl<'source> Match<'source> for PatternMatch<'source> {
+    fn is_ok(&self) -> bool {
+        match self {
+            PatternMatch::Regex(_) => true,
+            PatternMatch::Rule(r) => r.is_ok(),
+            PatternMatch::Capture(c) => c.is_ok(),
+            PatternMatch::Group(g) => g.is_ok(),
+            PatternMatch::Error(_) => false,
+        }
+    }
+
+    fn tokens(&self) -> Box<dyn Iterator<Item = &'source str> + '_> {
         match self {
             PatternMatch::Regex(s) => Box::new(std::iter::once(*s)),
             PatternMatch::Rule(r) => r.tokens(),

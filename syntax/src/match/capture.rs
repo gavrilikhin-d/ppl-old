@@ -1,4 +1,4 @@
-use crate::PatternMatch;
+use crate::{Match, PatternMatch};
 
 /// Captured pattern
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -9,9 +9,12 @@ pub struct CaptureMatch<'source> {
     pub matched: Box<PatternMatch<'source>>,
 }
 
-impl<'source> CaptureMatch<'source> {
-    /// Get matched tokens
-    pub fn tokens(&self) -> Box<dyn Iterator<Item = &'source str> + '_> {
+impl<'source> Match<'source> for CaptureMatch<'source> {
+    fn is_ok(&self) -> bool {
+        self.matched.is_ok()
+    }
+
+    fn tokens(&self) -> Box<dyn Iterator<Item = &'source str> + '_> {
         self.matched.tokens()
     }
 }
