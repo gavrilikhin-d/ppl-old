@@ -72,11 +72,10 @@ impl Repeat {
 
         for _ in 0..self.at_least {
             let m = self.pattern.apply(source, tokens, parser);
-            matched.push(self.pattern.apply(source, tokens, parser));
-
             if m.has_error() {
                 unimplemented!("error in repeat")
             }
+            matched.push(m);
         }
 
         loop {
@@ -88,6 +87,12 @@ impl Repeat {
             }
 
             matched.push(m);
+        }
+
+        if let Some(at_most) = self.at_most {
+            if matched.len() > at_most {
+                unimplemented!("too many repeats")
+            }
         }
 
         GroupMatch {
