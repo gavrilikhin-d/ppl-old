@@ -4,6 +4,9 @@ use regex::Regex;
 mod group;
 pub use group::*;
 
+mod repeat;
+pub use repeat::*;
+
 use crate::{error::UnexpectedToken, Error, Parser, PatternMatch, SubsliceOffset};
 
 /// Syntax pattern
@@ -15,6 +18,8 @@ pub enum Pattern {
     Rule(String),
     /// Group multiple patterns
     Group(Group),
+    /// Repeat pattern
+    Repeat(Repeat),
 }
 
 impl Pattern {
@@ -22,7 +27,7 @@ impl Pattern {
     pub fn apply<'source>(
         &self,
         source: &'source str,
-        tokens: &mut impl Iterator<Item = &'source str>,
+        tokens: &mut (impl Iterator<Item = &'source str> + Clone),
         parser: &Parser,
     ) -> PatternMatch<'source> {
         match self {
@@ -55,6 +60,7 @@ impl Pattern {
                 }
             }
             Pattern::Group(group) => group.apply(source, tokens, parser).into(),
+            Pattern::Repeat(repeat) => repeat.apply(source, tokens, parser).into(),
         }
     }
 }

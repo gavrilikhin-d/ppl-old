@@ -21,7 +21,7 @@ impl Rule {
     pub fn apply<'source>(
         &self,
         source: &'source str,
-        token: &mut impl Iterator<Item = &'source str>,
+        token: &mut (impl Iterator<Item = &'source str> + Clone),
         parser: &Parser,
     ) -> RuleMatch<'source> {
         let mut matched = Vec::new();

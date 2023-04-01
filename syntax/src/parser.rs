@@ -45,7 +45,7 @@ impl Parser {
     pub fn parse<'source>(
         &self,
         source: &'source str,
-        mut token: impl Iterator<Item = &'source str>,
+        mut token: impl Iterator<Item = &'source str> + Clone,
     ) -> RuleMatch<'source> {
         let rule = self.try_rule(&self.root);
         if let Ok(rule) = rule {

@@ -14,7 +14,7 @@ impl Group {
     pub fn apply<'source>(
         &self,
         source: &'source str,
-        tokens: &mut impl Iterator<Item = &'source str>,
+        tokens: &mut (impl Iterator<Item = &'source str> + Clone),
         parser: &Parser,
     ) -> GroupMatch<'source> {
         let mut matched = Vec::new();
