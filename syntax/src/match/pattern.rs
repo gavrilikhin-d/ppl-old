@@ -1,6 +1,6 @@
 use derive_more::From;
 
-use crate::{CaptureMatch, Error, GroupMatch, Match, RuleMatch};
+use crate::{Error, GroupMatch, Match, RuleMatch};
 
 /// Pattern match info
 #[derive(Debug, Clone, Eq, PartialEq, From)]
@@ -9,8 +9,6 @@ pub enum PatternMatch<'source> {
     Regex(&'source str),
     /// Matched with another rule
     Rule(RuleMatch<'source>),
-    /// Captured pattern
-    Capture(CaptureMatch<'source>),
     /// Matched group
     Group(GroupMatch<'source>),
     /// Error node
@@ -22,7 +20,6 @@ impl<'source> Match<'source> for PatternMatch<'source> {
         match self {
             PatternMatch::Regex(_) => true,
             PatternMatch::Rule(r) => r.is_ok(),
-            PatternMatch::Capture(c) => c.is_ok(),
             PatternMatch::Group(g) => g.is_ok(),
             PatternMatch::Error(_) => false,
         }
@@ -32,7 +29,6 @@ impl<'source> Match<'source> for PatternMatch<'source> {
         match self {
             PatternMatch::Regex(s) => Box::new(std::iter::once(*s)),
             PatternMatch::Rule(r) => r.tokens(),
-            PatternMatch::Capture(c) => c.tokens(),
             PatternMatch::Group(g) => g.tokens(),
             PatternMatch::Error(_) => Box::new(std::iter::empty()),
         }

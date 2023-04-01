@@ -7,8 +7,8 @@ pub use error::Error;
 mod parser;
 pub use parser::*;
 
-mod pattern;
-pub use pattern::*;
+pub mod patterns;
+pub use patterns::Pattern;
 
 mod rule;
 pub use rule::*;

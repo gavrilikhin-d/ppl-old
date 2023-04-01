@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{error::UnknownRule, Pattern, Rule, RuleMatch};
+use crate::{error::UnknownRule, patterns::Group, Pattern, Rule, RuleMatch};
 
 /// Syntax parser
 #[derive(Debug)]
@@ -68,10 +68,11 @@ impl Default for Parser {
                 name: "Syntax".into(),
                 patterns: vec![
                     "syntax".try_into().unwrap(),
-                    Pattern::Capture {
+                    Group {
                         name: "name".into(),
-                        pattern: Box::new(Pattern::Rule("Identifier".into())),
-                    },
+                        patterns: vec![Pattern::Rule("Identifier".into())],
+                    }
+                    .into(),
                 ],
             })
             .unwrap();

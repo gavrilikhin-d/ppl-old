@@ -30,8 +30,10 @@ impl Rule {
         for pattern in &self.patterns {
             let m = pattern.apply(source, token, parser);
 
-            if let PatternMatch::Capture(c) = &m {
-                named.insert(c.name.clone(), matched.len());
+            if let PatternMatch::Group(g) = &m {
+                if !g.name.is_empty() {
+                    named.insert(g.name.clone(), matched.len());
+                }
             }
             matched.push(m);
         }

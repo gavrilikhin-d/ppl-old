@@ -3,6 +3,8 @@ use crate::{Match, PatternMatch};
 /// Matched group
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct GroupMatch<'source> {
+    /// Name of the group. Empty means no name
+    pub name: String,
     /// Matched patterns
     pub matched: Vec<PatternMatch<'source>>,
 }
