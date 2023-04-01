@@ -6,12 +6,16 @@ use crate::{Error, GroupMatch, Match, RepeatMatch, RuleMatch};
 #[derive(Debug, Clone, Eq, PartialEq, From)]
 pub enum PatternMatch<'source> {
     /// Matched with regex
+    #[from]
     Regex(&'source str),
     /// Matched with another rule
+    #[from]
     Rule(RuleMatch<'source>),
     /// Matched group
+    #[from]
     Group(GroupMatch<'source>),
     /// Matched repeated patterns
+    #[from]
     Repeat(RepeatMatch<'source>),
     /// Error node
     Error(Error),
@@ -36,5 +40,11 @@ impl<'source> Match<'source> for PatternMatch<'source> {
             PatternMatch::Repeat(r) => r.tokens(),
             PatternMatch::Error(_) => Box::new(std::iter::empty()),
         }
+    }
+}
+
+impl<T: Into<Error>> From<T> for PatternMatch<'_> {
+    fn from(e: T) -> Self {
+        Self::Error(e.into())
     }
 }

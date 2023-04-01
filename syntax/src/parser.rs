@@ -1,6 +1,10 @@
 use std::collections::HashMap;
 
-use crate::{error::UnknownRule, patterns::Group, Pattern, Rule, RuleMatch};
+use crate::{
+    error::UnknownRule,
+    patterns::{Group, Repeat},
+    Pattern, Rule, RuleMatch,
+};
 
 /// Syntax parser
 #[derive(Debug)]
@@ -63,6 +67,7 @@ impl Default for Parser {
             rules: Vec::new(),
             rules_mapping: HashMap::new(),
         };
+        // syntax Syntax = syntax <name: Identifier> = <patterns: Pattern+>
         parser
             .add_rule(Rule {
                 name: "Syntax".into(),
@@ -73,12 +78,22 @@ impl Default for Parser {
                         patterns: vec![Pattern::Rule("Identifier".into())],
                     }
                     .into(),
+                    "=".try_into().unwrap(),
+                    Repeat::once_or_more(Pattern::Rule("Pattern".into())).into(),
                 ],
             })
             .unwrap();
+        // syntax Identifier = [a-zA-Z_][a-zA-Z0-9_]*
         parser
             .add_rule(Rule {
                 name: "Identifier".into(),
+                patterns: vec![r"[a-zA-Z_][a-zA-Z0-9_]*".try_into().unwrap()],
+            })
+            .unwrap();
+        // syntax Pattern = [a-zA-Z_][a-zA-Z0-9_]*
+        parser
+            .add_rule(Rule {
+                name: "Pattern".into(),
                 patterns: vec![r"[a-zA-Z_][a-zA-Z0-9_]*".try_into().unwrap()],
             })
             .unwrap();
@@ -108,7 +123,7 @@ mod tests {
     fn rule() {
         let parser = Parser::default();
 
-        let source = "syntax Test";
+        let source = "syntax Test = test";
         let tokens = source.split_whitespace();
         let rule = parser.parse(source, tokens);
         assert!(rule.is_ok());

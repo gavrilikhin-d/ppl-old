@@ -7,7 +7,10 @@ pub use group::*;
 mod repeat;
 pub use repeat::*;
 
-use crate::{error::UnexpectedToken, Error, Parser, PatternMatch, SubsliceOffset};
+use crate::{
+    error::{UnexpectedEOF, UnexpectedToken},
+    Parser, PatternMatch, SubsliceOffset,
+};
 
 /// Syntax pattern
 #[derive(Debug, From)]
@@ -34,20 +37,24 @@ impl Pattern {
             Pattern::Regex(regex) => {
                 let token = tokens.next();
                 if token.is_none() {
-                    unimplemented!("error")
+                    return UnexpectedEOF {
+                        expected: regex.to_string(),
+                        at: source.len(),
+                    }
+                    .into();
                 }
                 let token = token.unwrap();
 
                 if regex.is_match(token) {
                     token.into()
                 } else {
-                    Error::from(UnexpectedToken {
+                    UnexpectedToken {
                         expected: regex.to_string(),
                         got: token.into(),
                         at: token
                             .offset_in(source)
                             .expect("Token isn't a subslice of source"),
-                    })
+                    }
                     .into()
                 }
             }
@@ -56,7 +63,7 @@ impl Pattern {
                 if let Ok(rule) = rule {
                     rule.apply(source, tokens, parser).into()
                 } else {
-                    Error::from(rule.err().unwrap()).into()
+                    rule.err().unwrap().into()
                 }
             }
             Pattern::Group(group) => group.apply(source, tokens, parser).into(),

@@ -3,9 +3,12 @@ pub enum Error {
     /// Unknown rule
     #[error(transparent)]
     UnknownRule(#[from] UnknownRule),
-    /// Uexpected token
+    /// Unexpected token
     #[error(transparent)]
     UnexpectedToken(#[from] UnexpectedToken),
+    /// Unexpected end of input
+    #[error(transparent)]
+    UnexpectedEOF(#[from] UnexpectedEOF),
 }
 
 /// Error for unknown rule
@@ -25,5 +28,15 @@ pub struct UnexpectedToken {
     /// Got token
     pub got: String,
     /// Start position of the `got` token
+    pub at: usize,
+}
+
+/// Error for unexpected end of input
+#[derive(Debug, thiserror::Error, PartialEq, Eq, Clone)]
+#[error("Unexpected end of input, expected '{expected}'")]
+pub struct UnexpectedEOF {
+    /// Expected token
+    pub expected: String,
+    /// Position where token was expected
     pub at: usize,
 }
