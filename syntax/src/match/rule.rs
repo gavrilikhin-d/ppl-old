@@ -1,6 +1,6 @@
 use std::{collections::HashMap, ops::Index};
 
-use crate::{error::UnknownRule, Error, Match, PatternMatch};
+use crate::{Match, PatternMatch};
 
 /// Rule match info
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -37,15 +37,5 @@ impl<'source> Match<'source> for RuleMatch<'source> {
     /// Get matched tokens
     fn tokens(&self) -> Box<dyn Iterator<Item = &'source str> + '_> {
         Box::new(self.matched.iter().map(|m| m.tokens()).flatten())
-    }
-}
-
-impl From<UnknownRule> for RuleMatch<'_> {
-    fn from(e: UnknownRule) -> Self {
-        Self {
-            rule: e.name.clone(),
-            matched: vec![Error::from(e).into()],
-            named: HashMap::new(),
-        }
     }
 }

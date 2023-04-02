@@ -71,13 +71,11 @@ impl Default for Parser {
                 Repeat::once_or_more(pattern.clone().into()).into(),
             ],
             action: Some(Box::new(|parser, rule| {
-                parser
-                    .add_rule(Rc::new(Rule {
-                        name: rule["name"].tokens().next().unwrap().to_string(),
-                        patterns: vec![],
-                        action: None,
-                    }))
-                    .unwrap();
+                parser.add_rule(Rc::new(Rule {
+                    name: rule["name"].tokens().next().unwrap().to_string(),
+                    patterns: vec![],
+                    action: None,
+                }));
             })),
         });
 
