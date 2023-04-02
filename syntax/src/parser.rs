@@ -1,103 +1,99 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 use crate::{
     error::UnknownRule,
     patterns::{Group, Repeat},
-    Pattern, Rule, RuleMatch,
+    Match, Rule, RuleMatch,
 };
 
 /// Syntax parser
-#[derive(Debug)]
 pub struct Parser {
     /// Rule to start from
-    root: String,
+    pub root: Rc<Rule>,
     /// Rules for the parser
-    rules: Vec<Rule>,
-    /// Mapping of rule names to indices
-    rules_mapping: HashMap<String, usize>,
+    pub rules: HashMap<String, Rc<Rule>>,
 }
 
 impl Parser {
     /// Add a rule to the parser
-    pub fn add_rule(&mut self, rule: Rule) -> Result<(), ()> {
-        if self.rules_mapping.contains_key(rule.name()) {
+    pub fn add_rule(&mut self, rule: Rc<Rule>) -> Result<(), ()> {
+        if self.rules.contains_key(rule.name()) {
             return Err(());
         }
-        let index = self.rules.len();
-        self.rules_mapping.insert(rule.name().into(), index);
-        self.rules.push(rule);
+        self.rules.insert(rule.name().into(), rule);
         Ok(())
     }
 
-    /// Get a rule by name or return None
-    pub fn rule(&self, name: &str) -> Option<&Rule> {
-        let index = self.rules_mapping.get(name)?;
-        let rule = &self.rules[*index];
-        debug_assert_eq!(rule.name(), name);
-        Some(rule)
-    }
-
     /// Get a rule by name, or return an error
-    pub fn try_rule(&self, name: &str) -> Result<&Rule, UnknownRule> {
-        self.rule(name)
+    pub fn try_rule(&self, name: &str) -> Result<Rc<Rule>, UnknownRule> {
+        self.rules
+            .get(name)
             .ok_or_else(|| UnknownRule { name: name.into() })
+            .cloned()
     }
 
     /// Parse a list of tokens, starting from the root rule.
     ///
     /// Tokens must be subslices of `source`.
     pub fn parse<'source>(
-        &self,
+        &mut self,
         source: &'source str,
         mut token: impl Iterator<Item = &'source str> + Clone,
     ) -> RuleMatch<'source> {
-        let rule = self.try_rule(&self.root);
-        if let Ok(rule) = rule {
-            rule.apply(source, &mut token, self)
-        } else {
-            rule.err().unwrap().into()
-        }
+        self.root.clone().apply(source, &mut token, self)
     }
 }
 
 impl Default for Parser {
     fn default() -> Self {
-        let mut parser = Parser {
-            root: "Syntax".into(),
-            rules: Vec::new(),
-            rules_mapping: HashMap::new(),
-        };
-        // syntax Syntax = syntax <name: Identifier> = <patterns: Pattern+>
-        parser
-            .add_rule(Rule {
-                name: "Syntax".into(),
-                patterns: vec![
-                    "syntax".try_into().unwrap(),
-                    Group {
-                        name: "name".into(),
-                        patterns: vec![Pattern::Rule("Identifier".into())],
-                    }
-                    .into(),
-                    "=".try_into().unwrap(),
-                    Repeat::once_or_more(Pattern::Rule("Pattern".into())).into(),
-                ],
-            })
-            .unwrap();
         // syntax Identifier = [a-zA-Z_][a-zA-Z0-9_]*
-        parser
-            .add_rule(Rule {
-                name: "Identifier".into(),
-                patterns: vec![r"[a-zA-Z_][a-zA-Z0-9_]*".try_into().unwrap()],
-            })
-            .unwrap();
+        let identifier = Rc::new(Rule {
+            name: "Identifier".into(),
+            patterns: vec![r"[a-zA-Z_][a-zA-Z0-9_]*".try_into().unwrap()],
+            action: None,
+        });
+
         // syntax Pattern = [a-zA-Z_][a-zA-Z0-9_]*
-        parser
-            .add_rule(Rule {
-                name: "Pattern".into(),
-                patterns: vec![r"[a-zA-Z_][a-zA-Z0-9_]*".try_into().unwrap()],
-            })
-            .unwrap();
-        parser
+        let pattern = Rc::new(Rule {
+            name: "Pattern".into(),
+            patterns: vec![r"[a-zA-Z_][a-zA-Z0-9_]*".try_into().unwrap()],
+            action: None,
+        });
+
+        // syntax Syntax = syntax <name: Identifier> = Pattern+
+        let syntax = Rc::new(Rule {
+            name: "Syntax".into(),
+            patterns: vec![
+                "syntax".try_into().unwrap(),
+                Group {
+                    name: "name".into(),
+                    patterns: vec![identifier.clone().into()],
+                }
+                .into(),
+                "=".try_into().unwrap(),
+                Repeat::once_or_more(pattern.clone().into()).into(),
+            ],
+            action: Some(Box::new(|parser, rule| {
+                parser
+                    .add_rule(Rc::new(Rule {
+                        name: rule["name"].tokens().next().unwrap().to_string(),
+                        patterns: vec![],
+                        action: None,
+                    }))
+                    .unwrap();
+            })),
+        });
+
+        Parser {
+            root: syntax.clone(),
+            rules: vec![
+                ("Identifier".into(), identifier),
+                ("Pattern".into(), pattern),
+                ("Syntax".into(), syntax),
+            ]
+            .into_iter()
+            .collect(),
+        }
     }
 }
 
@@ -121,7 +117,7 @@ mod tests {
 
     #[test]
     fn rule() {
-        let parser = Parser::default();
+        let mut parser = Parser::default();
 
         let source = "syntax Test = test";
         let tokens = source.split_whitespace();
@@ -130,5 +126,8 @@ mod tests {
 
         let name = rule.get("name");
         assert_eq!(name.map(|m| m.tokens().next()).flatten(), Some("Test"));
+
+        let rule = parser.try_rule("Test");
+        assert!(rule.is_ok());
     }
 }

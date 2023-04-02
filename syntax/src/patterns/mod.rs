@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use derive_more::From;
 use regex::Regex;
 
@@ -9,16 +11,16 @@ pub use repeat::*;
 
 use crate::{
     error::{UnexpectedEOF, UnexpectedToken},
-    Parser, PatternMatch, SubsliceOffset,
+    Parser, PatternMatch, Rule, SubsliceOffset,
 };
 
 /// Syntax pattern
-#[derive(Debug, From)]
+#[derive(From)]
 pub enum Pattern {
     /// Match token using regex
     Regex(Regex),
     /// Reference to another rule
-    Rule(String),
+    Rule(Rc<Rule>),
     /// Group multiple patterns
     Group(Group),
     /// Repeat pattern
@@ -31,7 +33,7 @@ impl Pattern {
         &self,
         source: &'source str,
         tokens: &mut (impl Iterator<Item = &'source str> + Clone),
-        parser: &Parser,
+        parser: &mut Parser,
     ) -> PatternMatch<'source> {
         match self {
             Pattern::Regex(regex) => {
@@ -58,14 +60,7 @@ impl Pattern {
                     .into()
                 }
             }
-            Pattern::Rule(rule) => {
-                let rule = parser.try_rule(rule);
-                if let Ok(rule) = rule {
-                    rule.apply(source, tokens, parser).into()
-                } else {
-                    rule.err().unwrap().into()
-                }
-            }
+            Pattern::Rule(rule) => rule.apply(source, tokens, parser).into(),
             Pattern::Group(group) => group.apply(source, tokens, parser).into(),
             Pattern::Repeat(repeat) => repeat.apply(source, tokens, parser).into(),
         }

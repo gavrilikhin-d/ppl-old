@@ -1,7 +1,6 @@
 use crate::{GroupMatch, Parser, Pattern};
 
 /// Group multiple patterns
-#[derive(Debug)]
 pub struct Group {
     /// Name of the group
     pub name: String,
@@ -15,7 +14,7 @@ impl Group {
         &self,
         source: &'source str,
         tokens: &mut (impl Iterator<Item = &'source str> + Clone),
-        parser: &Parser,
+        parser: &mut Parser,
     ) -> GroupMatch<'source> {
         let mut matched = Vec::new();
 

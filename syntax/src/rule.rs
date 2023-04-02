@@ -1,14 +1,15 @@
 use std::collections::HashMap;
 
-use crate::{Parser, Pattern, PatternMatch, RuleMatch};
+use crate::{Match, Parser, Pattern, PatternMatch, RuleMatch};
 
 /// Syntax rule
-#[derive(Debug)]
 pub struct Rule {
     /// Rule name
     pub name: String,
     /// Patterns of the rule
     pub patterns: Vec<Pattern>,
+    /// Action to perform when rule is matched
+    pub action: Option<Box<dyn Fn(&mut Parser, RuleMatch<'_>) -> ()>>,
 }
 
 impl Rule {
@@ -22,7 +23,7 @@ impl Rule {
         &self,
         source: &'source str,
         token: &mut (impl Iterator<Item = &'source str> + Clone),
-        parser: &Parser,
+        parser: &mut Parser,
     ) -> RuleMatch<'source> {
         let mut matched = Vec::new();
         let mut named = HashMap::new();
@@ -38,10 +39,16 @@ impl Rule {
             matched.push(m);
         }
 
-        RuleMatch {
+        let m = RuleMatch {
             rule: self.name.clone(),
             matched,
             named,
+        };
+        if m.is_ok() {
+            if let Some(action) = &self.action {
+                action(parser, m.clone());
+            }
         }
+        m
     }
 }

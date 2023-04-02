@@ -1,7 +1,6 @@
 use crate::{GroupMatch, Match, Parser, Pattern};
 
 /// Repeat pattern
-#[derive(Debug)]
 pub struct Repeat {
     /// Minimum number of times to repeat
     pub at_least: usize,
@@ -73,7 +72,7 @@ impl Repeat {
         &self,
         source: &'source str,
         tokens: &mut (impl Iterator<Item = &'source str> + Clone),
-        parser: &Parser,
+        parser: &mut Parser,
     ) -> GroupMatch<'source> {
         debug_assert!(self.at_most == None || self.at_most.unwrap() >= self.at_least);
 
