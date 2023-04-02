@@ -1,7 +1,6 @@
 use std::{collections::HashMap, rc::Rc};
 
 use crate::{
-    error::UnknownRule,
     patterns::{Group, Repeat},
     Match, Rule, RuleMatch,
 };
@@ -15,13 +14,11 @@ pub struct Parser {
 }
 
 impl Parser {
-    /// Add a rule to the parser
-    pub fn add_rule(&mut self, rule: Rc<Rule>) -> Result<(), ()> {
-        if self.rules.contains_key(rule.name()) {
-            return Err(());
-        }
-        self.rules.insert(rule.name().into(), rule);
-        Ok(())
+    /// Add a rule to the parser.
+    ///
+    /// Returns previously added rule with the same name, if any.
+    pub fn add_rule(&mut self, rule: Rc<Rule>) -> Option<Rc<Rule>> {
+        self.rules.insert(rule.name().into(), rule)
     }
 
     /// Get a rule by name, or return an error
@@ -95,6 +92,14 @@ impl Default for Parser {
             .collect(),
         }
     }
+}
+
+/// Error for unknown rule
+#[derive(Debug, thiserror::Error, PartialEq, Eq, Clone)]
+#[error("Unknown rule '{name}'")]
+pub struct UnknownRule {
+    /// Rule's name
+    pub name: String,
 }
 
 #[cfg(test)]
