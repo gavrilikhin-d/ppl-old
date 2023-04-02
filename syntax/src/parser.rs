@@ -2,7 +2,7 @@ use std::{collections::HashMap, rc::Rc};
 
 use crate::{
     patterns::{Group, Repeat},
-    Match, Pattern, PatternMatch, Rule, RuleMatch,
+    Match, Rule, RuleMatch,
 };
 
 /// Syntax parser
@@ -49,15 +49,6 @@ pub struct UnknownRule {
     pub name: String,
 }
 
-/// Create a rule from a syntax definition
-fn create_rule(parser: &mut Parser, rule: &RuleMatch) {
-    parser.add_rule(Rc::new(Rule {
-        name: rule["name"].as_token().to_string(),
-        patterns: vec![],
-        action: None,
-    }));
-}
-
 impl Default for Parser {
     fn default() -> Self {
         // syntax Identifier = [a-zA-Z_][a-zA-Z0-9_]*
@@ -87,7 +78,13 @@ impl Default for Parser {
                 "=".try_into().unwrap(),
                 Repeat::once_or_more(pattern.clone().into()).into(),
             ],
-            action: Some(Box::new(create_rule)),
+            action: Some(Box::new(|parser, rule| {
+                parser.add_rule(Rc::new(Rule {
+                    name: rule["name"].as_token().to_string(),
+                    patterns: vec![],
+                    action: None,
+                }));
+            })),
         });
 
         Parser {
