@@ -22,4 +22,14 @@ pub trait Match<'source> {
 
     /// Get matched tokens
     fn tokens(&self) -> Box<dyn Iterator<Item = &'source str> + '_>;
+
+    /// Interpret the match as a single token
+    fn as_token(&self) -> &'source str {
+        self.tokens().next().unwrap()
+    }
+
+    /// Iterate over submatches
+    fn submatches(&self) -> Box<dyn Iterator<Item = &PatternMatch<'source>> + '_> {
+        Box::new(std::iter::empty())
+    }
 }

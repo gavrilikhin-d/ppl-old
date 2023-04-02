@@ -41,6 +41,16 @@ impl<'source> Match<'source> for PatternMatch<'source> {
             PatternMatch::Error(_) => Box::new(std::iter::empty()),
         }
     }
+
+    fn submatches(&self) -> Box<dyn Iterator<Item = &PatternMatch<'source>> + '_> {
+        match self {
+            PatternMatch::Regex(s) => Box::new(std::iter::empty()),
+            PatternMatch::Rule(r) => r.submatches(),
+            PatternMatch::Group(g) => g.submatches(),
+            PatternMatch::Repeat(r) => r.submatches(),
+            PatternMatch::Error(_) => Box::new(std::iter::empty()),
+        }
+    }
 }
 
 impl<T: Into<Error>> From<T> for PatternMatch<'_> {
