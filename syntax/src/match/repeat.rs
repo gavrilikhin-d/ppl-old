@@ -1,7 +1,6 @@
 use crate::{Match, PatternMatch};
 
 /// Matched group
-#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct RepeatMatch<'source> {
     /// Minimum expected number of matches
     pub at_least: usize,

@@ -9,7 +9,7 @@ pub struct Rule {
     /// Patterns of the rule
     pub patterns: Vec<Pattern>,
     /// Action to perform when rule is matched
-    pub action: Option<Box<dyn Fn(&mut Parser, RuleMatch<'_>) -> ()>>,
+    pub action: Option<Box<dyn Fn(&mut Parser, &mut RuleMatch<'_>) -> ()>>,
 }
 
 impl Rule {
@@ -39,14 +39,15 @@ impl Rule {
             matched.push(m);
         }
 
-        let m = RuleMatch {
+        let mut m = RuleMatch {
             rule: self.name.clone(),
             matched,
             named,
+            payload: None,
         };
         if m.is_ok() {
             if let Some(action) = &self.action {
-                action(parser, m.clone());
+                action(parser, &mut m);
             }
         }
         m

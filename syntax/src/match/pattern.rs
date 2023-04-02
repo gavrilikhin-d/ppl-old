@@ -3,7 +3,7 @@ use derive_more::From;
 use crate::{Error, GroupMatch, Match, RepeatMatch, RuleMatch};
 
 /// Pattern match info
-#[derive(Debug, Clone, Eq, PartialEq, From)]
+#[derive(From)]
 pub enum PatternMatch<'source> {
     /// Matched with regex
     #[from]

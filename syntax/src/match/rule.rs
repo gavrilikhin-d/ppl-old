@@ -1,9 +1,8 @@
-use std::{collections::HashMap, ops::Index};
+use std::{any::Any, collections::HashMap, ops::Index};
 
 use crate::{Match, PatternMatch};
 
 /// Rule match info
-#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct RuleMatch<'source> {
     /// Rule name
     pub rule: String,
@@ -11,6 +10,8 @@ pub struct RuleMatch<'source> {
     pub matched: Vec<PatternMatch<'source>>,
     /// Matched named captures
     pub named: HashMap<String, usize>,
+    /// Payload, attached by action
+    pub payload: Option<Box<dyn Any>>,
 }
 
 impl<'source> RuleMatch<'source> {
