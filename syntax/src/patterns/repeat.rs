@@ -12,6 +12,15 @@ pub struct Repeat {
 }
 
 impl Repeat {
+    /// Repeat pattern zero times or once
+    pub fn zero_or_once(pattern: Pattern) -> Self {
+        Self {
+            at_least: 0,
+            at_most: Some(1),
+            pattern: Box::new(pattern),
+        }
+    }
+
     /// Repeat pattern zero or more times
     pub fn zero_or_more(pattern: Pattern) -> Self {
         Self {
