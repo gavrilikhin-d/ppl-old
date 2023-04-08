@@ -13,7 +13,9 @@ pub use repeat::*;
 /// Trait for matched patterns
 pub trait Match<'source> {
     /// Check if match has no error nodes
-    fn is_ok(&self) -> bool;
+    fn is_ok(&self) -> bool {
+        !self.has_error()
+    }
 
     /// Check if match has error nodes
     fn has_error(&self) -> bool {

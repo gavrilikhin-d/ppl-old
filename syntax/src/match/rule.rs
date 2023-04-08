@@ -30,12 +30,11 @@ impl<'source> Index<&str> for RuleMatch<'source> {
 }
 
 impl<'source> Match<'source> for RuleMatch<'source> {
-    /// Check if match has no error nodes
-    fn is_ok(&self) -> bool {
-        self.matched.iter().all(|m| m.is_ok())
+    fn has_error(&self) -> bool {
+        self.action_result.as_ref().is_some_and(|r| r.is_err())
+            || self.matched.iter().any(|m| m.has_error())
     }
 
-    /// Get matched tokens
     fn tokens(&self) -> Box<dyn Iterator<Item = &'source str> + '_> {
         Box::new(self.matched.iter().map(|m| m.tokens()).flatten())
     }
