@@ -84,6 +84,7 @@ impl Default for Parser {
                     patterns: vec![],
                     action: None,
                 }));
+                Ok(None)
             })),
         });
 

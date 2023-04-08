@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{any::Any, collections::HashMap, error::Error};
 
 use crate::{Match, Parser, Pattern, PatternMatch, RuleMatch};
 
@@ -9,7 +9,9 @@ pub struct Rule {
     /// Patterns of the rule
     pub patterns: Vec<Pattern>,
     /// Action to perform when rule is matched
-    pub action: Option<Box<dyn Fn(&mut Parser, &mut RuleMatch<'_>) -> ()>>,
+    pub action: Option<
+        Box<dyn Fn(&mut Parser, &RuleMatch<'_>) -> Result<Option<Box<dyn Any>>, Box<dyn Error>>>,
+    >,
 }
 
 impl Rule {
@@ -43,11 +45,11 @@ impl Rule {
             rule: self.name.clone(),
             matched,
             named,
-            payload: None,
+            action_result: None,
         };
         if m.is_ok() {
             if let Some(action) = &self.action {
-                action(parser, &mut m);
+                m.action_result = action(parser, &m).transpose();
             }
         }
         m
