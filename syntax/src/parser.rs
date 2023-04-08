@@ -51,10 +51,10 @@ pub struct UnknownRule {
 
 impl Default for Parser {
     fn default() -> Self {
-        // syntax Identifier = [a-zA-Z_][a-zA-Z0-9_]*
-        let identifier = Rc::new(Rule {
-            name: "Identifier".into(),
-            patterns: vec![r"[a-zA-Z_][a-zA-Z0-9_]*".try_into().unwrap()],
+        // syntax SyntaxName = [A-Z][a-zA-Z0-9_]*
+        let syntax_name = Rc::new(Rule {
+            name: "SyntaxName".into(),
+            patterns: vec![r"[A-Z][a-zA-Z0-9_]*".try_into().unwrap()],
             action: None,
         });
 
@@ -65,14 +65,14 @@ impl Default for Parser {
             action: None,
         });
 
-        // syntax Syntax = syntax <name: Identifier> = Pattern+
+        // syntax Syntax = syntax <name: SyntaxName> = Pattern+
         let syntax = Rc::new(Rule {
             name: "Syntax".into(),
             patterns: vec![
                 "syntax".try_into().unwrap(),
                 Group {
                     name: "name".into(),
-                    patterns: vec![identifier.clone().into()],
+                    patterns: vec![syntax_name.clone().into()],
                 }
                 .into(),
                 "=".try_into().unwrap(),
@@ -87,16 +87,15 @@ impl Default for Parser {
             })),
         });
 
-        Parser {
+        let mut parser = Parser {
             root: syntax.clone(),
-            rules: vec![
-                ("Identifier".into(), identifier),
-                ("Pattern".into(), pattern),
-                ("Syntax".into(), syntax),
-            ]
-            .into_iter()
-            .collect(),
-        }
+            rules: HashMap::new(),
+        };
+        parser.add_rule(syntax);
+        parser.add_rule(syntax_name);
+        parser.add_rule(pattern);
+
+        parser
     }
 }
 
