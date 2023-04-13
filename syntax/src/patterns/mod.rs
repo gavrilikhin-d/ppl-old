@@ -3,6 +3,9 @@ use std::rc::Rc;
 use derive_more::From;
 use regex::Regex;
 
+mod alternatives;
+pub use alternatives::*;
+
 mod group;
 pub use group::*;
 
@@ -25,6 +28,8 @@ pub enum Pattern {
     Group(Group),
     /// Repeat pattern
     Repeat(Repeat),
+    /// Match one of the alternatives
+    Alternatives(Alternatives),
 }
 
 impl Pattern {
@@ -62,7 +67,8 @@ impl Pattern {
             }
             Pattern::Rule(rule) => rule.apply(source, tokens, parser).into(),
             Pattern::Group(group) => group.apply(source, tokens, parser).into(),
-            Pattern::Repeat(repeat) => repeat.apply(source, tokens, parser).into(),
+            Pattern::Repeat(rep) => rep.apply(source, tokens, parser).into(),
+            Pattern::Alternatives(a) => a.apply(source, tokens, parser).into(),
         }
     }
 }
