@@ -72,10 +72,8 @@ impl Pattern {
     }
 }
 
-impl TryFrom<&str> for Pattern {
-    type Error = regex::Error;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Ok(Pattern::Regex(Regex::new(&format!("^{value}$"))?))
+impl From<&str> for Pattern {
+    fn from(value: &str) -> Self {
+        Pattern::Regex(Regex::new(&format!("^{value}$")).expect("Invalid regex in pattern"))
     }
 }
