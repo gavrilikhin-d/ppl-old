@@ -1,4 +1,4 @@
-use crate::{GroupMatch, Match, Parser, Pattern};
+use crate::{GroupMatch, Match, Pattern};
 
 /// Repeat pattern
 pub struct Repeat {
@@ -72,14 +72,13 @@ impl Repeat {
         &self,
         source: &'source str,
         tokens: &mut (impl Iterator<Item = &'source str> + Clone),
-        parser: &mut Parser,
     ) -> GroupMatch<'source> {
         debug_assert!(self.at_most == None || self.at_most.unwrap() >= self.at_least);
 
         let mut matched = Vec::new();
 
         for _ in 0..self.at_least {
-            let m = self.pattern.apply(source, tokens, parser);
+            let m = self.pattern.apply(source, tokens);
             if m.has_error() {
                 unimplemented!("error in repeat")
             }
@@ -88,7 +87,7 @@ impl Repeat {
 
         while self.at_most.is_none() || matched.len() < self.at_most.unwrap() {
             let tokens_copy = tokens.clone();
-            let m = self.pattern.apply(source, tokens, parser);
+            let m = self.pattern.apply(source, tokens);
             if m.has_error() {
                 *tokens = tokens_copy;
                 break;
@@ -106,14 +105,13 @@ impl Repeat {
 
 #[cfg(test)]
 mod test {
-    use crate::{patterns::Repeat, Match, Parser};
+    use crate::{patterns::Repeat, Match};
 
     #[test]
     fn not_enough() {
-        let mut parser = Parser::default();
         let pattern = Repeat::n_times(2, "a".try_into().unwrap());
         let mut tokens = vec!["a"].into_iter();
-        let m = pattern.apply("a", &mut tokens, &mut parser);
+        let m = pattern.apply("a", &mut tokens);
         assert!(m.has_error());
         assert_eq!(m.matched.len(), 2);
         assert_eq!(m.matched[0].as_token(), "a");

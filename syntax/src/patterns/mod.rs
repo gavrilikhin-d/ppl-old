@@ -14,7 +14,7 @@ pub use repeat::*;
 
 use crate::{
     error::{UnexpectedEOF, UnexpectedToken},
-    Parser, PatternMatch, Rule, SubsliceOffset,
+    PatternMatch, Rule, SubsliceOffset,
 };
 
 /// Syntax pattern
@@ -38,7 +38,6 @@ impl Pattern {
         &self,
         source: &'source str,
         tokens: &mut (impl Iterator<Item = &'source str> + Clone),
-        parser: &mut Parser,
     ) -> PatternMatch<'source> {
         match self {
             Pattern::Regex(regex) => {
@@ -65,10 +64,10 @@ impl Pattern {
                     .into()
                 }
             }
-            Pattern::Rule(rule) => rule.apply(source, tokens, parser).into(),
-            Pattern::Group(group) => group.apply(source, tokens, parser).into(),
-            Pattern::Repeat(rep) => rep.apply(source, tokens, parser).into(),
-            Pattern::Alternatives(a) => a.apply(source, tokens, parser).into(),
+            Pattern::Rule(rule) => rule.apply(source, tokens).into(),
+            Pattern::Group(group) => group.apply(source, tokens).into(),
+            Pattern::Repeat(rep) => rep.apply(source, tokens).into(),
+            Pattern::Alternatives(a) => a.apply(source, tokens).into(),
         }
     }
 }

@@ -1,6 +1,6 @@
 use std::{any::Any, collections::HashMap, error::Error};
 
-use crate::{Match, Parser, Pattern, PatternMatch, RuleMatch};
+use crate::{Match, Pattern, PatternMatch, RuleMatch};
 
 /// Syntax rule
 pub struct Rule {
@@ -9,9 +9,7 @@ pub struct Rule {
     /// Patterns of the rule
     pub patterns: Vec<Pattern>,
     /// Action to perform when rule is matched
-    pub action: Option<
-        Box<dyn Fn(&mut Parser, &RuleMatch<'_>) -> Result<Option<Box<dyn Any>>, Box<dyn Error>>>,
-    >,
+    pub action: Option<Box<dyn Fn(&RuleMatch<'_>) -> Result<Option<Box<dyn Any>>, Box<dyn Error>>>>,
 }
 
 impl Rule {
@@ -25,13 +23,12 @@ impl Rule {
         &self,
         source: &'source str,
         token: &mut (impl Iterator<Item = &'source str> + Clone),
-        parser: &mut Parser,
     ) -> RuleMatch<'source> {
         let mut matched = Vec::new();
         let mut named = HashMap::new();
 
         for pattern in &self.patterns {
-            let m = pattern.apply(source, token, parser);
+            let m = pattern.apply(source, token);
 
             if let PatternMatch::Group(g) = &m {
                 if !g.name.is_empty() {
@@ -49,7 +46,7 @@ impl Rule {
         };
         if m.is_ok() {
             if let Some(action) = &self.action {
-                m.action_result = action(parser, &m).transpose();
+                m.action_result = action(&m).transpose();
             }
         }
         m

@@ -1,4 +1,4 @@
-use crate::{Match, Parser, Pattern, PatternMatch};
+use crate::{Match, Pattern, PatternMatch};
 
 /// Rule alternatives. Matches first pattern that matches.
 pub struct Alternatives {
@@ -12,11 +12,10 @@ impl Alternatives {
         &self,
         source: &'source str,
         tokens: &mut (impl Iterator<Item = &'source str> + Clone),
-        parser: &mut Parser,
     ) -> PatternMatch<'source> {
         for alt in &self.patterns {
             let tokens_copy = tokens.clone();
-            let m = alt.apply(source, tokens, parser);
+            let m = alt.apply(source, tokens);
             if m.has_error() {
                 *tokens = tokens_copy;
                 continue;

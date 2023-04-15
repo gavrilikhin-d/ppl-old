@@ -1,4 +1,4 @@
-use crate::{GroupMatch, Parser, Pattern};
+use crate::{GroupMatch, Pattern};
 
 /// Group multiple patterns
 pub struct Group {
@@ -14,12 +14,11 @@ impl Group {
         &self,
         source: &'source str,
         tokens: &mut (impl Iterator<Item = &'source str> + Clone),
-        parser: &mut Parser,
     ) -> GroupMatch<'source> {
         let mut matched = Vec::new();
 
         for pattern in &self.patterns {
-            matched.push(pattern.apply(source, tokens, parser));
+            matched.push(pattern.apply(source, tokens));
         }
 
         GroupMatch {
