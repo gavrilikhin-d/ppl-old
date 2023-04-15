@@ -86,7 +86,7 @@ impl Repeat {
             matched.push(m);
         }
 
-        loop {
+        while self.at_most.is_none() || matched.len() < self.at_most.unwrap() {
             let tokens_copy = tokens.clone();
             let m = self.pattern.apply(source, tokens, parser);
             if m.has_error() {
@@ -97,15 +97,25 @@ impl Repeat {
             matched.push(m);
         }
 
-        if let Some(at_most) = self.at_most {
-            if matched.len() > at_most {
-                unimplemented!("too many repeats")
-            }
-        }
-
         GroupMatch {
             name: String::new(),
             matched,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::{patterns::Repeat, Match, Parser};
+
+    #[test]
+    fn not_enough() {
+        let mut parser = Parser::default();
+        let pattern = Repeat::n_times(2, "a".try_into().unwrap());
+        let mut tokens = vec!["a"].into_iter();
+        let m = pattern.apply("a", &mut tokens, &mut parser);
+        assert!(m.has_error());
+        assert_eq!(m.matched.len(), 2);
+        assert_eq!(m.matched[0].as_token(), "a");
     }
 }
