@@ -31,12 +31,12 @@ pub fn pattern(input: &str) -> IResult<&str, &str> {
 
 #[cfg(test)]
 mod test {
-    use crate::{pattern, rule};
+    use crate::{pattern, rule_name};
 
     #[test]
-    fn test_rule() {
-        assert_eq!(rule("ValidRuleName"), Ok(("", "ValidRuleName")));
-        assert!(rule("invalidRuleName").is_err());
+    fn test_rule_name() {
+        assert_eq!(rule_name("ValidRuleName"), Ok(("", "ValidRuleName")));
+        assert!(rule_name("invalidRuleName").is_err());
     }
 
     #[test]
