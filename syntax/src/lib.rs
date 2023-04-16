@@ -24,9 +24,9 @@ pub fn rule(input: &str) -> IResult<&str, &str> {
     rule_name(input)
 }
 
-/// Pattern: [^ \t\r\n]+
+/// Pattern: Regex
 pub fn pattern(input: &str) -> IResult<&str, &str> {
-    take_while1(|c: char| !c.is_whitespace())(input)
+    regex(input)
 }
 
 /// Regex: [^ \t\r\n]+
