@@ -2,13 +2,13 @@
 
 use nom::{
     self,
-    character::complete::{alpha0, one_of},
+    character::complete::{alpha0, satisfy},
     IResult,
 };
 
 /// [A-Z]
 pub fn uppercase_alpha(input: &str) -> IResult<&str, char> {
-    one_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ")(&input)
+    satisfy(|c| c.is_ascii_uppercase())(input)
 }
 
 /// RuleName: [A-Z][a-zA-Z]*
@@ -25,9 +25,11 @@ pub fn rule(input: &str) -> IResult<&str, &str> {
 
 #[cfg(test)]
 mod test {
+    use crate::rule;
+
     #[test]
-    fn rule() {
-        assert_eq!(super::rule("ValidRuleName"), Ok(("", "ValidRuleName")));
-        assert!(super::rule("invalidRuleName").is_err());
+    fn test_rule() {
+        assert_eq!(rule("ValidRuleName"), Ok(("", "ValidRuleName")));
+        assert!(rule("invalidRuleName").is_err());
     }
 }
