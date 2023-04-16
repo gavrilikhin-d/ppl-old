@@ -4,8 +4,9 @@ use nom::{
     self,
     branch::alt,
     bytes::complete::take_while1,
-    character::complete::{alpha0, satisfy},
+    character::complete::{alpha0, char, satisfy},
     combinator::map,
+    multi::separated_list1,
     IResult,
 };
 
@@ -33,10 +34,28 @@ pub enum Pattern<'s> {
     RuleReference(&'s str),
     /// Regex
     Regex(&'s str),
+    /// Pattern alternatives
+    Alternatives(Vec<Pattern<'s>>),
 }
 
-/// Pattern: RuleReference | Regex
+/// Pattern: BasicPattern ( '|' BasicPattern )*
 pub fn pattern(input: &str) -> IResult<&str, (&str, Pattern)> {
+    let (rest, v) = separated_list1(char('|'), basic_pattern)(input)?;
+    Ok((
+        rest,
+        if v.len() == 1 {
+            v.into_iter().next().unwrap()
+        } else {
+            (
+                &input[..input.len() - rest.len()],
+                Pattern::Alternatives(v.into_iter().map(|(_, p)| p).collect()),
+            )
+        },
+    ))
+}
+
+/// BasicPattern: RuleReference | Regex
+pub fn basic_pattern(input: &str) -> IResult<&str, (&str, Pattern)> {
     alt((
         map(rule_reference, |s| (s, Pattern::RuleReference(s))),
         map(regex, |s| (s, Pattern::Regex(s))),
@@ -55,7 +74,7 @@ pub fn regex(input: &str) -> IResult<&str, &str> {
 
 #[cfg(test)]
 mod test {
-    use crate::{pattern, regex, rule_name, Pattern};
+    use crate::{basic_pattern, pattern, regex, rule_name, Pattern};
 
     #[test]
     fn test_rule_name() {
@@ -73,17 +92,34 @@ mod test {
     }
 
     #[test]
-    fn test_pattern() {
+    fn test_basic_pattern() {
         assert_eq!(
-            pattern("ValidRuleName"),
+            basic_pattern("ValidRuleName"),
             Ok((
                 "",
                 ("ValidRuleName", Pattern::RuleReference("ValidRuleName"))
             ))
         );
         assert_eq!(
-            pattern("validRegex"),
+            basic_pattern("validRegex"),
             Ok(("", ("validRegex", Pattern::Regex("validRegex"))))
+        );
+    }
+
+    #[test]
+    fn test_pattern() {
+        assert_eq!(
+            pattern("ValidRuleName|[a-z]"),
+            Ok((
+                "",
+                (
+                    "ValidRuleName|[a-z]",
+                    Pattern::Alternatives(vec![
+                        Pattern::RuleReference("ValidRuleName"),
+                        Pattern::Regex("[a-z]"),
+                    ])
+                )
+            ))
         );
     }
 }
