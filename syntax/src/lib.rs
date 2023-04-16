@@ -29,9 +29,14 @@ pub fn pattern(input: &str) -> IResult<&str, &str> {
     take_while1(|c: char| !c.is_whitespace())(input)
 }
 
+/// Regex: [^ \t\r\n]+
+pub fn regex(input: &str) -> IResult<&str, &str> {
+    take_while1(|c: char| !c.is_whitespace())(input)
+}
+
 #[cfg(test)]
 mod test {
-    use crate::{pattern, rule_name};
+    use crate::{regex, rule_name};
 
     #[test]
     fn test_rule_name() {
@@ -40,8 +45,11 @@ mod test {
     }
 
     #[test]
-    fn test_pattern() {
-        assert_eq!(pattern("ValidPattern"), Ok(("", "ValidPattern")));
-        assert_eq!(pattern("Valid Pattern"), Ok((" Pattern", "Valid")));
+    fn test_regex() {
+        assert_eq!(regex("ValidRegex"), Ok(("", "ValidRegex")));
+        assert_eq!(
+            regex("Vali1324dRegex rest"),
+            Ok((" rest", "Vali1324dRegex"))
+        );
     }
 }
