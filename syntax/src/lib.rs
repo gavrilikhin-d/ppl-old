@@ -2,8 +2,10 @@
 
 use nom::{
     self,
+    branch::alt,
     bytes::complete::take_while1,
     character::complete::{alpha0, satisfy},
+    combinator::map,
     IResult,
 };
 
@@ -24,9 +26,26 @@ pub fn rule(input: &str) -> IResult<&str, &str> {
     rule_name(input)
 }
 
-/// Pattern: Regex
-pub fn pattern(input: &str) -> IResult<&str, &str> {
-    regex(input)
+/// Possible patterns
+#[derive(Debug, PartialEq)]
+pub enum Pattern<'s> {
+    /// Reference to another rule
+    RuleReference(&'s str),
+    /// Regex
+    Regex(&'s str),
+}
+
+/// Pattern: RuleReference | Regex
+pub fn pattern(input: &str) -> IResult<&str, (&str, Pattern)> {
+    alt((
+        map(rule_reference, |s| (s, Pattern::RuleReference(s))),
+        map(regex, |s| (s, Pattern::Regex(s))),
+    ))(input)
+}
+
+/// RuleReference: RuleName
+pub fn rule_reference(input: &str) -> IResult<&str, &str> {
+    rule_name(input)
 }
 
 /// Regex: [^ \t\r\n]+
@@ -36,7 +55,7 @@ pub fn regex(input: &str) -> IResult<&str, &str> {
 
 #[cfg(test)]
 mod test {
-    use crate::{regex, rule_name};
+    use crate::{pattern, regex, rule_name, Pattern};
 
     #[test]
     fn test_rule_name() {
@@ -50,6 +69,21 @@ mod test {
         assert_eq!(
             regex("Vali1324dRegex rest"),
             Ok((" rest", "Vali1324dRegex"))
+        );
+    }
+
+    #[test]
+    fn test_pattern() {
+        assert_eq!(
+            pattern("ValidRuleName"),
+            Ok((
+                "",
+                ("ValidRuleName", Pattern::RuleReference("ValidRuleName"))
+            ))
+        );
+        assert_eq!(
+            pattern("validRegex"),
+            Ok(("", ("validRegex", Pattern::Regex("validRegex"))))
         );
     }
 }
