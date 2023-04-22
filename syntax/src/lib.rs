@@ -4,6 +4,7 @@ use derive_more::From;
 use nom::{
     self,
     branch::alt,
+    bytes::complete::tag,
     bytes::complete::take_while1,
     character::complete::{alpha0, char, one_of, satisfy, space0},
     combinator::map,
@@ -11,6 +12,33 @@ use nom::{
     sequence::delimited,
     IResult,
 };
+
+/// Parse tree
+#[derive(Debug, PartialEq, Clone, From)]
+pub enum ParseTree<'s> {
+    /// Token
+    Token(&'s str),
+    /// Tree with children
+    Tree(Vec<ParseTree<'s>>),
+}
+
+impl<'s> From<Vec<&'s str>> for ParseTree<'s> {
+    fn from(v: Vec<&'s str>) -> Self {
+        Self::Tree(v.into_iter().map(|s| s.into()).collect())
+    }
+}
+
+impl ParseTree<'_> {
+    /// Append another tree to this tree
+    pub fn append(&mut self, tree: impl Into<Self>) -> &mut Self {
+        let tree = tree.into();
+        match self {
+            Self::Token(_) => *self = Self::Tree(vec![self.clone(), tree]),
+            Self::Tree(v) => v.push(tree),
+        };
+        self
+    }
+}
 
 /// [A-Z]
 pub fn uppercase_alpha(input: &str) -> IResult<&str, char> {
@@ -24,9 +52,38 @@ pub fn rule_name(input: &str) -> IResult<&str, &str> {
     Ok((new_input, &input[..1 + tail.len()]))
 }
 
-/// Rule: RuleName
-pub fn rule(input: &str) -> IResult<&str, &str> {
-    rule_name(input)
+/// Ast for rules
+#[derive(Debug, PartialEq, Clone)]
+pub struct Rule<'s> {
+    /// Rule name
+    pub name: &'s str,
+    /// Rule patterns
+    pub patterns: Vec<Pattern<'s>>,
+}
+
+/// Rule: RuleName: Pattern+
+pub fn rule(input: &str) -> IResult<&str, (ParseTree, Rule)> {
+    let (rest, name) = rule_name(input)?;
+    let mut tree: ParseTree = name.into();
+
+    let (rest, colon) = delimited(space0, tag(":"), space0)(rest)?;
+    tree.append(colon);
+
+    let (rest, v) = many1(delimited(space0, pattern, space0))(rest)?;
+    v.iter().for_each(|(s, _)| {
+        tree.append(*s);
+    });
+
+    Ok((
+        rest,
+        (
+            tree,
+            Rule {
+                name,
+                patterns: v.into_iter().map(|(_, p)| p).collect(),
+            },
+        ),
+    ))
 }
 
 /// Possible patterns
@@ -163,16 +220,17 @@ pub fn group(input: &str) -> IResult<&str, (&str, Vec<Pattern>)> {
     ))
 }
 
-/// Regex: [^ \t\r\n()+*?|]+
+/// Regex: [^ \t\r\n()|]+
 pub fn regex(input: &str) -> IResult<&str, &str> {
-    take_while1(|c: char| !(c.is_whitespace() || ['(', ')', '+', '*', '?', '|'].contains(&c)))(
-        input,
-    )
+    take_while1(|c: char| !(c.is_whitespace() || ['(', ')', '|'].contains(&c)))(input)
 }
 
 #[cfg(test)]
 mod test {
-    use crate::{alternatives, basic_pattern, pattern, regex, repeat, rule_name, Pattern, Repeat};
+    use crate::{
+        alternatives, basic_pattern, regex, repeat, rule, rule_name, ParseTree, Pattern, Repeat,
+        Rule,
+    };
 
     #[test]
     fn test_rule_name() {
@@ -221,6 +279,10 @@ mod test {
             regex("Vali1324dRegex rest"),
             Ok((" rest", "Vali1324dRegex"))
         );
+
+        assert_eq!(regex("x+"), Ok(("", "x+")));
+        assert_eq!(regex("x*"), Ok(("", "x*")));
+        assert_eq!(regex("x?"), Ok(("", "x?")));
     }
 
     #[test]
@@ -252,16 +314,16 @@ mod test {
     fn test_repeat() {
         let p = Pattern::Regex("x");
         assert_eq!(
-            repeat("x+"),
-            Ok(("", ("x+", Repeat::once_or_more(p.clone()).into())))
+            repeat("(x)+"),
+            Ok(("", ("(x)+", Repeat::once_or_more(p.clone()).into())))
         );
         assert_eq!(
-            repeat("x*"),
-            Ok(("", ("x*", Repeat::zero_or_more(p.clone()))))
+            repeat("(x)*"),
+            Ok(("", ("(x)*", Repeat::zero_or_more(p.clone()))))
         );
         assert_eq!(
-            repeat("x?"),
-            Ok(("", ("x?", Repeat::at_most_once(p.clone()))))
+            repeat("(x)?"),
+            Ok(("", ("(x)?", Repeat::at_most_once(p.clone()))))
         )
     }
 
@@ -322,5 +384,22 @@ mod test {
                 )
             ))
         );
+    }
+
+    #[test]
+    fn test_rule() {
+        assert_eq!(
+            rule("Rule: x"),
+            Ok((
+                "",
+                (
+                    ParseTree::from(vec!["Rule", ":", "x"]),
+                    Rule {
+                        name: "Rule",
+                        patterns: vec![Pattern::Regex("x")]
+                    }
+                )
+            ))
+        )
     }
 }
