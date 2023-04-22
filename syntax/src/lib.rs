@@ -1,5 +1,6 @@
 #![feature(anonymous_lifetime_in_impl_trait)]
 
+use derive_more::From;
 use nom::{
     self,
     branch::alt,
@@ -29,7 +30,7 @@ pub fn rule(input: &str) -> IResult<&str, &str> {
 }
 
 /// Possible patterns
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, From)]
 pub enum Pattern<'s> {
     /// Reference to another rule
     RuleReference(&'s str),
@@ -40,20 +41,57 @@ pub enum Pattern<'s> {
     /// Pattern alternatives
     Alternatives(Vec<Pattern<'s>>),
     /// Repeat pattern
-    Repeat {
-        pattern: Box<Pattern<'s>>,
-        at_least: usize,
-        at_most: Option<usize>,
-    },
+    #[from]
+    Repeat(Repeat<'s>),
+}
+
+/// Repeat pattern
+#[derive(Debug, PartialEq, Clone)]
+pub struct Repeat<'s> {
+    /// Pattern to repeat
+    pub pattern: Box<Pattern<'s>>,
+    /// Minimum number of repetitions
+    pub at_least: usize,
+    /// Maximum number of repetitions
+    pub at_most: Option<usize>,
+}
+
+impl<'s> Repeat<'s> {
+    /// Repeat pattern zero or more times (x*)
+    pub fn zero_or_more(pattern: Pattern<'s>) -> Self {
+        Self {
+            pattern: Box::new(pattern),
+            at_least: 0,
+            at_most: None,
+        }
+    }
+
+    /// Repeat pattern once or more times (x+)
+    pub fn once_or_more(pattern: Pattern<'s>) -> Self {
+        Self {
+            pattern: Box::new(pattern),
+            at_least: 1,
+            at_most: None,
+        }
+    }
+
+    /// Repeat pattern at most once (x?)
+    pub fn at_most_once(pattern: Pattern<'s>) -> Self {
+        Self {
+            pattern: Box::new(pattern),
+            at_least: 0,
+            at_most: Some(1),
+        }
+    }
 }
 
 /// Pattern: Repeat | Alternatives
 pub fn pattern(input: &str) -> IResult<&str, (&str, Pattern)> {
-    alt((repeat, alternatives))(input)
+    alt((map(repeat, |(s, r)| (s, r.into())), alternatives))(input)
 }
 
 /// Repeat: BasicPattern ('+' | '*' | '?')
-pub fn repeat(input: &str) -> IResult<&str, (&str, Pattern)> {
+pub fn repeat(input: &str) -> IResult<&str, (&str, Repeat)> {
     let (rest, (_, p)) = basic_pattern(input)?;
     let (rest, c) = one_of("+*?")(rest)?;
     Ok((
@@ -61,22 +99,10 @@ pub fn repeat(input: &str) -> IResult<&str, (&str, Pattern)> {
         (
             &input[..input.len() - rest.len()],
             match c {
-                '+' => Pattern::Repeat {
-                    pattern: Box::new(p),
-                    at_least: 1,
-                    at_most: None,
-                },
-                '*' => Pattern::Repeat {
-                    pattern: Box::new(p),
-                    at_least: 0,
-                    at_most: None,
-                },
-                '?' => Pattern::Repeat {
-                    pattern: Box::new(p),
-                    at_least: 0,
-                    at_most: Some(1),
-                },
-                _ => p,
+                '*' => Repeat::zero_or_more(p),
+                '+' => Repeat::once_or_more(p),
+                '?' => Repeat::at_most_once(p),
+                _ => unreachable!(),
             },
         ),
     ))
@@ -146,7 +172,7 @@ pub fn regex(input: &str) -> IResult<&str, &str> {
 
 #[cfg(test)]
 mod test {
-    use crate::{alternatives, basic_pattern, pattern, regex, repeat, rule_name, Pattern};
+    use crate::{alternatives, basic_pattern, pattern, regex, repeat, rule_name, Pattern, Repeat};
 
     #[test]
     fn test_rule_name() {
@@ -224,47 +250,18 @@ mod test {
 
     #[test]
     fn test_repeat() {
+        let p = Pattern::Regex("x");
         assert_eq!(
             repeat("x+"),
-            Ok((
-                "",
-                (
-                    "x+",
-                    Pattern::Repeat {
-                        pattern: Box::new(Pattern::Regex("x")),
-                        at_least: 1,
-                        at_most: None
-                    }
-                )
-            ))
+            Ok(("", ("x+", Repeat::once_or_more(p.clone()).into())))
         );
         assert_eq!(
             repeat("x*"),
-            Ok((
-                "",
-                (
-                    "x*",
-                    Pattern::Repeat {
-                        pattern: Box::new(Pattern::Regex("x")),
-                        at_least: 0,
-                        at_most: None
-                    }
-                )
-            ))
+            Ok(("", ("x*", Repeat::zero_or_more(p.clone()))))
         );
         assert_eq!(
             repeat("x?"),
-            Ok((
-                "",
-                (
-                    "x?",
-                    Pattern::Repeat {
-                        pattern: Box::new(Pattern::Regex("x")),
-                        at_least: 0,
-                        at_most: Some(1)
-                    }
-                )
-            ))
+            Ok(("", ("x?", Repeat::at_most_once(p.clone()))))
         )
     }
 
