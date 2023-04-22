@@ -4,10 +4,12 @@ use nom::{
     self,
     branch::alt,
     bytes::complete::take_while1,
-    character::complete::{alpha0, char, satisfy},
+    character::complete::{alpha0, char, satisfy, space0, space1},
     combinator::map,
+    error::ParseError,
     multi::separated_list1,
-    IResult,
+    sequence::{delimited, preceded},
+    IResult, Parser,
 };
 
 /// [A-Z]
@@ -40,7 +42,7 @@ pub enum Pattern<'s> {
 
 /// Pattern: BasicPattern ( '|' BasicPattern )*
 pub fn pattern(input: &str) -> IResult<&str, (&str, Pattern)> {
-    let (rest, v) = separated_list1(char('|'), basic_pattern)(input)?;
+    let (rest, v) = separated_list1(delimited(space0, char('|'), space0), basic_pattern)(input)?;
     Ok((
         rest,
         if v.len() == 1 {
@@ -108,6 +110,48 @@ mod test {
 
     #[test]
     fn test_pattern() {
+        assert_eq!(
+            pattern("ValidRuleName | [a-z]"),
+            Ok((
+                "",
+                (
+                    "ValidRuleName | [a-z]",
+                    Pattern::Alternatives(vec![
+                        Pattern::RuleReference("ValidRuleName"),
+                        Pattern::Regex("[a-z]"),
+                    ])
+                )
+            ))
+        );
+
+        assert_eq!(
+            pattern("ValidRuleName| [a-z]"),
+            Ok((
+                "",
+                (
+                    "ValidRuleName| [a-z]",
+                    Pattern::Alternatives(vec![
+                        Pattern::RuleReference("ValidRuleName"),
+                        Pattern::Regex("[a-z]"),
+                    ])
+                )
+            ))
+        );
+
+        assert_eq!(
+            pattern("ValidRuleName |[a-z]"),
+            Ok((
+                "",
+                (
+                    "ValidRuleName |[a-z]",
+                    Pattern::Alternatives(vec![
+                        Pattern::RuleReference("ValidRuleName"),
+                        Pattern::Regex("[a-z]"),
+                    ])
+                )
+            ))
+        );
+
         assert_eq!(
             pattern("ValidRuleName|[a-z]"),
             Ok((
