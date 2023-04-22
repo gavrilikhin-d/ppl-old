@@ -4,12 +4,11 @@ use nom::{
     self,
     branch::alt,
     bytes::complete::take_while1,
-    character::complete::{alpha0, char, satisfy, space0, space1},
+    character::complete::{alpha0, char, satisfy, space0},
     combinator::map,
-    error::ParseError,
     multi::separated_list1,
-    sequence::{delimited, preceded},
-    IResult, Parser,
+    sequence::delimited,
+    IResult,
 };
 
 /// [A-Z]
