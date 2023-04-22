@@ -1,4 +1,7 @@
 #![feature(anonymous_lifetime_in_impl_trait)]
+#![feature(assert_matches)]
+
+use std::{any::Any, error::Error};
 
 use derive_more::From;
 use nom::{
@@ -10,8 +13,9 @@ use nom::{
     combinator::map,
     multi::{many1, separated_list1},
     sequence::delimited,
-    IResult,
+    IResult, Parser,
 };
+use regex::Regex;
 
 /// Parse tree
 #[derive(Debug, PartialEq, Clone, From)]
@@ -100,6 +104,29 @@ pub enum Pattern<'s> {
     /// Repeat pattern
     #[from]
     Repeat(Repeat<'s>),
+}
+
+impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Pattern<'s> {
+    fn parse(
+        &mut self,
+        input: &'i str,
+    ) -> IResult<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> {
+        match self {
+            Self::Regex(r) => {
+                let re = Regex::new(&format!("^{}", r)).unwrap();
+                let m = re.find(input);
+                if let Some(m) = m {
+                    return Ok((
+                        &input[m.end()..],
+                        (ParseTree::from(m.as_str()), Box::new(m.as_str().to_owned())),
+                    ));
+                } else {
+                    unimplemented!()
+                }
+            }
+            _ => unimplemented!(),
+        }
+    }
 }
 
 /// Repeat pattern
@@ -227,6 +254,8 @@ pub fn regex(input: &str) -> IResult<&str, &str> {
 
 #[cfg(test)]
 mod test {
+    use nom::Parser;
+
     use crate::{
         alternatives, basic_pattern, regex, repeat, rule, rule_name, ParseTree, Pattern, Repeat,
         Rule,
@@ -401,5 +430,15 @@ mod test {
                 )
             ))
         )
+    }
+
+    #[test]
+    fn test_pattern_as_parser() {
+        let res = Pattern::Regex("x+").parse("xxx");
+        assert!(res.is_ok());
+        let (rest, (tree, ast)) = res.unwrap();
+        assert_eq!(rest, "");
+        assert_eq!(tree, ParseTree::from("xxx"));
+        assert_eq!(ast.downcast::<String>().ok().unwrap().as_str(), "xxx");
     }
 }
