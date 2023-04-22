@@ -6,7 +6,7 @@ use nom::{
     bytes::complete::take_while1,
     character::complete::{alpha0, char, satisfy, space0},
     combinator::map,
-    multi::separated_list1,
+    multi::{many1, separated_list1},
     sequence::delimited,
     IResult,
 };
@@ -33,6 +33,8 @@ pub fn rule(input: &str) -> IResult<&str, &str> {
 pub enum Pattern<'s> {
     /// Reference to another rule
     RuleReference(&'s str),
+    /// Group of patterns
+    Group(Vec<Pattern<'s>>),
     /// Regex
     Regex(&'s str),
     /// Pattern alternatives
@@ -55,10 +57,20 @@ pub fn pattern(input: &str) -> IResult<&str, (&str, Pattern)> {
     ))
 }
 
-/// BasicPattern: RuleReference | Regex
+/// BasicPattern: RuleReference | Group | Regex
 pub fn basic_pattern(input: &str) -> IResult<&str, (&str, Pattern)> {
     alt((
         map(rule_reference, |s| (s, Pattern::RuleReference(s))),
+        map(group, |(s, v)| {
+            (
+                s,
+                if v.len() == 1 {
+                    v.into_iter().next().unwrap()
+                } else {
+                    Pattern::Group(v)
+                },
+            )
+        }),
         map(regex, |s| (s, Pattern::Regex(s))),
     ))(input)
 }
@@ -68,9 +80,25 @@ pub fn rule_reference(input: &str) -> IResult<&str, &str> {
     rule_name(input)
 }
 
-/// Regex: [^ \t\r\n]+
+/// Group: '(' Pattern+ ')'
+pub fn group(input: &str) -> IResult<&str, (&str, Vec<Pattern>)> {
+    let (rest, v) = delimited(
+        char('('),
+        many1(delimited(space0, pattern, space0)),
+        char(')'),
+    )(input)?;
+    Ok((
+        rest,
+        (
+            &input[..input.len() - rest.len()],
+            v.into_iter().map(|(_, p)| p).collect(),
+        ),
+    ))
+}
+
+/// Regex: [^ \t\r\n()+*|]+
 pub fn regex(input: &str) -> IResult<&str, &str> {
-    take_while1(|c: char| !c.is_whitespace())(input)
+    take_while1(|c: char| !(c.is_whitespace() || ['(', ')', '+', '*', '|'].contains(&c)))(input)
 }
 
 #[cfg(test)]
@@ -81,6 +109,40 @@ mod test {
     fn test_rule_name() {
         assert_eq!(rule_name("ValidRuleName"), Ok(("", "ValidRuleName")));
         assert!(rule_name("invalidRuleName").is_err());
+    }
+
+    #[test]
+    fn test_group() {
+        assert_eq!(
+            basic_pattern("(Rule)"),
+            Ok(("", ("(Rule)", Pattern::RuleReference("Rule"))))
+        );
+        assert_eq!(
+            basic_pattern("(Rule | [a-z])"),
+            Ok((
+                "",
+                (
+                    "(Rule | [a-z])",
+                    Pattern::Alternatives(vec![
+                        Pattern::RuleReference("Rule"),
+                        Pattern::Regex("[a-z]")
+                    ])
+                )
+            ))
+        );
+        assert_eq!(
+            basic_pattern("(Rule [a-z])"),
+            Ok((
+                "",
+                (
+                    "(Rule [a-z])",
+                    Pattern::Group(vec![
+                        Pattern::RuleReference("Rule"),
+                        Pattern::Regex("[a-z]")
+                    ])
+                )
+            ))
+        );
     }
 
     #[test]
