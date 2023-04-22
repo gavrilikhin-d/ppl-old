@@ -4,7 +4,7 @@ use nom::{
     self,
     branch::alt,
     bytes::complete::take_while1,
-    character::complete::{alpha0, char, satisfy, space0},
+    character::complete::{alpha0, char, one_of, satisfy, space0},
     combinator::map,
     multi::{many1, separated_list1},
     sequence::delimited,
@@ -39,10 +39,51 @@ pub enum Pattern<'s> {
     Regex(&'s str),
     /// Pattern alternatives
     Alternatives(Vec<Pattern<'s>>),
+    /// Repeat pattern
+    Repeat {
+        pattern: Box<Pattern<'s>>,
+        at_least: usize,
+        at_most: Option<usize>,
+    },
 }
 
-/// Pattern: BasicPattern ( '|' BasicPattern )*
+/// Pattern: Repeat | Alternatives
 pub fn pattern(input: &str) -> IResult<&str, (&str, Pattern)> {
+    alt((repeat, alternatives))(input)
+}
+
+/// Repeat: BasicPattern ('+' | '*' | '?')
+pub fn repeat(input: &str) -> IResult<&str, (&str, Pattern)> {
+    let (rest, (_, p)) = basic_pattern(input)?;
+    let (rest, c) = one_of("+*?")(rest)?;
+    Ok((
+        rest,
+        (
+            &input[..input.len() - rest.len()],
+            match c {
+                '+' => Pattern::Repeat {
+                    pattern: Box::new(p),
+                    at_least: 1,
+                    at_most: None,
+                },
+                '*' => Pattern::Repeat {
+                    pattern: Box::new(p),
+                    at_least: 0,
+                    at_most: None,
+                },
+                '?' => Pattern::Repeat {
+                    pattern: Box::new(p),
+                    at_least: 0,
+                    at_most: Some(1),
+                },
+                _ => p,
+            },
+        ),
+    ))
+}
+
+/// Alternatives: BasicPattern ( '|' BasicPattern )*
+pub fn alternatives(input: &str) -> IResult<&str, (&str, Pattern)> {
     let (rest, v) = separated_list1(delimited(space0, char('|'), space0), basic_pattern)(input)?;
     Ok((
         rest,
@@ -96,14 +137,16 @@ pub fn group(input: &str) -> IResult<&str, (&str, Vec<Pattern>)> {
     ))
 }
 
-/// Regex: [^ \t\r\n()+*|]+
+/// Regex: [^ \t\r\n()+*?|]+
 pub fn regex(input: &str) -> IResult<&str, &str> {
-    take_while1(|c: char| !(c.is_whitespace() || ['(', ')', '+', '*', '|'].contains(&c)))(input)
+    take_while1(|c: char| !(c.is_whitespace() || ['(', ')', '+', '*', '?', '|'].contains(&c)))(
+        input,
+    )
 }
 
 #[cfg(test)]
 mod test {
-    use crate::{basic_pattern, pattern, regex, rule_name, Pattern};
+    use crate::{alternatives, basic_pattern, pattern, regex, repeat, rule_name, Pattern};
 
     #[test]
     fn test_rule_name() {
@@ -167,12 +210,68 @@ mod test {
             basic_pattern("validRegex"),
             Ok(("", ("validRegex", Pattern::Regex("validRegex"))))
         );
+        assert_eq!(
+            basic_pattern("(x y)"),
+            Ok((
+                "",
+                (
+                    "(x y)",
+                    Pattern::Group(vec![Pattern::Regex("x"), Pattern::Regex("y")])
+                )
+            ))
+        );
     }
 
     #[test]
-    fn test_pattern() {
+    fn test_repeat() {
         assert_eq!(
-            pattern("ValidRuleName | [a-z]"),
+            repeat("x+"),
+            Ok((
+                "",
+                (
+                    "x+",
+                    Pattern::Repeat {
+                        pattern: Box::new(Pattern::Regex("x")),
+                        at_least: 1,
+                        at_most: None
+                    }
+                )
+            ))
+        );
+        assert_eq!(
+            repeat("x*"),
+            Ok((
+                "",
+                (
+                    "x*",
+                    Pattern::Repeat {
+                        pattern: Box::new(Pattern::Regex("x")),
+                        at_least: 0,
+                        at_most: None
+                    }
+                )
+            ))
+        );
+        assert_eq!(
+            repeat("x?"),
+            Ok((
+                "",
+                (
+                    "x?",
+                    Pattern::Repeat {
+                        pattern: Box::new(Pattern::Regex("x")),
+                        at_least: 0,
+                        at_most: Some(1)
+                    }
+                )
+            ))
+        )
+    }
+
+    #[test]
+    fn test_alternatives() {
+        assert_eq!(
+            alternatives("ValidRuleName | [a-z]"),
             Ok((
                 "",
                 (
@@ -186,7 +285,7 @@ mod test {
         );
 
         assert_eq!(
-            pattern("ValidRuleName| [a-z]"),
+            alternatives("ValidRuleName| [a-z]"),
             Ok((
                 "",
                 (
@@ -200,7 +299,7 @@ mod test {
         );
 
         assert_eq!(
-            pattern("ValidRuleName |[a-z]"),
+            alternatives("ValidRuleName |[a-z]"),
             Ok((
                 "",
                 (
@@ -214,7 +313,7 @@ mod test {
         );
 
         assert_eq!(
-            pattern("ValidRuleName|[a-z]"),
+            alternatives("ValidRuleName|[a-z]"),
             Ok((
                 "",
                 (
