@@ -128,12 +128,12 @@ impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for 
                 let re = Regex::new(&format!("^{}", r)).unwrap();
                 let m = re.find(input);
                 if let Some(m) = m {
-                    return Ok((
+                    Ok((
                         &input[m.end()..],
                         (ParseTree::from(m.as_str()), Box::new(m.as_str().to_owned())),
-                    ));
+                    ))
                 } else {
-                    return err!(RegexMismatch {});
+                    err!(RegexMismatch {})
                 }
             }
             Self::Alternatives(alts) => {
@@ -149,8 +149,12 @@ impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for 
                     }
                     last_result = Some(res);
                 }
-                return last_result.unwrap();
+                last_result.unwrap()
             }
+            Self::Repeat(r) => Ok({
+                let (r, (t, ast)) = r.parse(input)?;
+                (r, (t, Box::new(ast)))
+            }),
             _ => unimplemented!(),
         }
     }
@@ -196,9 +200,41 @@ impl<'s> Repeat<'s> {
     }
 }
 
+impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error>> for Repeat<'s> {
+    fn parse(
+        &mut self,
+        input: &'i str,
+    ) -> IResult<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error>> {
+        debug_assert!(self.at_most.is_none() || self.at_most.unwrap() >= self.at_least);
+        let mut input = input;
+        let mut trees = Vec::new();
+        let mut asts = Vec::new();
+        for _ in 0..self.at_least {
+            let (rest, (tree, ast)) = self.pattern.parse(input)?;
+            input = rest;
+            trees.push(tree);
+            asts.push(ast);
+        }
+
+        for _ in self.at_least..self.at_most.unwrap_or(usize::MAX) {
+            let res = self.pattern.parse(input);
+            if res.is_ok() {
+                let (rest, (tree, ast)) = res.unwrap();
+                input = rest;
+                trees.push(tree);
+                asts.push(ast);
+            } else {
+                break;
+            }
+        }
+
+        Ok((input, (trees.into(), asts)))
+    }
+}
+
 /// Pattern: Repeat | Alternatives
 pub fn pattern(input: &str) -> IResult<&str, (&str, Pattern)> {
-    alt((map(repeat, |(s, r)| (s, r.into())), alternatives))(input)
+    alt((map(repeat, |(s, r)| (s, Pattern::from(r))), alternatives))(input)
 }
 
 /// Repeat: BasicPattern ('+' | '*' | '?')
@@ -371,7 +407,7 @@ mod test {
         let p = Pattern::Regex("x");
         assert_eq!(
             repeat("(x)+"),
-            Ok(("", ("(x)+", Repeat::once_or_more(p.clone()).into())))
+            Ok(("", ("(x)+", Repeat::once_or_more(p.clone()))))
         );
         assert_eq!(
             repeat("(x)*"),
@@ -474,5 +510,15 @@ mod test {
         assert_eq!(rest, "");
         assert_eq!(tree, ParseTree::from("y"));
         assert_eq!(ast.downcast::<String>().ok().unwrap().as_str(), "y");
+    }
+
+    #[test]
+    fn test_repeat_as_parser() {
+        let res = Repeat::at_most_once(Pattern::Regex("x")).parse("");
+        assert!(res.is_ok());
+        let (rest, (tree, ast)) = res.unwrap();
+        assert_eq!(rest, "");
+        assert_eq!(tree, ParseTree::Tree(vec![]));
+        assert!(ast.is_empty());
     }
 }
