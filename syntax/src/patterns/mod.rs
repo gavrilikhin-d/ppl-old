@@ -7,14 +7,14 @@ pub struct RegexMismatch {}
 pub struct UnknownRuleReference {}
 
 mod repeat;
-use std::{any::Any, error::Error, sync::Mutex};
+use std::{any::Any, error::Error};
 
 use derive_more::From;
 use nom::{IResult, Parser};
 use regex::Regex;
 pub use repeat::*;
 
-use crate::{err, parsers, ParseTree, Rule};
+use crate::{context::with_context, err, parsers, ParseTree};
 
 /// Possible patterns
 #[derive(Debug, PartialEq, Clone, From)]
@@ -31,9 +31,6 @@ pub enum Pattern {
     #[from]
     Repeat(Repeat),
 }
-
-/// Registered rules
-pub(crate) static RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
 
 impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Pattern {
     fn parse(
@@ -76,18 +73,13 @@ impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Patt
                 let (r, (t, ast)) = parsers::grouped_patterns(patterns, input)?;
                 Ok((r, (t, Box::new(ast))))
             }
-            Self::RuleReference(r) => {
-                if let Some(rule) = RULES
-                    .lock()
-                    .unwrap()
-                    .iter_mut()
-                    .find(|rule| rule.name == *r)
-                {
-                    rule.parse(input)
+            Self::RuleReference(r) => with_context(|ctx| {
+                if let Some(rule) = ctx.rules.iter_mut().find(|rule| rule.name == *r) {
+                    return rule.parse(input);
                 } else {
-                    err!(UnknownRuleReference {})
+                    return err!(UnknownRuleReference {});
                 }
-            }
+            }),
         }
     }
 }

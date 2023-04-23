@@ -10,10 +10,7 @@ use nom::{
     IResult, Parser,
 };
 
-use crate::{
-    patterns::{Repeat, RULES},
-    ParseTree, Pattern, Rule,
-};
+use crate::{context, patterns::Repeat, ParseTree, Pattern, Rule};
 
 /// Creates recoverable error for nom
 #[macro_export]
@@ -69,7 +66,7 @@ pub fn rule(input: &str) -> IResult<&str, (ParseTree, Rule)> {
         name: name.to_string(),
         patterns: v.into_iter().map(|(_, p)| p).collect(),
     };
-    RULES.lock().unwrap().push(rule.clone());
+    context::add_rule(rule.clone());
 
     Ok((rest, (tree, rule)))
 }
