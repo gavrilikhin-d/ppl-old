@@ -1,5 +1,6 @@
 #![feature(anonymous_lifetime_in_impl_trait)]
 #![feature(assert_matches)]
+#![feature(is_some_and)]
 
 use std::{any::Any, error::Error};
 
@@ -90,6 +91,10 @@ pub fn rule(input: &str) -> IResult<&str, (ParseTree, Rule)> {
     ))
 }
 
+#[derive(Debug, thiserror::Error)]
+#[error("Regex didn't match")]
+pub struct RegexMismatch {}
+
 /// Possible patterns
 #[derive(Debug, PartialEq, Clone, From)]
 pub enum Pattern<'s> {
@@ -104,6 +109,13 @@ pub enum Pattern<'s> {
     /// Repeat pattern
     #[from]
     Repeat(Repeat<'s>),
+}
+
+/// Creates recoverable error for nom
+macro_rules! err {
+    ($error: expr) => {
+        Err(nom::Err::Error(Box::new($error)))
+    };
 }
 
 impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Pattern<'s> {
@@ -121,8 +133,23 @@ impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for 
                         (ParseTree::from(m.as_str()), Box::new(m.as_str().to_owned())),
                     ));
                 } else {
-                    unimplemented!()
+                    return err!(RegexMismatch {});
                 }
+            }
+            Self::Alternatives(alts) => {
+                let mut last_result = None;
+                for alt in alts {
+                    let res = alt.parse(input);
+                    if res.is_ok()
+                        || res
+                            .as_ref()
+                            .is_err_and(|e| matches!(e, nom::Err::Failure(_)))
+                    {
+                        return res;
+                    }
+                    last_result = Some(res);
+                }
+                return last_result.unwrap();
             }
             _ => unimplemented!(),
         }
@@ -440,5 +467,12 @@ mod test {
         assert_eq!(rest, "");
         assert_eq!(tree, ParseTree::from("xxx"));
         assert_eq!(ast.downcast::<String>().ok().unwrap().as_str(), "xxx");
+
+        let res = Pattern::Alternatives(vec![Pattern::Regex("x"), Pattern::Regex("y")]).parse("y");
+        assert!(res.is_ok());
+        let (rest, (tree, ast)) = res.unwrap();
+        assert_eq!(rest, "");
+        assert_eq!(tree, ParseTree::from("y"));
+        assert_eq!(ast.downcast::<String>().ok().unwrap().as_str(), "y");
     }
 }
