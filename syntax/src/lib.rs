@@ -7,12 +7,16 @@ use std::{any::Any, error::Error};
 mod tree;
 pub use tree::*;
 
+pub mod patterns;
+
+mod rule;
+pub use rule::*;
+
 use derive_more::From;
 use nom::{
     self,
     branch::alt,
-    bytes::complete::tag,
-    bytes::complete::take_while1,
+    bytes::complete::{tag, take_while1},
     character::complete::{alpha0, char, one_of, satisfy, space0},
     combinator::map,
     multi::{many1, separated_list1},
@@ -31,25 +35,6 @@ pub fn rule_name(input: &str) -> IResult<&str, &str> {
     let (new_input, _) = uppercase_alpha(input)?;
     let (new_input, tail) = alpha0(new_input)?;
     Ok((new_input, &input[..1 + tail.len()]))
-}
-
-/// Ast for rules
-#[derive(Debug, PartialEq, Clone)]
-pub struct Rule<'s> {
-    /// Rule name
-    pub name: &'s str,
-    /// Rule patterns
-    pub patterns: Vec<Pattern<'s>>,
-}
-
-impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Rule<'s> {
-    fn parse(
-        &mut self,
-        input: &'i str,
-    ) -> IResult<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> {
-        let (r, (t, ast)) = grouped_patterns(&mut self.patterns, input)?;
-        Ok((r, (t, Box::new(ast))))
-    }
 }
 
 /// Parse multiple patterns as group
