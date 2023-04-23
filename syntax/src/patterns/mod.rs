@@ -18,24 +18,24 @@ use crate::{err, parsers, ParseTree, Rule};
 
 /// Possible patterns
 #[derive(Debug, PartialEq, Clone, From)]
-pub enum Pattern<'s> {
+pub enum Pattern {
     /// Reference to another rule
-    RuleReference(&'s str),
+    RuleReference(String),
     /// Group of patterns
-    Group(Vec<Pattern<'s>>),
+    Group(Vec<Pattern>),
     /// Regex
-    Regex(&'s str),
+    Regex(String),
     /// Pattern alternatives
-    Alternatives(Vec<Pattern<'s>>),
+    Alternatives(Vec<Pattern>),
     /// Repeat pattern
     #[from]
-    Repeat(Repeat<'s>),
+    Repeat(Repeat),
 }
 
 /// Registered rules
-static RULES: Mutex<Vec<Rule<'static>>> = Mutex::new(Vec::new());
+pub(crate) static RULES: Mutex<Vec<Rule>> = Mutex::new(Vec::new());
 
-impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Pattern<'s> {
+impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Pattern {
     fn parse(
         &mut self,
         input: &'i str,

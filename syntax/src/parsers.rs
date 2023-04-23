@@ -10,7 +10,10 @@ use nom::{
     IResult, Parser,
 };
 
-use crate::{patterns::Repeat, ParseTree, Pattern, Rule};
+use crate::{
+    patterns::{Repeat, RULES},
+    ParseTree, Pattern, Rule,
+};
 
 /// Creates recoverable error for nom
 #[macro_export]
@@ -33,8 +36,8 @@ pub fn rule_name(input: &str) -> IResult<&str, &str> {
 }
 
 /// Parse multiple patterns as group
-pub(crate) fn grouped_patterns<'i, 's, 'p>(
-    patterns: &'p mut [Pattern<'s>],
+pub(crate) fn grouped_patterns<'i, 'p>(
+    patterns: &'p mut [Pattern],
     input: &'i str,
 ) -> IResult<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error>> {
     let mut input = input;
@@ -62,16 +65,13 @@ pub fn rule(input: &str) -> IResult<&str, (ParseTree, Rule)> {
         tree.append(*s);
     });
 
-    Ok((
-        rest,
-        (
-            tree,
-            Rule {
-                name,
-                patterns: v.into_iter().map(|(_, p)| p).collect(),
-            },
-        ),
-    ))
+    let rule = Rule {
+        name: name.to_string(),
+        patterns: v.into_iter().map(|(_, p)| p).collect(),
+    };
+    RULES.lock().unwrap().push(rule.clone());
+
+    Ok((rest, (tree, rule)))
 }
 
 /// Pattern: Repeat | Alternatives
@@ -116,7 +116,9 @@ pub fn alternatives(input: &str) -> IResult<&str, (&str, Pattern)> {
 /// BasicPattern: RuleReference | Group | Regex
 pub fn basic_pattern(input: &str) -> IResult<&str, (&str, Pattern)> {
     alt((
-        map(rule_reference, |s| (s, Pattern::RuleReference(s))),
+        map(rule_reference, |s| {
+            (s, Pattern::RuleReference(s.to_string()))
+        }),
         map(group, |(s, v)| {
             (
                 s,
@@ -127,7 +129,7 @@ pub fn basic_pattern(input: &str) -> IResult<&str, (&str, Pattern)> {
                 },
             )
         }),
-        map(regex, |s| (s, Pattern::Regex(s))),
+        map(regex, |s| (s, Pattern::Regex(s.to_string()))),
     ))(input)
 }
 

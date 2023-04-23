@@ -8,18 +8,18 @@ use super::Pattern;
 
 /// Repeat pattern
 #[derive(Debug, PartialEq, Clone)]
-pub struct Repeat<'s> {
+pub struct Repeat {
     /// Pattern to repeat
-    pub pattern: Box<Pattern<'s>>,
+    pub pattern: Box<Pattern>,
     /// Minimum number of repetitions
     pub at_least: usize,
     /// Maximum number of repetitions
     pub at_most: Option<usize>,
 }
 
-impl<'s> Repeat<'s> {
+impl Repeat {
     /// Repeat pattern zero or more times (x*)
-    pub fn zero_or_more(pattern: Pattern<'s>) -> Self {
+    pub fn zero_or_more(pattern: Pattern) -> Self {
         Self {
             pattern: Box::new(pattern),
             at_least: 0,
@@ -28,7 +28,7 @@ impl<'s> Repeat<'s> {
     }
 
     /// Repeat pattern once or more times (x+)
-    pub fn once_or_more(pattern: Pattern<'s>) -> Self {
+    pub fn once_or_more(pattern: Pattern) -> Self {
         Self {
             pattern: Box::new(pattern),
             at_least: 1,
@@ -37,7 +37,7 @@ impl<'s> Repeat<'s> {
     }
 
     /// Repeat pattern at most once (x?)
-    pub fn at_most_once(pattern: Pattern<'s>) -> Self {
+    pub fn at_most_once(pattern: Pattern) -> Self {
         Self {
             pattern: Box::new(pattern),
             at_least: 0,
@@ -46,7 +46,7 @@ impl<'s> Repeat<'s> {
     }
 }
 
-impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error>> for Repeat<'s> {
+impl<'i> Parser<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error>> for Repeat {
     fn parse(
         &mut self,
         input: &'i str,

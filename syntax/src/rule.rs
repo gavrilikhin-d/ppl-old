@@ -6,14 +6,14 @@ use crate::{parsers, ParseTree, Pattern};
 
 /// Ast for rules
 #[derive(Debug, PartialEq, Clone)]
-pub struct Rule<'s> {
+pub struct Rule {
     /// Rule name
-    pub name: &'s str,
+    pub name: String,
     /// Rule patterns
-    pub patterns: Vec<Pattern<'s>>,
+    pub patterns: Vec<Pattern>,
 }
 
-impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Rule<'s> {
+impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Rule {
     fn parse(
         &mut self,
         input: &'i str,

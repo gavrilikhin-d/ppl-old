@@ -35,7 +35,7 @@ mod test {
     fn test_group() {
         assert_eq!(
             basic_pattern("(Rule)"),
-            Ok(("", ("(Rule)", Pattern::RuleReference("Rule"))))
+            Ok(("", ("(Rule)", Pattern::RuleReference("Rule".to_string()))))
         );
         assert_eq!(
             basic_pattern("(Rule | [a-z])"),
@@ -44,8 +44,8 @@ mod test {
                 (
                     "(Rule | [a-z])",
                     Pattern::Alternatives(vec![
-                        Pattern::RuleReference("Rule"),
-                        Pattern::Regex("[a-z]")
+                        Pattern::RuleReference("Rule".to_string()),
+                        Pattern::Regex("[a-z]".to_string())
                     ])
                 )
             ))
@@ -57,8 +57,8 @@ mod test {
                 (
                     "(Rule [a-z])",
                     Pattern::Group(vec![
-                        Pattern::RuleReference("Rule"),
-                        Pattern::Regex("[a-z]")
+                        Pattern::RuleReference("Rule".to_string()),
+                        Pattern::Regex("[a-z]".to_string())
                     ])
                 )
             ))
@@ -84,12 +84,15 @@ mod test {
             basic_pattern("ValidRuleName"),
             Ok((
                 "",
-                ("ValidRuleName", Pattern::RuleReference("ValidRuleName"))
+                (
+                    "ValidRuleName",
+                    Pattern::RuleReference("ValidRuleName".to_string())
+                )
             ))
         );
         assert_eq!(
             basic_pattern("validRegex"),
-            Ok(("", ("validRegex", Pattern::Regex("validRegex"))))
+            Ok(("", ("validRegex", Pattern::Regex("validRegex".to_string()))))
         );
         assert_eq!(
             basic_pattern("(x y)"),
@@ -97,7 +100,10 @@ mod test {
                 "",
                 (
                     "(x y)",
-                    Pattern::Group(vec![Pattern::Regex("x"), Pattern::Regex("y")])
+                    Pattern::Group(vec![
+                        Pattern::Regex("x".to_string()),
+                        Pattern::Regex("y".to_string())
+                    ])
                 )
             ))
         );
@@ -105,7 +111,7 @@ mod test {
 
     #[test]
     fn test_repeat() {
-        let p = Pattern::Regex("x");
+        let p = Pattern::Regex("x".to_string());
         assert_eq!(
             repeat("(x)+"),
             Ok(("", ("(x)+", Repeat::once_or_more(p.clone()))))
@@ -129,8 +135,8 @@ mod test {
                 (
                     "ValidRuleName | [a-z]",
                     Pattern::Alternatives(vec![
-                        Pattern::RuleReference("ValidRuleName"),
-                        Pattern::Regex("[a-z]"),
+                        Pattern::RuleReference("ValidRuleName".to_string()),
+                        Pattern::Regex("[a-z]".to_string()),
                     ])
                 )
             ))
@@ -143,8 +149,8 @@ mod test {
                 (
                     "ValidRuleName| [a-z]",
                     Pattern::Alternatives(vec![
-                        Pattern::RuleReference("ValidRuleName"),
-                        Pattern::Regex("[a-z]"),
+                        Pattern::RuleReference("ValidRuleName".to_string()),
+                        Pattern::Regex("[a-z]".to_string()),
                     ])
                 )
             ))
@@ -157,8 +163,8 @@ mod test {
                 (
                     "ValidRuleName |[a-z]",
                     Pattern::Alternatives(vec![
-                        Pattern::RuleReference("ValidRuleName"),
-                        Pattern::Regex("[a-z]"),
+                        Pattern::RuleReference("ValidRuleName".to_string()),
+                        Pattern::Regex("[a-z]".to_string()),
                     ])
                 )
             ))
@@ -171,8 +177,8 @@ mod test {
                 (
                     "ValidRuleName|[a-z]",
                     Pattern::Alternatives(vec![
-                        Pattern::RuleReference("ValidRuleName"),
-                        Pattern::Regex("[a-z]"),
+                        Pattern::RuleReference("ValidRuleName".to_string()),
+                        Pattern::Regex("[a-z]".to_string()),
                     ])
                 )
             ))
@@ -188,8 +194,8 @@ mod test {
                 (
                     ParseTree::from(vec!["Rule", ":", "x"]),
                     Rule {
-                        name: "Rule",
-                        patterns: vec![Pattern::Regex("x")]
+                        name: "Rule".to_string(),
+                        patterns: vec![Pattern::Regex("x".to_string())]
                     }
                 )
             ))
@@ -198,21 +204,29 @@ mod test {
 
     #[test]
     fn test_pattern_as_parser() {
-        let res = Pattern::Regex("x+").parse("xxx");
+        let res = Pattern::Regex("x+".to_string()).parse("xxx");
         assert!(res.is_ok());
         let (rest, (tree, ast)) = res.unwrap();
         assert_eq!(rest, "");
         assert_eq!(tree, ParseTree::from("xxx"));
         assert_eq!(ast.downcast::<String>().ok().unwrap().as_str(), "xxx");
 
-        let res = Pattern::Alternatives(vec![Pattern::Regex("x"), Pattern::Regex("y")]).parse("y");
+        let res = Pattern::Alternatives(vec![
+            Pattern::Regex("x".to_string()),
+            Pattern::Regex("y".to_string()),
+        ])
+        .parse("y");
         assert!(res.is_ok());
         let (rest, (tree, ast)) = res.unwrap();
         assert_eq!(rest, "");
         assert_eq!(tree, ParseTree::from("y"));
         assert_eq!(ast.downcast::<String>().ok().unwrap().as_str(), "y");
 
-        let res = Pattern::Group(vec![Pattern::Regex("x"), Pattern::Regex("y")]).parse("xy");
+        let res = Pattern::Group(vec![
+            Pattern::Regex("x".to_string()),
+            Pattern::Regex("y".to_string()),
+        ])
+        .parse("xy");
         assert!(res.is_ok());
         let (rest, (tree, ast)) = res.unwrap();
         assert_eq!(rest, "");
@@ -231,7 +245,7 @@ mod test {
 
     #[test]
     fn test_repeat_as_parser() {
-        let res = Repeat::at_most_once(Pattern::Regex("x")).parse("");
+        let res = Repeat::at_most_once(Pattern::Regex("x".to_string())).parse("");
         assert!(res.is_ok());
         let (rest, (tree, ast)) = res.unwrap();
         assert_eq!(rest, "");
@@ -242,8 +256,8 @@ mod test {
     #[test]
     fn test_rule_as_parser() {
         let res = Rule {
-            name: "Rule",
-            patterns: vec![Pattern::Regex("x")],
+            name: "Rule".to_string(),
+            patterns: vec![Pattern::Regex("x".to_string())],
         }
         .parse("x");
         assert!(res.is_ok());
