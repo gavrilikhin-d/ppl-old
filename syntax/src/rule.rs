@@ -2,7 +2,7 @@ use std::{any::Any, error::Error};
 
 use nom::{IResult, Parser};
 
-use crate::{grouped_patterns, ParseTree, Pattern};
+use crate::{parsers, ParseTree, Pattern};
 
 /// Ast for rules
 #[derive(Debug, PartialEq, Clone)]
@@ -18,7 +18,7 @@ impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for 
         &mut self,
         input: &'i str,
     ) -> IResult<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> {
-        let (r, (t, ast)) = grouped_patterns(&mut self.patterns, input)?;
+        let (r, (t, ast)) = parsers::grouped_patterns(&mut self.patterns, input)?;
         Ok((r, (t, Box::new(ast))))
     }
 }
