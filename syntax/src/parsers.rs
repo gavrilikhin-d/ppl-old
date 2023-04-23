@@ -12,6 +12,14 @@ use nom::{
 
 use crate::{patterns::Repeat, ParseTree, Pattern, Rule};
 
+/// Creates recoverable error for nom
+#[macro_export]
+macro_rules! err {
+    ($error: expr) => {
+        Err(nom::Err::Error(Box::new($error)))
+    };
+}
+
 /// [A-Z]
 pub fn uppercase_alpha(input: &str) -> IResult<&str, char> {
     satisfy(|c| c.is_ascii_uppercase())(input)

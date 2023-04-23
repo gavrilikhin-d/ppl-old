@@ -10,7 +10,7 @@ use nom::{IResult, Parser};
 use regex::Regex;
 pub use repeat::*;
 
-use crate::{parsers, ParseTree};
+use crate::{err, parsers, ParseTree};
 
 /// Possible patterns
 #[derive(Debug, PartialEq, Clone, From)]
@@ -26,13 +26,6 @@ pub enum Pattern<'s> {
     /// Repeat pattern
     #[from]
     Repeat(Repeat<'s>),
-}
-
-/// Creates recoverable error for nom
-macro_rules! err {
-    ($error: expr) => {
-        Err(nom::Err::Error(Box::new($error)))
-    };
 }
 
 impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Pattern<'s> {
