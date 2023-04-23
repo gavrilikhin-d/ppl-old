@@ -155,6 +155,18 @@ impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for 
                 let (r, (t, ast)) = r.parse(input)?;
                 (r, (t, Box::new(ast)))
             }),
+            Self::Group(g) => {
+                let mut input = input;
+                let mut trees = Vec::new();
+                let mut asts = Vec::new();
+                for p in g {
+                    let (rest, (t, ast)) = p.parse(input)?;
+                    input = rest;
+                    trees.push(t);
+                    asts.push(ast);
+                }
+                Ok((input, (trees.into(), Box::new(asts))))
+            }
             _ => unimplemented!(),
         }
     }
@@ -317,6 +329,8 @@ pub fn regex(input: &str) -> IResult<&str, &str> {
 
 #[cfg(test)]
 mod test {
+    use std::any::Any;
+
     use nom::Parser;
 
     use crate::{
@@ -510,6 +524,22 @@ mod test {
         assert_eq!(rest, "");
         assert_eq!(tree, ParseTree::from("y"));
         assert_eq!(ast.downcast::<String>().ok().unwrap().as_str(), "y");
+
+        let res = Pattern::Group(vec![Pattern::Regex("x"), Pattern::Regex("y")]).parse("xy");
+        assert!(res.is_ok());
+        let (rest, (tree, ast)) = res.unwrap();
+        assert_eq!(rest, "");
+        assert_eq!(tree, ParseTree::from(vec!["x", "y"]));
+        assert_eq!(
+            ast.downcast::<Vec<Box<dyn Any>>>()
+                .ok()
+                .unwrap()
+                .into_iter()
+                .map(|x| x.downcast::<String>().ok().unwrap())
+                .collect::<Vec<_>>()
+                .as_slice(),
+            &vec![Box::new("x".to_string()), Box::new("y".to_string())]
+        );
     }
 
     #[test]
