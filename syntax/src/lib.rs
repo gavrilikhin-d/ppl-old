@@ -66,6 +66,33 @@ pub struct Rule<'s> {
     pub patterns: Vec<Pattern<'s>>,
 }
 
+impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Rule<'s> {
+    fn parse(
+        &mut self,
+        input: &'i str,
+    ) -> IResult<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> {
+        let (r, (t, ast)) = grouped_patterns(&mut self.patterns, input)?;
+        Ok((r, (t, Box::new(ast))))
+    }
+}
+
+/// Parse multiple patterns as group
+fn grouped_patterns<'i, 's, 'p>(
+    patterns: &'p mut [Pattern<'s>],
+    input: &'i str,
+) -> IResult<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error>> {
+    let mut input = input;
+    let mut trees = Vec::new();
+    let mut asts = Vec::new();
+    for p in patterns {
+        let (rest, (t, ast)) = p.parse(input)?;
+        input = rest;
+        trees.push(t);
+        asts.push(ast);
+    }
+    Ok((input, (trees.into(), asts)))
+}
+
 /// Rule: RuleName: Pattern+
 pub fn rule(input: &str) -> IResult<&str, (ParseTree, Rule)> {
     let (rest, name) = rule_name(input)?;
@@ -155,19 +182,11 @@ impl<'i, 's> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for 
                 let (r, (t, ast)) = r.parse(input)?;
                 (r, (t, Box::new(ast)))
             }),
-            Self::Group(g) => {
-                let mut input = input;
-                let mut trees = Vec::new();
-                let mut asts = Vec::new();
-                for p in g {
-                    let (rest, (t, ast)) = p.parse(input)?;
-                    input = rest;
-                    trees.push(t);
-                    asts.push(ast);
-                }
-                Ok((input, (trees.into(), Box::new(asts))))
+            Self::Group(patterns) => {
+                let (r, (t, ast)) = grouped_patterns(patterns, input)?;
+                Ok((r, (t, Box::new(ast))))
             }
-            _ => unimplemented!(),
+            Self::RuleReference(_) => unimplemented!(),
         }
     }
 }
@@ -550,5 +569,28 @@ mod test {
         assert_eq!(rest, "");
         assert_eq!(tree, ParseTree::Tree(vec![]));
         assert!(ast.is_empty());
+    }
+
+    #[test]
+    fn test_rule_as_parser() {
+        let res = Rule {
+            name: "Rule",
+            patterns: vec![Pattern::Regex("x")],
+        }
+        .parse("x");
+        assert!(res.is_ok());
+        let (rest, (tree, ast)) = res.unwrap();
+        assert_eq!(rest, "");
+        assert_eq!(tree, ParseTree::from(vec!["x"]));
+        assert_eq!(
+            ast.downcast::<Vec<Box<dyn Any>>>()
+                .ok()
+                .unwrap()
+                .into_iter()
+                .map(|x| x.downcast::<String>().ok().unwrap())
+                .collect::<Vec<_>>()
+                .as_slice(),
+            &vec![Box::new("x".to_string())]
+        );
     }
 }
