@@ -10,7 +10,7 @@ use nom::{
     IResult, Parser,
 };
 
-use crate::{ParseTree, Pattern, Repeat, Rule};
+use crate::{patterns::Repeat, ParseTree, Pattern, Rule};
 
 /// [A-Z]
 pub fn uppercase_alpha(input: &str) -> IResult<&str, char> {
