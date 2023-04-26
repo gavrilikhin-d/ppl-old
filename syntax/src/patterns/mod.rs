@@ -1,11 +1,3 @@
-#[derive(Debug, thiserror::Error)]
-#[error("Regex didn't match")]
-pub struct RegexMismatch {}
-
-#[derive(Debug, thiserror::Error)]
-#[error("Unknown rule reference")]
-pub struct UnknownRuleReference {}
-
 mod repeat;
 use std::{any::Any, error::Error};
 
@@ -14,7 +6,12 @@ use nom::{IResult, Parser};
 use regex::Regex;
 pub use repeat::*;
 
-use crate::{context::with_context, err, parsers, ParseTree};
+use crate::{
+    context::with_context,
+    err,
+    errors::{RegexMismatch, UnknownRuleReference},
+    parsers, ParseTree,
+};
 
 /// Possible patterns
 #[derive(Debug, PartialEq, Clone, From)]

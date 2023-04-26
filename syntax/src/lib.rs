@@ -17,6 +17,8 @@ pub mod parsers;
 pub mod context;
 pub use context::Context;
 
+pub mod errors;
+
 #[cfg(test)]
 mod test {
     use std::any::Any;
