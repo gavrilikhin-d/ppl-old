@@ -8,20 +8,20 @@ use nom::{
     error::VerboseError,
     multi::{many1, separated_list1},
     sequence::delimited,
-    IResult, Parser,
+    Parser,
 };
 
 use crate::{context, patterns::Repeat, ParseTree, Pattern, Rule};
 
-type Result<I, O> = IResult<I, O, VerboseError<I>>;
+type IResult<I, O> = nom::IResult<I, O, VerboseError<I>>;
 
 /// [A-Z]
-pub fn uppercase_alpha(input: &str) -> Result<&str, char> {
+pub fn uppercase_alpha(input: &str) -> IResult<&str, char> {
     satisfy(|c| c.is_ascii_uppercase())(input)
 }
 
 /// RuleName: [A-Z][a-zA-Z]*
-pub fn rule_name(input: &str) -> Result<&str, &str> {
+pub fn rule_name(input: &str) -> IResult<&str, &str> {
     let (new_input, _) = uppercase_alpha(input)?;
     let (new_input, tail) = alpha0(new_input)?;
     Ok((new_input, &input[..1 + tail.len()]))
@@ -31,7 +31,7 @@ pub fn rule_name(input: &str) -> Result<&str, &str> {
 pub(crate) fn grouped_patterns<'i, 'p>(
     patterns: &'p mut [Pattern],
     input: &'i str,
-) -> IResult<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error>> {
+) -> nom::IResult<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error>> {
     let mut input = input;
     let mut trees = Vec::new();
     let mut asts = Vec::new();
@@ -45,7 +45,7 @@ pub(crate) fn grouped_patterns<'i, 'p>(
 }
 
 /// Rule: RuleName: Pattern+
-pub fn rule(input: &str) -> Result<&str, (ParseTree, Rule)> {
+pub fn rule(input: &str) -> IResult<&str, (ParseTree, Rule)> {
     let (rest, name) = rule_name(input)?;
     let mut tree: ParseTree = name.into();
 
@@ -67,12 +67,12 @@ pub fn rule(input: &str) -> Result<&str, (ParseTree, Rule)> {
 }
 
 /// Pattern: Repeat | Alternatives
-pub fn pattern(input: &str) -> Result<&str, (&str, Pattern)> {
+pub fn pattern(input: &str) -> IResult<&str, (&str, Pattern)> {
     alt((map(repeat, |(s, r)| (s, Pattern::from(r))), alternatives))(input)
 }
 
 /// Repeat: BasicPattern ('+' | '*' | '?')
-pub fn repeat(input: &str) -> Result<&str, (&str, Repeat)> {
+pub fn repeat(input: &str) -> IResult<&str, (&str, Repeat)> {
     let (rest, (_, p)) = basic_pattern(input)?;
     let (rest, c) = one_of("+*?")(rest)?;
     Ok((
@@ -90,7 +90,7 @@ pub fn repeat(input: &str) -> Result<&str, (&str, Repeat)> {
 }
 
 /// Alternatives: BasicPattern ( '|' BasicPattern )*
-pub fn alternatives(input: &str) -> Result<&str, (&str, Pattern)> {
+pub fn alternatives(input: &str) -> IResult<&str, (&str, Pattern)> {
     let (rest, v) = separated_list1(delimited(space0, tag("|"), space0), basic_pattern)(input)?;
     Ok((
         rest,
@@ -106,7 +106,7 @@ pub fn alternatives(input: &str) -> Result<&str, (&str, Pattern)> {
 }
 
 /// BasicPattern: RuleReference | Group | Regex
-pub fn basic_pattern(input: &str) -> Result<&str, (&str, Pattern)> {
+pub fn basic_pattern(input: &str) -> IResult<&str, (&str, Pattern)> {
     alt((
         map(rule_reference, |s| {
             (s, Pattern::RuleReference(s.to_string()))
@@ -126,12 +126,12 @@ pub fn basic_pattern(input: &str) -> Result<&str, (&str, Pattern)> {
 }
 
 /// RuleReference: RuleName
-pub fn rule_reference(input: &str) -> Result<&str, &str> {
+pub fn rule_reference(input: &str) -> IResult<&str, &str> {
     rule_name(input)
 }
 
 /// Group: '(' Pattern+ ')'
-pub fn group(input: &str) -> Result<&str, (&str, Vec<Pattern>)> {
+pub fn group(input: &str) -> IResult<&str, (&str, Vec<Pattern>)> {
     let (rest, v) = delimited(
         tag("("),
         many1(delimited(space0, pattern, space0)),
@@ -147,6 +147,6 @@ pub fn group(input: &str) -> Result<&str, (&str, Vec<Pattern>)> {
 }
 
 /// Regex: [^ \t\r\n()|]+
-pub fn regex(input: &str) -> Result<&str, &str> {
+pub fn regex(input: &str) -> IResult<&str, &str> {
     take_while1(|c: char| !(c.is_whitespace() || ['(', ')', '|'].contains(&c)))(input)
 }
