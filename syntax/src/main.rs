@@ -1,4 +1,4 @@
-use nom::Finish;
+use nom::{error::convert_error, Finish};
 use syntax::parsers::rule;
 
 fn main() {
@@ -7,7 +7,7 @@ fn main() {
         std::io::stdin().read_line(&mut line).unwrap();
         let res = rule(&line).finish();
         if let Err(err) = res {
-            println!("{:?}", err);
+            println!("{}", convert_error(line.as_str(), err));
             continue;
         }
 
