@@ -4,11 +4,14 @@ use nom::{IResult, Parser};
 
 use crate::{parsers, ParseTree, Pattern};
 
+/// Type of rule name
+pub type RuleName = String;
+
 /// Ast for rules
 #[derive(Debug, PartialEq, Clone)]
 pub struct Rule {
     /// Rule name
-    pub name: String,
+    pub name: RuleName,
     /// Rule patterns
     pub patterns: Vec<Pattern>,
 }

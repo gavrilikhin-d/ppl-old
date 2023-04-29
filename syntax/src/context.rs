@@ -1,15 +1,32 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    any::Any,
+    collections::HashMap,
+    error::Error,
+    sync::{Arc, Mutex},
+};
 
-use crate::Rule;
+use once_cell::sync::Lazy;
+
+use crate::{ParseTree, Rule, RuleName};
 
 /// Current parsing context
-static CONTEXT: Mutex<Context> = Mutex::new(Context { rules: vec![] });
+static CONTEXT: Lazy<Mutex<Context>> = Lazy::new(|| {
+    Mutex::new(Context {
+        rules: vec![],
+        on_parse: HashMap::new(),
+    })
+});
+
+pub trait OnParseAction =
+    Sync + Send + FnMut(ParseTree, Box<dyn Any>) -> Result<(), Box<dyn Error>>;
 
 /// Parsing context
 #[derive(Default)]
 pub struct Context {
     /// Parsing rules
     pub rules: Vec<Arc<Mutex<Rule>>>,
+    /// Actions to perform after parsing a rule
+    pub on_parse: HashMap<RuleName, Box<dyn OnParseAction>>,
 }
 
 /// Get the current parsing context
@@ -30,5 +47,12 @@ pub fn find_rule(name: &str) -> Option<Arc<Mutex<Rule>>> {
             .iter()
             .find(|r| r.lock().unwrap().name == name)
             .map(|r| r.clone())
+    })
+}
+
+/// Add an action to perform after parsing a rule
+pub fn on_parse(name: &str, action: impl OnParseAction + 'static) {
+    with_context(|c| {
+        c.on_parse.insert(name.to_string(), Box::new(action));
     })
 }

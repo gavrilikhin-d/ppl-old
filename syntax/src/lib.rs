@@ -2,6 +2,8 @@
 #![feature(assert_matches)]
 #![feature(is_some_and)]
 #![feature(const_trait_impl)]
+#![feature(once_cell)]
+#![feature(trait_alias)]
 
 mod tree;
 pub use tree::*;

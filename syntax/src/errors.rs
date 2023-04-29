@@ -75,3 +75,7 @@ pub struct UnknownRuleReference<'i> {
     /// Unknown rule name
     pub name: &'i str,
 }
+
+#[derive(Debug, Error, PartialEq, Eq)]
+#[error("type error")]
+pub struct TypeError {}
