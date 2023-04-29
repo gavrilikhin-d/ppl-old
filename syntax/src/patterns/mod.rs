@@ -7,8 +7,7 @@ use regex::Regex;
 pub use repeat::*;
 
 use crate::{
-    context::with_context,
-    err,
+    context, err_boxed,
     errors::{RegexMismatch, UnknownRuleReference},
     parsers, ParseTree,
 };
@@ -44,7 +43,7 @@ impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Patt
                         (ParseTree::from(m.as_str()), Box::new(m.as_str().to_owned())),
                     ))
                 } else {
-                    err!(RegexMismatch {})
+                    err_boxed!(RegexMismatch {})
                 }
             }
             Self::Alternatives(alts) => {
@@ -70,13 +69,14 @@ impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Patt
                 let (r, (t, ast)) = parsers::grouped_patterns(patterns, input)?;
                 Ok((r, (t, Box::new(ast))))
             }
-            Self::RuleReference(r) => with_context(|ctx| {
-                if let Some(rule) = ctx.rules.iter_mut().find(|rule| rule.name == *r) {
-                    return rule.parse(input);
+            Self::RuleReference(r) => {
+                let rule = context::find_rule(r);
+                if let Some(rule) = rule {
+                    rule.lock().unwrap().parse(input)
                 } else {
-                    return err!(UnknownRuleReference {});
+                    err_boxed!(UnknownRuleReference { name: r })
                 }
-            }),
+            }
         }
     }
 }

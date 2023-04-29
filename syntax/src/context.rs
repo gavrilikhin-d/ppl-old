@@ -9,7 +9,7 @@ static CONTEXT: Mutex<Context> = Mutex::new(Context { rules: vec![] });
 #[derive(Default)]
 pub struct Context {
     /// Parsing rules
-    pub rules: Vec<Arc<Rule>>,
+    pub rules: Vec<Arc<Mutex<Rule>>>,
 }
 
 /// Get the current parsing context
@@ -20,10 +20,15 @@ pub fn with_context<T>(f: impl FnOnce(&mut Context) -> T) -> T {
 
 /// Add a rule to the current parsing context
 pub fn add_rule(rule: Rule) {
-    with_context(|c| c.rules.push(Arc::new(rule)))
+    with_context(|c| c.rules.push(Arc::new(Mutex::new(rule))))
 }
 
 /// Find rule by name in the current parsing context
-pub fn find_rule(name: &str) -> Option<Arc<Rule>> {
-    with_context(|c| c.rules.iter().find(|r| r.name == name).map(|r| r.clone()))
+pub fn find_rule(name: &str) -> Option<Arc<Mutex<Rule>>> {
+    with_context(|c| {
+        c.rules
+            .iter()
+            .find(|r| r.lock().unwrap().name == name)
+            .map(|r| r.clone())
+    })
 }
