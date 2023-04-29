@@ -2,7 +2,7 @@ use std::{any::Any, error::Error};
 
 use nom::{IResult, Parser};
 
-use crate::{parsers, ParseTree, Pattern};
+use crate::{context::with_context, err, parsers, ParseTree, Pattern};
 
 /// Type of rule name
 pub type RuleName = String;
@@ -22,6 +22,15 @@ impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Rule
         input: &'i str,
     ) -> IResult<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> {
         let (r, (t, ast)) = parsers::grouped_patterns(&mut self.patterns, input)?;
-        Ok((r, (t, Box::new(ast))))
+        let ast = Box::new(ast);
+        let action_res = with_context(|ctx| {
+            ctx.on_parse
+                .get_mut(&self.name)
+                .map(|action| action(&t, &ast))
+        });
+        if let Some(Err(err)) = action_res {
+            return err!(err);
+        }
+        Ok((r, (t, ast)))
     }
 }

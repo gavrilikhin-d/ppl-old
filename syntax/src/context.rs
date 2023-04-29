@@ -17,8 +17,7 @@ static CONTEXT: Lazy<Mutex<Context>> = Lazy::new(|| {
     })
 });
 
-pub trait OnParseAction =
-    Sync + Send + FnMut(ParseTree, Box<dyn Any>) -> Result<(), Box<dyn Error>>;
+pub trait OnParseAction = Sync + Send + FnMut(&ParseTree, &dyn Any) -> Result<(), Box<dyn Error>>;
 
 /// Parsing context
 #[derive(Default)]

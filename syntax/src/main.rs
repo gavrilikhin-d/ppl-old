@@ -2,8 +2,8 @@ use syntax::{context, errors::TypeError, Rule};
 
 fn main() {
     context::on_parse("Rule", |_, ast| {
-        let rule = ast.downcast::<Rule>().map_err(|_| Box::new(TypeError {}))?;
-        context::add_rule(*rule);
+        let rule = ast.downcast_ref::<Rule>().ok_or_else(|| TypeError {})?;
+        context::add_rule(rule.clone());
         Ok(())
     });
 
