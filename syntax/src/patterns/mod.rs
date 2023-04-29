@@ -6,11 +6,7 @@ use nom::{IResult, Parser};
 use regex::Regex;
 pub use repeat::*;
 
-use crate::{
-    context, err_boxed,
-    errors::{RegexMismatch, UnknownRuleReference},
-    parsers, ParseTree,
-};
+use crate::{context, err_boxed, errors::RegexMismatch, parsers, ParseTree};
 
 /// Possible patterns
 #[derive(Debug, PartialEq, Clone, From)]
@@ -70,12 +66,9 @@ impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Patt
                 Ok((r, (t, Box::new(ast))))
             }
             Self::RuleReference(r) => {
-                let rule = context::find_rule(r);
-                if let Some(rule) = rule {
-                    rule.lock().unwrap().parse(input)
-                } else {
-                    err_boxed!(UnknownRuleReference { name: r })
-                }
+                let rule = context::find_rule(r).expect(format!("invalid rule ${r}").as_str());
+                let res = rule.lock().unwrap().parse(input);
+                res
             }
         }
     }

@@ -1,4 +1,4 @@
-use derive_more::From;
+use nom::IResult;
 use thiserror::Error;
 
 /// Creates recoverable error for nom
@@ -18,9 +18,10 @@ macro_rules! err_boxed {
 }
 
 /// Creates boilerplate for error enum
+#[macro_export]
 macro_rules! error_enum {
 	($name:ident, $($variant:ident)|*) => {
-		#[derive(Debug, Error, From, PartialEq, Eq)]
+		#[derive(Debug, thiserror::Error, derive_more::From, PartialEq, Eq)]
 		pub enum $name<'i> {
 			$(
 				#[error(transparent)]
@@ -30,49 +31,47 @@ macro_rules! error_enum {
 	};
 }
 
+/// Helper function to easily map errors
+pub fn map_err<I, O, E1, E2>(res: IResult<I, O, E1>, f: impl Fn(E1) -> E2) -> IResult<I, O, E2> {
+    res.map_err(|e| e.map(f))
+}
+
 #[derive(Debug, Error, PartialEq, Eq)]
 #[error("Regex didn't match")]
 pub struct RegexMismatch {}
 
 #[derive(Debug, Error, PartialEq, Eq)]
-#[error("expected rule name")]
-pub struct ExpectedRuleName<'i> {
-    /// The input that caused the error
+#[error("expected {expected:?}")]
+pub struct Expected<'i> {
+    /// What was expected
+    pub expected: String,
+    /// Where the error occurred
     pub at: &'i str,
 }
 
 #[derive(Debug, Error, PartialEq, Eq)]
-#[error("lowercase rule name")]
-pub struct LowercaseRuleName<'i> {
-    /// The rule name that caused the error
-    pub name: &'i str,
+#[error("expected one of {variants:?}")]
+pub struct ExpectedOneOf<'i> {
+    /// What was expected
+    pub variants: Vec<String>,
+    /// Where the error occurred
+    pub at: &'i str,
 }
 
-error_enum!(RuleNameError, ExpectedRuleName | LowercaseRuleName);
+#[derive(Debug, Error, PartialEq, Eq)]
+#[error("expected matching {expected:?} to match {to_match:?}")]
+pub struct ExpectedMatching<'i> {
+    /// What was expected
+    pub expected: String,
+    /// Where the error occurred
+    pub at: &'i str,
+    /// What was expected to match
+    pub to_match: &'i str,
+}
 
 #[derive(Debug, Error, PartialEq, Eq)]
-#[error("unknown rule reference")]
+#[error("referencing unknown rule {name:?}")]
 pub struct UnknownRuleReference<'i> {
-    /// The rule name that caused the error
+    /// Unknown rule name
     pub name: &'i str,
 }
-
-error_enum!(RuleReferenceError, RuleNameError | UnknownRuleReference);
-
-#[derive(Debug, Error, PartialEq, Eq)]
-#[error("expected regex")]
-pub struct ExpectedRegex<'i> {
-    /// The input that caused the error
-    pub at: &'i str,
-}
-
-#[derive(Debug, Error, PartialEq, Eq)]
-#[error("invalid regex: ${reason}")]
-pub struct InvalidRegex<'i> {
-    /// Location of the invalid regex
-    pub re: &'i str,
-    /// The reason why the regex is invalid
-    pub reason: String,
-}
-
-error_enum!(RegexError, ExpectedRegex | InvalidRegex);
