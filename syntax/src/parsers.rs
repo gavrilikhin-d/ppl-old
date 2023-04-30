@@ -1,4 +1,4 @@
-use crate::{ParseTree, Pattern, Rule};
+use crate::{ParseTree, Pattern};
 
 /// Result of parsing
 #[derive(Debug, PartialEq)]
@@ -33,14 +33,11 @@ impl ParseResult<'_> {
 pub trait Parser {
     /// Parse source code starting at given position
     fn parse_at<'s>(&self, source: &'s str, at: usize) -> ParseResult<'s>;
-}
 
-/// Create default parsing rules
-pub fn create_default_rules() -> Vec<Rule> {
-    vec![Rule {
-        name: "Regex".to_string(),
-        patterns: vec![Pattern::Regex(r"[^\s]+".to_string())],
-    }]
+    /// Parse source code from the beginning
+    fn parse<'s>(&self, source: &'s str) -> ParseResult<'s> {
+        self.parse_at(source, 0)
+    }
 }
 
 /// Parse a list of patterns

@@ -74,7 +74,7 @@ mod test {
     use crate::{
         errors::Expected,
         parsers::{ParseResult, Parser},
-        IntoParseTreeNode, Pattern,
+        IntoParseTreeNode, ParseTree, Pattern,
     };
 
     #[test]
@@ -176,6 +176,18 @@ mod test {
                     .into_parse_tree_node()
                 ]
                 .into()
+            }
+        )
+    }
+
+    #[test]
+    fn rule_ref() {
+        let pattern = Pattern::RuleReference("Regex".into());
+        assert_eq!(
+            pattern.parse("abc"),
+            ParseResult {
+                delta: 3,
+                tree: ParseTree::named("Regex").with("abc")
             }
         )
     }

@@ -10,23 +10,29 @@ use once_cell::sync::Lazy;
 use crate::{ParseTree, Rule, RuleName};
 
 /// Current parsing context
-static CONTEXT: Lazy<Mutex<Context>> = Lazy::new(|| {
-    Mutex::new(Context {
-        rules: vec![],
-        on_parse: HashMap::new(),
-    })
-});
+static CONTEXT: Lazy<Mutex<Context>> = Lazy::new(|| Mutex::new(Context::default()));
 
 pub trait OnParseAction =
     Sync + Send + FnMut(&ParseTree, Box<dyn Any>) -> Result<Box<dyn Any>, Box<dyn Diagnostic>>;
 
 /// Parsing context
-#[derive(Default)]
 pub struct Context {
     /// Parsing rules
     pub rules: Vec<Arc<Rule>>,
     /// Actions to perform after parsing a rule
     pub on_parse: HashMap<RuleName, Box<dyn OnParseAction>>,
+}
+
+impl Default for Context {
+    fn default() -> Self {
+        Context {
+            rules: vec![Arc::new(Rule {
+                name: "Regex".to_string(),
+                patterns: vec![r"[^\s]+".into()],
+            })],
+            on_parse: HashMap::new(),
+        }
+    }
 }
 
 /// Get the current parsing context
