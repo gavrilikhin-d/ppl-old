@@ -46,14 +46,15 @@ pub fn create_default_rules() -> Vec<Rule> {
 /// Parse a list of patterns
 pub fn parse_patterns_at<'s>(patterns: &[Pattern], source: &'s str, at: usize) -> ParseResult<'s> {
     let mut delta = 0;
-    let mut trees = Vec::new();
+    let mut tree = ParseTree::empty();
     for pattern in patterns {
         let result = pattern.parse_at(source, at + delta);
         delta += result.delta;
-        trees.push(result.tree);
+        tree.push(result.tree);
     }
+
     ParseResult {
         delta,
-        tree: trees.into(),
+        tree: tree.flatten(),
     }
 }

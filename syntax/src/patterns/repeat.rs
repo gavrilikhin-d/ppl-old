@@ -54,7 +54,7 @@ impl Parser for Repeat {
         for _ in 0..self.at_least {
             let res = self.pattern.parse_at(source, at + delta);
             delta += res.delta;
-            tree.append(res.tree);
+            tree.push(res.tree);
         }
 
         if tree.is_ok() {
@@ -62,14 +62,17 @@ impl Parser for Repeat {
                 let res = self.pattern.parse_at(source, at + delta);
                 if res.is_ok() {
                     delta += res.delta;
-                    tree.append(res.tree);
+                    tree.push(res.tree);
                 } else {
                     break;
                 }
             }
         }
 
-        ParseResult { delta, tree }
+        ParseResult {
+            delta,
+            tree: tree.flatten(),
+        }
     }
 }
 
@@ -78,7 +81,6 @@ mod test {
     use crate::{
         errors::Expected,
         parsers::{ParseResult, Parser},
-        IntoParseTree,
     };
 
     use super::Repeat;
@@ -130,19 +132,18 @@ mod test {
             pattern.parse_at("", 0),
             ParseResult {
                 delta: 0,
-                tree: vec![Expected {
+                tree: Expected {
                     expected: "a".to_string(),
                     at: 0.into()
                 }
-                .into_parse_tree()]
-                .into(),
+                .into()
             }
         );
         assert_eq!(
             pattern.parse_at("a", 0),
             ParseResult {
                 delta: 1,
-                tree: vec!["a"].into(),
+                tree: "a".into(),
             }
         );
         assert_eq!(

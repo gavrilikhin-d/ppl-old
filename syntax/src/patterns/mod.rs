@@ -74,7 +74,7 @@ mod test {
     use crate::{
         errors::Expected,
         parsers::{ParseResult, Parser},
-        IntoParseTree, Pattern,
+        IntoParseTreeNode, Pattern,
     };
 
     #[test]
@@ -138,7 +138,7 @@ mod test {
                         expected: "a".to_string(),
                         at: 0.into()
                     }
-                    .into_parse_tree(),
+                    .into_parse_tree_node(),
                     "b".into()
                 ]
                 .into()
@@ -154,7 +154,7 @@ mod test {
                         expected: "b".to_string(),
                         at: 1.into()
                     }
-                    .into_parse_tree()
+                    .into_parse_tree_node()
                 ]
                 .into()
             }
@@ -168,12 +168,12 @@ mod test {
                         expected: "a".to_string(),
                         at: 0.into()
                     }
-                    .into_parse_tree(),
+                    .into_parse_tree_node(),
                     Expected {
                         expected: "b".to_string(),
                         at: 0.into()
                     }
-                    .into_parse_tree()
+                    .into_parse_tree_node()
                 ]
                 .into()
             }

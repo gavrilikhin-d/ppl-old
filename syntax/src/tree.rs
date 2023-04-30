@@ -1,152 +1,185 @@
 use derive_more::From;
 use miette::Diagnostic;
 
-/// Parse tree consist from leaf tokens an subtrees
-#[derive(Debug, From)]
-pub enum ParseTree<'s> {
-    /// Token
-    Token(&'s str),
-    /// Tree with children
-    #[from(ignore)]
-    Group {
-        name: String,
-        elements: Vec<ParseTree<'s>>,
-    },
-    /// Parsing error
-    Error(Box<dyn Diagnostic>),
+#[derive(Debug, PartialEq, Eq)]
+pub struct ParseTree<'s> {
+    /// Name of the tree. Empty string for anonymous trees
+    pub name: String,
+    /// Children of the subtree
+    pub children: Vec<ParseTreeNode<'s>>,
 }
 
-impl<'s> From<Vec<ParseTree<'s>>> for ParseTree<'s> {
-    fn from(value: Vec<ParseTree<'s>>) -> Self {
-        Self::Group {
-            name: "".into(),
-            elements: value,
-        }
-    }
-}
-
-impl PartialEq for ParseTree<'_> {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::Token(a), Self::Token(b)) => a == b,
-            (
-                Self::Group { name, elements },
-                Self::Group {
-                    name: other_name,
-                    elements: other_elements,
-                },
-            ) => name == other_name && elements == other_elements,
-            (Self::Error(_), Self::Error(_)) => true,
-            _ => false,
-        }
-    }
-}
-impl Eq for ParseTree<'_> {}
-
-impl<'s> From<Vec<&'s str>> for ParseTree<'s> {
-    fn from(v: Vec<&'s str>) -> Self {
-        Self::Group {
-            name: "".into(),
-            elements: v.into_iter().map(|s| s.into()).collect(),
-        }
-    }
-}
-
-impl ParseTree<'_> {
+impl<'s> ParseTree<'s> {
     /// Create empty tree
     pub fn empty() -> Self {
-        Self::Group {
+        Self {
             name: "".into(),
-            elements: vec![],
+            children: vec![],
         }
     }
 
     /// Create empty tree with a name
     pub fn named(name: impl Into<String>) -> Self {
-        Self::Group {
+        Self {
             name: name.into(),
-            elements: vec![],
+            children: vec![],
         }
     }
 
-    /// Get name of the tree or "", if no name
-    pub fn name(&self) -> &str {
-        match self {
-            Self::Group { name, .. } => name,
-            _ => "",
-        }
-    }
-
-    /// Return tree with other name. If tree had no name, set it
+    /// Return this tree with another name
     pub fn with_name(self, name: impl Into<String>) -> Self {
-        match self {
-            Self::Group { elements, .. } => Self::Group {
-                name: name.into(),
-                elements,
-            },
-            _ => Self::Group {
-                name: name.into(),
-                elements: vec![self],
-            },
+        Self {
+            name: name.into(),
+            children: self.children,
         }
     }
 
-    /// Append another tree to this tree
-    pub fn append(&mut self, tree: impl Into<Self>) -> &mut Self {
-        let tree = tree.into();
-        match self {
-            Self::Group { elements, .. } => elements.push(tree),
-            Self::Token(_) | Self::Error(_) => {
-                let old = std::mem::replace(
-                    self,
-                    Self::Group {
-                        name: "".into(),
-                        elements: vec![],
-                    },
-                );
-                match self {
-                    Self::Group { elements, .. } => {
-                        elements.push(old);
-                        elements.push(tree);
-                    }
-                    _ => unreachable!(),
-                }
-            }
-        };
+    /// Push a node to the end of tree
+    pub fn push(&mut self, node: impl Into<ParseTreeNode<'s>>) -> &mut Self {
+        self.children.push(node.into());
         self
     }
 
     /// Return tree with element append to it
-    pub fn with(mut self, tree: impl Into<Self>) -> Self {
-        self.append(tree);
+    pub fn with(mut self, node: impl Into<ParseTreeNode<'s>>) -> Self {
+        self.push(node);
         self
     }
 
     /// Check if tree has errors
     pub fn has_errors(&self) -> bool {
-        match self {
-            Self::Error(_) => true,
-            Self::Token(_) => false,
-            Self::Group { elements, .. } => elements.iter().any(Self::has_errors),
-        }
+        self.children.iter().any(|c| c.has_errors())
     }
 
     /// Check if tree has no errors
     pub fn is_ok(&self) -> bool {
         !self.has_errors()
     }
-}
 
-/// Helper trait to convert errors to parse tree
-pub trait IntoParseTree: Sized + Diagnostic + 'static {
-    fn into_parse_tree(self) -> ParseTree<'static> {
-        ParseTree::Error(Box::new(self))
+    /// Flatten one level of the tree,
+    /// moving all children of subtrees without name to the root
+    pub fn flatten(mut self) -> Self {
+        let mut children = Vec::new();
+        for child in self.children.drain(..) {
+            match child {
+                ParseTreeNode::Tree(tree) => {
+                    if tree.name.is_empty() {
+                        children.extend(tree.children)
+                    } else {
+                        children.push(tree.into())
+                    }
+                }
+                _ => children.push(child),
+            }
+        }
+        self.children = children;
+        self
     }
 }
 
-impl<'s, I: IntoParseTree + Diagnostic + 'static> From<I> for ParseTree<'s> {
+impl<'s> From<&'s str> for ParseTree<'s> {
+    fn from(child: &'s str) -> Self {
+        Self {
+            name: "".into(),
+            children: vec![child.into()],
+        }
+    }
+}
+
+impl<'s> From<ParseTreeNode<'s>> for ParseTree<'s> {
+    fn from(child: ParseTreeNode<'s>) -> Self {
+        Self {
+            name: "".into(),
+            children: vec![child.into()],
+        }
+    }
+}
+
+impl<'s, I: IntoParseTreeNode> From<I> for ParseTree<'s> {
+    fn from(child: I) -> Self {
+        Self {
+            name: "".into(),
+            children: vec![child.into()],
+        }
+    }
+}
+
+impl<'s> From<Vec<ParseTreeNode<'s>>> for ParseTree<'s> {
+    fn from(children: Vec<ParseTreeNode<'s>>) -> Self {
+        Self {
+            name: "".into(),
+            children,
+        }
+    }
+}
+
+impl<'s> From<Vec<ParseTree<'s>>> for ParseTree<'s> {
+    fn from(children: Vec<ParseTree<'s>>) -> Self {
+        Self {
+            name: "".into(),
+            children: children.into_iter().map(|c| c.into()).collect(),
+        }
+    }
+}
+
+impl<'s> From<Vec<&'s str>> for ParseTree<'s> {
+    fn from(children: Vec<&'s str>) -> Self {
+        Self {
+            name: "".into(),
+            children: children.into_iter().map(|c| c.into()).collect(),
+        }
+    }
+}
+
+/// Parse tree consist from leaf tokens an subtrees
+#[derive(Debug, From)]
+pub enum ParseTreeNode<'s> {
+    /// Token
+    Token(&'s str),
+    /// Subtree
+    Tree(ParseTree<'s>),
+    /// Parsing error
+    Error(Box<dyn Diagnostic>),
+}
+
+impl ParseTreeNode<'_> {
+    /// Check if tree node has errors
+    pub fn has_errors(&self) -> bool {
+        match self {
+            Self::Token(_) => false,
+            Self::Tree(tree) => tree.has_errors(),
+            Self::Error(_) => true,
+        }
+    }
+
+    /// Check if tree node has no errors
+    pub fn is_ok(&self) -> bool {
+        !self.has_errors()
+    }
+}
+
+impl PartialEq for ParseTreeNode<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Token(a), Self::Token(b)) => a == b,
+            (Self::Tree(a), Self::Tree(b)) => a == b,
+            (Self::Error(_), Self::Error(_)) => true,
+            _ => false,
+        }
+    }
+}
+impl Eq for ParseTreeNode<'_> {}
+
+/// Helper trait to convert errors to parse tree
+pub trait IntoParseTreeNode: Sized + Diagnostic + 'static {
+    fn into_parse_tree_node(self) -> ParseTreeNode<'static> {
+        ParseTreeNode::Error(Box::new(self))
+    }
+}
+
+impl<'s, I: IntoParseTreeNode + Diagnostic + 'static> From<I> for ParseTreeNode<'s> {
     fn from(v: I) -> Self {
-        v.into_parse_tree()
+        v.into_parse_tree_node()
     }
 }
 
@@ -155,32 +188,28 @@ mod test {
     use crate::{errors::Expected, ParseTree};
 
     #[test]
-    fn append() {
-        let mut tree = ParseTree::from("a");
-        tree.append("b");
+    fn create() {
+        let tree = ParseTree::from("a").with("b");
         assert!(tree.is_ok());
         assert_eq!(tree, ParseTree::from(vec!["a", "b"]));
 
-        let mut tree = ParseTree::from(vec!["a", "b"]);
-        tree.append("c");
+        let tree = ParseTree::from(vec!["a", "b"]).with("c");
         assert!(tree.is_ok());
         assert_eq!(tree, ParseTree::from(vec!["a", "b", "c"]));
 
-        let mut tree = ParseTree::from(Expected {
+        let tree = ParseTree::from(Expected {
             expected: "a".to_string(),
             at: 0.into(),
-        });
-        tree.append("b");
+        })
+        .with("b");
         assert!(tree.has_errors());
         assert_eq!(
             tree,
-            ParseTree::from(vec![
-                ParseTree::from(Expected {
-                    expected: "a".to_string(),
-                    at: 0.into(),
-                }),
-                ParseTree::from("b")
-            ])
+            ParseTree::from(Expected {
+                expected: "a".to_string(),
+                at: 0.into(),
+            })
+            .with("b")
         );
     }
 }
