@@ -37,7 +37,7 @@ pub fn map_err<I, O, E1, E2>(res: IResult<I, O, E1>, f: impl Fn(E1) -> E2) -> IR
 }
 
 #[derive(Debug, Error, PartialEq, Eq)]
-#[error("expected {expected:?}")]
+#[error("expected '{expected}'")]
 pub struct Expected<'i> {
     /// What was expected
     pub expected: String,

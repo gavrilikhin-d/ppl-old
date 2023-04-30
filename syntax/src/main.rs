@@ -1,4 +1,4 @@
-use std::any::Any;
+use std::{any::Any, io::Write};
 
 use nom::{Finish, Parser};
 use syntax::{context, errors::TypeError, parsers, Rule};
@@ -24,6 +24,9 @@ fn main() {
     });
 
     loop {
+        print!(">>> ");
+        std::io::stdout().flush().unwrap();
+
         let mut line = String::new();
         std::io::stdin().read_line(&mut line).unwrap();
 
