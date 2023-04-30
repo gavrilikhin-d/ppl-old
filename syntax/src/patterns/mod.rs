@@ -36,7 +36,10 @@ impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error + 'i>> for
                 if let Some(m) = m {
                     Ok((
                         &input[m.end()..],
-                        (ParseTree::from(m.as_str()), Box::new(m.as_str().to_owned())),
+                        (
+                            ParseTree::from(m.as_str()),
+                            Box::new(m.as_str().to_string()),
+                        ),
                     ))
                 } else {
                     err_boxed!(Expected {

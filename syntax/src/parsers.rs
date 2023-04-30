@@ -2,7 +2,7 @@ use std::{any::Any, error::Error};
 
 use nom::{IResult, Parser};
 
-use crate::{ParseTree, Pattern};
+use crate::{ParseTree, Pattern, Rule};
 
 /// Parse multiple patterns as group
 pub fn grouped_patterns<'i, 'p>(
@@ -19,4 +19,12 @@ pub fn grouped_patterns<'i, 'p>(
         asts.push(ast);
     }
     Ok((input, (trees.into(), asts)))
+}
+
+/// Create default parsing rules
+pub fn create_default_rules() -> Vec<Rule> {
+    vec![Rule {
+        name: "Regex".to_string(),
+        patterns: vec![Pattern::Regex(r"[^\s]+".to_string())],
+    }]
 }
