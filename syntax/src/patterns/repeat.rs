@@ -46,11 +46,11 @@ impl Repeat {
     }
 }
 
-impl<'i> Parser<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error>> for Repeat {
+impl<'i> Parser<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error + 'i>> for Repeat {
     fn parse(
         &mut self,
         input: &'i str,
-    ) -> IResult<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error>> {
+    ) -> IResult<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error + 'i>> {
         debug_assert!(self.at_most.is_none() || self.at_most.unwrap() >= self.at_least);
         let mut input = input;
         let mut trees = Vec::new();

@@ -8,7 +8,7 @@ use crate::{ParseTree, Pattern};
 pub fn grouped_patterns<'i, 'p>(
     patterns: &'p mut [Pattern],
     input: &'i str,
-) -> IResult<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error>> {
+) -> IResult<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error + 'i>> {
     let mut input = input;
     let mut trees = Vec::new();
     let mut asts = Vec::new();

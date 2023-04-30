@@ -16,11 +16,11 @@ pub struct Rule {
     pub patterns: Vec<Pattern>,
 }
 
-impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Rule {
+impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error + 'i>> for Rule {
     fn parse(
         &mut self,
         input: &'i str,
-    ) -> IResult<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> {
+    ) -> IResult<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error + 'i>> {
         let (r, (t, ast)) = parsers::grouped_patterns(&mut self.patterns, input)?;
         let ast = Box::new(ast);
         let action_res = with_context(|ctx| {

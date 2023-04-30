@@ -6,7 +6,7 @@ use nom::{IResult, Parser};
 use regex::Regex;
 pub use repeat::*;
 
-use crate::{context, err_boxed, errors::RegexMismatch, parsers, ParseTree};
+use crate::{context, err_boxed, errors::Expected, parsers, ParseTree};
 
 /// Possible patterns
 #[derive(Debug, PartialEq, Clone, From)]
@@ -24,11 +24,11 @@ pub enum Pattern {
     Repeat(Repeat),
 }
 
-impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Pattern {
+impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error + 'i>> for Pattern {
     fn parse(
         &mut self,
         input: &'i str,
-    ) -> IResult<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> {
+    ) -> IResult<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error + 'i>> {
         match self {
             Self::Regex(r) => {
                 let re = Regex::new(&format!("^{}", r)).unwrap();
@@ -39,7 +39,10 @@ impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error>> for Patt
                         (ParseTree::from(m.as_str()), Box::new(m.as_str().to_owned())),
                     ))
                 } else {
-                    err_boxed!(RegexMismatch {})
+                    err_boxed!(Expected {
+                        expected: r.clone(),
+                        at: input
+                    })
                 }
             }
             Self::Alternatives(alts) => {
