@@ -4,16 +4,15 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use miette::Diagnostic;
 use once_cell::sync::Lazy;
 
-use crate::{ParseTree, Rule, RuleName};
+use crate::{errors::Error, ParseTree, Rule, RuleName};
 
 /// Current parsing context
 static CONTEXT: Lazy<Mutex<Context>> = Lazy::new(|| Mutex::new(Context::default()));
 
 pub trait OnParseAction =
-    Sync + Send + FnMut(&ParseTree, Box<dyn Any>) -> Result<Box<dyn Any>, Box<dyn Diagnostic>>;
+    Sync + Send + FnMut(&ParseTree, Box<dyn Any>) -> Result<Box<dyn Any>, Box<dyn Error>>;
 
 /// Parsing context
 pub struct Context {

@@ -4,6 +4,7 @@
 #![feature(const_trait_impl)]
 #![feature(once_cell)]
 #![feature(trait_alias)]
+#![feature(trait_upcasting)]
 
 mod tree;
 pub use tree::*;

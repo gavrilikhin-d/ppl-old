@@ -1,4 +1,4 @@
-use crate::{ParseTree, Pattern};
+use crate::{errors::Error, ParseTree, Pattern};
 
 /// Result of parsing
 #[derive(Debug, PartialEq)]
@@ -26,6 +26,11 @@ impl ParseResult<'_> {
     /// Does this result contain no errors?
     pub fn is_ok(&self) -> bool {
         !self.has_errors()
+    }
+
+    /// Iterate over errors
+    pub fn errors(&self) -> Box<dyn Iterator<Item = &dyn Error> + '_> {
+        self.tree.errors()
     }
 }
 

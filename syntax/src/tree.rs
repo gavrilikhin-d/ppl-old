@@ -3,6 +3,8 @@ use std::ops::Index;
 use derive_more::From;
 use miette::Diagnostic;
 
+use crate::errors::Error;
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct ParseTree<'s> {
     /// Name of the tree. Empty string for anonymous trees
@@ -79,6 +81,11 @@ impl<'s> ParseTree<'s> {
             _ => None,
         })
     }
+
+    /// Iterate over errors
+    pub fn errors(&self) -> Box<dyn Iterator<Item = &dyn Error> + '_> {
+        Box::new(self.children.iter().flat_map(|c| c.errors()))
+    }
 }
 
 impl<'s> Index<&str> for ParseTree<'s> {
@@ -152,7 +159,7 @@ pub enum ParseTreeNode<'s> {
     /// Subtree
     Tree(ParseTree<'s>),
     /// Parsing error
-    Error(Box<dyn Diagnostic>),
+    Error(Box<dyn Error>),
 }
 
 impl ParseTreeNode<'_> {
@@ -169,6 +176,15 @@ impl ParseTreeNode<'_> {
     pub fn is_ok(&self) -> bool {
         !self.has_errors()
     }
+
+    /// Iterate over errors
+    pub fn errors(&self) -> Box<dyn Iterator<Item = &dyn Error> + '_> {
+        match self {
+            Self::Token(_) => Box::new(std::iter::empty()),
+            Self::Tree(tree) => tree.errors(),
+            Self::Error(err) => Box::new(std::iter::once(err.as_ref())),
+        }
+    }
 }
 
 impl PartialEq for ParseTreeNode<'_> {
@@ -184,7 +200,7 @@ impl PartialEq for ParseTreeNode<'_> {
 impl Eq for ParseTreeNode<'_> {}
 
 /// Helper trait to convert errors to parse tree
-pub trait IntoParseTreeNode: Sized + Diagnostic + 'static {
+pub trait IntoParseTreeNode: Sized + Error {
     fn into_parse_tree_node(self) -> ParseTreeNode<'static> {
         ParseTreeNode::Error(Box::new(self))
     }

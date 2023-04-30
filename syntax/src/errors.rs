@@ -3,7 +3,13 @@ use thiserror::Error;
 
 use crate::IntoParseTreeNode;
 
-#[derive(Debug, Error, Diagnostic, PartialEq, Eq)]
+/// Trait for errors that support cloning
+pub trait Error: Diagnostic + Send + Sync + 'static {
+    fn clone_boxed(&self) -> Box<dyn Diagnostic + Send + Sync + 'static>;
+}
+impl<E: Error> IntoParseTreeNode for E {}
+
+#[derive(Debug, Error, Diagnostic, PartialEq, Eq, Clone)]
 #[error("expected '{expected}'")]
 pub struct Expected {
     /// What was expected
@@ -12,7 +18,11 @@ pub struct Expected {
     #[label("{expected}")]
     pub at: SourceOffset,
 }
-impl IntoParseTreeNode for Expected {}
+impl Error for Expected {
+    fn clone_boxed(&self) -> Box<dyn Diagnostic + Send + Sync + 'static> {
+        Box::new(self.clone())
+    }
+}
 
 #[derive(Debug, Error, PartialEq, Eq)]
 #[error("expected one of {variants:?}")]

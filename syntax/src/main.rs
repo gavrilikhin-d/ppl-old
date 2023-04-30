@@ -1,43 +1,27 @@
-// use std::{any::Any, io::Write};
+use std::io::Write;
 
-// use syntax::{context, errors::TypeError, parsers, Rule};
+use syntax::{context, parsers::Parser};
 
-// fn main() {
-//     let rules = parsers::create_default_rules();
-//     rules.into_iter().for_each(|rule| context::add_rule(rule));
+fn main() {
+    loop {
+        print!(">>> ");
+        std::io::stdout().flush().unwrap();
 
-//     context::on_parse("Rule", |_, ast| {
-//         let rule = ast.downcast_ref::<Rule>().ok_or_else(|| TypeError {})?;
-//         context::add_rule(rule.clone());
-//         Ok(ast)
-//     });
+        let mut line = String::new();
+        std::io::stdin().read_line(&mut line).unwrap();
 
-//     context::on_parse("Regex", |_, ast| {
-//         Ok(ast
-//             .downcast::<Vec<Box<dyn Any>>>()
-//             .unwrap()
-//             .into_iter()
-//             .map(|b| b.downcast::<String>().unwrap())
-//             .next()
-//             .unwrap())
-//     });
+        let regex = context::find_rule("Regex").unwrap();
 
-//     loop {
-//         print!(">>> ");
-//         std::io::stdout().flush().unwrap();
-
-//         let mut line = String::new();
-//         std::io::stdin().read_line(&mut line).unwrap();
-
-//         let regex = context::find_rule("Regex").unwrap();
-
-//         let res = regex.parse_at(&line, 0)
-//         if let Err(err) = res {
-//             println!("{}", err);
-//             continue;
-//         }
-
-//         let (_rest, (_tree, ast)) = res.unwrap();
-//         println!("{}", ast.downcast::<String>().unwrap());
-//     }
-// }
+        let res = regex.parse(&line);
+        if res.has_errors() {
+            res.errors().for_each(|e| {
+                println!(
+                    "{:?}",
+                    miette::Report::new_boxed(e.clone_boxed()).with_source_code(line.clone())
+                )
+            });
+            continue;
+        }
+        println!("{:#?}", res.tree);
+    }
+}
