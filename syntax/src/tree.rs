@@ -65,9 +65,22 @@ impl ParseTree<'_> {
     }
 }
 
+/// Helper trait to convert errors to parse tree
+pub trait IntoParseTree: Sized + Diagnostic + 'static {
+    fn into_parse_tree(self) -> ParseTree<'static> {
+        ParseTree::Error(Box::new(self))
+    }
+}
+
+impl<'s, I: IntoParseTree + Diagnostic + 'static> From<I> for ParseTree<'s> {
+    fn from(v: I) -> Self {
+        v.into_parse_tree()
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use crate::ParseTree;
+    use crate::{errors::Expected, ParseTree};
 
     #[test]
     fn append() {
@@ -79,6 +92,23 @@ mod test {
         let mut tree = ParseTree::from(vec!["a", "b"]);
         tree.append("c");
         assert!(tree.is_ok());
-        assert_eq!(tree, ParseTree::from(vec!["a", "b", "c"]))
+        assert_eq!(tree, ParseTree::from(vec!["a", "b", "c"]));
+
+        let mut tree = ParseTree::from(Expected {
+            expected: "a".to_string(),
+            at: 0.into(),
+        });
+        tree.append("b");
+        assert!(tree.has_errors());
+        assert_eq!(
+            tree,
+            ParseTree::from(vec![
+                ParseTree::from(Expected {
+                    expected: "a".to_string(),
+                    at: 0.into(),
+                }),
+                ParseTree::from("b")
+            ])
+        );
     }
 }

@@ -1,6 +1,8 @@
 use miette::{Diagnostic, SourceOffset};
 use thiserror::Error;
 
+use crate::IntoParseTree;
+
 #[derive(Debug, Error, Diagnostic, PartialEq, Eq)]
 #[error("expected '{expected}'")]
 pub struct Expected {
@@ -10,6 +12,7 @@ pub struct Expected {
     #[label("{expected}")]
     pub at: SourceOffset,
 }
+impl IntoParseTree for Expected {}
 
 #[derive(Debug, Error, PartialEq, Eq)]
 #[error("expected one of {variants:?}")]

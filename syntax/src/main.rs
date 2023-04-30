@@ -1,6 +1,5 @@
 use std::{any::Any, io::Write};
 
-use nom::{Finish, Parser};
 use syntax::{context, errors::TypeError, parsers, Rule};
 
 fn main() {
