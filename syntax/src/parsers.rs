@@ -1,6 +1,7 @@
 use crate::{ParseTree, Pattern, Rule};
 
 /// Result of parsing
+#[derive(Debug, PartialEq)]
 pub struct ParseResult<'s> {
     /// Number of parsed characters
     pub delta: usize,
@@ -9,6 +10,14 @@ pub struct ParseResult<'s> {
 }
 
 impl ParseResult<'_> {
+    /// Create empty parse result
+    pub fn empty() -> Self {
+        Self {
+            delta: 0,
+            tree: ParseTree::Tree(vec![]),
+        }
+    }
+
     /// Does this result contain errors?
     pub fn has_errors(&self) -> bool {
         self.tree.has_errors()
@@ -32,4 +41,19 @@ pub fn create_default_rules() -> Vec<Rule> {
         name: "Regex".to_string(),
         patterns: vec![Pattern::Regex(r"[^\s]+".to_string())],
     }]
+}
+
+/// Parse a list of patterns
+pub fn parse_patterns_at<'s>(patterns: &[Pattern], source: &'s str, at: usize) -> ParseResult<'s> {
+    let mut delta = 0;
+    let mut trees = Vec::new();
+    for pattern in patterns {
+        let result = pattern.parse_at(source, at + delta);
+        delta += result.delta;
+        trees.push(result.tree);
+    }
+    ParseResult {
+        delta,
+        tree: trees.into(),
+    }
 }

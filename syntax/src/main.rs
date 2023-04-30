@@ -31,7 +31,7 @@ fn main() {
 
         let regex = context::find_rule("Regex").unwrap();
 
-        let res = regex.lock().unwrap().parse(&line).finish();
+        let res = regex.parse_at(&line, 0)
         if let Err(err) = res {
             println!("{}", err);
             continue;
