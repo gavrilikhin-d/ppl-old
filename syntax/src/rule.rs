@@ -41,10 +41,7 @@ mod tests {
             rule.parse_at("Hello World", 0),
             ParseResult {
                 delta: 5,
-                tree: ParseTree::Group {
-                    name: "Test".into(),
-                    elements: vec!["Hello".into()]
-                },
+                tree: ParseTree::named("Test").with("Hello")
             }
         );
     }

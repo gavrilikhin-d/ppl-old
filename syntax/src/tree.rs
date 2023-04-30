@@ -62,7 +62,7 @@ impl ParseTree<'_> {
     }
 
     /// Create empty tree with a name
-    pub fn empty_named(name: impl Into<String>) -> Self {
+    pub fn named(name: impl Into<String>) -> Self {
         Self::Group {
             name: name.into(),
             elements: vec![],
@@ -113,6 +113,12 @@ impl ParseTree<'_> {
                 }
             }
         };
+        self
+    }
+
+    /// Return tree with element append to it
+    pub fn with(mut self, tree: impl Into<Self>) -> Self {
+        self.append(tree);
         self
     }
 
