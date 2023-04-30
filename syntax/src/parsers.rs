@@ -1,24 +1,29 @@
-use std::{any::Any, error::Error};
-
-use nom::{IResult, Parser};
-
 use crate::{ParseTree, Pattern, Rule};
 
-/// Parse multiple patterns as group
-pub fn grouped_patterns<'i, 'p>(
-    patterns: &'p mut [Pattern],
-    input: &'i str,
-) -> IResult<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error + 'i>> {
-    let mut input = input;
-    let mut trees = Vec::new();
-    let mut asts = Vec::new();
-    for p in patterns {
-        let (rest, (t, ast)) = p.parse(input)?;
-        input = rest;
-        trees.push(t);
-        asts.push(ast);
+/// Result of parsing
+pub struct ParseResult<'s> {
+    /// Number of parsed characters
+    pub delta: usize,
+    /// Parse tree. May contain errors
+    pub tree: ParseTree<'s>,
+}
+
+impl ParseResult<'_> {
+    /// Does this result contain errors?
+    pub fn has_errors(&self) -> bool {
+        self.tree.has_errors()
     }
-    Ok((input, (trees.into(), asts)))
+
+    /// Does this result contain no errors?
+    pub fn is_ok(&self) -> bool {
+        !self.has_errors()
+    }
+}
+
+/// Parse source code starting at given position
+pub trait Parser {
+    /// Parse source code starting at given position
+    fn parse_at<'s>(&self, source: &'s str, at: usize) -> ParseResult<'s>;
 }
 
 /// Create default parsing rules

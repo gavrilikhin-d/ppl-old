@@ -1,8 +1,4 @@
-use std::{any::Any, error::Error};
-
-use nom::{IResult, Parser};
-
-use crate::ParseTree;
+use crate::parsers::{ParseResult, Parser};
 
 use super::Pattern;
 
@@ -43,37 +39,5 @@ impl Repeat {
             at_least: 0,
             at_most: Some(1),
         }
-    }
-}
-
-impl<'i> Parser<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error + 'i>> for Repeat {
-    fn parse(
-        &mut self,
-        input: &'i str,
-    ) -> IResult<&'i str, (ParseTree<'i>, Vec<Box<dyn Any>>), Box<dyn Error + 'i>> {
-        debug_assert!(self.at_most.is_none() || self.at_most.unwrap() >= self.at_least);
-        let mut input = input;
-        let mut trees = Vec::new();
-        let mut asts = Vec::new();
-        for _ in 0..self.at_least {
-            let (rest, (tree, ast)) = self.pattern.parse(input)?;
-            input = rest;
-            trees.push(tree);
-            asts.push(ast);
-        }
-
-        for _ in self.at_least..self.at_most.unwrap_or(usize::MAX) {
-            let res = self.pattern.parse(input);
-            if res.is_ok() {
-                let (rest, (tree, ast)) = res.unwrap();
-                input = rest;
-                trees.push(tree);
-                asts.push(ast);
-            } else {
-                break;
-            }
-        }
-
-        Ok((input, (trees.into(), asts)))
     }
 }

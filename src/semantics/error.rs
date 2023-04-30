@@ -3,7 +3,7 @@ use std::fmt::Display;
 use miette::{Diagnostic, SourceSpan};
 use thiserror::Error;
 
-use crate::hir::{Type, CallKind};
+use crate::hir::{CallKind, Type};
 
 /// Diagnostic for undefined variables
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
@@ -146,8 +146,8 @@ impl Diagnostic for CandidateNotViable {
 /// Diagnostic for unresolved function call
 #[derive(Error, Debug, Clone, PartialEq)]
 pub struct NoFunction {
-	/// Kind of function call, that failed to bind to function
-	pub kind: CallKind,
+    /// Kind of function call, that failed to bind to function
+    pub kind: CallKind,
 
     /// Expected name of function
     pub name: String,
@@ -163,14 +163,12 @@ pub struct NoFunction {
 }
 
 impl Display for NoFunction {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		match self.kind {
-			CallKind::Call =>
-				write!(f, "no function \"{}\"", self.name),
-			CallKind::Operation =>
-				write!(f, "no operator \"{}\"", self.name),
-		}
-	}
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.kind {
+            CallKind::Call => write!(f, "no function \"{}\"", self.name),
+            CallKind::Operation => write!(f, "no operator \"{}\"", self.name),
+        }
+    }
 }
 
 impl Diagnostic for NoFunction {
@@ -187,20 +185,18 @@ impl Diagnostic for NoFunction {
                 ),
             )))
         } else {
-			let mut labels = Vec::new();
-			if self.kind == CallKind::Operation {
-				labels.push(miette::LabeledSpan::new_with_span(
-					Some("for this operator".to_string()),
-					self.at,
-				))
-			}
-			labels.extend(
-				self.arguments.iter().map(
-					|(t, s)| miette::LabeledSpan::new_with_span(
-						Some(format!("<:{}>", t)), *s
-					)
-				)
-			);
+            let mut labels = Vec::new();
+            if self.kind == CallKind::Operation {
+                labels.push(miette::LabeledSpan::new_with_span(
+                    Some("for this operator".to_string()),
+                    self.at,
+                ))
+            }
+            labels.extend(
+                self.arguments.iter().map(|(t, s)| {
+                    miette::LabeledSpan::new_with_span(Some(format!("<:{}>", t)), *s)
+                }),
+            );
             Some(Box::new(labels.into_iter()))
         }
     }
@@ -231,8 +227,8 @@ pub struct ReturnOutsideFunction {
 #[error("missing return value with \"{ty}\" type")]
 #[diagnostic(code(semantics::missing_return_value))]
 pub struct MissingReturnValue {
-	/// Type of return value
-	pub ty: Type,
+    /// Type of return value
+    pub ty: Type,
     /// Point, where return value is expected
     #[label("here")]
     pub at: SourceSpan,
@@ -243,14 +239,14 @@ pub struct MissingReturnValue {
 #[error("return type mismatch: got \"{got}\", expected \"{expected}\"")]
 #[diagnostic(code(semantics::return_type_mismatch))]
 pub struct ReturnTypeMismatch {
-	/// Type of return value
-	pub got: Type,
+    /// Type of return value
+    pub got: Type,
     /// Span of returned value
     #[label("this has \"{got}\" type")]
     pub got_span: SourceSpan,
 
-	/// Expected type of return value
-	pub expected: Type,
+    /// Expected type of return value
+    pub expected: Type,
 }
 
 /// Diagnostic for recursive implicit return type
@@ -258,9 +254,9 @@ pub struct ReturnTypeMismatch {
 #[error("can't deduce implicit return type of function")]
 #[diagnostic(code(semantics::cant_deduce_return_type))]
 pub struct CantDeduceReturnType {
-	/// Span of function
-	#[label("Can't deduce return type of this function")]
-	pub at: SourceSpan,
+    /// Span of function
+    #[label("Can't deduce return type of this function")]
+    pub at: SourceSpan,
 }
 
 /// Diagnostic for missing members
@@ -268,17 +264,17 @@ pub struct CantDeduceReturnType {
 #[error("no member \"{name}\" in \"{ty}\"")]
 #[diagnostic(code(semantics::cant_deduce_return_type))]
 pub struct NoMember {
-	/// Type of base expression
-	pub ty: Type,
-	/// Span of base expression
-	#[label("this has \"{ty}\" type")]
-	pub base_span: SourceSpan,
+    /// Type of base expression
+    pub ty: Type,
+    /// Span of base expression
+    #[label("this has \"{ty}\" type")]
+    pub base_span: SourceSpan,
 
-	/// Span of function
-	#[label("no member \"{name}\" in \"{ty}\"")]
-	pub at: SourceSpan,
-	/// Name of member
-	pub name: String,
+    /// Span of function
+    #[label("no member \"{name}\" in \"{ty}\"")]
+    pub at: SourceSpan,
+    /// Name of member
+    pub name: String,
 }
 
 /// Helper macro to create error enumeration
@@ -297,8 +293,8 @@ macro_rules! error_enum {
 }
 
 error_enum!(
-	UndefinedVariable,
-	AssignmentToImmutable,
+    UndefinedVariable,
+    AssignmentToImmutable,
     TypeMismatch,
     ArgumentTypeMismatch,
     ConditionTypeMismatch,
@@ -308,6 +304,6 @@ error_enum!(
     ReturnOutsideFunction,
     MissingReturnValue,
     ReturnTypeMismatch,
-	CantDeduceReturnType,
-	NoMember
+    CantDeduceReturnType,
+    NoMember
 );

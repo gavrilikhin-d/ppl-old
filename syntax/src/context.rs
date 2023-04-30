@@ -1,10 +1,10 @@
 use std::{
     any::Any,
     collections::HashMap,
-    error::Error,
     sync::{Arc, Mutex},
 };
 
+use miette::Diagnostic;
 use once_cell::sync::Lazy;
 
 use crate::{ParseTree, Rule, RuleName};
@@ -18,13 +18,13 @@ static CONTEXT: Lazy<Mutex<Context>> = Lazy::new(|| {
 });
 
 pub trait OnParseAction =
-    Sync + Send + FnMut(&ParseTree, Box<dyn Any>) -> Result<Box<dyn Any>, Box<dyn Error>>;
+    Sync + Send + FnMut(&ParseTree, Box<dyn Any>) -> Result<Box<dyn Any>, Box<dyn Diagnostic>>;
 
 /// Parsing context
 #[derive(Default)]
 pub struct Context {
     /// Parsing rules
-    pub rules: Vec<Arc<Mutex<Rule>>>,
+    pub rules: Vec<Arc<Rule>>,
     /// Actions to perform after parsing a rule
     pub on_parse: HashMap<RuleName, Box<dyn OnParseAction>>,
 }
@@ -37,17 +37,12 @@ pub fn with_context<T>(f: impl FnOnce(&mut Context) -> T) -> T {
 
 /// Add a rule to the current parsing context
 pub fn add_rule(rule: Rule) {
-    with_context(|c| c.rules.push(Arc::new(Mutex::new(rule))))
+    with_context(|c| c.rules.push(Arc::new(rule)))
 }
 
 /// Find rule by name in the current parsing context
-pub fn find_rule(name: &str) -> Option<Arc<Mutex<Rule>>> {
-    with_context(|c| {
-        c.rules
-            .iter()
-            .find(|r| r.lock().unwrap().name == name)
-            .map(|r| r.clone())
-    })
+pub fn find_rule(name: &str) -> Option<Arc<Rule>> {
+    with_context(|c| c.rules.iter().find(|r| r.name == name).map(|r| r.clone()))
 }
 
 /// Add an action to perform after parsing a rule
