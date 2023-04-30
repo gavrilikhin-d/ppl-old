@@ -10,7 +10,17 @@ fn main() {
     context::on_parse("Rule", |_, ast| {
         let rule = ast.downcast_ref::<Rule>().ok_or_else(|| TypeError {})?;
         context::add_rule(rule.clone());
-        Ok(())
+        Ok(ast)
+    });
+
+    context::on_parse("Regex", |_, ast| {
+        Ok(ast
+            .downcast::<Vec<Box<dyn Any>>>()
+            .unwrap()
+            .into_iter()
+            .map(|b| b.downcast::<String>().unwrap())
+            .next()
+            .unwrap())
     });
 
     loop {
@@ -26,14 +36,6 @@ fn main() {
         }
 
         let (_rest, (_tree, ast)) = res.unwrap();
-        println!(
-            "{}",
-            ast.downcast::<Vec<Box<dyn Any>>>()
-                .unwrap()
-                .into_iter()
-                .map(|b| b.downcast::<String>().unwrap())
-                .next()
-                .unwrap()
-        );
+        println!("{}", ast.downcast::<String>().unwrap());
     }
 }

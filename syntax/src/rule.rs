@@ -22,15 +22,18 @@ impl<'i> Parser<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error + 'i>> for
         input: &'i str,
     ) -> IResult<&'i str, (ParseTree<'i>, Box<dyn Any>), Box<dyn Error + 'i>> {
         let (r, (t, ast)) = parsers::grouped_patterns(&mut self.patterns, input)?;
-        let ast = Box::new(ast);
+        let ast: Box<dyn Any> = Box::new(ast);
         let action_res = with_context(|ctx| {
-            ctx.on_parse
-                .get_mut(&self.name)
-                .map(|action| action(&t, &ast))
+            let action = ctx.on_parse.get_mut(&self.name);
+            if let Some(action) = action {
+                action(&t, ast)
+            } else {
+                Ok(ast)
+            }
         });
-        if let Some(Err(err)) = action_res {
+        if let Err(err) = action_res {
             return err!(err);
         }
-        Ok((r, (t, ast)))
+        Ok((r, (t, action_res.unwrap())))
     }
 }
