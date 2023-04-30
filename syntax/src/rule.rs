@@ -17,12 +17,18 @@ pub struct Rule {
 
 impl Parser for Rule {
     fn parse_at<'s>(&self, source: &'s str, at: usize) -> ParseResult<'s> {
-        parsers::parse_patterns_at(&self.patterns, source, at)
+        let res = parsers::parse_patterns_at(&self.patterns, source, at);
+        ParseResult {
+            delta: res.delta,
+            tree: res.tree.with_name(self.name.clone()),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::ParseTree;
+
     use super::*;
 
     #[test]
@@ -35,7 +41,10 @@ mod tests {
             rule.parse_at("Hello World", 0),
             ParseResult {
                 delta: 5,
-                tree: vec!["Hello"].into(),
+                tree: ParseTree::Group {
+                    name: "Test".into(),
+                    elements: vec!["Hello".into()]
+                },
             }
         );
     }

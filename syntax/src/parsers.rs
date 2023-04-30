@@ -14,7 +14,7 @@ impl ParseResult<'_> {
     pub fn empty() -> Self {
         Self {
             delta: 0,
-            tree: ParseTree::Tree(vec![]),
+            tree: ParseTree::empty(),
         }
     }
 

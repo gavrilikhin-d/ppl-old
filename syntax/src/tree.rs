@@ -7,16 +7,35 @@ pub enum ParseTree<'s> {
     /// Token
     Token(&'s str),
     /// Tree with children
-    Tree(Vec<ParseTree<'s>>),
+    #[from(ignore)]
+    Group {
+        name: String,
+        elements: Vec<ParseTree<'s>>,
+    },
     /// Parsing error
     Error(Box<dyn Diagnostic>),
+}
+
+impl<'s> From<Vec<ParseTree<'s>>> for ParseTree<'s> {
+    fn from(value: Vec<ParseTree<'s>>) -> Self {
+        Self::Group {
+            name: "".into(),
+            elements: value,
+        }
+    }
 }
 
 impl PartialEq for ParseTree<'_> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Token(a), Self::Token(b)) => a == b,
-            (Self::Tree(a), Self::Tree(b)) => a == b,
+            (
+                Self::Group { name, elements },
+                Self::Group {
+                    name: other_name,
+                    elements: other_elements,
+                },
+            ) => name == other_name && elements == other_elements,
             (Self::Error(_), Self::Error(_)) => true,
             _ => false,
         }
@@ -26,22 +45,69 @@ impl Eq for ParseTree<'_> {}
 
 impl<'s> From<Vec<&'s str>> for ParseTree<'s> {
     fn from(v: Vec<&'s str>) -> Self {
-        Self::Tree(v.into_iter().map(|s| s.into()).collect())
+        Self::Group {
+            name: "".into(),
+            elements: v.into_iter().map(|s| s.into()).collect(),
+        }
     }
 }
 
 impl ParseTree<'_> {
+    /// Create empty tree
+    pub fn empty() -> Self {
+        Self::Group {
+            name: "".into(),
+            elements: vec![],
+        }
+    }
+
+    /// Create empty tree with a name
+    pub fn empty_named(name: impl Into<String>) -> Self {
+        Self::Group {
+            name: name.into(),
+            elements: vec![],
+        }
+    }
+
+    /// Get name of the tree or "", if no name
+    pub fn name(&self) -> &str {
+        match self {
+            Self::Group { name, .. } => name,
+            _ => "",
+        }
+    }
+
+    /// Return tree with other name. If tree had no name, set it
+    pub fn with_name(self, name: impl Into<String>) -> Self {
+        match self {
+            Self::Group { elements, .. } => Self::Group {
+                name: name.into(),
+                elements,
+            },
+            _ => Self::Group {
+                name: name.into(),
+                elements: vec![self],
+            },
+        }
+    }
+
     /// Append another tree to this tree
     pub fn append(&mut self, tree: impl Into<Self>) -> &mut Self {
         let tree = tree.into();
         match self {
-            Self::Tree(v) => v.push(tree),
+            Self::Group { elements, .. } => elements.push(tree),
             Self::Token(_) | Self::Error(_) => {
-                let old = std::mem::replace(self, Self::Tree(vec![]));
+                let old = std::mem::replace(
+                    self,
+                    Self::Group {
+                        name: "".into(),
+                        elements: vec![],
+                    },
+                );
                 match self {
-                    Self::Tree(v) => {
-                        v.push(old);
-                        v.push(tree);
+                    Self::Group { elements, .. } => {
+                        elements.push(old);
+                        elements.push(tree);
                     }
                     _ => unreachable!(),
                 }
@@ -55,7 +121,7 @@ impl ParseTree<'_> {
         match self {
             Self::Error(_) => true,
             Self::Token(_) => false,
-            Self::Tree(v) => v.iter().any(Self::has_errors),
+            Self::Group { elements, .. } => elements.iter().any(Self::has_errors),
         }
     }
 

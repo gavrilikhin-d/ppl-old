@@ -50,7 +50,7 @@ impl Parser for Repeat {
         debug_assert!(self.at_least <= self.at_most.unwrap_or(usize::MAX));
 
         let mut delta = 0;
-        let mut tree = ParseTree::Tree(vec![]);
+        let mut tree = ParseTree::empty();
         for _ in 0..self.at_least {
             let res = self.pattern.parse_at(source, at + delta);
             delta += res.delta;
@@ -78,7 +78,7 @@ mod test {
     use crate::{
         errors::Expected,
         parsers::{ParseResult, Parser},
-        IntoParseTree, ParseTree,
+        IntoParseTree,
     };
 
     use super::Repeat;
@@ -86,13 +86,7 @@ mod test {
     #[test]
     fn at_most_once() {
         let pattern = Repeat::at_most_once("a".into());
-        assert_eq!(
-            pattern.parse_at("", 0),
-            ParseResult {
-                delta: 0,
-                tree: ParseTree::Tree(vec![]),
-            }
-        );
+        assert_eq!(pattern.parse_at("", 0), ParseResult::empty());
         assert_eq!(
             pattern.parse_at("a", 0),
             ParseResult {
@@ -112,13 +106,7 @@ mod test {
     #[test]
     fn zero_or_more() {
         let pattern = Repeat::zero_or_more("a".into());
-        assert_eq!(
-            pattern.parse_at("", 0),
-            ParseResult {
-                delta: 0,
-                tree: ParseTree::Tree(vec![]),
-            }
-        );
+        assert_eq!(pattern.parse_at("", 0), ParseResult::empty());
         assert_eq!(
             pattern.parse_at("a", 0),
             ParseResult {
