@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 use derive_more::From;
 use miette::Diagnostic;
 
@@ -62,18 +64,29 @@ impl<'s> ParseTree<'s> {
         let mut children = Vec::new();
         for child in self.children.drain(..) {
             match child {
-                ParseTreeNode::Tree(tree) => {
-                    if tree.name.is_empty() {
-                        children.extend(tree.children)
-                    } else {
-                        children.push(tree.into())
-                    }
-                }
+                ParseTreeNode::Tree(tree) if tree.name.is_empty() => children.extend(tree.children),
                 _ => children.push(child),
             }
         }
         self.children = children;
         self
+    }
+
+    /// Get subtree by name
+    pub fn get(&self, name: &str) -> Option<&ParseTree<'s>> {
+        self.children.iter().find_map(|c| match c {
+            ParseTreeNode::Tree(tree) if tree.name == name => Some(tree),
+            _ => None,
+        })
+    }
+}
+
+impl<'s> Index<&str> for ParseTree<'s> {
+    type Output = ParseTree<'s>;
+
+    fn index(&self, name: &str) -> &Self::Output {
+        self.get(name)
+            .expect(format!("No subtree with name '{name}'").as_str())
     }
 }
 
@@ -211,5 +224,12 @@ mod test {
             })
             .with("b")
         );
+    }
+
+    #[test]
+    fn name() {
+        let tree = ParseTree::from(vec![ParseTree::named("name").with("a")]);
+        assert_eq!(tree["name"], ParseTree::named("name").with("a"));
+        assert_eq!(tree.get("invalid"), None);
     }
 }
