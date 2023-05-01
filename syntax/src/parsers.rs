@@ -54,15 +54,17 @@ pub trait Parser {
 pub fn parse_patterns_at<'s>(patterns: &[Pattern], source: &'s str, at: usize) -> ParseResult<'s> {
     let mut delta = 0;
     let mut tree = ParseTree::empty();
+    let mut asts = Vec::new();
     for pattern in patterns {
         let result = pattern.parse_at(source, at + delta);
         delta += result.delta;
         tree.push(result.tree);
+        asts.push(result.ast);
     }
 
     ParseResult {
         delta,
         tree: tree.flatten(),
-        ast: Value::Null,
+        ast: asts.into(),
     }
 }

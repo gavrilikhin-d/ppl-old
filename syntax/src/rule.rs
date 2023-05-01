@@ -34,7 +34,7 @@ impl Parser for Rule {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::Value;
+    use serde_json::json;
 
     use crate::ParseTree;
 
@@ -52,7 +52,7 @@ mod tests {
             ParseResult {
                 delta: 5,
                 tree: ParseTree::named("Test").with("Hello"),
-                ast: Value::Null
+                ast: json!(["Hello"])
             }
         );
     }

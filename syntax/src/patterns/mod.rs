@@ -3,7 +3,6 @@ mod repeat;
 use derive_more::From;
 use regex::Regex;
 pub use repeat::*;
-use serde_json::Value;
 
 use crate::{
     context,
@@ -135,7 +134,7 @@ mod test {
             ParseResult {
                 delta: 2,
                 tree: vec!["a", "b"].into(),
-                ast: Value::Null
+                ast: json!(["a", "b"])
             }
         );
         assert_eq!(
@@ -151,7 +150,7 @@ mod test {
                     "b".into()
                 ]
                 .into(),
-                ast: Value::Null
+                ast: json!([null, "b"])
             }
         );
         assert_eq!(
@@ -167,7 +166,7 @@ mod test {
                     .into_parse_tree_node()
                 ]
                 .into(),
-                ast: Value::Null
+                ast: json!(["a", null])
             }
         );
         assert_eq!(
@@ -187,7 +186,7 @@ mod test {
                     .into_parse_tree_node()
                 ]
                 .into(),
-                ast: Value::Null
+                ast: json!([null, null])
             }
         )
     }
@@ -200,7 +199,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Regex").with("abc"),
-                ast: Value::Null
+                ast: json!(["abc"])
             }
         )
     }

@@ -67,7 +67,7 @@ pub fn find_rule(name: &str) -> Option<Arc<Rule>> {
 
 #[cfg(test)]
 mod test {
-    use serde_json::Value;
+    use serde_json::json;
 
     use crate::{
         context,
@@ -85,7 +85,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Typename").with("Foo"),
-                ast: Value::Null
+                ast: json!(["Foo"])
             }
         );
         assert_eq!(
@@ -93,7 +93,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Typename").with(TypenameNotCapitalized { at: 0.into() }),
-                ast: Value::Null
+                ast: json!(["foo"])
             }
         );
         assert_eq!(
@@ -101,7 +101,7 @@ mod test {
             ParseResult {
                 delta: 0,
                 tree: ParseTree::named("Typename").with(ExpectedTypename { at: 0.into() }),
-                ast: Value::Null
+                ast: json!([null])
             }
         );
     }
