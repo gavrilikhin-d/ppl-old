@@ -3,6 +3,7 @@ mod repeat;
 use derive_more::From;
 use regex::Regex;
 pub use repeat::*;
+use serde_json::json;
 
 use crate::{
     context,
@@ -52,7 +53,9 @@ impl Parser for Pattern {
             }
             Pattern::RuleReference(name) => {
                 let rule = context::find_rule(name).expect("Rule not found");
-                rule.parse_at(source, at)
+                let mut res = rule.parse_at(source, at);
+                res.ast = json!({ name: res.ast });
+                res
             }
             Pattern::Group(patterns) => parse_patterns_at(patterns, source, at),
             Pattern::Alternatives(alts) => {
@@ -199,7 +202,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Regex").with("abc"),
-                ast: json!(["abc"])
+                ast: json!({"Regex": ["abc"]})
             }
         )
     }
