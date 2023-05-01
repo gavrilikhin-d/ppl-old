@@ -10,7 +10,7 @@ fn main() {
         let mut line = String::new();
         std::io::stdin().read_line(&mut line).unwrap();
 
-        let regex = context::find_rule("Regex").unwrap();
+        let regex = context::find_rule("Typename").unwrap();
 
         let res = regex.parse(&line);
         if res.has_errors() {

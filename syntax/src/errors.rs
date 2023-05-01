@@ -1,4 +1,4 @@
-use miette::{Diagnostic, SourceOffset, SourceSpan};
+use miette::{Diagnostic, SourceOffset};
 use thiserror::Error;
 
 use crate::IntoParseTreeNode;
@@ -25,13 +25,23 @@ impl Error for Expected {
 }
 
 #[derive(Debug, Error, Diagnostic, PartialEq, Eq, Clone)]
+#[error("expected typename")]
+pub struct ExpectedTypename {
+    /// Where typename was expected
+    #[label("here")]
+    pub at: SourceOffset,
+}
+impl Error for ExpectedTypename {
+    fn clone_boxed(&self) -> Box<dyn Diagnostic + Send + Sync + 'static> {
+        Box::new(self.clone())
+    }
+}
+
+#[derive(Debug, Error, Diagnostic, PartialEq, Eq, Clone)]
 #[error("typename doesn't start with a capital letter")]
 pub struct TypenameNotCapitalized {
-    /// Span of the typename
-    #[label]
-    pub span: SourceSpan,
     /// Offset of the first letter
-    #[label("Not a capital letter")]
+    #[label("not a capital letter")]
     pub at: SourceOffset,
 }
 impl Error for TypenameNotCapitalized {
