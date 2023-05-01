@@ -3,6 +3,7 @@ mod repeat;
 use derive_more::From;
 use regex::Regex;
 pub use repeat::*;
+use serde_json::Value;
 
 use crate::{
     context,
@@ -47,6 +48,7 @@ impl Parser for Pattern {
                         }
                         .into()
                     }),
+                    ast: Value::Null,
                 }
             }
             Pattern::RuleReference(name) => {
@@ -71,6 +73,8 @@ impl Parser for Pattern {
 
 #[cfg(test)]
 mod test {
+    use serde_json::Value;
+
     use crate::{
         errors::Expected,
         parsers::{ParseResult, Parser},
@@ -84,7 +88,8 @@ mod test {
             pattern.parse_at("hello world", 0),
             ParseResult {
                 delta: 5,
-                tree: "hello".into()
+                tree: "hello".into(),
+                ast: Value::Null
             }
         );
     }
@@ -96,14 +101,16 @@ mod test {
             pattern.parse_at("a", 0),
             ParseResult {
                 delta: 1,
-                tree: "a".into()
+                tree: "a".into(),
+                ast: Value::Null
             }
         );
         assert_eq!(
             pattern.parse_at("b", 0),
             ParseResult {
                 delta: 1,
-                tree: "b".into()
+                tree: "b".into(),
+                ast: Value::Null
             }
         );
         assert_eq!(
@@ -114,7 +121,8 @@ mod test {
                     expected: "b".to_string(),
                     at: 0.into()
                 }
-                .into()
+                .into(),
+                ast: Value::Null
             }
         );
     }
@@ -126,7 +134,8 @@ mod test {
             pattern.parse_at("ab", 0),
             ParseResult {
                 delta: 2,
-                tree: vec!["a", "b"].into()
+                tree: vec!["a", "b"].into(),
+                ast: Value::Null
             }
         );
         assert_eq!(
@@ -141,7 +150,8 @@ mod test {
                     .into_parse_tree_node(),
                     "b".into()
                 ]
-                .into()
+                .into(),
+                ast: Value::Null
             }
         );
         assert_eq!(
@@ -156,7 +166,8 @@ mod test {
                     }
                     .into_parse_tree_node()
                 ]
-                .into()
+                .into(),
+                ast: Value::Null
             }
         );
         assert_eq!(
@@ -175,7 +186,8 @@ mod test {
                     }
                     .into_parse_tree_node()
                 ]
-                .into()
+                .into(),
+                ast: Value::Null
             }
         )
     }
@@ -187,7 +199,8 @@ mod test {
             pattern.parse("abc"),
             ParseResult {
                 delta: 3,
-                tree: ParseTree::named("Regex").with("abc")
+                tree: ParseTree::named("Regex").with("abc"),
+                ast: Value::Null
             }
         )
     }

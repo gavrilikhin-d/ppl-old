@@ -22,6 +22,7 @@ impl Parser for Rule {
         let res = ParseResult {
             delta: res.delta,
             tree: res.tree.with_name(self.name.clone()),
+            ast: res.ast,
         };
         if let Some(on_parsed) = &self.on_parsed {
             on_parsed(at, res)
@@ -33,6 +34,8 @@ impl Parser for Rule {
 
 #[cfg(test)]
 mod tests {
+    use serde_json::Value;
+
     use crate::ParseTree;
 
     use super::*;
@@ -48,7 +51,8 @@ mod tests {
             rule.parse_at("Hello World", 0),
             ParseResult {
                 delta: 5,
-                tree: ParseTree::named("Test").with("Hello")
+                tree: ParseTree::named("Test").with("Hello"),
+                ast: Value::Null
             }
         );
     }

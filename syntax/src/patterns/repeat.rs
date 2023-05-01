@@ -1,3 +1,5 @@
+use serde_json::Value;
+
 use crate::{
     parsers::{ParseResult, Parser},
     ParseTree,
@@ -72,12 +74,15 @@ impl Parser for Repeat {
         ParseResult {
             delta,
             tree: tree.flatten(),
+            ast: Value::Null,
         }
     }
 }
 
 #[cfg(test)]
 mod test {
+    use serde_json::Value;
+
     use crate::{
         errors::Expected,
         parsers::{ParseResult, Parser},
@@ -94,6 +99,7 @@ mod test {
             ParseResult {
                 delta: 1,
                 tree: vec!["a"].into(),
+                ast: Value::Null
             }
         );
         assert_eq!(
@@ -101,6 +107,7 @@ mod test {
             ParseResult {
                 delta: 1,
                 tree: vec!["a"].into(),
+                ast: Value::Null
             }
         )
     }
@@ -114,6 +121,7 @@ mod test {
             ParseResult {
                 delta: 1,
                 tree: vec!["a"].into(),
+                ast: Value::Null
             }
         );
         assert_eq!(
@@ -121,6 +129,7 @@ mod test {
             ParseResult {
                 delta: 2,
                 tree: vec!["a", "a"].into(),
+                ast: Value::Null
             }
         );
     }
@@ -136,7 +145,8 @@ mod test {
                     expected: "a".to_string(),
                     at: 0.into()
                 }
-                .into()
+                .into(),
+                ast: Value::Null
             }
         );
         assert_eq!(
@@ -144,6 +154,7 @@ mod test {
             ParseResult {
                 delta: 1,
                 tree: "a".into(),
+                ast: Value::Null
             }
         );
         assert_eq!(
@@ -151,6 +162,7 @@ mod test {
             ParseResult {
                 delta: 2,
                 tree: vec!["a", "a"].into(),
+                ast: Value::Null
             }
         );
     }

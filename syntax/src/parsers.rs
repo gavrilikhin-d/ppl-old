@@ -1,3 +1,5 @@
+use serde_json::Value;
+
 use crate::{errors::Error, ParseTree, Pattern};
 
 /// Result of parsing
@@ -7,6 +9,8 @@ pub struct ParseResult<'s> {
     pub delta: usize,
     /// Parse tree. May contain errors
     pub tree: ParseTree<'s>,
+    /// AST
+    pub ast: Value,
 }
 
 impl ParseResult<'_> {
@@ -15,6 +19,7 @@ impl ParseResult<'_> {
         Self {
             delta: 0,
             tree: ParseTree::empty(),
+            ast: Value::Null,
         }
     }
 
@@ -58,5 +63,6 @@ pub fn parse_patterns_at<'s>(patterns: &[Pattern], source: &'s str, at: usize) -
     ParseResult {
         delta,
         tree: tree.flatten(),
+        ast: Value::Null,
     }
 }
