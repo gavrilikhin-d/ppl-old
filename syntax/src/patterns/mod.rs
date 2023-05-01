@@ -48,7 +48,7 @@ impl Parser for Pattern {
                         }
                         .into()
                     }),
-                    ast: Value::Null,
+                    ast: m.into(),
                 }
             }
             Pattern::RuleReference(name) => {
@@ -73,7 +73,7 @@ impl Parser for Pattern {
 
 #[cfg(test)]
 mod test {
-    use serde_json::Value;
+    use serde_json::{json, Value};
 
     use crate::{
         errors::Expected,
@@ -89,7 +89,7 @@ mod test {
             ParseResult {
                 delta: 5,
                 tree: "hello".into(),
-                ast: Value::Null
+                ast: json!("hello")
             }
         );
     }
@@ -102,7 +102,7 @@ mod test {
             ParseResult {
                 delta: 1,
                 tree: "a".into(),
-                ast: Value::Null
+                ast: json!("a")
             }
         );
         assert_eq!(
@@ -110,7 +110,7 @@ mod test {
             ParseResult {
                 delta: 1,
                 tree: "b".into(),
-                ast: Value::Null
+                ast: json!("b")
             }
         );
         assert_eq!(
