@@ -52,7 +52,7 @@ mod tests {
             ParseResult {
                 delta: 5,
                 tree: ParseTree::named("Test").with("Hello"),
-                ast: json!(["Hello"])
+                ast: json!("Hello")
             }
         );
     }

@@ -202,7 +202,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Regex").with("abc"),
-                ast: json!({"Regex": ["abc"]})
+                ast: json!({"Regex": "abc"})
             }
         )
     }

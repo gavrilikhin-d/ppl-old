@@ -85,7 +85,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Typename").with("Foo"),
-                ast: json!(["Foo"])
+                ast: json!("Foo")
             }
         );
         assert_eq!(
@@ -93,7 +93,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Typename").with(TypenameNotCapitalized { at: 0.into() }),
-                ast: json!(["foo"])
+                ast: json!("foo")
             }
         );
         assert_eq!(
@@ -101,7 +101,7 @@ mod test {
             ParseResult {
                 delta: 0,
                 tree: ParseTree::named("Typename").with(ExpectedTypename { at: 0.into() }),
-                ast: json!([null])
+                ast: json!(null)
             }
         );
     }

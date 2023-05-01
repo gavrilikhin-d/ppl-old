@@ -65,6 +65,10 @@ pub fn parse_patterns_at<'s>(patterns: &[Pattern], source: &'s str, at: usize) -
     ParseResult {
         delta,
         tree: tree.flatten(),
-        ast: asts.into(),
+        ast: if asts.len() != 1 {
+            asts.into()
+        } else {
+            asts.pop().unwrap().into()
+        },
     }
 }
