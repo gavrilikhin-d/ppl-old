@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use once_cell::sync::Lazy;
 
-use crate::Rule;
+use crate::{errors::TypenameNotCapitalized, Rule};
 
 /// Current parsing context
 static CONTEXT: Lazy<Mutex<Context>> = Lazy::new(|| Mutex::new(Context::default()));
@@ -20,10 +20,28 @@ impl Default for Context {
                 Arc::new(Rule {
                     name: "Regex".to_string(),
                     patterns: vec![r"[^\s]+".into()],
+                    on_parsed: None,
                 }),
                 Arc::new(Rule {
                     name: "Typename".to_string(),
                     patterns: vec![r"[a-zA-Z0-9_]+".into()],
+                    on_parsed: Some(Box::new(|at, mut res| {
+                        if res.has_errors() {
+                            return res;
+                        }
+
+                        let typename = res.tree.tokens().next().unwrap();
+                        let first_char = typename.chars().next().unwrap();
+                        if !first_char.is_ascii_uppercase() {
+                            res.tree.children = vec![TypenameNotCapitalized {
+                                span: (at, res.delta).into(),
+                                at: at.into(),
+                            }
+                            .into()]
+                        }
+
+                        res
+                    })),
                 }),
             ],
         }
@@ -50,7 +68,7 @@ pub fn find_rule(name: &str) -> Option<Arc<Rule>> {
 mod test {
     use crate::{
         context,
-        errors::Expected,
+        errors::TypenameNotCapitalized,
         parsers::{ParseResult, Parser},
         ParseTree,
     };
@@ -69,9 +87,9 @@ mod test {
         assert_eq!(
             typename.parse("foo"),
             ParseResult {
-                delta: 0,
-                tree: ParseTree::named("Typename").with(Expected {
-                    expected: "[A-Z][a-zA-Z0-9_]*".to_string(),
+                delta: 3,
+                tree: ParseTree::named("Typename").with(TypenameNotCapitalized {
+                    span: (0, 3).into(),
                     at: 0.into()
                 })
             }

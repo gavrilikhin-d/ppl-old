@@ -86,6 +86,11 @@ impl<'s> ParseTree<'s> {
     pub fn errors(&self) -> Box<dyn Iterator<Item = &dyn Error> + '_> {
         Box::new(self.children.iter().flat_map(|c| c.errors()))
     }
+
+    /// Iterate over tokens
+    pub fn tokens(&self) -> Box<dyn Iterator<Item = &'s str> + '_> {
+        Box::new(self.children.iter().flat_map(|c| c.tokens()))
+    }
 }
 
 impl<'s> Index<&str> for ParseTree<'s> {
@@ -162,7 +167,7 @@ pub enum ParseTreeNode<'s> {
     Error(Box<dyn Error>),
 }
 
-impl ParseTreeNode<'_> {
+impl<'s> ParseTreeNode<'s> {
     /// Check if tree node has errors
     pub fn has_errors(&self) -> bool {
         match self {
@@ -183,6 +188,15 @@ impl ParseTreeNode<'_> {
             Self::Token(_) => Box::new(std::iter::empty()),
             Self::Tree(tree) => tree.errors(),
             Self::Error(err) => Box::new(std::iter::once(err.as_ref())),
+        }
+    }
+
+    /// Iterate over tokens
+    pub fn tokens(&self) -> Box<dyn Iterator<Item = &'s str> + '_> {
+        match self {
+            Self::Token(token) => Box::new(std::iter::once(token.clone())),
+            Self::Tree(tree) => tree.tokens(),
+            Self::Error(_) => Box::new(std::iter::empty()),
         }
     }
 }

@@ -7,20 +7,26 @@ use crate::{
 pub type RuleName = String;
 
 /// Ast for rules
-#[derive(Debug, PartialEq, Clone)]
 pub struct Rule {
     /// Rule name
     pub name: RuleName,
     /// Rule patterns
     pub patterns: Vec<Pattern>,
+    /// Callback to be called after parsing
+    pub on_parsed: Option<Box<dyn Sync + Send + Fn(usize, ParseResult) -> ParseResult>>,
 }
 
 impl Parser for Rule {
     fn parse_at<'s>(&self, source: &'s str, at: usize) -> ParseResult<'s> {
         let res = parsers::parse_patterns_at(&self.patterns, source, at);
-        ParseResult {
+        let res = ParseResult {
             delta: res.delta,
             tree: res.tree.with_name(self.name.clone()),
+        };
+        if let Some(on_parsed) = &self.on_parsed {
+            on_parsed(at, res)
+        } else {
+            res
         }
     }
 }
@@ -36,6 +42,7 @@ mod tests {
         let rule = Rule {
             name: "Test".to_string(),
             patterns: vec![r"[^\s]+".into()],
+            on_parsed: None,
         };
         assert_eq!(
             rule.parse_at("Hello World", 0),
