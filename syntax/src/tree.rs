@@ -2,7 +2,7 @@ use std::ops::{Deref, Index};
 
 use derive_more::From;
 use miette::Diagnostic;
-use serde::{ser::SerializeMap, Serialize};
+use serde::{ser::SerializeMap, Deserialize, Serialize};
 
 use crate::errors::Error;
 
@@ -231,6 +231,26 @@ impl Serialize for Token<'_> {
     }
 }
 
+impl<'de: 's, 's> Deserialize<'de> for Token<'s> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum TokenDTO<'s> {
+            Value(&'s str),
+            ValueWithTrivia { value: &'s str, trivia: &'s str },
+        }
+
+        let dto = TokenDTO::deserialize(deserializer)?;
+        Ok(match dto {
+            TokenDTO::Value(value) => Self { value, trivia: "" },
+            TokenDTO::ValueWithTrivia { value, trivia } => Self { value, trivia },
+        })
+    }
+}
+
 /// Parse tree consist from leaf tokens an subtrees
 #[derive(Debug, From)]
 pub enum ParseTreeNode<'s> {
@@ -378,6 +398,22 @@ mod test {
                     {"error": {"expected": "c", "at": 2}}
                 ]
             })
+        )
+    }
+
+    #[test]
+    fn deserialize() {
+        let token: Token = serde_json::from_str("\"a\"").unwrap();
+        assert_eq!(token, Token::from("a"));
+
+        let source = json!({"value": "a", "trivia": " "}).to_string();
+        let token: Token = serde_json::from_str(&source).unwrap();
+        assert_eq!(
+            token,
+            Token {
+                value: "a",
+                trivia: " "
+            }
         )
     }
 }
