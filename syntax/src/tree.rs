@@ -251,11 +251,14 @@ impl<'de: 's, 's> Deserialize<'de> for Token<'s> {
 }
 
 /// Parse tree consist from leaf tokens an subtrees
-#[derive(Debug, From)]
+#[derive(Debug, From, Serialize)]
+#[serde(untagged)]
 pub enum ParseTreeNode<'s> {
     /// Token
+    #[serde(borrow)]
     Token(Token<'s>),
     /// Subtree
+    #[serde(borrow)]
     Tree(ParseTree<'s>),
     /// Parsing error
     #[from(ignore)]
@@ -311,19 +314,6 @@ impl Eq for ParseTreeNode<'_> {}
 impl<E: Into<Error>> From<E> for ParseTreeNode<'_> {
     fn from(err: E) -> Self {
         Self::Error(err.into())
-    }
-}
-
-impl Serialize for ParseTreeNode<'_> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match self {
-            Self::Token(token) => token.serialize(serializer),
-            Self::Tree(tree) => tree.serialize(serializer),
-            Self::Error(err) => err.serialize(serializer),
-        }
     }
 }
 
