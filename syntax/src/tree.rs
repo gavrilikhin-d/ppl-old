@@ -2,6 +2,7 @@ use std::ops::{Deref, Index};
 
 use derive_more::From;
 use miette::Diagnostic;
+use serde::{ser::SerializeMap, Serialize};
 
 use crate::errors::Error;
 
@@ -90,6 +91,29 @@ impl<'s> ParseTree<'s> {
     /// Iterate over tokens
     pub fn tokens(&self) -> Box<dyn Iterator<Item = &'s str> + '_> {
         Box::new(self.children.iter().flat_map(|c| c.tokens()))
+    }
+}
+
+impl Serialize for ParseTree<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        if self.name.is_empty() {
+            if self.children.len() == 1 {
+                self.children[0].serialize(serializer)
+            } else {
+                self.children.serialize(serializer)
+            }
+        } else {
+            let mut map = serializer.serialize_map(Some(1))?;
+            if self.children.len() == 1 {
+                map.serialize_entry(&self.name, &self.children[0])?;
+            } else {
+                map.serialize_entry(&self.name, &self.children)?;
+            }
+            map.end()
+        }
     }
 }
 
@@ -191,6 +215,22 @@ impl<'s> From<&'s str> for ParseTreeNode<'s> {
     }
 }
 
+impl Serialize for Token<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        if self.trivia.is_empty() {
+            return serializer.serialize_str(self.value);
+        }
+
+        let mut map = serializer.serialize_map(Some(2))?;
+        map.serialize_entry("value", self.value)?;
+        map.serialize_entry("trivia", &self.trivia)?;
+        map.end()
+    }
+}
+
 /// Parse tree consist from leaf tokens an subtrees
 #[derive(Debug, From)]
 pub enum ParseTreeNode<'s> {
@@ -261,9 +301,28 @@ impl<'s, I: IntoParseTreeNode + Diagnostic + 'static> From<I> for ParseTreeNode<
     }
 }
 
+impl Serialize for ParseTreeNode<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Self::Token(token) => token.serialize(serializer),
+            Self::Tree(tree) => tree.serialize(serializer),
+            Self::Error(err) => {
+                let mut map = serializer.serialize_map(Some(1))?;
+                map.serialize_entry("error", &err.to_string())?;
+                map.end()
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use crate::{errors::Expected, ParseTree};
+    use serde_json::json;
+
+    use crate::{errors::Expected, ParseTree, Token};
 
     #[test]
     fn create() {
@@ -296,5 +355,24 @@ mod test {
         let tree = ParseTree::from(vec![ParseTree::named("name").with("a")]);
         assert_eq!(tree["name"], ParseTree::named("name").with("a"));
         assert_eq!(tree.get("invalid"), None);
+    }
+
+    #[test]
+    fn serialize() {
+        let tree = ParseTree::named("A")
+            .with("a")
+            .with(ParseTree::named("B").with(Token {
+                value: "b",
+                trivia: " ",
+            }))
+            .with(Expected {
+                expected: "c".to_string(),
+                at: 2.into(),
+            });
+        assert_eq!(
+            serde_json::to_value(&tree).unwrap(),
+            json!({"A": ["a", {"B": {"value": "b", "trivia": " "}}, {"error": "expected 'c'" }]}
+            )
+        )
     }
 }
