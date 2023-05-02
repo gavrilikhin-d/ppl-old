@@ -1,4 +1,7 @@
-use std::ops::{Deref, Index};
+use std::{
+    collections::HashMap,
+    ops::{Deref, Index},
+};
 
 use derive_more::From;
 use serde::{ser::SerializeMap, Deserialize, Serialize};
@@ -112,6 +115,60 @@ impl Serialize for ParseTree<'_> {
                 map.serialize_entry(&self.name, &self.children)?;
             }
             map.end()
+        }
+    }
+}
+
+impl<'de: 's, 's> Deserialize<'de> for ParseTree<'s> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum ChildDTO<'s> {
+            #[serde(borrow)]
+            Many(Vec<ParseTreeNode<'s>>),
+            #[serde(borrow)]
+            Single(ParseTreeNode<'s>),
+        }
+
+        impl<'s> From<ChildDTO<'s>> for Vec<ParseTreeNode<'s>> {
+            fn from(value: ChildDTO<'s>) -> Self {
+                match value {
+                    ChildDTO::Single(node) => vec![node],
+                    ChildDTO::Many(nodes) => nodes,
+                }
+            }
+        }
+
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum ParseTreeDTO<'s> {
+            #[serde(borrow)]
+            Named(HashMap<String, ChildDTO<'s>>),
+            #[serde(borrow)]
+            Unnamed(ChildDTO<'s>),
+        }
+
+        let dto = ParseTreeDTO::deserialize(deserializer)?;
+        match dto {
+            ParseTreeDTO::Unnamed(c) => Ok(ParseTree {
+                name: "".to_string(),
+                children: c.into(),
+            }),
+            ParseTreeDTO::Named(m) => {
+                if m.len() != 1 {
+                    return Err(serde::de::Error::custom(
+                        "Expected a single key-value pair in parse tree",
+                    ));
+                }
+                let (name, children) = m.into_iter().next().unwrap();
+                Ok(ParseTree {
+                    name,
+                    children: children.into(),
+                })
+            }
         }
     }
 }
@@ -251,18 +308,18 @@ impl<'de: 's, 's> Deserialize<'de> for Token<'s> {
 }
 
 /// Parse tree consist from leaf tokens an subtrees
-#[derive(Debug, From, Serialize)]
+#[derive(Debug, From, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ParseTreeNode<'s> {
     /// Token
     #[serde(borrow)]
     Token(Token<'s>),
-    /// Subtree
-    #[serde(borrow)]
-    Tree(ParseTree<'s>),
     /// Parsing error
     #[from(ignore)]
     Error(Error),
+    /// Subtree
+    #[serde(borrow)]
+    Tree(ParseTree<'s>),
 }
 
 impl<'s> ParseTreeNode<'s> {
@@ -382,17 +439,27 @@ mod test {
 
     #[test]
     fn deserialize() {
-        let token: Token = serde_json::from_str("\"a\"").unwrap();
-        assert_eq!(token, Token::from("a"));
-
-        let source = json!({"value": "a", "trivia": " "}).to_string();
-        let token: Token = serde_json::from_str(&source).unwrap();
+        let source = json!({
+            "A": [
+                "a",
+                {"B": {"value": "b", "trivia": " "}},
+                {"Expected": {"expected": "c", "at": 2}}
+            ]
+        })
+        .to_string();
+        let tree: ParseTree = serde_json::from_str(&source).unwrap();
         assert_eq!(
-            token,
-            Token {
-                value: "a",
-                trivia: " "
-            }
+            tree,
+            ParseTree::named("A")
+                .with("a")
+                .with(ParseTree::named("B").with(Token {
+                    value: "b",
+                    trivia: " ",
+                }))
+                .with(Expected {
+                    expected: "c".to_string(),
+                    at: 2,
+                })
         )
     }
 }
