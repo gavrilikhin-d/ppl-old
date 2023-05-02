@@ -8,7 +8,8 @@ use serde_json::json;
 use crate::{
     context,
     errors::Expected,
-    parsers::{parse_patterns_at, ParseResult, Parser},
+    parsers::{ParseResult, Parser},
+    ParseTree,
 };
 
 /// Possible patterns
@@ -57,7 +58,27 @@ impl Parser for Pattern {
                 res.ast = json!({ name: res.ast });
                 res
             }
-            Pattern::Group(patterns) => parse_patterns_at(patterns, source, at),
+            Pattern::Group(patterns) => {
+                let mut delta = 0;
+                let mut tree = ParseTree::empty();
+                let mut asts = Vec::new();
+                for pattern in patterns {
+                    let result = pattern.parse_at(source, at + delta);
+                    delta += result.delta;
+                    tree.push(result.tree);
+                    asts.push(result.ast);
+                }
+
+                ParseResult {
+                    delta,
+                    tree: tree.flatten(),
+                    ast: if asts.len() != 1 {
+                        asts.into()
+                    } else {
+                        asts.pop().unwrap().into()
+                    },
+                }
+            }
             Pattern::Alternatives(alts) => {
                 let mut res = ParseResult::empty();
                 for alt in alts {

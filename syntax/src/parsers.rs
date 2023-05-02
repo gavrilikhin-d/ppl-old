@@ -1,6 +1,6 @@
 use serde_json::Value;
 
-use crate::{errors::Error, ParseTree, Pattern};
+use crate::{errors::Error, ParseTree};
 
 /// Result of parsing
 #[derive(Debug, PartialEq)]
@@ -47,28 +47,5 @@ pub trait Parser {
     /// Parse source code from the beginning
     fn parse<'s>(&self, source: &'s str) -> ParseResult<'s> {
         self.parse_at(source, 0)
-    }
-}
-
-/// Parse a list of patterns
-pub fn parse_patterns_at<'s>(patterns: &[Pattern], source: &'s str, at: usize) -> ParseResult<'s> {
-    let mut delta = 0;
-    let mut tree = ParseTree::empty();
-    let mut asts = Vec::new();
-    for pattern in patterns {
-        let result = pattern.parse_at(source, at + delta);
-        delta += result.delta;
-        tree.push(result.tree);
-        asts.push(result.ast);
-    }
-
-    ParseResult {
-        delta,
-        tree: tree.flatten(),
-        ast: if asts.len() != 1 {
-            asts.into()
-        } else {
-            asts.pop().unwrap().into()
-        },
     }
 }

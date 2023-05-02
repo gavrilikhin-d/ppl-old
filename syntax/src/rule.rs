@@ -1,27 +1,24 @@
 use crate::{
-    parsers::{self, ParseResult, Parser},
-    Pattern,
+    parsers::{ParseResult, Parser},
+    ParseTree, Pattern,
 };
 
-/// Type of rule name
-pub type RuleName = String;
-
-/// Ast for rules
+/// Syntax rule
 pub struct Rule {
     /// Rule name
-    pub name: RuleName,
-    /// Rule patterns
-    pub patterns: Vec<Pattern>,
+    pub name: String,
+    /// Pattern to parse
+    pub pattern: Pattern,
     /// Callback to be called after parsing
     pub on_parsed: Option<Box<dyn Sync + Send + Fn(usize, ParseResult) -> ParseResult>>,
 }
 
 impl Parser for Rule {
     fn parse_at<'s>(&self, source: &'s str, at: usize) -> ParseResult<'s> {
-        let res = parsers::parse_patterns_at(&self.patterns, source, at);
+        let res = self.pattern.parse_at(source, at);
         let res = ParseResult {
             delta: res.delta,
-            tree: res.tree.with_name(self.name.clone()),
+            tree: ParseTree::named(self.name.clone()).with(res.tree).flatten(),
             ast: res.ast,
         };
         if let Some(on_parsed) = &self.on_parsed {
@@ -44,7 +41,7 @@ mod tests {
     fn test_parse_rule() {
         let rule = Rule {
             name: "Test".to_string(),
-            patterns: vec![r"[^\s]+".into()],
+            pattern: r"[^\s]+".into(),
             on_parsed: None,
         };
         assert_eq!(

@@ -22,12 +22,12 @@ impl Default for Context {
             rules: vec![
                 Arc::new(Rule {
                     name: "Regex".to_string(),
-                    patterns: vec![r"[^\s]+".into()],
+                    pattern: r"[^\s]+".into(),
                     on_parsed: None,
                 }),
                 Arc::new(Rule {
                     name: "Typename".to_string(),
-                    patterns: vec![r"[a-zA-Z0-9_]+".into()],
+                    pattern: r"[a-zA-Z0-9_]+".into(),
                     on_parsed: Some(Box::new(|at, mut res| {
                         if res.has_errors() {
                             res.tree.children = vec![ExpectedTypename { at: at.into() }.into()];
@@ -46,7 +46,7 @@ impl Default for Context {
                 }),
                 Arc::new(Rule {
                     name: "RuleReference".to_string(),
-                    patterns: vec![Pattern::RuleReference("Typename".to_string())],
+                    pattern: Pattern::RuleReference("Typename".to_string()),
                     on_parsed: Some(Box::new(|_at, mut res| {
                         if res.has_errors() {
                             res.delta = 0;
@@ -57,10 +57,10 @@ impl Default for Context {
                 }),
                 Arc::new(Rule {
                     name: "Pattern".to_string(),
-                    patterns: vec![Pattern::Alternatives(vec![
+                    pattern: Pattern::Alternatives(vec![
                         Pattern::RuleReference("RuleReference".to_string()),
                         Pattern::RuleReference("Regex".to_string()),
-                    ])],
+                    ]),
                     on_parsed: None,
                 }),
             ],
