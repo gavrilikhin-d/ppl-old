@@ -4,7 +4,7 @@ use once_cell::sync::Lazy;
 
 use crate::{
     errors::{ExpectedTypename, TypenameNotCapitalized},
-    Rule,
+    Pattern, Rule,
 };
 
 /// Current parsing context
@@ -44,6 +44,25 @@ impl Default for Context {
                         res
                     })),
                 }),
+                Arc::new(Rule {
+                    name: "RuleReference".to_string(),
+                    patterns: vec![Pattern::RuleReference("Typename".to_string())],
+                    on_parsed: Some(Box::new(|_at, mut res| {
+                        if res.has_errors() {
+                            res.delta = 0;
+                            return res;
+                        }
+                        res
+                    })),
+                }),
+                Arc::new(Rule {
+                    name: "Pattern".to_string(),
+                    patterns: vec![Pattern::Alternatives(vec![
+                        Pattern::RuleReference("RuleReference".to_string()),
+                        Pattern::RuleReference("Regex".to_string()),
+                    ])],
+                    on_parsed: None,
+                }),
             ],
         }
     }
@@ -77,7 +96,7 @@ mod test {
     };
 
     #[test]
-    fn default_rules() {
+    fn typename() {
         let typename = context::find_rule("Typename").unwrap();
         assert_eq!(typename.name, "Typename");
         assert_eq!(
@@ -102,6 +121,56 @@ mod test {
                 delta: 0,
                 tree: ParseTree::named("Typename").with(ExpectedTypename { at: 0.into() }),
                 ast: json!(null)
+            }
+        );
+    }
+
+    #[test]
+    fn rule_reference() {
+        let r = context::find_rule("RuleReference").unwrap();
+        assert_eq!(r.name, "RuleReference");
+        assert_eq!(
+            r.parse("Foo"),
+            ParseResult {
+                delta: 3,
+                tree: ParseTree::named("RuleReference")
+                    .with(ParseTree::named("Typename").with("Foo")),
+                ast: json!({"Typename": "Foo"})
+            }
+        );
+        assert_eq!(
+            r.parse("foo"),
+            ParseResult {
+                delta: 0,
+                tree: ParseTree::named("RuleReference").with(
+                    ParseTree::named("Typename").with(TypenameNotCapitalized { at: 0.into() })
+                ),
+                ast: json!({"Typename": "foo" })
+            }
+        );
+    }
+
+    #[test]
+    fn pattern() {
+        let r = context::find_rule("Pattern").unwrap();
+        assert_eq!(r.name, "Pattern");
+        assert_eq!(
+            r.parse("Foo"),
+            ParseResult {
+                delta: 3,
+                tree: ParseTree::named("Pattern").with(
+                    ParseTree::named("RuleReference")
+                        .with(ParseTree::named("Typename").with("Foo"))
+                ),
+                ast: json!({ "RuleReference": {"Typename": "Foo"}})
+            }
+        );
+        assert_eq!(
+            r.parse("foo"),
+            ParseResult {
+                delta: 3,
+                tree: ParseTree::named("Pattern").with(ParseTree::named("Regex").with("foo")),
+                ast: json!({"Regex": "foo"})
             }
         );
     }
