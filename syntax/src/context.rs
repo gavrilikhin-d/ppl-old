@@ -111,7 +111,7 @@ mod test {
             typename.parse("foo"),
             ParseResult {
                 delta: 3,
-                tree: ParseTree::named("Typename").with(TypenameNotCapitalized { at: 0.into() }),
+                tree: ParseTree::named("Typename").with(TypenameNotCapitalized { at: 0 }),
                 ast: json!("foo")
             }
         );
@@ -119,7 +119,7 @@ mod test {
             typename.parse(""),
             ParseResult {
                 delta: 0,
-                tree: ParseTree::named("Typename").with(ExpectedTypename { at: 0.into() }),
+                tree: ParseTree::named("Typename").with(ExpectedTypename { at: 0 }),
                 ast: json!(null)
             }
         );
@@ -142,9 +142,8 @@ mod test {
             r.parse("foo"),
             ParseResult {
                 delta: 0,
-                tree: ParseTree::named("RuleReference").with(
-                    ParseTree::named("Typename").with(TypenameNotCapitalized { at: 0.into() })
-                ),
+                tree: ParseTree::named("RuleReference")
+                    .with(ParseTree::named("Typename").with(TypenameNotCapitalized { at: 0 })),
                 ast: json!({"Typename": "foo" })
             }
         );

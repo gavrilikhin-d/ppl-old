@@ -311,7 +311,7 @@ impl Serialize for ParseTreeNode<'_> {
             Self::Tree(tree) => tree.serialize(serializer),
             Self::Error(err) => {
                 let mut map = serializer.serialize_map(Some(1))?;
-                map.serialize_entry("error", &err.to_string())?;
+                map.serialize_entry("error", err)?;
                 map.end()
             }
         }
@@ -336,7 +336,7 @@ mod test {
 
         let tree = ParseTree::from(Expected {
             expected: "a".to_string(),
-            at: 0.into(),
+            at: 0,
         })
         .with("b");
         assert!(tree.has_errors());
@@ -344,7 +344,7 @@ mod test {
             tree,
             ParseTree::from(Expected {
                 expected: "a".to_string(),
-                at: 0.into(),
+                at: 0,
             })
             .with("b")
         );
@@ -367,11 +367,11 @@ mod test {
             }))
             .with(Expected {
                 expected: "c".to_string(),
-                at: 2.into(),
+                at: 2,
             });
         assert_eq!(
             serde_json::to_value(&tree).unwrap(),
-            json!({"A": ["a", {"B": {"value": "b", "trivia": " "}}, {"error": "expected 'c'" }]}
+            json!({"A": ["a", {"B": {"value": "b", "trivia": " "}}, {"error": {"expected": "c", "at": 2}}]}
             )
         )
     }

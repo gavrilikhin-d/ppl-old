@@ -143,7 +143,7 @@ mod test {
                 delta: 0,
                 tree: Expected {
                     expected: "a".to_string(),
-                    at: 0.into()
+                    at: 0
                 }
                 .into(),
                 ast: Value::Null

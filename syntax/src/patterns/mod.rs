@@ -142,7 +142,7 @@ mod test {
                 delta: 0,
                 tree: Expected {
                     expected: "b".to_string(),
-                    at: 0.into()
+                    at: 0
                 }
                 .into(),
                 ast: Value::Null
@@ -168,7 +168,7 @@ mod test {
                 tree: vec![
                     Expected {
                         expected: "a".to_string(),
-                        at: 0.into()
+                        at: 0
                     }
                     .into_parse_tree_node(),
                     "b".into()
@@ -185,7 +185,7 @@ mod test {
                     "a".into(),
                     Expected {
                         expected: "b".to_string(),
-                        at: 1.into()
+                        at: 1
                     }
                     .into_parse_tree_node()
                 ]
@@ -200,12 +200,12 @@ mod test {
                 tree: vec![
                     Expected {
                         expected: "a".to_string(),
-                        at: 0.into()
+                        at: 0
                     }
                     .into_parse_tree_node(),
                     Expected {
                         expected: "b".to_string(),
-                        at: 0.into()
+                        at: 0
                     }
                     .into_parse_tree_node()
                 ]

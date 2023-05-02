@@ -1,22 +1,24 @@
-use miette::{Diagnostic, SourceOffset};
+use miette::Diagnostic;
+use serde::Serialize;
 use thiserror::Error;
 
 use crate::IntoParseTreeNode;
 
 /// Trait for errors that support cloning
-pub trait Error: Diagnostic + Send + Sync + 'static {
+pub trait Error: Diagnostic + erased_serde::Serialize + Send + Sync + 'static {
     fn clone_boxed(&self) -> Box<dyn Diagnostic + Send + Sync + 'static>;
 }
 impl<E: Error> IntoParseTreeNode for E {}
+erased_serde::serialize_trait_object!(Error);
 
-#[derive(Debug, Error, Diagnostic, PartialEq, Eq, Clone)]
+#[derive(Debug, Error, Diagnostic, Serialize, PartialEq, Eq, Clone)]
 #[error("expected '{expected}'")]
 pub struct Expected {
     /// What was expected
     pub expected: String,
     /// Where the error occurred
     #[label("{expected}")]
-    pub at: SourceOffset,
+    pub at: usize,
 }
 impl Error for Expected {
     fn clone_boxed(&self) -> Box<dyn Diagnostic + Send + Sync + 'static> {
@@ -24,12 +26,12 @@ impl Error for Expected {
     }
 }
 
-#[derive(Debug, Error, Diagnostic, PartialEq, Eq, Clone)]
+#[derive(Debug, Error, Diagnostic, Serialize, PartialEq, Eq, Clone)]
 #[error("expected typename")]
 pub struct ExpectedTypename {
     /// Where typename was expected
     #[label("here")]
-    pub at: SourceOffset,
+    pub at: usize,
 }
 impl Error for ExpectedTypename {
     fn clone_boxed(&self) -> Box<dyn Diagnostic + Send + Sync + 'static> {
@@ -37,12 +39,12 @@ impl Error for ExpectedTypename {
     }
 }
 
-#[derive(Debug, Error, Diagnostic, PartialEq, Eq, Clone)]
+#[derive(Debug, Error, Diagnostic, Serialize, PartialEq, Eq, Clone)]
 #[error("typename doesn't start with a capital letter")]
 pub struct TypenameNotCapitalized {
     /// Offset of the first letter
     #[label("not a capital letter")]
-    pub at: SourceOffset,
+    pub at: usize,
 }
 impl Error for TypenameNotCapitalized {
     fn clone_boxed(&self) -> Box<dyn Diagnostic + Send + Sync + 'static> {
