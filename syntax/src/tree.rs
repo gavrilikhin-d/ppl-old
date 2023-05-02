@@ -371,8 +371,13 @@ mod test {
             });
         assert_eq!(
             serde_json::to_value(&tree).unwrap(),
-            json!({"A": ["a", {"B": {"value": "b", "trivia": " "}}, {"error": {"expected": "c", "at": 2}}]}
-            )
+            json!({
+                "A": [
+                    "a",
+                    {"B": {"value": "b", "trivia": " "}},
+                    {"error": {"expected": "c", "at": 2}}
+                ]
+            })
         )
     }
 }
