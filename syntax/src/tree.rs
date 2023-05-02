@@ -1,4 +1,4 @@
-use std::ops::Index;
+use std::ops::{Deref, Index};
 
 use derive_more::From;
 use miette::Diagnostic;
@@ -156,11 +156,46 @@ impl<'s> From<Vec<&'s str>> for ParseTree<'s> {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub struct Token<'s> {
+    /// Token's string value
+    pub value: &'s str,
+    /// Spaces between this token and the previous one
+    pub trivia: &'s str,
+}
+
+impl<'s> Token<'s> {
+    /// Get token's value
+    pub fn as_str(&self) -> &'s str {
+        self.value
+    }
+}
+
+impl Deref for Token<'_> {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        self.value
+    }
+}
+
+impl<'s> From<&'s str> for Token<'s> {
+    fn from(value: &'s str) -> Self {
+        Self { value, trivia: "" }
+    }
+}
+
+impl<'s> From<&'s str> for ParseTreeNode<'s> {
+    fn from(value: &'s str) -> Self {
+        Self::Token(value.into())
+    }
+}
+
 /// Parse tree consist from leaf tokens an subtrees
 #[derive(Debug, From)]
 pub enum ParseTreeNode<'s> {
     /// Token
-    Token(&'s str),
+    Token(Token<'s>),
     /// Subtree
     Tree(ParseTree<'s>),
     /// Parsing error
@@ -194,7 +229,7 @@ impl<'s> ParseTreeNode<'s> {
     /// Iterate over tokens
     pub fn tokens(&self) -> Box<dyn Iterator<Item = &'s str> + '_> {
         match self {
-            Self::Token(token) => Box::new(std::iter::once(token.clone())),
+            Self::Token(token) => Box::new(std::iter::once(token.as_str())),
             Self::Tree(tree) => tree.tokens(),
             Self::Error(_) => Box::new(std::iter::empty()),
         }
