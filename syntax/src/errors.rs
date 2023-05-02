@@ -1,5 +1,5 @@
 use miette::Diagnostic;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::IntoParseTreeNode;
@@ -11,7 +11,7 @@ pub trait Error: Diagnostic + erased_serde::Serialize + Send + Sync + 'static {
 impl<E: Error> IntoParseTreeNode for E {}
 erased_serde::serialize_trait_object!(Error);
 
-#[derive(Debug, Error, Diagnostic, Serialize, PartialEq, Eq, Clone)]
+#[derive(Debug, Error, Diagnostic, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[error("expected '{expected}'")]
 pub struct Expected {
     /// What was expected
@@ -26,7 +26,7 @@ impl Error for Expected {
     }
 }
 
-#[derive(Debug, Error, Diagnostic, Serialize, PartialEq, Eq, Clone)]
+#[derive(Debug, Error, Diagnostic, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[error("expected typename")]
 pub struct ExpectedTypename {
     /// Where typename was expected
@@ -39,7 +39,7 @@ impl Error for ExpectedTypename {
     }
 }
 
-#[derive(Debug, Error, Diagnostic, Serialize, PartialEq, Eq, Clone)]
+#[derive(Debug, Error, Diagnostic, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[error("typename doesn't start with a capital letter")]
 pub struct TypenameNotCapitalized {
     /// Offset of the first letter
