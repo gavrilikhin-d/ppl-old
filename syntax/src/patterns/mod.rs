@@ -101,7 +101,7 @@ mod test {
     use crate::{
         errors::Expected,
         parsers::{ParseResult, Parser},
-        IntoParseTreeNode, ParseTree, Pattern,
+        ParseTree, ParseTreeNode, Pattern,
     };
 
     #[test]
@@ -166,11 +166,10 @@ mod test {
             ParseResult {
                 delta: 1,
                 tree: vec![
-                    Expected {
+                    ParseTreeNode::from(Expected {
                         expected: "a".to_string(),
                         at: 0
-                    }
-                    .into_parse_tree_node(),
+                    }),
                     "b".into()
                 ]
                 .into(),
@@ -183,11 +182,10 @@ mod test {
                 delta: 1,
                 tree: vec![
                     "a".into(),
-                    Expected {
+                    ParseTreeNode::from(Expected {
                         expected: "b".to_string(),
                         at: 1
-                    }
-                    .into_parse_tree_node()
+                    })
                 ]
                 .into(),
                 ast: json!(["a", null])
@@ -198,16 +196,15 @@ mod test {
             ParseResult {
                 delta: 0,
                 tree: vec![
-                    Expected {
+                    ParseTreeNode::from(Expected {
                         expected: "a".to_string(),
                         at: 0
-                    }
-                    .into_parse_tree_node(),
+                    }),
                     Expected {
                         expected: "b".to_string(),
                         at: 0
                     }
-                    .into_parse_tree_node()
+                    .into()
                 ]
                 .into(),
                 ast: json!([null, null])

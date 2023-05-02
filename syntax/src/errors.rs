@@ -1,17 +1,9 @@
 use std::fmt::Display;
 
+use derive_more::From;
 use miette::Diagnostic;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-
-use crate::IntoParseTreeNode;
-
-/// Trait for errors that support cloning
-pub trait Error: Diagnostic + erased_serde::Serialize + Send + Sync + 'static {
-    fn clone_boxed(&self) -> Box<dyn Diagnostic + Send + Sync + 'static>;
-}
-impl<E: Error> IntoParseTreeNode for E {}
-erased_serde::serialize_trait_object!(Error);
 
 #[derive(Debug, Error, Diagnostic, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[error("expected '{expected}'")]
@@ -22,11 +14,6 @@ pub struct Expected {
     #[label("{expected}")]
     pub at: usize,
 }
-impl Error for Expected {
-    fn clone_boxed(&self) -> Box<dyn Diagnostic + Send + Sync + 'static> {
-        Box::new(self.clone())
-    }
-}
 
 #[derive(Debug, Error, Diagnostic, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[error("expected typename")]
@@ -34,11 +21,6 @@ pub struct ExpectedTypename {
     /// Where typename was expected
     #[label("here")]
     pub at: usize,
-}
-impl Error for ExpectedTypename {
-    fn clone_boxed(&self) -> Box<dyn Diagnostic + Send + Sync + 'static> {
-        Box::new(self.clone())
-    }
 }
 
 #[derive(Debug, Error, Diagnostic, Serialize, Deserialize, PartialEq, Eq, Clone)]
@@ -48,37 +30,18 @@ pub struct TypenameNotCapitalized {
     #[label("not a capital letter")]
     pub at: usize,
 }
-impl Error for TypenameNotCapitalized {
-    fn clone_boxed(&self) -> Box<dyn Diagnostic + Send + Sync + 'static> {
-        Box::new(self.clone())
-    }
-}
 
-#[derive(Debug, Error, PartialEq, Eq)]
-#[error("expected one of {variants:?}")]
-pub struct ExpectedOneOf<'i> {
-    /// What was expected
-    pub variants: Vec<String>,
-    /// Where the error occurred
-    pub at: &'i str,
-}
-
-#[derive(Debug, Error, PartialEq, Eq)]
-#[error("expected matching {expected:?} to match {to_match:?}")]
-pub struct ExpectedMatching<'i> {
-    /// What was expected
-    pub expected: String,
-    /// Where the error occurred
-    pub at: &'i str,
-    /// What was expected to match
-    pub to_match: &'i str,
-}
-
-#[derive(Debug, Error, PartialEq, Eq)]
-#[error("referencing unknown rule {name:?}")]
-pub struct UnknownRuleReference<'i> {
-    /// Unknown rule name
-    pub name: &'i str,
+/// All errors that can occur during parsing
+#[derive(Debug, Error, Diagnostic, PartialEq, Eq, Serialize, Deserialize, Clone, From)]
+pub enum Error {
+    #[error(transparent)]
+    Expected(Expected),
+    #[error(transparent)]
+    ExpectedTypename(ExpectedTypename),
+    #[error(transparent)]
+    TypenameNotCapitalized(TypenameNotCapitalized),
+    #[error(transparent)]
+    CustomError(CustomError),
 }
 
 /// Severity of the error. Copied from miette to add `Serialize` and `Deserialize` traits.

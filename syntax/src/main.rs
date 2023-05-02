@@ -17,7 +17,7 @@ fn main() {
             res.errors().for_each(|e| {
                 println!(
                     "{:?}",
-                    miette::Report::new_boxed(e.clone_boxed()).with_source_code(line.clone())
+                    miette::Report::new(e.clone()).with_source_code(line.clone())
                 )
             });
             continue;

@@ -1,7 +1,6 @@
 use std::ops::{Deref, Index};
 
 use derive_more::From;
-use miette::Diagnostic;
 use serde::{ser::SerializeMap, Deserialize, Serialize};
 
 use crate::errors::Error;
@@ -84,7 +83,7 @@ impl<'s> ParseTree<'s> {
     }
 
     /// Iterate over errors
-    pub fn errors(&self) -> Box<dyn Iterator<Item = &dyn Error> + '_> {
+    pub fn errors(&self) -> Box<dyn Iterator<Item = &Error> + '_> {
         Box::new(self.children.iter().flat_map(|c| c.errors()))
     }
 
@@ -144,11 +143,11 @@ impl<'s> From<ParseTreeNode<'s>> for ParseTree<'s> {
     }
 }
 
-impl<'s, I: IntoParseTreeNode> From<I> for ParseTree<'s> {
-    fn from(child: I) -> Self {
+impl<'s, E: Into<Error>> From<E> for ParseTree<'s> {
+    fn from(child: E) -> Self {
         Self {
             name: "".into(),
-            children: vec![child.into()],
+            children: vec![child.into().into()],
         }
     }
 }
@@ -259,7 +258,8 @@ pub enum ParseTreeNode<'s> {
     /// Subtree
     Tree(ParseTree<'s>),
     /// Parsing error
-    Error(Box<dyn Error>),
+    #[from(ignore)]
+    Error(Error),
 }
 
 impl<'s> ParseTreeNode<'s> {
@@ -278,11 +278,11 @@ impl<'s> ParseTreeNode<'s> {
     }
 
     /// Iterate over errors
-    pub fn errors(&self) -> Box<dyn Iterator<Item = &dyn Error> + '_> {
+    pub fn errors(&self) -> Box<dyn Iterator<Item = &Error> + '_> {
         match self {
             Self::Token(_) => Box::new(std::iter::empty()),
             Self::Tree(tree) => tree.errors(),
-            Self::Error(err) => Box::new(std::iter::once(err.as_ref())),
+            Self::Error(err) => Box::new(std::iter::once(err)),
         }
     }
 
@@ -308,16 +308,9 @@ impl PartialEq for ParseTreeNode<'_> {
 }
 impl Eq for ParseTreeNode<'_> {}
 
-/// Helper trait to convert errors to parse tree
-pub trait IntoParseTreeNode: Sized + Error {
-    fn into_parse_tree_node(self) -> ParseTreeNode<'static> {
-        ParseTreeNode::Error(Box::new(self))
-    }
-}
-
-impl<'s, I: IntoParseTreeNode + Diagnostic + 'static> From<I> for ParseTreeNode<'s> {
-    fn from(v: I) -> Self {
-        v.into_parse_tree_node()
+impl<E: Into<Error>> From<E> for ParseTreeNode<'_> {
+    fn from(err: E) -> Self {
+        Self::Error(err.into())
     }
 }
 
@@ -329,11 +322,7 @@ impl Serialize for ParseTreeNode<'_> {
         match self {
             Self::Token(token) => token.serialize(serializer),
             Self::Tree(tree) => tree.serialize(serializer),
-            Self::Error(err) => {
-                let mut map = serializer.serialize_map(Some(1))?;
-                map.serialize_entry("error", err)?;
-                map.end()
-            }
+            Self::Error(err) => err.serialize(serializer),
         }
     }
 }
@@ -395,7 +384,7 @@ mod test {
                 "A": [
                     "a",
                     {"B": {"value": "b", "trivia": " "}},
-                    {"error": {"expected": "c", "at": 2}}
+                    {"Expected": {"expected": "c", "at": 2}}
                 ]
             })
         )

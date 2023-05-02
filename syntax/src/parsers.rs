@@ -34,7 +34,7 @@ impl ParseResult<'_> {
     }
 
     /// Iterate over errors
-    pub fn errors(&self) -> Box<dyn Iterator<Item = &dyn Error> + '_> {
+    pub fn errors(&self) -> Box<dyn Iterator<Item = &Error> + '_> {
         self.tree.errors()
     }
 }
