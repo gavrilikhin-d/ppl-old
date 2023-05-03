@@ -35,12 +35,16 @@ pub struct TypenameNotCapitalized {
 #[derive(Debug, Error, Diagnostic, PartialEq, Eq, Serialize, Deserialize, Clone, From)]
 pub enum Error {
     #[error(transparent)]
+    #[diagnostic(transparent)]
     Expected(Expected),
     #[error(transparent)]
+    #[diagnostic(transparent)]
     ExpectedTypename(ExpectedTypename),
     #[error(transparent)]
+    #[diagnostic(transparent)]
     TypenameNotCapitalized(TypenameNotCapitalized),
     #[error(transparent)]
+    #[diagnostic(transparent)]
     CustomError(CustomError),
 }
 
