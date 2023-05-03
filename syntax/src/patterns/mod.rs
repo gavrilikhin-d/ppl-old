@@ -9,7 +9,7 @@ use crate::{
     context,
     errors::Expected,
     parsers::{ParseResult, Parser},
-    ParseTree,
+    ParseTree, ParseTreeNode, Token,
 };
 
 /// Possible patterns
@@ -38,17 +38,30 @@ impl Parser for Pattern {
     fn parse_at<'s>(&self, source: &'s str, at: usize) -> ParseResult<'s> {
         match self {
             Pattern::Regex(r) => {
+                // Find first not whitespace character
+                let trivia_size = source[at..]
+                    .find(|c: char| !c.is_ascii_whitespace())
+                    .unwrap_or(source.len() - at);
+
                 let re = Regex::new(format!("^{r}").as_str()).expect("Invalid regex");
-                let m = re.find(&source[at..]).map(|m| m.as_str());
+                let m = re.find(&source[at + trivia_size..]).map(|m| m.as_str());
                 ParseResult {
-                    delta: m.map(|m| m.len()).unwrap_or(0),
-                    tree: m.map(|m| m.into()).unwrap_or_else(|| {
-                        Expected {
-                            expected: r.clone(),
-                            at: at.into(),
-                        }
-                        .into()
-                    }),
+                    delta: m.map(|m| trivia_size + m.len()).unwrap_or(0),
+                    tree: m
+                        .map(|m| {
+                            ParseTreeNode::from(Token {
+                                value: m,
+                                trivia: &source[at..at + trivia_size],
+                            })
+                            .into()
+                        })
+                        .unwrap_or_else(|| {
+                            Expected {
+                                expected: r.clone(),
+                                at: at.into(),
+                            }
+                            .into()
+                        }),
                     ast: m.into(),
                 }
             }

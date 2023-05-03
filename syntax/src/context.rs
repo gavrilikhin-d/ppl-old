@@ -63,6 +63,15 @@ impl Default for Context {
                     ]),
                     on_parsed: None,
                 }),
+                Arc::new(Rule {
+                    name: "Rule".to_string(),
+                    pattern: Pattern::Group(vec![
+                        Pattern::RuleReference("Typename".to_string()),
+                        ":".into(),
+                        Pattern::RuleReference("Pattern".to_string()),
+                    ]),
+                    on_parsed: None,
+                }),
             ],
         }
     }
@@ -172,5 +181,41 @@ mod test {
                 ast: json!({"Regex": "foo"})
             }
         );
+    }
+
+    #[test]
+    fn rule() {
+        let r = context::find_rule("Rule").unwrap();
+        assert_eq!(r.name, "Rule");
+
+        let tree_text = json!({
+            "Rule": [
+                { "Typename": "Lol" },
+                ":",
+                {
+                    "Pattern": {
+                        "Regex": {
+                            "value": "kek",
+                            "trivia": " "
+                        }
+                    }
+                }
+            ]
+        })
+        .to_string();
+        assert_eq!(
+            r.parse("Lol: kek"),
+            ParseResult {
+                delta: 8,
+                tree: serde_json::from_str(&tree_text).unwrap(),
+                ast: json!([
+                    {"Typename": "Lol"},
+                    ":",
+                    {
+                        "Pattern": { "Regex": "kek" }
+                    }
+                ])
+            }
+        )
     }
 }
