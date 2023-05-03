@@ -31,22 +31,27 @@ pub struct TypenameNotCapitalized {
     pub at: usize,
 }
 
-/// All errors that can occur during parsing
-#[derive(Debug, Error, Diagnostic, PartialEq, Eq, Serialize, Deserialize, Clone, From)]
-pub enum Error {
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    Expected(Expected),
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    ExpectedTypename(ExpectedTypename),
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    TypenameNotCapitalized(TypenameNotCapitalized),
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    CustomError(CustomError),
+/// Helper macro to create error enumeration
+macro_rules! error_enum {
+	($($name:ident),*) => {
+		/// All errors that can occur during parsing
+		#[derive(Debug, Error, Diagnostic, PartialEq, Eq, Serialize, Deserialize, Clone, From)]
+		pub enum Error {
+			$(
+				#[error(transparent)]
+				#[diagnostic(transparent)]
+				$name($name)
+			),*
+		}
+	};
 }
+
+error_enum!(
+    Expected,
+    ExpectedTypename,
+    TypenameNotCapitalized,
+    CustomError
+);
 
 /// Severity of the error. Copied from miette to add `Serialize` and `Deserialize` traits.
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
