@@ -1,33 +1,54 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 use once_cell::sync::Lazy;
 
 use crate::{
     errors::{ExpectedTypename, TypenameNotCapitalized},
+    parsers::ParseResult,
     Pattern, Rule,
 };
 
 /// Current parsing context
 static CONTEXT: Lazy<Mutex<Context>> = Lazy::new(|| Mutex::new(Context::default()));
 
+/// Rule with action to be executed after parsing
+pub struct RuleWithAction {
+    pub rule: Arc<Rule>,
+    pub on_parsed: Option<fn(at: usize, res: ParseResult) -> ParseResult>,
+}
+
+impl From<Rule> for RuleWithAction {
+    fn from(rule: Rule) -> Self {
+        RuleWithAction {
+            rule: Arc::new(rule),
+            on_parsed: None,
+        }
+    }
+}
+
 /// Parsing context
 pub struct Context {
     /// Parsing rules
-    pub rules: Vec<Arc<Rule>>,
+    pub rules: Vec<RuleWithAction>,
 }
 
 impl Default for Context {
     fn default() -> Self {
         Context {
             rules: vec![
-                Arc::new(Rule {
+                Rule {
                     name: "Regex".to_string(),
                     pattern: r"[^\s]+".into(),
-                    on_parsed: None,
-                }),
-                Arc::new(Rule {
-                    name: "Typename".to_string(),
-                    pattern: r"[a-zA-Z0-9_]+".into(),
+                }
+                .into(),
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "Typename".to_string(),
+                        pattern: r"[a-zA-Z0-9_]+".into(),
+                    }),
                     on_parsed: Some(|at, mut res| {
                         if res.has_errors() {
                             res.tree.children = vec![ExpectedTypename { at: at.into() }.into()];
@@ -43,10 +64,12 @@ impl Default for Context {
 
                         res
                     }),
-                }),
-                Arc::new(Rule {
-                    name: "RuleReference".to_string(),
-                    pattern: Pattern::RuleReference("Typename".to_string()),
+                },
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "RuleReference".to_string(),
+                        pattern: Pattern::RuleReference("Typename".to_string()),
+                    }),
                     on_parsed: Some(|_at, mut res| {
                         if res.has_errors() {
                             res.delta = 0;
@@ -54,24 +77,24 @@ impl Default for Context {
                         }
                         res
                     }),
-                }),
-                Arc::new(Rule {
+                },
+                Rule {
                     name: "Pattern".to_string(),
                     pattern: Pattern::Alternatives(vec![
                         Pattern::RuleReference("RuleReference".to_string()),
                         Pattern::RuleReference("Regex".to_string()),
                     ]),
-                    on_parsed: None,
-                }),
-                Arc::new(Rule {
+                }
+                .into(),
+                Rule {
                     name: "Rule".to_string(),
                     pattern: Pattern::Group(vec![
                         Pattern::RuleReference("Typename".to_string()),
                         ":".into(),
                         Pattern::RuleReference("Pattern".to_string()),
                     ]),
-                    on_parsed: None,
-                }),
+                }
+                .into(),
             ],
         }
     }
@@ -85,12 +108,28 @@ pub fn with_context<T>(f: impl FnOnce(&mut Context) -> T) -> T {
 
 /// Add a rule to the current parsing context
 pub fn add_rule(rule: Rule) {
-    with_context(|c| c.rules.push(Arc::new(rule)))
+    with_context(|c| c.rules.push(rule.into()))
 }
 
 /// Find rule by name in the current parsing context
 pub fn find_rule(name: &str) -> Option<Arc<Rule>> {
-    with_context(|c| c.rules.iter().find(|r| r.name == name).map(|r| r.clone()))
+    with_context(|c| {
+        c.rules
+            .iter()
+            .map(|r| &r.rule)
+            .find(|r| r.name == name)
+            .cloned()
+    })
+}
+
+/// Get the callback to be called after parsing a rule
+pub fn on_parsed(name: &str) -> Option<fn(usize, ParseResult) -> ParseResult> {
+    with_context(|c| {
+        c.rules
+            .iter()
+            .find(|r| r.rule.name == name)
+            .and_then(|r| r.on_parsed)
+    })
 }
 
 #[cfg(test)]

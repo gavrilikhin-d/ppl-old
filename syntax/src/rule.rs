@@ -1,18 +1,18 @@
 use serde_json::json;
 
 use crate::{
+    context,
     parsers::{ParseResult, Parser},
     ParseTree, Pattern,
 };
 
 /// Syntax rule
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Rule {
     /// Rule name
     pub name: String,
     /// Pattern to parse
     pub pattern: Pattern,
-    /// Callback to be called after parsing
-    pub on_parsed: Option<fn(usize, ParseResult) -> ParseResult>,
 }
 
 impl Parser for Rule {
@@ -23,7 +23,7 @@ impl Parser for Rule {
             tree: ParseTree::named(self.name.clone()).with(res.tree).flatten(),
             ast: json!({ &self.name: res.ast }),
         };
-        if let Some(on_parsed) = &self.on_parsed {
+        if let Some(on_parsed) = context::on_parsed(&self.name) {
             on_parsed(at, res)
         } else {
             res
@@ -44,7 +44,6 @@ mod tests {
         let rule = Rule {
             name: "Test".to_string(),
             pattern: r"[^\s]+".into(),
-            on_parsed: None,
         };
         assert_eq!(
             rule.parse_at("Hello World", 0),
