@@ -113,7 +113,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Typename").with("Foo"),
-                ast: json!("Foo")
+                ast: json!({"Typename": "Foo"})
             }
         );
         assert_eq!(
@@ -121,7 +121,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Typename").with(TypenameNotCapitalized { at: 0 }),
-                ast: json!("foo")
+                ast: json!({"Typename": "foo"})
             }
         );
         assert_eq!(
@@ -129,7 +129,7 @@ mod test {
             ParseResult {
                 delta: 0,
                 tree: ParseTree::named("Typename").with(ExpectedTypename { at: 0 }),
-                ast: json!(null)
+                ast: json!({ "Typename": null })
             }
         );
     }
@@ -144,7 +144,7 @@ mod test {
                 delta: 3,
                 tree: ParseTree::named("RuleReference")
                     .with(ParseTree::named("Typename").with("Foo")),
-                ast: json!({"Typename": "Foo"})
+                ast: json!({"RuleReference": {"Typename": "Foo"}})
             }
         );
         assert_eq!(
@@ -153,7 +153,7 @@ mod test {
                 delta: 0,
                 tree: ParseTree::named("RuleReference")
                     .with(ParseTree::named("Typename").with(TypenameNotCapitalized { at: 0 })),
-                ast: json!({"Typename": "foo" })
+                ast: json!({"RuleReference": {"Typename": "foo" }})
             }
         );
     }
@@ -170,7 +170,7 @@ mod test {
                     ParseTree::named("RuleReference")
                         .with(ParseTree::named("Typename").with("Foo"))
                 ),
-                ast: json!({ "RuleReference": {"Typename": "Foo"}})
+                ast: json!({"Pattern": { "RuleReference": {"Typename": "Foo"}}})
             }
         );
         assert_eq!(
@@ -178,7 +178,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Pattern").with(ParseTree::named("Regex").with("foo")),
-                ast: json!({"Regex": "foo"})
+                ast: json!({"Pattern": {"Regex": "foo"}})
             }
         );
     }
@@ -208,13 +208,15 @@ mod test {
             ParseResult {
                 delta: 8,
                 tree: serde_json::from_str(&tree_text).unwrap(),
-                ast: json!([
-                    {"Typename": "Lol"},
-                    ":",
-                    {
-                        "Pattern": { "Regex": "kek" }
-                    }
-                ])
+                ast: json!({
+                    "Rule": [
+                        {"Typename": "Lol"},
+                        ":",
+                        {
+                            "Pattern": { "Regex": "kek" }
+                        }
+                    ]
+                })
             }
         )
     }

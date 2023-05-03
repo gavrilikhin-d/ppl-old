@@ -1,3 +1,5 @@
+use serde_json::json;
+
 use crate::{
     parsers::{ParseResult, Parser},
     ParseTree, Pattern,
@@ -19,7 +21,7 @@ impl Parser for Rule {
         let res = ParseResult {
             delta: res.delta,
             tree: ParseTree::named(self.name.clone()).with(res.tree).flatten(),
-            ast: res.ast,
+            ast: json!({ &self.name: res.ast }),
         };
         if let Some(on_parsed) = &self.on_parsed {
             on_parsed(at, res)
@@ -49,7 +51,7 @@ mod tests {
             ParseResult {
                 delta: 5,
                 tree: ParseTree::named("Test").with("Hello"),
-                ast: json!("Hello")
+                ast: json!({"Test": "Hello"})
             }
         );
     }
