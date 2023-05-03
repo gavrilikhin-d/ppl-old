@@ -10,7 +10,7 @@ pub struct Rule {
     /// Pattern to parse
     pub pattern: Pattern,
     /// Callback to be called after parsing
-    pub on_parsed: Option<Box<dyn Sync + Send + Fn(usize, ParseResult) -> ParseResult>>,
+    pub on_parsed: Option<fn(usize, ParseResult) -> ParseResult>,
 }
 
 impl Parser for Rule {

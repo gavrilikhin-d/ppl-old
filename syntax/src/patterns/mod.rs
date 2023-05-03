@@ -13,7 +13,7 @@ use crate::{
 };
 
 /// Possible patterns
-#[derive(Debug, PartialEq, Clone, From)]
+#[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum Pattern {
     /// Reference to another rule
     RuleReference(String),

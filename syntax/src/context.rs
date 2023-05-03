@@ -28,7 +28,7 @@ impl Default for Context {
                 Arc::new(Rule {
                     name: "Typename".to_string(),
                     pattern: r"[a-zA-Z0-9_]+".into(),
-                    on_parsed: Some(Box::new(|at, mut res| {
+                    on_parsed: Some(|at, mut res| {
                         if res.has_errors() {
                             res.tree.children = vec![ExpectedTypename { at: at.into() }.into()];
                             return res;
@@ -42,18 +42,18 @@ impl Default for Context {
                         }
 
                         res
-                    })),
+                    }),
                 }),
                 Arc::new(Rule {
                     name: "RuleReference".to_string(),
                     pattern: Pattern::RuleReference("Typename".to_string()),
-                    on_parsed: Some(Box::new(|_at, mut res| {
+                    on_parsed: Some(|_at, mut res| {
                         if res.has_errors() {
                             res.delta = 0;
                             return res;
                         }
                         res
-                    })),
+                    }),
                 }),
                 Arc::new(Rule {
                     name: "Pattern".to_string(),

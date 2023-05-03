@@ -8,7 +8,7 @@ use crate::{
 use super::Pattern;
 
 /// Repeat pattern
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Repeat {
     /// Pattern to repeat
     pub pattern: Box<Pattern>,
