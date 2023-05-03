@@ -3,6 +3,7 @@ mod repeat;
 use derive_more::From;
 use regex::Regex;
 pub use repeat::*;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     errors::Expected,
@@ -11,7 +12,7 @@ use crate::{
 };
 
 /// Possible patterns
-#[derive(Debug, PartialEq, Eq, Clone, From)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone, From)]
 pub enum Pattern {
     /// Reference to another rule
     RuleReference(String),

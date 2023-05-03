@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
@@ -6,7 +7,7 @@ use crate::{
 };
 
 /// Syntax rule
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct Rule {
     /// Rule name
     pub name: String,

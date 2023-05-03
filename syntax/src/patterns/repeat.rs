@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::{
@@ -8,7 +9,7 @@ use crate::{
 use super::Pattern;
 
 /// Repeat pattern
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct Repeat {
     /// Pattern to repeat
     pub pattern: Box<Pattern>,
