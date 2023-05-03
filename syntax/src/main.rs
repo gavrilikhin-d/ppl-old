@@ -22,6 +22,6 @@ fn main() {
             });
             continue;
         }
-        println!("{:#?}", res.tree);
+        println!("{}", serde_json::to_string_pretty(&res.ast).unwrap());
     }
 }
