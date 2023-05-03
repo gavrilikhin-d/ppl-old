@@ -1,8 +1,9 @@
 use std::io::Write;
 
-use syntax::{context, parsers::Parser};
+use syntax::{parsers::Parser, Context};
 
 fn main() {
+    let mut context = Context::default();
     loop {
         print!(">>> ");
         std::io::stdout().flush().unwrap();
@@ -10,9 +11,9 @@ fn main() {
         let mut line = String::new();
         std::io::stdin().read_line(&mut line).unwrap();
 
-        let regex = context::find_rule("Rule").unwrap();
+        let regex = context.find_rule("Rule").unwrap();
 
-        let res = regex.parse(&line);
+        let res = regex.parse(&line, &mut context);
         if res.has_errors() {
             res.errors().for_each(|e| {
                 println!(

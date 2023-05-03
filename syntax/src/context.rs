@@ -1,18 +1,10 @@
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
-
-use once_cell::sync::Lazy;
+use std::sync::Arc;
 
 use crate::{
     errors::{ExpectedTypename, TypenameNotCapitalized},
     parsers::ParseResult,
     Pattern, Rule,
 };
-
-/// Current parsing context
-static CONTEXT: Lazy<Mutex<Context>> = Lazy::new(|| Mutex::new(Context::default()));
 
 /// Rule with action to be executed after parsing
 pub struct RuleWithAction {
@@ -33,6 +25,35 @@ impl From<Rule> for RuleWithAction {
 pub struct Context {
     /// Parsing rules
     pub rules: Vec<RuleWithAction>,
+}
+
+impl Context {
+    /// Create a new context without any rules
+    pub fn new() -> Context {
+        Context { rules: vec![] }
+    }
+
+    // Add a rule to the context
+    pub fn add_rule(&mut self, rule: Rule) {
+        self.rules.push(rule.into())
+    }
+
+    /// Find rule by name in the parsing context
+    pub fn find_rule(&self, name: &str) -> Option<Arc<Rule>> {
+        self.rules
+            .iter()
+            .map(|r| &r.rule)
+            .find(|r| r.name == name)
+            .cloned()
+    }
+
+    /// Get the callback to be called after parsing a rule
+    pub fn on_parsed(&self, name: &str) -> Option<fn(usize, ParseResult) -> ParseResult> {
+        self.rules
+            .iter()
+            .find(|r| r.rule.name == name)
+            .and_then(|r| r.on_parsed)
+    }
 }
 
 impl Default for Context {
@@ -100,55 +121,23 @@ impl Default for Context {
     }
 }
 
-/// Get the current parsing context
-pub fn with_context<T>(f: impl FnOnce(&mut Context) -> T) -> T {
-    let mut context = CONTEXT.lock().unwrap();
-    f(&mut context)
-}
-
-/// Add a rule to the current parsing context
-pub fn add_rule(rule: Rule) {
-    with_context(|c| c.rules.push(rule.into()))
-}
-
-/// Find rule by name in the current parsing context
-pub fn find_rule(name: &str) -> Option<Arc<Rule>> {
-    with_context(|c| {
-        c.rules
-            .iter()
-            .map(|r| &r.rule)
-            .find(|r| r.name == name)
-            .cloned()
-    })
-}
-
-/// Get the callback to be called after parsing a rule
-pub fn on_parsed(name: &str) -> Option<fn(usize, ParseResult) -> ParseResult> {
-    with_context(|c| {
-        c.rules
-            .iter()
-            .find(|r| r.rule.name == name)
-            .and_then(|r| r.on_parsed)
-    })
-}
-
 #[cfg(test)]
 mod test {
     use serde_json::json;
 
     use crate::{
-        context,
         errors::{ExpectedTypename, TypenameNotCapitalized},
         parsers::{ParseResult, Parser},
-        ParseTree,
+        Context, ParseTree,
     };
 
     #[test]
     fn typename() {
-        let typename = context::find_rule("Typename").unwrap();
+        let mut ctx = Context::default();
+        let typename = ctx.find_rule("Typename").unwrap();
         assert_eq!(typename.name, "Typename");
         assert_eq!(
-            typename.parse("Foo"),
+            typename.parse("Foo", &mut ctx),
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Typename").with("Foo"),
@@ -156,7 +145,7 @@ mod test {
             }
         );
         assert_eq!(
-            typename.parse("foo"),
+            typename.parse("foo", &mut ctx),
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Typename").with(TypenameNotCapitalized { at: 0 }),
@@ -164,7 +153,7 @@ mod test {
             }
         );
         assert_eq!(
-            typename.parse(""),
+            typename.parse("", &mut ctx),
             ParseResult {
                 delta: 0,
                 tree: ParseTree::named("Typename").with(ExpectedTypename { at: 0 }),
@@ -175,10 +164,11 @@ mod test {
 
     #[test]
     fn rule_reference() {
-        let r = context::find_rule("RuleReference").unwrap();
+        let mut context = Context::default();
+        let r = context.find_rule("RuleReference").unwrap();
         assert_eq!(r.name, "RuleReference");
         assert_eq!(
-            r.parse("Foo"),
+            r.parse("Foo", &mut context),
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("RuleReference")
@@ -187,7 +177,7 @@ mod test {
             }
         );
         assert_eq!(
-            r.parse("foo"),
+            r.parse("foo", &mut context),
             ParseResult {
                 delta: 0,
                 tree: ParseTree::named("RuleReference")
@@ -199,10 +189,11 @@ mod test {
 
     #[test]
     fn pattern() {
-        let r = context::find_rule("Pattern").unwrap();
+        let mut context = Context::default();
+        let r = context.find_rule("Pattern").unwrap();
         assert_eq!(r.name, "Pattern");
         assert_eq!(
-            r.parse("Foo"),
+            r.parse("Foo", &mut context),
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Pattern").with(
@@ -213,7 +204,7 @@ mod test {
             }
         );
         assert_eq!(
-            r.parse("foo"),
+            r.parse("foo", &mut context),
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Pattern").with(ParseTree::named("Regex").with("foo")),
@@ -224,7 +215,8 @@ mod test {
 
     #[test]
     fn rule() {
-        let r = context::find_rule("Rule").unwrap();
+        let mut context = Context::default();
+        let r = context.find_rule("Rule").unwrap();
         assert_eq!(r.name, "Rule");
 
         let tree_text = json!({
@@ -243,7 +235,7 @@ mod test {
         })
         .to_string();
         assert_eq!(
-            r.parse("Lol: kek"),
+            r.parse("Lol: kek", &mut context),
             ParseResult {
                 delta: 8,
                 tree: serde_json::from_str(&tree_text).unwrap(),

@@ -5,10 +5,9 @@ use regex::Regex;
 pub use repeat::*;
 
 use crate::{
-    context,
     errors::Expected,
     parsers::{ParseResult, Parser},
-    ParseTree, ParseTreeNode, Token,
+    Context, ParseTree, ParseTreeNode, Token,
 };
 
 /// Possible patterns
@@ -34,7 +33,7 @@ impl From<&str> for Pattern {
 }
 
 impl Parser for Pattern {
-    fn parse_at<'s>(&self, source: &'s str, at: usize) -> ParseResult<'s> {
+    fn parse_at<'s>(&self, source: &'s str, at: usize, context: &mut Context) -> ParseResult<'s> {
         match self {
             Pattern::Regex(r) => {
                 // Find first not whitespace character
@@ -65,15 +64,15 @@ impl Parser for Pattern {
                 }
             }
             Pattern::RuleReference(name) => {
-                let rule = context::find_rule(name).expect("Rule not found");
-                rule.parse_at(source, at)
+                let rule = context.find_rule(name).expect("Rule not found");
+                rule.parse_at(source, at, context)
             }
             Pattern::Group(patterns) => {
                 let mut delta = 0;
                 let mut tree = ParseTree::empty();
                 let mut asts = Vec::new();
                 for pattern in patterns {
-                    let result = pattern.parse_at(source, at + delta);
+                    let result = pattern.parse_at(source, at + delta, context);
                     delta += result.delta;
                     tree.push(result.tree);
                     asts.push(result.ast);
@@ -92,14 +91,14 @@ impl Parser for Pattern {
             Pattern::Alternatives(alts) => {
                 let mut res = ParseResult::empty();
                 for alt in alts {
-                    res = alt.parse_at(source, at);
+                    res = alt.parse_at(source, at, context);
                     if res.is_ok() {
                         break;
                     }
                 }
                 res
             }
-            Pattern::Repeat(r) => r.parse_at(source, at),
+            Pattern::Repeat(r) => r.parse_at(source, at, context),
         }
     }
 }
@@ -111,14 +110,15 @@ mod test {
     use crate::{
         errors::Expected,
         parsers::{ParseResult, Parser},
-        ParseTree, ParseTreeNode, Pattern,
+        Context, ParseTree, ParseTreeNode, Pattern,
     };
 
     #[test]
     fn regex() {
+        let mut context = Context::default();
         let pattern: Pattern = r"[^\s]+".into();
         assert_eq!(
-            pattern.parse_at("hello world", 0),
+            pattern.parse("hello world", &mut context),
             ParseResult {
                 delta: 5,
                 tree: "hello".into(),
@@ -129,9 +129,10 @@ mod test {
 
     #[test]
     fn alt() {
+        let mut context = Context::default();
         let pattern = Pattern::Alternatives(vec!["a".into(), "b".into()]);
         assert_eq!(
-            pattern.parse_at("a", 0),
+            pattern.parse("a", &mut context),
             ParseResult {
                 delta: 1,
                 tree: "a".into(),
@@ -139,7 +140,7 @@ mod test {
             }
         );
         assert_eq!(
-            pattern.parse_at("b", 0),
+            pattern.parse("b", &mut context),
             ParseResult {
                 delta: 1,
                 tree: "b".into(),
@@ -147,7 +148,7 @@ mod test {
             }
         );
         assert_eq!(
-            pattern.parse_at("c", 0),
+            pattern.parse("c", &mut context),
             ParseResult {
                 delta: 0,
                 tree: Expected {
@@ -162,9 +163,10 @@ mod test {
 
     #[test]
     fn group() {
+        let mut context = Context::default();
         let pattern = Pattern::Group(vec!["a".into(), "b".into()]);
         assert_eq!(
-            pattern.parse_at("ab", 0),
+            pattern.parse("ab", &mut context),
             ParseResult {
                 delta: 2,
                 tree: vec!["a", "b"].into(),
@@ -172,7 +174,7 @@ mod test {
             }
         );
         assert_eq!(
-            pattern.parse_at("b", 0),
+            pattern.parse("b", &mut context),
             ParseResult {
                 delta: 1,
                 tree: vec![
@@ -187,7 +189,7 @@ mod test {
             }
         );
         assert_eq!(
-            pattern.parse_at("a", 0),
+            pattern.parse("a", &mut context),
             ParseResult {
                 delta: 1,
                 tree: vec![
@@ -202,7 +204,7 @@ mod test {
             }
         );
         assert_eq!(
-            pattern.parse_at("", 0),
+            pattern.parse("", &mut context),
             ParseResult {
                 delta: 0,
                 tree: vec![
@@ -224,9 +226,10 @@ mod test {
 
     #[test]
     fn rule_ref() {
+        let mut context = Context::default();
         let pattern = Pattern::RuleReference("Regex".into());
         assert_eq!(
-            pattern.parse("abc"),
+            pattern.parse("abc", &mut context),
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Regex").with("abc"),

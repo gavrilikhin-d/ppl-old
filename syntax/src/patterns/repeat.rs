@@ -2,7 +2,7 @@ use serde_json::Value;
 
 use crate::{
     parsers::{ParseResult, Parser},
-    ParseTree,
+    Context, ParseTree,
 };
 
 use super::Pattern;
@@ -48,20 +48,20 @@ impl Repeat {
 }
 
 impl Parser for Repeat {
-    fn parse_at<'s>(&self, source: &'s str, at: usize) -> ParseResult<'s> {
+    fn parse_at<'s>(&self, source: &'s str, at: usize, context: &mut Context) -> ParseResult<'s> {
         debug_assert!(self.at_least <= self.at_most.unwrap_or(usize::MAX));
 
         let mut delta = 0;
         let mut tree = ParseTree::empty();
         for _ in 0..self.at_least {
-            let res = self.pattern.parse_at(source, at + delta);
+            let res = self.pattern.parse_at(source, at + delta, context);
             delta += res.delta;
             tree.push(res.tree);
         }
 
         if tree.is_ok() {
             for _ in self.at_least..self.at_most.unwrap_or(usize::MAX) {
-                let res = self.pattern.parse_at(source, at + delta);
+                let res = self.pattern.parse_at(source, at + delta, context);
                 if res.is_ok() {
                     delta += res.delta;
                     tree.push(res.tree);
@@ -86,16 +86,18 @@ mod test {
     use crate::{
         errors::Expected,
         parsers::{ParseResult, Parser},
+        Context,
     };
 
     use super::Repeat;
 
     #[test]
     fn at_most_once() {
+        let mut context = Context::default();
         let pattern = Repeat::at_most_once("a".into());
-        assert_eq!(pattern.parse_at("", 0), ParseResult::empty());
+        assert_eq!(pattern.parse("", &mut context), ParseResult::empty());
         assert_eq!(
-            pattern.parse_at("a", 0),
+            pattern.parse("a", &mut context),
             ParseResult {
                 delta: 1,
                 tree: vec!["a"].into(),
@@ -103,7 +105,7 @@ mod test {
             }
         );
         assert_eq!(
-            pattern.parse_at("aa", 0),
+            pattern.parse("aa", &mut context),
             ParseResult {
                 delta: 1,
                 tree: vec!["a"].into(),
@@ -114,10 +116,11 @@ mod test {
 
     #[test]
     fn zero_or_more() {
+        let mut context = Context::default();
         let pattern = Repeat::zero_or_more("a".into());
-        assert_eq!(pattern.parse_at("", 0), ParseResult::empty());
+        assert_eq!(pattern.parse("", &mut context), ParseResult::empty());
         assert_eq!(
-            pattern.parse_at("a", 0),
+            pattern.parse("a", &mut context),
             ParseResult {
                 delta: 1,
                 tree: vec!["a"].into(),
@@ -125,7 +128,7 @@ mod test {
             }
         );
         assert_eq!(
-            pattern.parse_at("aa", 0),
+            pattern.parse("aa", &mut context),
             ParseResult {
                 delta: 2,
                 tree: vec!["a", "a"].into(),
@@ -136,9 +139,10 @@ mod test {
 
     #[test]
     fn once_or_more() {
+        let mut context = Context::default();
         let pattern = Repeat::once_or_more("a".into());
         assert_eq!(
-            pattern.parse_at("", 0),
+            pattern.parse("", &mut context),
             ParseResult {
                 delta: 0,
                 tree: Expected {
@@ -150,7 +154,7 @@ mod test {
             }
         );
         assert_eq!(
-            pattern.parse_at("a", 0),
+            pattern.parse("a", &mut context),
             ParseResult {
                 delta: 1,
                 tree: "a".into(),
@@ -158,7 +162,7 @@ mod test {
             }
         );
         assert_eq!(
-            pattern.parse_at("aa", 0),
+            pattern.parse("aa", &mut context),
             ParseResult {
                 delta: 2,
                 tree: vec!["a", "a"].into(),
