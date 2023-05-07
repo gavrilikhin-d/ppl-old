@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::{
     parsers::{ParseResult, Parser},
@@ -54,10 +53,12 @@ impl Parser for Repeat {
 
         let mut delta = 0;
         let mut tree = ParseTree::empty();
+        let mut asts = Vec::new();
         for _ in 0..self.at_least {
             let res = self.pattern.parse_at(source, at + delta, context);
             delta += res.delta;
             tree.push(res.tree);
+            asts.push(res.ast);
         }
 
         if tree.is_ok() {
@@ -66,6 +67,7 @@ impl Parser for Repeat {
                 if res.is_ok() {
                     delta += res.delta;
                     tree.push(res.tree);
+                    asts.push(res.ast);
                 } else {
                     break;
                 }
@@ -75,14 +77,18 @@ impl Parser for Repeat {
         ParseResult {
             delta,
             tree: tree.flatten(),
-            ast: Value::Null,
+            ast: if asts.len() == 1 {
+                asts.into_iter().next().unwrap()
+            } else {
+                asts.into()
+            },
         }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use serde_json::Value;
+    use serde_json::{json, Value};
 
     use crate::{
         errors::Expected,
@@ -96,21 +102,24 @@ mod test {
     fn at_most_once() {
         let mut context = Context::default();
         let pattern = Repeat::at_most_once("a".into());
-        assert_eq!(pattern.parse("", &mut context), ParseResult::empty());
+        assert_eq!(
+            pattern.parse("", &mut context),
+            ParseResult::empty().with_ast(json!([]))
+        );
         assert_eq!(
             pattern.parse("a", &mut context),
             ParseResult {
                 delta: 1,
-                tree: vec!["a"].into(),
-                ast: Value::Null
+                tree: "a".into(),
+                ast: "a".into()
             }
         );
         assert_eq!(
             pattern.parse("aa", &mut context),
             ParseResult {
                 delta: 1,
-                tree: vec!["a"].into(),
-                ast: Value::Null
+                tree: "a".into(),
+                ast: "a".into()
             }
         )
     }
@@ -119,13 +128,16 @@ mod test {
     fn zero_or_more() {
         let mut context = Context::default();
         let pattern = Repeat::zero_or_more("a".into());
-        assert_eq!(pattern.parse("", &mut context), ParseResult::empty());
+        assert_eq!(
+            pattern.parse("", &mut context),
+            ParseResult::empty().with_ast(json!([]))
+        );
         assert_eq!(
             pattern.parse("a", &mut context),
             ParseResult {
                 delta: 1,
-                tree: vec!["a"].into(),
-                ast: Value::Null
+                tree: "a".into(),
+                ast: "a".into()
             }
         );
         assert_eq!(
@@ -133,7 +145,7 @@ mod test {
             ParseResult {
                 delta: 2,
                 tree: vec!["a", "a"].into(),
-                ast: Value::Null
+                ast: json!(["a", "a"])
             }
         );
     }
@@ -159,7 +171,7 @@ mod test {
             ParseResult {
                 delta: 1,
                 tree: "a".into(),
-                ast: Value::Null
+                ast: "a".into()
             }
         );
         assert_eq!(
@@ -167,7 +179,7 @@ mod test {
             ParseResult {
                 delta: 2,
                 tree: vec!["a", "a"].into(),
-                ast: Value::Null
+                ast: json!(["a", "a"])
             }
         );
     }
