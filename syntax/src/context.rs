@@ -116,11 +116,12 @@ impl Default for Context {
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Rule".to_string(),
-                        pattern: Pattern::Group(vec![
+                        pattern: vec![
                             Pattern::RuleReference("Typename".to_string()),
                             ":".into(),
                             Pattern::RuleReference("Pattern".to_string()),
-                        ]),
+                        ]
+                        .into(),
                     }),
                     on_parsed: Some(|_at, mut res, context| {
                         if res.has_errors() {

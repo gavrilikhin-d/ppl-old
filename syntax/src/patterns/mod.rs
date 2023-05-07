@@ -17,18 +17,18 @@ use crate::{
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone, From)]
 pub enum Pattern {
     /// Reference to another rule
+    #[from(ignore)]
     RuleReference(String),
     /// Group of patterns
     Group(Vec<Pattern>),
     /// Regex
     Regex(String),
     /// Pattern alternatives
+    #[from(ignore)]
     Alternatives(Vec<Pattern>),
     /// Repeat pattern
-    #[from]
     Repeat(Repeat),
     /// Adds name to the ast of pattern
-    #[from]
     Named(Named),
 }
 

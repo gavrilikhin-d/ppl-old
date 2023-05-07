@@ -23,6 +23,11 @@ impl ParseResult<'_> {
         }
     }
 
+    /// Create parse result with AST
+    pub fn with_ast(self, ast: Value) -> Self {
+        Self { ast, ..self }
+    }
+
     /// Does this result contain errors?
     pub fn has_errors(&self) -> bool {
         self.tree.has_errors()
