@@ -68,7 +68,7 @@ impl Default for Context {
             rules: vec![
                 Rule {
                     name: "Regex".to_string(),
-                    pattern: r"[^\s]+".into(),
+                    pattern: r".+".into(),
                 }
                 .into(),
                 RuleWithAction {
