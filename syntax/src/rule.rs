@@ -24,7 +24,7 @@ impl Parser for Rule {
             ast: json!({ &self.name: res.ast }),
         };
         if let Some(on_parsed) = context.on_parsed(&self.name) {
-            on_parsed(at, res)
+            on_parsed(at, res, context)
         } else {
             res
         }

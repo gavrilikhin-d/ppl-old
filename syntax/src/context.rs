@@ -1,15 +1,21 @@
 use std::sync::Arc;
 
+use serde_json::json;
+
 use crate::{
     errors::{ExpectedTypename, TypenameNotCapitalized},
     parsers::ParseResult,
     Pattern, Rule,
 };
 
+/// Action to be executed after parsing
+pub type OnParsedAction =
+    for<'s, 'c> fn(at: usize, res: ParseResult<'s>, context: &'c mut Context) -> ParseResult<'s>;
+
 /// Rule with action to be executed after parsing
 pub struct RuleWithAction {
     pub rule: Arc<Rule>,
-    pub on_parsed: Option<fn(at: usize, res: ParseResult) -> ParseResult>,
+    pub on_parsed: Option<OnParsedAction>,
 }
 
 impl From<Rule> for RuleWithAction {
@@ -48,7 +54,7 @@ impl Context {
     }
 
     /// Get the callback to be called after parsing a rule
-    pub fn on_parsed(&self, name: &str) -> Option<fn(usize, ParseResult) -> ParseResult> {
+    pub fn on_parsed(&self, name: &str) -> Option<OnParsedAction> {
         self.rules
             .iter()
             .find(|r| r.rule.name == name)
@@ -70,7 +76,7 @@ impl Default for Context {
                         name: "Typename".to_string(),
                         pattern: r"[a-zA-Z0-9_]+".into(),
                     }),
-                    on_parsed: Some(|at, mut res| {
+                    on_parsed: Some(|at, mut res, _| {
                         if res.has_errors() {
                             res.tree.children = vec![ExpectedTypename { at: at.into() }.into()];
                             return res;
@@ -91,7 +97,7 @@ impl Default for Context {
                         name: "RuleReference".to_string(),
                         pattern: Pattern::RuleReference("Typename".to_string()),
                     }),
-                    on_parsed: Some(|_at, mut res| {
+                    on_parsed: Some(|_at, mut res, _| {
                         if res.has_errors() {
                             res.delta = 0;
                             return res;
@@ -107,15 +113,30 @@ impl Default for Context {
                     ]),
                 }
                 .into(),
-                Rule {
-                    name: "Rule".to_string(),
-                    pattern: Pattern::Group(vec![
-                        Pattern::RuleReference("Typename".to_string()),
-                        ":".into(),
-                        Pattern::RuleReference("Pattern".to_string()),
-                    ]),
-                }
-                .into(),
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "Rule".to_string(),
+                        pattern: Pattern::Group(vec![
+                            Pattern::RuleReference("Typename".to_string()),
+                            ":".into(),
+                            Pattern::RuleReference("Pattern".to_string()),
+                        ]),
+                    }),
+                    on_parsed: Some(|_at, mut res, context| {
+                        if res.has_errors() {
+                            return res;
+                        }
+                        res.ast = json!({
+                            "Rule": {
+                                "name": res.ast["Rule"][0]["Typename"],
+                                "pattern": res.ast["Rule"][2]["Pattern"]
+                            }
+                        });
+                        let rule: Rule = serde_json::from_value(res.ast["Rule"].clone()).unwrap();
+                        context.add_rule(rule);
+                        res
+                    }),
+                },
             ],
         }
     }
@@ -123,12 +144,14 @@ impl Default for Context {
 
 #[cfg(test)]
 mod test {
+    use std::sync::Arc;
+
     use serde_json::json;
 
     use crate::{
         errors::{ExpectedTypename, TypenameNotCapitalized},
         parsers::{ParseResult, Parser},
-        Context, ParseTree,
+        Context, ParseTree, Rule,
     };
 
     #[test]
@@ -240,15 +263,21 @@ mod test {
                 delta: 8,
                 tree: serde_json::from_str(&tree_text).unwrap(),
                 ast: json!({
-                    "Rule": [
-                        {"Typename": "Lol"},
-                        ":",
-                        {
-                            "Pattern": { "Regex": "kek" }
+                    "Rule": {
+                        "name": "Lol",
+                        "pattern": {
+                            "Regex": "kek"
                         }
-                    ]
+                    }
                 })
             }
+        );
+        assert_eq!(
+            context.find_rule("Lol"),
+            Some(Arc::new(Rule {
+                name: "Lol".to_string(),
+                pattern: "kek".into()
+            }))
         )
     }
 }
