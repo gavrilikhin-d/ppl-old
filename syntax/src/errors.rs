@@ -16,16 +16,16 @@ pub struct Expected {
 }
 
 #[derive(Debug, Error, Diagnostic, Serialize, Deserialize, PartialEq, Eq, Clone)]
-#[error("expected typename")]
-pub struct ExpectedTypename {
-    /// Where typename was expected
+#[error("expected rule's name")]
+pub struct ExpectedRuleName {
+    /// Where rule's name was expected
     #[label("here")]
     pub at: usize,
 }
 
 #[derive(Debug, Error, Diagnostic, Serialize, Deserialize, PartialEq, Eq, Clone)]
-#[error("typename doesn't start with a capital letter")]
-pub struct TypenameNotCapitalized {
+#[error("rule's name doesn't start with a capital letter")]
+pub struct RuleNameNotCapitalized {
     /// Offset of the first letter
     #[label("not a capital letter")]
     pub at: usize,
@@ -48,8 +48,8 @@ macro_rules! error_enum {
 
 error_enum!(
     Expected,
-    ExpectedTypename,
-    TypenameNotCapitalized,
+    ExpectedRuleName,
+    RuleNameNotCapitalized,
     CustomError
 );
 

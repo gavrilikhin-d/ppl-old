@@ -3,7 +3,7 @@ use std::sync::Arc;
 use serde_json::json;
 
 use crate::{
-    errors::{ExpectedTypename, TypenameNotCapitalized},
+    errors::{ExpectedRuleName, RuleNameNotCapitalized},
     parsers::ParseResult,
     Pattern, Rule,
 };
@@ -73,20 +73,20 @@ impl Default for Context {
                 .into(),
                 RuleWithAction {
                     rule: Arc::new(Rule {
-                        name: "Typename".to_string(),
+                        name: "RuleName".to_string(),
                         pattern: r"[a-zA-Z0-9_]+".into(),
                     }),
                     on_parsed: Some(|at, mut res, _| {
                         if res.has_errors() {
-                            res.tree.children = vec![ExpectedTypename { at: at.into() }.into()];
+                            res.tree.children = vec![ExpectedRuleName { at: at.into() }.into()];
                             return res;
                         }
 
-                        let typename = res.tree.tokens().next().unwrap();
-                        let first_char = typename.chars().next().unwrap();
+                        let rule_name = res.tree.tokens().next().unwrap();
+                        let first_char = rule_name.chars().next().unwrap();
                         if !first_char.is_ascii_uppercase() {
                             res.tree.children =
-                                vec![TypenameNotCapitalized { at: at.into() }.into()]
+                                vec![RuleNameNotCapitalized { at: at.into() }.into()]
                         }
 
                         res
@@ -95,7 +95,7 @@ impl Default for Context {
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "RuleReference".to_string(),
-                        pattern: Pattern::RuleReference("Typename".to_string()),
+                        pattern: Pattern::RuleReference("RuleName".to_string()),
                     }),
                     on_parsed: Some(|_at, mut res, _| {
                         if res.has_errors() {
@@ -117,7 +117,7 @@ impl Default for Context {
                     rule: Arc::new(Rule {
                         name: "Rule".to_string(),
                         pattern: vec![
-                            Pattern::RuleReference("Typename".to_string()),
+                            Pattern::RuleReference("RuleName".to_string()),
                             ":".into(),
                             Pattern::RuleReference("Pattern".to_string()),
                         ]
@@ -128,7 +128,7 @@ impl Default for Context {
                             return res;
                         }
                         res.ast = json!({
-                            "name": res.ast[0]["Typename"],
+                            "name": res.ast[0]["RuleName"],
                             "pattern": res.ast[2]["Pattern"]
                         });
                         let rule: Rule = serde_json::from_value(res.ast.clone()).unwrap();
@@ -148,37 +148,37 @@ mod test {
     use serde_json::json;
 
     use crate::{
-        errors::{ExpectedTypename, TypenameNotCapitalized},
+        errors::{ExpectedRuleName, RuleNameNotCapitalized},
         parsers::{ParseResult, Parser},
         Context, ParseTree, Rule,
     };
 
     #[test]
-    fn typename() {
+    fn rule_name() {
         let mut ctx = Context::default();
-        let typename = ctx.find_rule("Typename").unwrap();
-        assert_eq!(typename.name, "Typename");
+        let rule_name = ctx.find_rule("RuleName").unwrap();
+        assert_eq!(rule_name.name, "RuleName");
         assert_eq!(
-            typename.parse("Foo", &mut ctx),
+            rule_name.parse("Foo", &mut ctx),
             ParseResult {
                 delta: 3,
-                tree: ParseTree::named("Typename").with("Foo"),
+                tree: ParseTree::named("RuleName").with("Foo"),
                 ast: "Foo".into()
             }
         );
         assert_eq!(
-            typename.parse("foo", &mut ctx),
+            rule_name.parse("foo", &mut ctx),
             ParseResult {
                 delta: 3,
-                tree: ParseTree::named("Typename").with(TypenameNotCapitalized { at: 0 }),
+                tree: ParseTree::named("RuleName").with(RuleNameNotCapitalized { at: 0 }),
                 ast: "foo".into()
             }
         );
         assert_eq!(
-            typename.parse("", &mut ctx),
+            rule_name.parse("", &mut ctx),
             ParseResult {
                 delta: 0,
-                tree: ParseTree::named("Typename").with(ExpectedTypename { at: 0 }),
+                tree: ParseTree::named("RuleName").with(ExpectedRuleName { at: 0 }),
                 ast: json!(null)
             }
         );
@@ -194,8 +194,8 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("RuleReference")
-                    .with(ParseTree::named("Typename").with("Foo")),
-                ast: json!({"Typename": "Foo"})
+                    .with(ParseTree::named("RuleName").with("Foo")),
+                ast: json!({"RuleName": "Foo"})
             }
         );
         assert_eq!(
@@ -203,8 +203,8 @@ mod test {
             ParseResult {
                 delta: 0,
                 tree: ParseTree::named("RuleReference")
-                    .with(ParseTree::named("Typename").with(TypenameNotCapitalized { at: 0 })),
-                ast: json!({"Typename": "foo"})
+                    .with(ParseTree::named("RuleName").with(RuleNameNotCapitalized { at: 0 })),
+                ast: json!({"RuleName": "foo"})
             }
         );
     }
@@ -220,9 +220,9 @@ mod test {
                 delta: 3,
                 tree: ParseTree::named("Pattern").with(
                     ParseTree::named("RuleReference")
-                        .with(ParseTree::named("Typename").with("Foo"))
+                        .with(ParseTree::named("RuleName").with("Foo"))
                 ),
-                ast: json!({"RuleReference": {"Typename": "Foo"}})
+                ast: json!({"RuleReference": {"RuleName": "Foo"}})
             }
         );
         assert_eq!(
@@ -243,7 +243,7 @@ mod test {
 
         let tree_text = json!({
             "Rule": [
-                { "Typename": "Lol" },
+                { "RuleName": "Lol" },
                 ":",
                 {
                     "Pattern": {
