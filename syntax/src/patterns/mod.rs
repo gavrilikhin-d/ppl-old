@@ -20,8 +20,8 @@ pub enum Pattern {
     /// Reference to another rule
     #[from(ignore)]
     RuleReference(String),
-    /// Group of patterns
-    Group(Vec<Pattern>),
+    /// Sequence of patterns
+    Sequence(Vec<Pattern>),
     /// Regex
     Regex(String),
     /// Pattern alternatives
@@ -76,7 +76,7 @@ impl Parser for Pattern {
                 res.ast = json!({ name: res.ast });
                 res
             }
-            Pattern::Group(patterns) => {
+            Pattern::Sequence(patterns) => {
                 let mut delta = 0;
                 let mut tree = ParseTree::empty();
                 let mut asts = Vec::new();
@@ -173,9 +173,9 @@ mod test {
     }
 
     #[test]
-    fn group() {
+    fn sequence() {
         let mut context = Context::default();
-        let pattern = Pattern::Group(vec!["a".into(), "b".into()]);
+        let pattern = Pattern::Sequence(vec!["a".into(), "b".into()]);
         assert_eq!(
             pattern.parse("ab", &mut context),
             ParseResult {
