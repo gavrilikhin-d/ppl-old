@@ -6,6 +6,7 @@ pub use named::*;
 use regex::Regex;
 pub use repeat::*;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 use crate::{
     errors::Expected,
@@ -71,7 +72,9 @@ impl Parser for Pattern {
             }
             Pattern::RuleReference(name) => {
                 let rule = context.find_rule(name).expect("Rule not found");
-                rule.parse_at(source, at, context)
+                let mut res = rule.parse_at(source, at, context);
+                res.ast = json!({ name: res.ast });
+                res
             }
             Pattern::Group(patterns) => {
                 let mut delta = 0;

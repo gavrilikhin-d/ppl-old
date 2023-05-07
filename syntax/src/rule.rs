@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 use crate::{
     parsers::{ParseResult, Parser},
@@ -17,12 +16,8 @@ pub struct Rule {
 
 impl Parser for Rule {
     fn parse_at<'s>(&self, source: &'s str, at: usize, context: &mut Context) -> ParseResult<'s> {
-        let res = self.pattern.parse_at(source, at, context);
-        let res = ParseResult {
-            delta: res.delta,
-            tree: ParseTree::named(self.name.clone()).with(res.tree).flatten(),
-            ast: json!({ &self.name: res.ast }),
-        };
+        let mut res = self.pattern.parse_at(source, at, context);
+        res.tree = ParseTree::named(self.name.clone()).with(res.tree).flatten();
         if let Some(on_parsed) = context.on_parsed(&self.name) {
             on_parsed(at, res, context)
         } else {
@@ -33,10 +28,6 @@ impl Parser for Rule {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::json;
-
-    use crate::ParseTree;
-
     use super::*;
 
     #[test]
@@ -51,7 +42,7 @@ mod tests {
             ParseResult {
                 delta: 5,
                 tree: ParseTree::named("Test").with("Hello"),
-                ast: json!({"Test": "Hello"})
+                ast: "Hello".into()
             }
         );
     }
