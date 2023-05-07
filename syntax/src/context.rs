@@ -68,7 +68,7 @@ impl Default for Context {
             rules: vec![
                 Rule {
                     name: "Regex".to_string(),
-                    pattern: r".+".into(),
+                    pattern: r"[^\s]+".into(),
                 }
                 .into(),
                 RuleWithAction {
@@ -105,6 +105,20 @@ impl Default for Context {
                         res
                     }),
                 },
+                Rule {
+                    name: "AtomicPattern".to_string(),
+                    pattern: Pattern::Alternatives(vec![
+                        vec![
+                            regex::escape("(").into(),
+                            Pattern::RuleReference("AtomicPattern".to_string()),
+                            regex::escape(")").into(),
+                        ]
+                        .into(),
+                        Pattern::RuleReference("RuleReference".to_string()),
+                        Pattern::RuleReference("Regex".to_string()),
+                    ]),
+                }
+                .into(),
                 Rule {
                     name: "Pattern".to_string(),
                     pattern: Pattern::Alternatives(vec![
@@ -210,15 +224,15 @@ mod test {
     }
 
     #[test]
-    fn pattern() {
+    fn atomic_pattern() {
         let mut context = Context::default();
-        let r = context.find_rule("Pattern").unwrap();
-        assert_eq!(r.name, "Pattern");
+        let r = context.find_rule("AtomicPattern").unwrap();
+        assert_eq!(r.name, "AtomicPattern");
         assert_eq!(
             r.parse("Foo", &mut context),
             ParseResult {
                 delta: 3,
-                tree: ParseTree::named("Pattern").with(
+                tree: ParseTree::named("AtomicPattern").with(
                     ParseTree::named("RuleReference")
                         .with(ParseTree::named("RuleName").with("Foo"))
                 ),
@@ -229,8 +243,35 @@ mod test {
             r.parse("foo", &mut context),
             ParseResult {
                 delta: 3,
-                tree: ParseTree::named("Pattern").with(ParseTree::named("Regex").with("foo")),
+                tree: ParseTree::named("AtomicPattern").with(ParseTree::named("Regex").with("foo")),
                 ast: json!({"Regex": "foo"})
+            }
+        );
+
+        let tree_text = json!({
+            "AtomicPattern": [
+                "(",
+                {
+                    "AtomicPattern": {
+                        "Regex": {
+                            "value": "bar",
+                            "trivia": " "
+                        }
+                    },
+                },
+                {
+                    "value": ")",
+                    "trivia": " "
+                }
+            ]
+        })
+        .to_string();
+        assert_eq!(
+            r.parse("( bar )", &mut context),
+            ParseResult {
+                delta: 7,
+                tree: serde_json::from_str(&tree_text).unwrap(),
+                ast: json!(["(", {"AtomicPattern": {"Regex": "bar"}}, ")"])
             }
         );
     }

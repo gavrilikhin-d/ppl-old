@@ -82,9 +82,13 @@ impl Parser for Pattern {
                 let mut asts = Vec::new();
                 for pattern in patterns {
                     let result = pattern.parse_at(source, at + delta, context);
+                    let has_errors = result.has_errors();
                     delta += result.delta;
                     tree.push(result.tree);
                     asts.push(result.ast);
+                    if has_errors {
+                        break;
+                    }
                 }
 
                 ParseResult {
@@ -187,16 +191,13 @@ mod test {
         assert_eq!(
             pattern.parse("b", &mut context),
             ParseResult {
-                delta: 1,
-                tree: vec![
-                    ParseTreeNode::from(Expected {
-                        expected: "a".to_string(),
-                        at: 0
-                    }),
-                    "b".into()
-                ]
+                delta: 0,
+                tree: vec![ParseTreeNode::from(Expected {
+                    expected: "a".to_string(),
+                    at: 0
+                }),]
                 .into(),
-                ast: json!([null, "b"])
+                ast: json!(null)
             }
         );
         assert_eq!(
@@ -218,19 +219,12 @@ mod test {
             pattern.parse("", &mut context),
             ParseResult {
                 delta: 0,
-                tree: vec![
-                    ParseTreeNode::from(Expected {
-                        expected: "a".to_string(),
-                        at: 0
-                    }),
-                    Expected {
-                        expected: "b".to_string(),
-                        at: 0
-                    }
-                    .into()
-                ]
+                tree: vec![ParseTreeNode::from(Expected {
+                    expected: "a".to_string(),
+                    at: 0
+                })]
                 .into(),
-                ast: json!([null, null])
+                ast: json!(null)
             }
         )
     }
