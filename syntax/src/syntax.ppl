@@ -1,0 +1,8 @@
+Pattern: Alternatives | Sequence
+Alternatives: Sequence ('|' Sequence)+
+Sequence: Repeat+
+Repeat: AtomicPattern ('*' | '+' | '?')?
+AtomicPattern: '(' Pattern ')' | RuleReference | Regex
+RuleReference: RuleName
+RuleName: [a-zA-Z0-9_]+
+Regex: .+
