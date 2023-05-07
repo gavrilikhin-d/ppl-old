@@ -1,6 +1,8 @@
+mod named;
 mod repeat;
 
 use derive_more::From;
+pub use named::*;
 use regex::Regex;
 pub use repeat::*;
 use serde::{Deserialize, Serialize};
@@ -25,6 +27,9 @@ pub enum Pattern {
     /// Repeat pattern
     #[from]
     Repeat(Repeat),
+    /// Adds name to the ast of pattern
+    #[from]
+    Named(Named),
 }
 
 impl From<&str> for Pattern {
@@ -100,6 +105,7 @@ impl Parser for Pattern {
                 res
             }
             Pattern::Repeat(r) => r.parse_at(source, at, context),
+            Pattern::Named(n) => n.parse_at(source, at, context),
         }
     }
 }
@@ -111,6 +117,7 @@ mod test {
     use crate::{
         errors::Expected,
         parsers::{ParseResult, Parser},
+        patterns::Named,
         Context, ParseTree, ParseTreeNode, Pattern,
     };
 
@@ -237,5 +244,26 @@ mod test {
                 ast: json!({"Regex": "abc"})
             }
         )
+    }
+
+    #[test]
+    fn named() {
+        use crate::parsers::ParseResult;
+        use crate::Context;
+
+        let mut context = Context::default();
+        let pattern: Pattern = Named {
+            name: "name".to_string(),
+            pattern: Box::new("[A-z][a-z]*".into()),
+        }
+        .into();
+        assert_eq!(
+            pattern.parse("John", &mut context),
+            ParseResult {
+                delta: 4,
+                tree: "John".into(),
+                ast: json!({"name": "John"}),
+            }
+        );
     }
 }
