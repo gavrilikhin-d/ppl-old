@@ -115,7 +115,7 @@ impl Default for Context {
                         ]),
                     }),
                     on_parsed: Some(|_, mut res, _| {
-                        res.ast = res.ast["Pattern"].clone();
+                        res.ast = res.ast.get("Pattern").unwrap().clone();
                         res
                     }),
                 },
@@ -134,7 +134,13 @@ impl Default for Context {
                             return res;
                         }
 
-                        res.ast = res.ast["PatternInParentheses"][1].clone();
+                        res.ast = res
+                            .ast
+                            .get("PatternInParentheses")
+                            .unwrap()
+                            .get(1)
+                            .unwrap()
+                            .clone();
                         res
                     }),
                 },
@@ -152,10 +158,10 @@ impl Default for Context {
                         if res.has_errors() {
                             return res;
                         }
-                        res.ast = res.ast["Rule"].clone();
+                        res.ast = res.ast.get("Rule").unwrap().clone();
                         res.ast = json!({
-                            "name": res.ast[0]["RuleName"],
-                            "pattern": res.ast[2]
+                            "name": res.ast.get(0).unwrap().get("RuleName").unwrap(),
+                            "pattern": res.ast.get(2).unwrap()
                         });
                         let rule: Rule = serde_json::from_value(res.ast.clone()).unwrap();
                         context.add_rule(rule);
