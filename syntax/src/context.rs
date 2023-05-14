@@ -98,9 +98,11 @@ impl Default for Context {
                         pattern: Pattern::RuleReference("RuleName".to_string()),
                     }),
                     on_parsed: Some(|_at, mut res, _| {
+                        res.ast = json!({
+                            "RuleReference": res.ast.get("RuleReference").unwrap().get("RuleName").unwrap()
+                        });
                         if res.has_errors() {
                             res.delta = 0;
-                            return res;
                         }
                         res
                     }),
@@ -229,7 +231,7 @@ mod test {
                 delta: 3,
                 tree: ParseTree::named("RuleReference")
                     .with(ParseTree::named("RuleName").with("Foo")),
-                ast: json!({"RuleReference": {"RuleName": "Foo"}})
+                ast: json!({"RuleReference": "Foo"})
             }
         );
         assert_eq!(
@@ -238,7 +240,7 @@ mod test {
                 delta: 0,
                 tree: ParseTree::named("RuleReference")
                     .with(ParseTree::named("RuleName").with(RuleNameNotCapitalized { at: 0 })),
-                ast: json!({"RuleReference": {"RuleName": "foo"}})
+                ast: json!({"RuleReference": "foo"})
             }
         );
     }
@@ -257,9 +259,7 @@ mod test {
                         .with(ParseTree::named("RuleName").with("Foo"))
                 ),
                 ast: json!({
-                    "RuleReference": {
-                        "RuleName": "Foo"
-                    }
+                    "RuleReference": "Foo"
                 })
             }
         );
