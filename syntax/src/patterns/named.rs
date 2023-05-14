@@ -33,7 +33,7 @@ fn test_named() {
     let mut context = Context::default();
     let pattern = Named {
         name: "name".to_string(),
-        pattern: Box::new("[A-z][a-z]*".into()),
+        pattern: Box::new("/[A-z][a-z]*/".into()),
     };
     assert_eq!(
         pattern.parse("John", &mut context),

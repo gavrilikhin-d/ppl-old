@@ -39,7 +39,7 @@ mod tests {
         let mut context = Context::new();
         let rule = Rule {
             name: "Test".to_string(),
-            pattern: r"[^\s]+".into(),
+            pattern: r"/[^\s]+/".into(),
         };
         assert_eq!(
             rule.parse("Hello World", &mut context),

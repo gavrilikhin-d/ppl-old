@@ -21,7 +21,11 @@ pub enum Pattern {
     RuleReference(String),
     /// Sequence of patterns
     Sequence(Vec<Pattern>),
-    /// Regex
+    /// Match specific text
+    #[from(ignore)]
+    Text(String),
+    /// Regex expression
+    #[from(ignore)]
     Regex(String),
     /// Pattern alternatives
     #[from(ignore)]
@@ -34,13 +38,25 @@ pub enum Pattern {
 
 impl From<&str> for Pattern {
     fn from(s: &str) -> Self {
-        Pattern::Regex(s.to_string())
+        if s.len() > 1 && s.starts_with('/') && s.ends_with('/') {
+            return Pattern::Regex(s[1..s.len() - 1].to_string());
+        }
+        Pattern::Text(s.into())
+    }
+}
+
+impl From<String> for Pattern {
+    fn from(s: String) -> Self {
+        s.as_str().into()
     }
 }
 
 impl Parser for Pattern {
     fn parse_at<'s>(&self, source: &'s str, at: usize, context: &mut Context) -> ParseResult<'s> {
         match self {
+            Pattern::Text(text) => {
+                Pattern::Regex(regex::escape(text)).parse_at(source, at, context)
+            }
             Pattern::Regex(r) => {
                 // Find first not whitespace character
                 let trivia_size = source[at..]
@@ -128,9 +144,25 @@ mod test {
     };
 
     #[test]
+    fn text() {
+        let mut context = Context::default();
+        let pattern: Pattern = "()".into();
+        assert_eq!(pattern, Pattern::Text("()".into()));
+        assert_eq!(
+            pattern.parse("()", &mut context),
+            ParseResult {
+                delta: 2,
+                tree: "()".into(),
+                ast: json!("()")
+            }
+        );
+    }
+
+    #[test]
     fn regex() {
         let mut context = Context::default();
-        let pattern: Pattern = r"[^\s]+".into();
+        let pattern: Pattern = r"/[^\s]+/".into();
+        assert_eq!(pattern, Pattern::Regex(r"[^\s]+".into()));
         assert_eq!(
             pattern.parse("hello world", &mut context),
             ParseResult {
@@ -231,13 +263,13 @@ mod test {
     #[test]
     fn rule_ref() {
         let mut context = Context::default();
-        let pattern = Pattern::RuleReference("Regex".into());
+        let pattern = Pattern::RuleReference("Text".into());
         assert_eq!(
             pattern.parse("abc", &mut context),
             ParseResult {
                 delta: 3,
-                tree: ParseTree::named("Regex").with("abc"),
-                ast: json!({"Regex": "abc"})
+                tree: ParseTree::named("Text").with("abc"),
+                ast: json!({"Text": "abc"})
             }
         )
     }
@@ -250,7 +282,7 @@ mod test {
         let mut context = Context::default();
         let pattern: Pattern = Named {
             name: "name".to_string(),
-            pattern: Box::new("[A-z][a-z]*".into()),
+            pattern: Box::new("/[A-z][a-z]*/".into()),
         }
         .into();
         assert_eq!(

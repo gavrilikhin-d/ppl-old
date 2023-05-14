@@ -67,14 +67,14 @@ impl Default for Context {
         Context {
             rules: vec![
                 Rule {
-                    name: "Regex".to_string(),
-                    pattern: r"[^\s]+".into(),
+                    name: "Text".to_string(),
+                    pattern: r"/[^\s]+/".into(),
                 }
                 .into(),
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "RuleName".to_string(),
-                        pattern: r"[a-zA-Z0-9_]+".into(),
+                        pattern: r"/[a-zA-Z0-9_]+/".into(),
                     }),
                     on_parsed: Some(|at, mut res, _| {
                         if res.has_errors() {
@@ -113,7 +113,7 @@ impl Default for Context {
                         pattern: Pattern::Alternatives(vec![
                             Pattern::RuleReference("PatternInParentheses".to_string()),
                             Pattern::RuleReference("RuleReference".to_string()),
-                            Pattern::RuleReference("Regex".to_string()),
+                            Pattern::RuleReference("Text".to_string()),
                         ]),
                     }),
                     on_parsed: Some(|_, mut res, _| {
@@ -125,9 +125,9 @@ impl Default for Context {
                     rule: Arc::new(Rule {
                         name: "PatternInParentheses".to_string(),
                         pattern: vec![
-                            regex::escape("(").into(),
+                            "(".into(),
                             Pattern::RuleReference("Pattern".to_string()),
-                            regex::escape(")").into(),
+                            ")".into(),
                         ]
                         .into(),
                     }),
@@ -267,8 +267,8 @@ mod test {
             r.parse("foo", &mut context),
             ParseResult {
                 delta: 3,
-                tree: ParseTree::named("Pattern").with(ParseTree::named("Regex").with("foo")),
-                ast: json!({"Regex": "foo"})
+                tree: ParseTree::named("Pattern").with(ParseTree::named("Text").with("foo")),
+                ast: json!({"Text": "foo"})
             }
         );
 
@@ -278,7 +278,7 @@ mod test {
                     "(",
                     {
                         "Pattern": {
-                            "Regex": {
+                            "Text": {
                                 "value": "bar",
                                 "trivia": " "
                             }
@@ -297,7 +297,7 @@ mod test {
             ParseResult {
                 delta: 7,
                 tree: serde_json::from_str(&tree_text).unwrap(),
-                ast: json!({"Regex": "bar"})
+                ast: json!({"Text": "bar"})
             }
         );
     }
@@ -314,7 +314,7 @@ mod test {
                 ":",
                 {
                     "Pattern": {
-                        "Regex": {
+                        "Text": {
                             "value": "kek",
                             "trivia": " "
                         }
@@ -331,7 +331,7 @@ mod test {
                 ast: json!({
                     "name": "Lol",
                     "pattern": {
-                        "Regex": "kek"
+                        "Text": "kek"
                     }
                 })
             }
