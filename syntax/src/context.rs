@@ -129,7 +129,7 @@ impl Default for Context {
                             return res;
                         }
 
-                        res.ast = res.ast["PatternInParentheses"][1].clone();
+                        res.ast = res.ast["PatternInParentheses"][1]["Pattern"].clone();
                         res
                     }),
                 },
@@ -264,21 +264,23 @@ mod test {
         );
 
         let tree_text = json!({
-            "Pattern": [
-                "(",
-                {
-                    "Pattern": {
-                        "Regex": {
-                            "value": "bar",
-                            "trivia": " "
+            "Pattern": {
+                "PatternInParentheses": [
+                    "(",
+                    {
+                        "Pattern": {
+                            "Regex": {
+                                "value": "bar",
+                                "trivia": " "
+                            }
                         }
+                    },
+                    {
+                        "value": ")",
+                        "trivia": " "
                     }
-                },
-                {
-                    "value": ")",
-                    "trivia": " "
-                }
-            ]
+                ]
+            }
         })
         .to_string();
         assert_eq!(
@@ -287,11 +289,7 @@ mod test {
                 delta: 7,
                 tree: serde_json::from_str(&tree_text).unwrap(),
                 ast: json!({
-                    "Pattern": [
-                        "(",
-                        {"Pattern": {"Regex": "bar"}},
-                        ")"
-                    ]
+                    "Pattern": {"Regex": "bar"}
                 })
             }
         );
