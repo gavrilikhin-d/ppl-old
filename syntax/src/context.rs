@@ -5,12 +5,29 @@ use serde_json::json;
 use crate::{
     errors::{ExpectedRuleName, RuleNameNotCapitalized},
     parsers::ParseResult,
+    patterns::Repeat,
     Pattern, Rule,
 };
 
 /// Action to be executed after parsing
 pub type OnParsedAction =
     for<'s, 'c> fn(at: usize, res: ParseResult<'s>, context: &'c mut Context) -> ParseResult<'s>;
+
+/// Helper function to make a rule transparent
+fn transparent_ast() -> OnParsedAction {
+    |_, mut res, _| {
+        res.ast = res
+            .ast
+            .as_object()
+            .unwrap()
+            .iter()
+            .next()
+            .unwrap()
+            .1
+            .clone();
+        res
+    }
+}
 
 /// Rule with action to be executed after parsing
 pub struct RuleWithAction {
@@ -68,7 +85,7 @@ impl Default for Context {
             rules: vec![
                 Rule {
                     name: "Text".to_string(),
-                    pattern: r"/[^\s]+/".into(),
+                    pattern: r"/[^\s*+?()]+/".into(),
                 }
                 .into(),
                 Rule {
@@ -115,6 +132,49 @@ impl Default for Context {
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Pattern".to_string(),
+                        pattern: vec![
+                            Pattern::RuleReference("AtomicPattern".to_string()),
+                            Repeat::at_most_once(Pattern::Alternatives(
+                                vec!["?".into(), "+".into(), "*".into()].into(),
+                            ))
+                            .into(),
+                        ]
+                        .into(),
+                    }),
+                    on_parsed: Some(|at, mut res, context| {
+                        res = transparent_ast()(at, res, context);
+                        let pattern = res.ast.get(0).unwrap().clone();
+                        let op = res.ast.get(1).unwrap();
+                        if op.is_null() {
+                            res.ast = pattern;
+                            return res;
+                        }
+                        res.ast = match op.as_str().unwrap() {
+                            "?" => json!({
+                                "Repeat": {
+                                    "pattern": pattern,
+                                    "at_most": 1
+                                }
+                            }),
+                            "+" => json!({
+                                "Repeat": {
+                                    "pattern": pattern,
+                                    "at_least": 1,
+                                }
+                            }),
+                            "*" => json!({
+                                "Repeat": {
+                                    "pattern": pattern,
+                                }
+                            }),
+                            _ => unreachable!(),
+                        };
+                        res
+                    }),
+                },
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "AtomicPattern".to_string(),
                         pattern: Pattern::Alternatives(vec![
                             Pattern::RuleReference("PatternInParentheses".to_string()),
                             Pattern::RuleReference("RuleReference".to_string()),
@@ -122,10 +182,7 @@ impl Default for Context {
                             Pattern::RuleReference("Text".to_string()),
                         ]),
                     }),
-                    on_parsed: Some(|_, mut res, _| {
-                        res.ast = res.ast.get("Pattern").unwrap().clone();
-                        res
-                    }),
+                    on_parsed: transparent_ast().into(),
                 },
                 RuleWithAction {
                     rule: Arc::new(Rule {
@@ -250,51 +307,72 @@ mod test {
             }
         );
     }
-
     #[test]
-    fn pattern() {
+    fn atomic_pattern() {
         let mut context = Context::default();
-        let r = context.find_rule("Pattern").unwrap();
-        assert_eq!(r.name, "Pattern");
+        let r = context.find_rule("AtomicPattern").unwrap();
+        assert_eq!(r.name, "AtomicPattern");
+
+        let tree_text = json!({
+            "AtomicPattern": {
+                "RuleReference": {
+                    "RuleName": "Foo"
+                }
+            }
+        })
+        .to_string();
         assert_eq!(
             r.parse("Foo", &mut context),
             ParseResult {
                 delta: 3,
-                tree: ParseTree::named("Pattern").with(
-                    ParseTree::named("RuleReference")
-                        .with(ParseTree::named("RuleName").with("Foo"))
-                ),
+                tree: serde_json::from_str(&tree_text).unwrap(),
                 ast: json!({
                     "RuleReference": "Foo"
                 })
             }
         );
+
+        let tree_text = json!({
+            "AtomicPattern": {
+                "Text": "foo"
+            }
+        })
+        .to_string();
         assert_eq!(
             r.parse("foo", &mut context),
             ParseResult {
                 delta: 3,
-                tree: ParseTree::named("Pattern").with(ParseTree::named("Text").with("foo")),
+                tree: serde_json::from_str(&tree_text).unwrap(),
                 ast: json!({"Text": "foo"})
             }
         );
+
+        let tree_text = json!({
+            "AtomicPattern": {
+                "Regex": "/(xyz?)/"
+            }
+        })
+        .to_string();
         assert_eq!(
             r.parse("/(xyz?)/", &mut context),
             ParseResult {
                 delta: 8,
-                tree: ParseTree::named("Pattern").with(ParseTree::named("Regex").with("/(xyz?)/")),
+                tree: serde_json::from_str(&tree_text).unwrap(),
                 ast: json!({"Regex": "/(xyz?)/"})
             }
         );
 
         let tree_text = json!({
-            "Pattern": {
+            "AtomicPattern": {
                 "PatternInParentheses": [
                     "(",
                     {
                         "Pattern": {
-                            "Text": {
-                                "value": "bar",
-                                "trivia": " "
+                            "AtomicPattern": {
+                                "Text": {
+                                    "value": "bar",
+                                    "trivia": " "
+                                }
                             }
                         }
                     },
@@ -317,6 +395,104 @@ mod test {
     }
 
     #[test]
+    fn pattern() {
+        let mut context = Context::default();
+        let r = context.find_rule("Pattern").unwrap();
+        assert_eq!(r.name, "Pattern");
+
+        let tree_text = json!({
+            "Pattern": [
+                {
+                    "AtomicPattern": {
+                        "RuleReference": {
+                            "RuleName": "Foo"
+                        }
+                    }
+                },
+                "?"
+            ]
+        })
+        .to_string();
+        assert_eq!(
+            r.parse("Foo?", &mut context),
+            ParseResult {
+                delta: 4,
+                tree: serde_json::from_str(&tree_text).unwrap(),
+                ast: json!({
+                    "Repeat": {
+                        "pattern": {
+                            "RuleReference": "Foo"
+                        },
+                        "at_most": 1
+                    }
+                })
+            }
+        );
+
+        let tree_text = json!({
+            "Pattern": [
+                {
+                    "AtomicPattern": {
+                        "Text": "foo"
+                    }
+                },
+                "*"
+            ]
+        })
+        .to_string();
+        assert_eq!(
+            r.parse("foo*", &mut context),
+            ParseResult {
+                delta: 4,
+                tree: serde_json::from_str(&tree_text).unwrap(),
+                ast: json!({
+                    "Repeat": {
+                        "pattern": {
+                            "Text": "foo"
+                        },
+                    }
+                })
+            }
+        );
+
+        let tree_text = json!({
+            "Pattern": [
+                {
+                    "AtomicPattern": {
+                        "PatternInParentheses": [
+                            "(",
+                            {
+                                "Pattern": {
+                                    "AtomicPattern": {
+                                        "Text": "bar"
+                                    }
+                                }
+                            },
+                            ")"
+                        ]
+                    }
+                },
+                "+"
+
+            ]
+        })
+        .to_string();
+        assert_eq!(
+            r.parse("(bar)+", &mut context),
+            ParseResult {
+                delta: 6,
+                tree: serde_json::from_str(&tree_text).unwrap(),
+                ast: json!({
+                    "Repeat": {
+                        "pattern": {"Text": "bar"},
+                        "at_least": 1
+                    }
+                })
+            }
+        );
+    }
+
+    #[test]
     fn rule() {
         let mut context = Context::default();
         let r = context.find_rule("Rule").unwrap();
@@ -328,9 +504,11 @@ mod test {
                 ":",
                 {
                     "Pattern": {
-                        "Text": {
-                            "value": "kek",
-                            "trivia": " "
+                        "AtomicPattern": {
+                            "Text": {
+                                "value": "kek",
+                                "trivia": " "
+                            }
                         }
                     }
                 }
