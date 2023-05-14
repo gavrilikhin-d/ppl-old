@@ -71,6 +71,11 @@ impl Default for Context {
                     pattern: r"/[^\s]+/".into(),
                 }
                 .into(),
+                Rule {
+                    name: "Regex".to_string(),
+                    pattern: r"//[^\s]+//".into(),
+                }
+                .into(),
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "RuleName".to_string(),
@@ -113,6 +118,7 @@ impl Default for Context {
                         pattern: Pattern::Alternatives(vec![
                             Pattern::RuleReference("PatternInParentheses".to_string()),
                             Pattern::RuleReference("RuleReference".to_string()),
+                            Pattern::RuleReference("Regex".to_string()),
                             Pattern::RuleReference("Text".to_string()),
                         ]),
                     }),
@@ -269,6 +275,14 @@ mod test {
                 delta: 3,
                 tree: ParseTree::named("Pattern").with(ParseTree::named("Text").with("foo")),
                 ast: json!({"Text": "foo"})
+            }
+        );
+        assert_eq!(
+            r.parse("/(xyz?)/", &mut context),
+            ParseResult {
+                delta: 8,
+                tree: ParseTree::named("Pattern").with(ParseTree::named("Regex").with("/(xyz?)/")),
+                ast: json!({"Regex": "/(xyz?)/"})
             }
         );
 
