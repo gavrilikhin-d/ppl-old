@@ -118,6 +118,8 @@ impl Parser for Pattern {
 mod test {
     use serde_json::{json, Value};
 
+    use pretty_assertions::assert_eq;
+
     use crate::{
         errors::Expected,
         parsers::{ParseResult, Parser},

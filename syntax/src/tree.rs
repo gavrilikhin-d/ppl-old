@@ -376,6 +376,7 @@ impl<E: Into<Error>> From<E> for ParseTreeNode<'_> {
 
 #[cfg(test)]
 mod test {
+    use pretty_assertions::assert_eq;
     use serde_json::json;
 
     use crate::{errors::Expected, ParseTree, Token};

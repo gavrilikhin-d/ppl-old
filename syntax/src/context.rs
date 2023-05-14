@@ -108,17 +108,31 @@ impl Default for Context {
                 Rule {
                     name: "Pattern".to_string(),
                     pattern: Pattern::Alternatives(vec![
-                        vec![
-                            regex::escape("(").into(),
-                            Pattern::RuleReference("Pattern".to_string()),
-                            regex::escape(")").into(),
-                        ]
-                        .into(),
+                        Pattern::RuleReference("PatternInParentheses".to_string()),
                         Pattern::RuleReference("RuleReference".to_string()),
                         Pattern::RuleReference("Regex".to_string()),
                     ]),
                 }
                 .into(),
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "PatternInParentheses".to_string(),
+                        pattern: vec![
+                            regex::escape("(").into(),
+                            Pattern::RuleReference("Pattern".to_string()),
+                            regex::escape(")").into(),
+                        ]
+                        .into(),
+                    }),
+                    on_parsed: Some(|_at, mut res, _| {
+                        if res.has_errors() {
+                            return res;
+                        }
+
+                        res.ast = res.ast["PatternInParentheses"][1].clone();
+                        res
+                    }),
+                },
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Rule".to_string(),
@@ -151,6 +165,8 @@ impl Default for Context {
 #[cfg(test)]
 mod test {
     use std::sync::Arc;
+
+    use pretty_assertions::assert_eq;
 
     use serde_json::json;
 

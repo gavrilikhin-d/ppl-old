@@ -88,6 +88,7 @@ impl Parser for Repeat {
 
 #[cfg(test)]
 mod test {
+    use pretty_assertions::assert_eq;
     use serde_json::{json, Value};
 
     use crate::{

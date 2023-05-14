@@ -28,6 +28,7 @@ impl Parser for Named {
 fn test_named() {
     use crate::parsers::ParseResult;
     use crate::Context;
+    use pretty_assertions::assert_eq;
 
     let mut context = Context::default();
     let pattern = Named {

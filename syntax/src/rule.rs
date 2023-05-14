@@ -32,6 +32,8 @@ impl Parser for Rule {
 mod tests {
     use super::*;
 
+    use pretty_assertions::assert_eq;
+
     #[test]
     fn test_parse_rule() {
         let mut context = Context::new();
