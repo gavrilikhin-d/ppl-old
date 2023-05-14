@@ -14,13 +14,14 @@ pub struct Repeat {
     /// Pattern to repeat
     pub pattern: Box<Pattern>,
     /// Minimum number of repetitions
+    #[serde(default)]
     pub at_least: usize,
     /// Maximum number of repetitions
     pub at_most: Option<usize>,
 }
 
 impl Repeat {
-    /// Repeat pattern zero or more times (x*)
+    /// Repeat pattern zero or more times (`*`)
     pub fn zero_or_more(pattern: Pattern) -> Self {
         Self {
             pattern: Box::new(pattern),
@@ -29,7 +30,7 @@ impl Repeat {
         }
     }
 
-    /// Repeat pattern once or more times (x+)
+    /// Repeat pattern once or more times (`+`)
     pub fn once_or_more(pattern: Pattern) -> Self {
         Self {
             pattern: Box::new(pattern),
@@ -38,7 +39,7 @@ impl Repeat {
         }
     }
 
-    /// Repeat pattern at most once (x?)
+    /// Repeat pattern at most once (`?`)
     pub fn at_most_once(pattern: Pattern) -> Self {
         Self {
             pattern: Box::new(pattern),
