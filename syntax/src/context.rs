@@ -133,6 +133,7 @@ impl Default for Context {
                         if res.has_errors() {
                             return res;
                         }
+                        res.ast = res.ast["Rule"].clone();
                         res.ast = json!({
                             "name": res.ast[0]["RuleName"],
                             "pattern": res.ast[2]["Pattern"]
@@ -169,7 +170,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("RuleName").with("Foo"),
-                ast: "Foo".into()
+                ast: json!({"RuleName": "Foo"})
             }
         );
         assert_eq!(
@@ -177,7 +178,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("RuleName").with(RuleNameNotCapitalized { at: 0 }),
-                ast: "foo".into()
+                ast: json!({"RuleName": "foo"})
             }
         );
         assert_eq!(
@@ -185,7 +186,7 @@ mod test {
             ParseResult {
                 delta: 0,
                 tree: ParseTree::named("RuleName").with(ExpectedRuleName { at: 0 }),
-                ast: json!(null)
+                ast: json!({ "RuleName": null })
             }
         );
     }
@@ -201,7 +202,7 @@ mod test {
                 delta: 3,
                 tree: ParseTree::named("RuleReference")
                     .with(ParseTree::named("RuleName").with("Foo")),
-                ast: json!({"RuleName": "Foo"})
+                ast: json!({"RuleReference": {"RuleName": "Foo"}})
             }
         );
         assert_eq!(
@@ -210,7 +211,7 @@ mod test {
                 delta: 0,
                 tree: ParseTree::named("RuleReference")
                     .with(ParseTree::named("RuleName").with(RuleNameNotCapitalized { at: 0 })),
-                ast: json!({"RuleName": "foo"})
+                ast: json!({"RuleReference": {"RuleName": "foo"}})
             }
         );
     }
@@ -228,7 +229,13 @@ mod test {
                     ParseTree::named("RuleReference")
                         .with(ParseTree::named("RuleName").with("Foo"))
                 ),
-                ast: json!({"RuleReference": {"RuleName": "Foo"}})
+                ast: json!({
+                    "Pattern": {
+                        "RuleReference": {
+                            "RuleName": "Foo"
+                        }
+                    }
+                })
             }
         );
         assert_eq!(
@@ -236,7 +243,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Pattern").with(ParseTree::named("Regex").with("foo")),
-                ast: json!({"Regex": "foo"})
+                ast: json!({"Pattern": {"Regex": "foo"}})
             }
         );
 
@@ -263,7 +270,13 @@ mod test {
             ParseResult {
                 delta: 7,
                 tree: serde_json::from_str(&tree_text).unwrap(),
-                ast: json!(["(", {"Pattern": {"Regex": "bar"}}, ")"])
+                ast: json!({
+                    "Pattern": [
+                        "(",
+                        {"Pattern": {"Regex": "bar"}},
+                        ")"
+                    ]
+                })
             }
         );
     }
