@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 use crate::{
     parsers::{ParseResult, Parser},
@@ -79,6 +80,8 @@ impl Parser for Repeat {
             tree: tree.flatten(),
             ast: if asts.len() == 1 {
                 asts.into_iter().next().unwrap()
+            } else if asts.len() == 0 && self.at_most == Some(1) {
+                json!(null)
             } else {
                 asts.into()
             },
@@ -89,7 +92,7 @@ impl Parser for Repeat {
 #[cfg(test)]
 mod test {
     use pretty_assertions::assert_eq;
-    use serde_json::{json, Value};
+    use serde_json::json;
 
     use crate::{
         errors::Expected,
@@ -105,7 +108,7 @@ mod test {
         let pattern = Repeat::at_most_once("a".into());
         assert_eq!(
             pattern.parse("", &mut context),
-            ParseResult::empty().with_ast(json!([]))
+            ParseResult::empty().with_ast(json!(null))
         );
         assert_eq!(
             pattern.parse("a", &mut context),
@@ -164,7 +167,7 @@ mod test {
                     at: 0
                 }
                 .into(),
-                ast: Value::Null
+                ast: json!(null)
             }
         );
         assert_eq!(
