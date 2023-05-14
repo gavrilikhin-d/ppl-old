@@ -2,8 +2,9 @@ Pattern: Alternatives | Sequence
 Alternatives: Sequence ('|' Sequence)+
 Sequence: Repeat+
 Repeat: AtomicPattern ('*' | '+' | '?')?
-AtomicPattern: PatternInParentheses | RuleReference | Regex
+AtomicPattern: PatternInParentheses | RuleReference | Regex | Text
 PatternInParentheses: '(' Pattern ')'
 RuleReference: RuleName
 RuleName: [a-zA-Z0-9_]+
-Regex: [^\s]+
+Regex: /[^\s/]+/
+Text: [^\s]+
