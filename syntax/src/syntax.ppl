@@ -5,6 +5,6 @@ Repeat: AtomicPattern ('*' | '+' | '?')?
 AtomicPattern: PatternInParentheses | RuleReference | Regex | Text
 PatternInParentheses: '(' Pattern ')'
 RuleReference: RuleName
-RuleName: [a-zA-Z0-9_]+
+RuleName: /[a-zA-Z0-9_]+/
 Regex: /[^\s/]+/
-Text: [^\s]+
+Text: /[^\s*+?()]+/
