@@ -105,15 +105,20 @@ impl Default for Context {
                         res
                     }),
                 },
-                Rule {
-                    name: "Pattern".to_string(),
-                    pattern: Pattern::Alternatives(vec![
-                        Pattern::RuleReference("PatternInParentheses".to_string()),
-                        Pattern::RuleReference("RuleReference".to_string()),
-                        Pattern::RuleReference("Regex".to_string()),
-                    ]),
-                }
-                .into(),
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "Pattern".to_string(),
+                        pattern: Pattern::Alternatives(vec![
+                            Pattern::RuleReference("PatternInParentheses".to_string()),
+                            Pattern::RuleReference("RuleReference".to_string()),
+                            Pattern::RuleReference("Regex".to_string()),
+                        ]),
+                    }),
+                    on_parsed: Some(|_, mut res, _| {
+                        res.ast = res.ast["Pattern"].clone();
+                        res
+                    }),
+                },
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "PatternInParentheses".to_string(),
@@ -129,7 +134,7 @@ impl Default for Context {
                             return res;
                         }
 
-                        res.ast = res.ast["PatternInParentheses"][1]["Pattern"].clone();
+                        res.ast = res.ast["PatternInParentheses"][1].clone();
                         res
                     }),
                 },
@@ -150,7 +155,7 @@ impl Default for Context {
                         res.ast = res.ast["Rule"].clone();
                         res.ast = json!({
                             "name": res.ast[0]["RuleName"],
-                            "pattern": res.ast[2]["Pattern"]
+                            "pattern": res.ast[2]
                         });
                         let rule: Rule = serde_json::from_value(res.ast.clone()).unwrap();
                         context.add_rule(rule);
@@ -246,10 +251,8 @@ mod test {
                         .with(ParseTree::named("RuleName").with("Foo"))
                 ),
                 ast: json!({
-                    "Pattern": {
-                        "RuleReference": {
-                            "RuleName": "Foo"
-                        }
+                    "RuleReference": {
+                        "RuleName": "Foo"
                     }
                 })
             }
@@ -259,7 +262,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Pattern").with(ParseTree::named("Regex").with("foo")),
-                ast: json!({"Pattern": {"Regex": "foo"}})
+                ast: json!({"Regex": "foo"})
             }
         );
 
@@ -288,9 +291,7 @@ mod test {
             ParseResult {
                 delta: 7,
                 tree: serde_json::from_str(&tree_text).unwrap(),
-                ast: json!({
-                    "Pattern": {"Regex": "bar"}
-                })
+                ast: json!({"Regex": "bar"})
             }
         );
     }
