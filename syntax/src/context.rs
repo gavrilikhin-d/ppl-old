@@ -132,6 +132,21 @@ impl Default for Context {
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Pattern".to_string(),
+                        pattern: Pattern::RuleReference("Sequence".to_string()),
+                    }),
+                    on_parsed: transparent_ast().into(),
+                },
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "Sequence".to_string(),
+                        pattern: Repeat::once_or_more(Pattern::RuleReference("Repeat".to_string()))
+                            .into(),
+                    }),
+                    on_parsed: transparent_ast().into(),
+                },
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "Repeat".to_string(),
                         pattern: vec![
                             Pattern::RuleReference("AtomicPattern".to_string()),
                             Repeat::at_most_once(Pattern::Alternatives(
@@ -143,6 +158,10 @@ impl Default for Context {
                     }),
                     on_parsed: Some(|at, mut res, context| {
                         res = transparent_ast()(at, res, context);
+                        if !res.ast.is_array() {
+                            return res;
+                        }
+
                         let pattern = res.ast.get(0).unwrap().clone();
                         let op = res.ast.get(1).unwrap();
                         if op.is_null() {
@@ -368,10 +387,14 @@ mod test {
                     "(",
                     {
                         "Pattern": {
-                            "AtomicPattern": {
-                                "Text": {
-                                    "value": "bar",
-                                    "trivia": " "
+                            "Sequence": {
+                                "Repeat": {
+                                    "AtomicPattern": {
+                                        "Text": {
+                                            "value": "bar",
+                                            "trivia": " "
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -395,22 +418,81 @@ mod test {
     }
 
     #[test]
+    fn sequence() {
+        let mut context = Context::default();
+        let r = context.find_rule("Sequence").unwrap();
+        assert_eq!(r.name, "Sequence");
+
+        let tree_text = json!({
+            "Sequence": [
+                {
+                    "Repeat": {
+                        "AtomicPattern": {
+                            "RuleReference": {
+                                "RuleName": "Foo"
+                            }
+                        }
+                    }
+                },
+                {
+                    "Repeat": [
+                        {
+                            "AtomicPattern": {
+                                "Text": {
+                                    "value": "bar",
+                                    "trivia": " "
+                                }
+                            }
+                        },
+                        "?"
+                    ]
+                }
+            ]
+        })
+        .to_string();
+        assert_eq!(
+            r.parse("Foo bar?", &mut context),
+            ParseResult {
+                delta: 8,
+                tree: serde_json::from_str(&tree_text).unwrap(),
+                ast: json!([
+                {
+                    "RuleReference": "Foo"
+                },
+                {
+                    "Repeat": {
+                        "pattern": {
+                            "Text": "bar"
+                        },
+                        "at_most": 1
+                    }
+                }])
+            }
+        )
+    }
+
+    #[test]
     fn pattern() {
         let mut context = Context::default();
         let r = context.find_rule("Pattern").unwrap();
         assert_eq!(r.name, "Pattern");
 
         let tree_text = json!({
-            "Pattern": [
+            "Pattern":
                 {
-                    "AtomicPattern": {
-                        "RuleReference": {
-                            "RuleName": "Foo"
-                        }
+                    "Sequence": {
+                        "Repeat": [
+                            {
+                                "AtomicPattern": {
+                                    "RuleReference": {
+                                        "RuleName": "Foo"
+                                    }
+                                }
+                            },
+                            "?"
+                        ]
                     }
                 },
-                "?"
-            ]
         })
         .to_string();
         assert_eq!(
@@ -430,14 +512,18 @@ mod test {
         );
 
         let tree_text = json!({
-            "Pattern": [
-                {
-                    "AtomicPattern": {
-                        "Text": "foo"
-                    }
-                },
-                "*"
-            ]
+            "Pattern": {
+                "Sequence": {
+                    "Repeat": [
+                        {
+                            "AtomicPattern": {
+                                "Text": "foo"
+                            }
+                        },
+                        "*"
+                    ]
+                }
+            }
         })
         .to_string();
         assert_eq!(
@@ -456,25 +542,32 @@ mod test {
         );
 
         let tree_text = json!({
-            "Pattern": [
-                {
-                    "AtomicPattern": {
-                        "PatternInParentheses": [
-                            "(",
-                            {
-                                "Pattern": {
-                                    "AtomicPattern": {
-                                        "Text": "bar"
-                                    }
-                                }
-                            },
-                            ")"
-                        ]
-                    }
-                },
-                "+"
-
-            ]
+            "Pattern": {
+                "Sequence": {
+                    "Repeat": [
+                        {
+                            "AtomicPattern": {
+                                "PatternInParentheses": [
+                                    "(",
+                                    {
+                                        "Pattern": {
+                                            "Sequence": {
+                                                "Repeat": {
+                                                    "AtomicPattern": {
+                                                        "Text": "bar"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    ")"
+                                ]
+                            }
+                        },
+                        "+"
+                    ]
+                }
+            }
         })
         .to_string();
         assert_eq!(
@@ -504,10 +597,14 @@ mod test {
                 ":",
                 {
                     "Pattern": {
-                        "AtomicPattern": {
-                            "Text": {
-                                "value": "kek",
-                                "trivia": " "
+                        "Sequence": {
+                            "Repeat": {
+                                "AtomicPattern": {
+                                    "Text": {
+                                        "value": "kek",
+                                        "trivia": " "
+                                    }
+                                }
                             }
                         }
                     }
