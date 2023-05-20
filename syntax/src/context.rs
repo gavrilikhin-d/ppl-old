@@ -83,11 +83,13 @@ impl Default for Context {
     fn default() -> Self {
         Context {
             rules: vec![
-                Rule {
-                    name: "Text".to_string(),
-                    pattern: r"/[^\s*+?()]+/".into(),
-                }
-                .into(),
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "Text".to_string(),
+                        pattern: r"/[^\s*+?()]+/".into(),
+                    }),
+                    on_parsed: transparent_ast().into(),
+                },
                 Rule {
                     name: "Regex".to_string(),
                     pattern: r"//[^\s]+//".into(),
@@ -362,7 +364,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: serde_json::from_str(&tree_text).unwrap(),
-                ast: json!({"Text": "foo"})
+                ast: json!("foo")
             }
         );
 
@@ -412,7 +414,7 @@ mod test {
             ParseResult {
                 delta: 7,
                 tree: serde_json::from_str(&tree_text).unwrap(),
-                ast: json!({"Text": "bar"})
+                ast: json!("bar")
             }
         );
     }
@@ -461,9 +463,7 @@ mod test {
                 },
                 {
                     "Repeat": {
-                        "pattern": {
-                            "Text": "bar"
-                        },
+                        "pattern": "bar",
                         "at_most": 1
                     }
                 }])
@@ -533,9 +533,7 @@ mod test {
                 tree: serde_json::from_str(&tree_text).unwrap(),
                 ast: json!({
                     "Repeat": {
-                        "pattern": {
-                            "Text": "foo"
-                        },
+                        "pattern": "foo"
                     }
                 })
             }
@@ -577,7 +575,7 @@ mod test {
                 tree: serde_json::from_str(&tree_text).unwrap(),
                 ast: json!({
                     "Repeat": {
-                        "pattern": {"Text": "bar"},
+                        "pattern": "bar",
                         "at_least": 1
                     }
                 })
@@ -619,9 +617,7 @@ mod test {
                 tree: serde_json::from_str(&tree_text).unwrap(),
                 ast: json!({
                     "name": "Lol",
-                    "pattern": {
-                        "Text": "kek"
-                    }
+                    "pattern": "kek"
                 })
             }
         );

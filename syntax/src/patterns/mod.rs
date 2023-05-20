@@ -14,7 +14,7 @@ use crate::{
 };
 
 /// Possible patterns
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone, From)]
+#[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum Pattern {
     /// Reference to another rule
     #[from(ignore)]
@@ -34,6 +34,130 @@ pub enum Pattern {
     Repeat(Repeat),
     /// Adds name to the ast of pattern
     Named(Named),
+}
+
+impl Serialize for Pattern {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        PatternDTO::from(self.clone()).serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Pattern {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let dto = PatternDTO::deserialize(deserializer)?;
+        Ok(dto.into())
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+struct RepeatDTO {
+    pub pattern: Box<PatternDTO>,
+    #[serde(default)]
+    pub at_least: usize,
+    pub at_most: Option<usize>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct NamedDTO {
+    pub name: String,
+    pub pattern: Box<PatternDTO>,
+}
+
+#[derive(Serialize, Deserialize, From)]
+#[serde(untagged)]
+enum PatternDTO {
+    Text(String),
+    Sequence(Vec<PatternDTO>),
+
+    Tagged(PatternTaggedDTO),
+}
+
+#[derive(Serialize, Deserialize)]
+enum PatternTaggedDTO {
+    RuleReference(String),
+    Regex(String),
+    Alternatives(Vec<PatternDTO>),
+    Repeat(RepeatDTO),
+    Named(NamedDTO),
+}
+
+impl From<Pattern> for PatternDTO {
+    fn from(value: Pattern) -> Self {
+        match value {
+            Pattern::Text(t) => PatternDTO::Text(t),
+            Pattern::Sequence(s) => PatternDTO::Sequence(s.into_iter().map(|p| p.into()).collect()),
+
+            Pattern::Regex(r) => PatternTaggedDTO::Regex(r).into(),
+            Pattern::RuleReference(r) => PatternTaggedDTO::RuleReference(r).into(),
+            Pattern::Named(Named { name, pattern }) => PatternTaggedDTO::Named(NamedDTO {
+                name,
+                pattern: Box::new(pattern.as_ref().clone().into()),
+            })
+            .into(),
+            Pattern::Repeat(Repeat {
+                pattern,
+                at_least,
+                at_most,
+            }) => PatternTaggedDTO::Repeat(RepeatDTO {
+                pattern: Box::new(pattern.as_ref().clone().into()),
+                at_least,
+                at_most,
+            })
+            .into(),
+            Pattern::Alternatives(alts) => {
+                PatternTaggedDTO::Alternatives(alts.into_iter().map(|a| a.into()).collect()).into()
+            }
+        }
+    }
+}
+
+impl From<PatternDTO> for Pattern {
+    fn from(value: PatternDTO) -> Self {
+        match value {
+            PatternDTO::Text(t) => Pattern::Text(t),
+            PatternDTO::Sequence(s) => Pattern::Sequence(s.into_iter().map(|p| p.into()).collect()),
+            PatternDTO::Tagged(t) => t.into(),
+        }
+    }
+}
+
+impl From<PatternTaggedDTO> for Pattern {
+    fn from(value: PatternTaggedDTO) -> Self {
+        match value {
+            PatternTaggedDTO::Regex(r) => Pattern::Regex(r),
+            PatternTaggedDTO::RuleReference(r) => Pattern::RuleReference(r),
+            PatternTaggedDTO::Alternatives(alts) => {
+                Pattern::Alternatives(alts.into_iter().map(|p| p.into()).collect())
+            }
+            PatternTaggedDTO::Repeat(r) => Repeat::from(r).into(),
+            PatternTaggedDTO::Named(n) => Named::from(n).into(),
+        }
+    }
+}
+
+impl From<RepeatDTO> for Repeat {
+    fn from(value: RepeatDTO) -> Self {
+        Self {
+            pattern: Box::new(Box::into_inner(value.pattern).into()),
+            at_least: value.at_least,
+            at_most: value.at_most,
+        }
+    }
+}
+
+impl From<NamedDTO> for Named {
+    fn from(value: NamedDTO) -> Self {
+        Self {
+            name: value.name,
+            pattern: Box::new(Box::into_inner(value.pattern).into()),
+        }
+    }
 }
 
 impl From<&str> for Pattern {
@@ -269,7 +393,7 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("Text").with("abc"),
-                ast: json!({"Text": "abc"})
+                ast: json!("abc")
             }
         )
     }

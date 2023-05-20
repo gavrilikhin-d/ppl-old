@@ -30,8 +30,6 @@ impl Parser for Rule {
 
 #[cfg(test)]
 mod tests {
-    use crate::Token;
-
     use super::*;
 
     use pretty_assertions::assert_eq;
