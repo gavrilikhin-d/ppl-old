@@ -3,6 +3,8 @@ use std::io::Write;
 use syntax::{parsers::Parser, Context};
 
 fn main() {
+    miette::set_panic_hook();
+
     let mut context = Context::default();
     loop {
         print!(">>> ");
