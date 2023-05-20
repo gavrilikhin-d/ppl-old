@@ -2,4 +2,5 @@
 * [ ] Only include content between `/.../` in regex ast
 * [ ] Strings in `""` and `''`
 * [ ] Alternatives
-* [ ] Sequences
+* [x] Sequence
+* [ ] Remove parse tree
