@@ -30,6 +30,8 @@ impl Parser for Rule {
 
 #[cfg(test)]
 mod tests {
+    use crate::Token;
+
     use super::*;
 
     use pretty_assertions::assert_eq;
@@ -47,6 +49,60 @@ mod tests {
                 delta: 5,
                 tree: ParseTree::named("Test").with("Hello"),
                 ast: json!({"Test": "Hello"})
+            }
+        );
+    }
+
+    #[test]
+    fn test_deserialize_rule() {
+        let mut context = Context::default();
+        let rule = context.find_rule("Rule").unwrap();
+        assert_eq!(rule.name, "Rule");
+
+        let tree_text = json!({
+            "Rule": [
+                { "RuleName": "X" },
+                ":",
+                {
+                    "Pattern": {
+                        "Sequence": [
+                            {
+                                "Repeat": {
+                                    "AtomicPattern": {
+                                        "Text": {
+                                            "trivia": " ",
+                                            "value": "a",
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "Repeat": {
+                                    "AtomicPattern": {
+                                        "Text": {
+                                            "trivia": " ",
+                                            "value": "b",
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        })
+        .to_string();
+        assert_eq!(
+            rule.parse("X: a b", &mut context),
+            ParseResult {
+                delta: 6,
+                tree: serde_json::from_str(&tree_text).unwrap(),
+                ast: json!(
+                    {
+                        "name": "X",
+                        "pattern": ["a", "b"]
+                    }
+                )
             }
         );
     }
