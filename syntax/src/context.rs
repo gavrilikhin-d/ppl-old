@@ -86,7 +86,7 @@ impl Default for Context {
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Text".to_string(),
-                        pattern: r"/[^\s*+?()]+/".into(),
+                        pattern: r"/[^\s*+?()|]+/".into(),
                     }),
                     on_parsed: transparent_ast().into(),
                 },
@@ -136,9 +136,53 @@ impl Default for Context {
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Pattern".to_string(),
-                        pattern: Pattern::RuleReference("Sequence".to_string()),
+                        pattern: Pattern::RuleReference("Alternatives".to_string()),
                     }),
                     on_parsed: transparent_ast().into(),
+                },
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "Alternatives".to_string(),
+                        pattern: vec![
+                            Pattern::RuleReference("Sequence".to_string()),
+                            Repeat::zero_or_more(
+                                vec!["|".into(), Pattern::RuleReference("Sequence".to_string())]
+                                    .into(),
+                            )
+                            .into(),
+                        ]
+                        .into(),
+                    }),
+                    on_parsed: Some(|at, mut res, context| {
+                        res = transparent_ast()(at, res, context);
+                        if res.has_errors() {
+                            return res;
+                        }
+
+                        if !res.ast.is_array() {
+                            return res;
+                        }
+
+                        let mut alts = Vec::new();
+                        alts.push(res.ast.get(0).unwrap());
+
+                        let arr = res.ast.get(1).unwrap().as_array().unwrap();
+                        if arr.len() == 0 {
+                            res.ast = alts[0].clone();
+                            return res;
+                        }
+
+                        if arr.get(0).unwrap() == "|" {
+                            alts.push(arr.get(1).unwrap());
+                        } else {
+                            for x in arr {
+                                alts.push(x.get(1).unwrap());
+                            }
+                        }
+
+                        res.ast = json!({ "Alternatives": alts });
+                        res
+                    }),
                 },
                 RuleWithAction {
                     rule: Arc::new(Rule {
@@ -391,12 +435,14 @@ mod test {
                     "(",
                     {
                         "Pattern": {
-                            "Sequence": {
-                                "Repeat": {
-                                    "AtomicPattern": {
-                                        "Text": {
-                                            "value": "bar",
-                                            "trivia": " "
+                            "Alternatives": {
+                                "Sequence": {
+                                    "Repeat": {
+                                        "AtomicPattern": {
+                                            "Text": {
+                                                "value": "bar",
+                                                "trivia": " "
+                                            }
                                         }
                                     }
                                 }
@@ -474,14 +520,42 @@ mod test {
     }
 
     #[test]
+    fn alternatives() {
+        let mut context = Context::default();
+        let r = context.find_rule("Alternatives").unwrap();
+        assert_eq!(r.name, "Alternatives");
+
+        assert_eq!(
+            r.parse("a | b", &mut context).ast,
+            json!({
+                "Alternatives": [
+                    "a",
+                    "b"
+                ]
+            })
+        );
+
+        assert_eq!(r.parse("a", &mut context).ast, json!("a"));
+
+        assert_eq!(
+            r.parse("a b | c d | e", &mut context).ast,
+            json!({"Alternatives": [
+                ["a", "b"],
+                ["c", "d"],
+                "e"
+            ]})
+        )
+    }
+
+    #[test]
     fn pattern() {
         let mut context = Context::default();
         let r = context.find_rule("Pattern").unwrap();
         assert_eq!(r.name, "Pattern");
 
         let tree_text = json!({
-            "Pattern":
-                {
+            "Pattern": {
+                "Alternatives": {
                     "Sequence": {
                         "Repeat": [
                             {
@@ -494,7 +568,8 @@ mod test {
                             "?"
                         ]
                     }
-                },
+                }
+            },
         })
         .to_string();
         assert_eq!(
@@ -515,15 +590,17 @@ mod test {
 
         let tree_text = json!({
             "Pattern": {
-                "Sequence": {
-                    "Repeat": [
-                        {
-                            "AtomicPattern": {
-                                "Text": "foo"
-                            }
-                        },
-                        "*"
-                    ]
+                "Alternatives": {
+                    "Sequence": {
+                        "Repeat": [
+                            {
+                                "AtomicPattern": {
+                                    "Text": "foo"
+                                }
+                            },
+                            "*"
+                        ]
+                    }
                 }
             }
         })
@@ -543,29 +620,33 @@ mod test {
 
         let tree_text = json!({
             "Pattern": {
-                "Sequence": {
-                    "Repeat": [
-                        {
-                            "AtomicPattern": {
-                                "PatternInParentheses": [
-                                    "(",
-                                    {
-                                        "Pattern": {
-                                            "Sequence": {
-                                                "Repeat": {
-                                                    "AtomicPattern": {
-                                                        "Text": "bar"
+                "Alternatives": {
+                    "Sequence": {
+                        "Repeat": [
+                            {
+                                "AtomicPattern": {
+                                    "PatternInParentheses": [
+                                        "(",
+                                        {
+                                            "Pattern": {
+                                                "Alternatives": {
+                                                    "Sequence": {
+                                                        "Repeat": {
+                                                            "AtomicPattern": {
+                                                                "Text": "bar"
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
-                                    },
-                                    ")"
-                                ]
-                            }
-                        },
-                        "+"
-                    ]
+                                        },
+                                        ")"
+                                    ]
+                                }
+                            },
+                            "+"
+                        ]
+                    }
                 }
             }
         })
@@ -597,12 +678,14 @@ mod test {
                 ":",
                 {
                     "Pattern": {
-                        "Sequence": {
-                            "Repeat": {
-                                "AtomicPattern": {
-                                    "Text": {
-                                        "value": "kek",
-                                        "trivia": " "
+                        "Alternatives": {
+                            "Sequence": {
+                                "Repeat": {
+                                    "AtomicPattern": {
+                                        "Text": {
+                                            "value": "kek",
+                                            "trivia": " "
+                                        }
                                     }
                                 }
                             }

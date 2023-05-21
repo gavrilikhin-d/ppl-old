@@ -63,28 +63,30 @@ mod tests {
                 ":",
                 {
                     "Pattern": {
-                        "Sequence": [
-                            {
-                                "Repeat": {
-                                    "AtomicPattern": {
-                                        "Text": {
-                                            "trivia": " ",
-                                            "value": "a",
+                        "Alternatives": {
+                            "Sequence": [
+                                {
+                                    "Repeat": {
+                                        "AtomicPattern": {
+                                            "Text": {
+                                                "trivia": " ",
+                                                "value": "a",
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "Repeat": {
+                                        "AtomicPattern": {
+                                            "Text": {
+                                                "trivia": " ",
+                                                "value": "b",
+                                            }
                                         }
                                     }
                                 }
-                            },
-                            {
-                                "Repeat": {
-                                    "AtomicPattern": {
-                                        "Text": {
-                                            "trivia": " ",
-                                            "value": "b",
-                                        }
-                                    }
-                                }
-                            }
-                        ]
+                            ]
+                        }
                     }
                 }
             ]
@@ -121,18 +123,20 @@ mod tests {
                 ":",
                 {
                     "Pattern": {
-                        "Sequence": [
-                            {
-                                "Repeat": {
-                                    "AtomicPattern": {
-                                        "Regex": {
-                                            "trivia": " ",
-                                            "value": "/ab?c/",
+                        "Alternatives": {
+                            "Sequence": [
+                                {
+                                    "Repeat": {
+                                        "AtomicPattern": {
+                                            "Regex": {
+                                                "trivia": " ",
+                                                "value": "/ab?c/",
+                                            }
                                         }
                                     }
-                                }
-                            },
-                        ]
+                                },
+                            ]
+                        }
                     }
                 }
             ]
