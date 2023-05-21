@@ -14,19 +14,36 @@ pub type OnParsedAction =
     for<'s, 'c> fn(at: usize, res: ParseResult<'s>, context: &'c mut Context) -> ParseResult<'s>;
 
 /// Helper function to make a rule transparent
-fn transparent_ast() -> OnParsedAction {
-    |_, mut res, _| {
-        res.ast = res
-            .ast
-            .as_object()
-            .unwrap()
-            .iter()
-            .next()
-            .unwrap()
-            .1
-            .clone();
-        res
+fn transparent_ast<'s>(
+    _at: usize,
+    mut res: ParseResult<'s>,
+    _context: &mut Context,
+) -> ParseResult<'s> {
+    res.ast = res
+        .ast
+        .as_object()
+        .unwrap()
+        .iter()
+        .next()
+        .unwrap()
+        .1
+        .clone();
+    res
+}
+
+/// Helper function to make a rule transparent and remove quotes
+fn without_quotes<'s>(
+    at: usize,
+    mut res: ParseResult<'s>,
+    context: &mut Context,
+) -> ParseResult<'s> {
+    res = transparent_ast(at, res, context);
+    if res.has_errors() {
+        return res;
     }
+    let s = res.ast.as_str().unwrap();
+    res.ast = json!(s[1..s.len() - 1]);
+    res
 }
 
 /// Rule with action to be executed after parsing
@@ -85,17 +102,35 @@ impl Default for Context {
             rules: vec![
                 RuleWithAction {
                     rule: Arc::new(Rule {
-                        name: "Text".to_string(),
-                        pattern: r"/[^\s*+?()|]+/".into(),
+                        name: "Char".to_string(),
+                        pattern: r"/'.'/".into(),
                     }),
-                    on_parsed: transparent_ast().into(),
+                    on_parsed: Some(without_quotes),
+                },
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "String".to_string(),
+                        pattern: "/\"([^\"\\\\]|\\.)*\"/".into(),
+                    }),
+                    on_parsed: Some(without_quotes),
+                },
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "Text".to_string(),
+                        pattern: Pattern::Alternatives(vec![
+                            Pattern::RuleReference("Char".to_string()),
+                            Pattern::RuleReference("String".to_string()),
+                            r"/[^\s*+?()|]+/".into(),
+                        ]),
+                    }),
+                    on_parsed: Some(transparent_ast),
                 },
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Regex".to_string(),
                         pattern: r"//[^/]+//".into(),
                     }),
-                    on_parsed: transparent_ast().into(),
+                    on_parsed: Some(transparent_ast),
                 },
                 RuleWithAction {
                     rule: Arc::new(Rule {
@@ -138,7 +173,7 @@ impl Default for Context {
                         name: "Pattern".to_string(),
                         pattern: Pattern::RuleReference("Alternatives".to_string()),
                     }),
-                    on_parsed: transparent_ast().into(),
+                    on_parsed: Some(transparent_ast),
                 },
                 RuleWithAction {
                     rule: Arc::new(Rule {
@@ -154,7 +189,7 @@ impl Default for Context {
                         .into(),
                     }),
                     on_parsed: Some(|at, mut res, context| {
-                        res = transparent_ast()(at, res, context);
+                        res = transparent_ast(at, res, context);
                         if res.has_errors() {
                             return res;
                         }
@@ -190,7 +225,7 @@ impl Default for Context {
                         pattern: Repeat::once_or_more(Pattern::RuleReference("Repeat".to_string()))
                             .into(),
                     }),
-                    on_parsed: transparent_ast().into(),
+                    on_parsed: Some(transparent_ast),
                 },
                 RuleWithAction {
                     rule: Arc::new(Rule {
@@ -205,7 +240,7 @@ impl Default for Context {
                         .into(),
                     }),
                     on_parsed: Some(|at, mut res, context| {
-                        res = transparent_ast()(at, res, context);
+                        res = transparent_ast(at, res, context);
                         if !res.ast.is_array() {
                             return res;
                         }
@@ -249,7 +284,7 @@ impl Default for Context {
                             Pattern::RuleReference("Text".to_string()),
                         ]),
                     }),
-                    on_parsed: transparent_ast().into(),
+                    on_parsed: Some(transparent_ast),
                 },
                 RuleWithAction {
                     rule: Arc::new(Rule {
@@ -318,6 +353,22 @@ mod test {
         parsers::{ParseResult, Parser},
         Context, ParseTree, Rule,
     };
+
+    #[test]
+    fn char() {
+        let mut ctx = Context::default();
+        let rule_name = ctx.find_rule("Char").unwrap();
+        assert_eq!(rule_name.name, "Char");
+        assert_eq!(rule_name.parse("'x'", &mut ctx).ast, json!("x"));
+    }
+
+    #[test]
+    fn string() {
+        let mut ctx = Context::default();
+        let rule_name = ctx.find_rule("String").unwrap();
+        assert_eq!(rule_name.name, "String");
+        assert_eq!(rule_name.parse("\"abc\"", &mut ctx).ast, json!("abc"));
+    }
 
     #[test]
     fn rule_name() {

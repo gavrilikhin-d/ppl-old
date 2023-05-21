@@ -1,6 +1,7 @@
 # Todo
 * [x] Simplify regex ast
-* [ ] Strings in `""` and `''`
+* [x] Char in `''`
+* [x] Strings in `""`
 * [x] Alternatives
 * [x] Sequence
 * [ ] Remove parse tree

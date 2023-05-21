@@ -7,4 +7,6 @@ PatternInParentheses: '(' Pattern ')'
 RuleReference: RuleName
 RuleName: /[a-zA-Z0-9_]+/
 Regex: //[^/]+//
-Text: /[^\s*+?()|]+/
+Text: Char | String | /[^\s*+?()|]+/
+Char: /'.'/
+String: /"([^"\\]|\\.)*"/
