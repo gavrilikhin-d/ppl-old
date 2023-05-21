@@ -52,7 +52,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_rule() {
+    fn test_deserialize_rule_with_sequence() {
         let mut context = Context::default();
         let rule = context.find_rule("Rule").unwrap();
         assert_eq!(rule.name, "Rule");
@@ -103,5 +103,57 @@ mod tests {
                 )
             }
         );
+
+        let rule = context.find_rule("X").unwrap();
+        assert_eq!(rule.name, "X");
+        assert_eq!(rule.pattern, vec!["a".into(), "b".into()].into());
+    }
+
+    #[test]
+    fn test_deserialize_rule_with_regex() {
+        let mut context = Context::default();
+        let rule = context.find_rule("Rule").unwrap();
+        assert_eq!(rule.name, "Rule");
+
+        let tree_text = json!({
+            "Rule": [
+                { "RuleName": "X" },
+                ":",
+                {
+                    "Pattern": {
+                        "Sequence": [
+                            {
+                                "Repeat": {
+                                    "AtomicPattern": {
+                                        "Regex": {
+                                            "trivia": " ",
+                                            "value": "/ab?c/",
+                                        }
+                                    }
+                                }
+                            },
+                        ]
+                    }
+                }
+            ]
+        })
+        .to_string();
+        assert_eq!(
+            rule.parse("X: /ab?c/", &mut context),
+            ParseResult {
+                delta: 9,
+                tree: serde_json::from_str(&tree_text).unwrap(),
+                ast: json!(
+                    {
+                        "name": "X",
+                        "pattern": "/ab?c/"
+                    }
+                )
+            }
+        );
+
+        let rule = context.find_rule("X").unwrap();
+        assert_eq!(rule.name, "X");
+        assert_eq!(rule.pattern, r"/ab?c/".into());
     }
 }

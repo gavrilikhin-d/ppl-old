@@ -90,11 +90,13 @@ impl Default for Context {
                     }),
                     on_parsed: transparent_ast().into(),
                 },
-                Rule {
-                    name: "Regex".to_string(),
-                    pattern: r"//[^\s]+//".into(),
-                }
-                .into(),
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "Regex".to_string(),
+                        pattern: r"//[^/]+//".into(),
+                    }),
+                    on_parsed: transparent_ast().into(),
+                },
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "RuleName".to_string(),
@@ -379,7 +381,7 @@ mod test {
             ParseResult {
                 delta: 8,
                 tree: serde_json::from_str(&tree_text).unwrap(),
-                ast: json!({"Regex": "/(xyz?)/"})
+                ast: json!("/(xyz?)/")
             }
         );
 

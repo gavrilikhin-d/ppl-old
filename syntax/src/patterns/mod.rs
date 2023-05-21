@@ -72,7 +72,7 @@ struct NamedDTO {
 #[derive(Serialize, Deserialize, From)]
 #[serde(untagged)]
 enum PatternDTO {
-    Text(String),
+    TextOrRegex(String),
     Sequence(Vec<PatternDTO>),
 
     Tagged(PatternTaggedDTO),
@@ -81,7 +81,6 @@ enum PatternDTO {
 #[derive(Serialize, Deserialize)]
 enum PatternTaggedDTO {
     RuleReference(String),
-    Regex(String),
     Alternatives(Vec<PatternDTO>),
     Repeat(RepeatDTO),
     Named(NamedDTO),
@@ -90,10 +89,10 @@ enum PatternTaggedDTO {
 impl From<Pattern> for PatternDTO {
     fn from(value: Pattern) -> Self {
         match value {
-            Pattern::Text(t) => PatternDTO::Text(t),
+            Pattern::Text(t) => PatternDTO::TextOrRegex(t),
+            Pattern::Regex(r) => PatternDTO::TextOrRegex(format!("/{}/", r)),
             Pattern::Sequence(s) => PatternDTO::Sequence(s.into_iter().map(|p| p.into()).collect()),
 
-            Pattern::Regex(r) => PatternTaggedDTO::Regex(r).into(),
             Pattern::RuleReference(r) => PatternTaggedDTO::RuleReference(r).into(),
             Pattern::Named(Named { name, pattern }) => PatternTaggedDTO::Named(NamedDTO {
                 name,
@@ -120,7 +119,7 @@ impl From<Pattern> for PatternDTO {
 impl From<PatternDTO> for Pattern {
     fn from(value: PatternDTO) -> Self {
         match value {
-            PatternDTO::Text(t) => Pattern::Text(t),
+            PatternDTO::TextOrRegex(t) => t.into(),
             PatternDTO::Sequence(s) => Pattern::Sequence(s.into_iter().map(|p| p.into()).collect()),
             PatternDTO::Tagged(t) => t.into(),
         }
@@ -130,7 +129,6 @@ impl From<PatternDTO> for Pattern {
 impl From<PatternTaggedDTO> for Pattern {
     fn from(value: PatternTaggedDTO) -> Self {
         match value {
-            PatternTaggedDTO::Regex(r) => Pattern::Regex(r),
             PatternTaggedDTO::RuleReference(r) => Pattern::RuleReference(r),
             PatternTaggedDTO::Alternatives(alts) => {
                 Pattern::Alternatives(alts.into_iter().map(|p| p.into()).collect())

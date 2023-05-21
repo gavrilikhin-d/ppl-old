@@ -1,5 +1,5 @@
 # Todo
-* [ ] Only include content between `/.../` in regex ast
+* [x] Simplify regex ast
 * [ ] Strings in `""` and `''`
 * [ ] Alternatives
 * [x] Sequence
