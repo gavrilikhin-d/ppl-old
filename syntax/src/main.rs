@@ -13,9 +13,9 @@ fn main() {
         let mut line = String::new();
         std::io::stdin().read_line(&mut line).unwrap();
 
-        let regex = context.find_rule("Rule").unwrap();
+        let root = context.root.clone();
 
-        let res = regex.parse(&line, &mut context);
+        let res = root.parse(&line, &mut context);
         if res.has_errors() {
             res.errors().for_each(|e| {
                 println!(

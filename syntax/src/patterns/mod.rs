@@ -36,6 +36,19 @@ pub enum Pattern {
     Named(Named),
 }
 
+impl Pattern {
+    /// Return an alternative pattern between this pattern and another
+    pub fn or(mut self, other: Pattern) -> Self {
+        match &mut self {
+            Pattern::Alternatives(alts) => alts.push(other),
+            _ => {
+                self = Pattern::Alternatives(vec![self, other]);
+            }
+        }
+        self
+    }
+}
+
 impl Serialize for Pattern {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

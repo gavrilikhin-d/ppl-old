@@ -65,12 +65,17 @@ impl From<Rule> for RuleWithAction {
 pub struct Context {
     /// Parsing rules
     pub rules: Vec<RuleWithAction>,
+    /// Root pattern
+    pub root: Pattern,
 }
 
 impl Context {
     /// Create a new context without any rules
     pub fn new() -> Context {
-        Context { rules: vec![] }
+        Context {
+            rules: vec![],
+            root: "".into(),
+        }
     }
 
     // Add a rule to the context
@@ -99,6 +104,7 @@ impl Context {
 impl Default for Context {
     fn default() -> Self {
         Context {
+            root: Pattern::RuleReference("Rule".to_string()),
             rules: vec![
                 RuleWithAction {
                     rule: Arc::new(Rule {
@@ -331,6 +337,10 @@ impl Default for Context {
                             "pattern": res.ast.get(2).unwrap()
                         });
                         let rule: Rule = serde_json::from_value(res.ast.clone()).unwrap();
+                        context.root = context
+                            .root
+                            .clone()
+                            .or(Pattern::RuleReference(rule.name.clone()));
                         context.add_rule(rule);
                         res
                     }),
@@ -351,7 +361,7 @@ mod test {
     use crate::{
         errors::{ExpectedRuleName, RuleNameNotCapitalized},
         parsers::{ParseResult, Parser},
-        Context, ParseTree, Rule,
+        Context, ParseTree, Pattern, Rule,
     };
 
     #[test]
@@ -764,5 +774,25 @@ mod test {
                 pattern: "kek".into()
             }))
         )
+    }
+
+    #[test]
+    fn root() {
+        let mut context = Context::default();
+
+        assert_eq!(context.root, Pattern::RuleReference("Rule".to_string()));
+
+        let root = context.root.clone();
+        root.parse("Lol: kek", &mut context);
+        assert_eq!(
+            context.root,
+            Pattern::Alternatives(vec![
+                Pattern::RuleReference("Rule".to_string()),
+                Pattern::RuleReference("Lol".to_string()),
+            ])
+        );
+
+        let root = context.root.clone();
+        assert_eq!(root.parse("kek", &mut context).ast, json!({ "Lol": "kek" }));
     }
 }
