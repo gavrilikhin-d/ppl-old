@@ -126,7 +126,7 @@ impl Default for Context {
                         pattern: Pattern::Alternatives(vec![
                             Pattern::RuleReference("Char".to_string()),
                             Pattern::RuleReference("String".to_string()),
-                            r"/[^\s*+?()|]+/".into(),
+                            r"/[^\s*+?()|<:>]+/".into(),
                         ]),
                     }),
                     on_parsed: Some(transparent_ast),
@@ -285,10 +285,45 @@ impl Default for Context {
                         name: "AtomicPattern".to_string(),
                         pattern: Pattern::Alternatives(vec![
                             Pattern::RuleReference("PatternInParentheses".to_string()),
+                            Pattern::RuleReference("NamedPattern".to_string()),
                             Pattern::RuleReference("RuleReference".to_string()),
                             Pattern::RuleReference("Regex".to_string()),
                             Pattern::RuleReference("Text".to_string()),
                         ]),
+                    }),
+                    on_parsed: Some(transparent_ast),
+                },
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "NamedPattern".to_string(),
+                        pattern: vec![
+                            "<".into(),
+                            Pattern::RuleReference("Identifier".to_string()),
+                            ":".into(),
+                            Pattern::RuleReference("Pattern".to_string()),
+                            ">".into(),
+                        ]
+                        .into(),
+                    }),
+                    on_parsed: Some(|at, mut res, context| {
+                        if res.has_errors() {
+                            return res;
+                        }
+
+                        res = transparent_ast(at, res, context);
+                        res.ast = json!({
+                            "Named": {
+                                "name": res.ast.get(1).unwrap(),
+                                "pattern": res.ast.get(3).unwrap()
+                            }
+                        });
+                        res
+                    }),
+                },
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "Identifier".to_string(),
+                        pattern: r"/[a-zA-Z_][a-zA-Z0-9_]*/".into(),
                     }),
                     on_parsed: Some(transparent_ast),
                 },
@@ -408,6 +443,27 @@ mod test {
                 tree: ParseTree::named("RuleName").with(ExpectedRuleName { at: 0 }),
                 ast: json!({ "RuleName": null })
             }
+        );
+    }
+
+    #[test]
+    fn identifier() {
+        let mut ctx = Context::default();
+        let r = ctx.find_rule("Identifier").unwrap();
+        assert_eq!(r.name, "Identifier");
+        assert_eq!(r.parse("Foo", &mut ctx).ast, json!("Foo"));
+        assert_eq!(r.parse("foo", &mut ctx).ast, json!("foo"));
+    }
+
+    #[test]
+    fn named_pattern() {
+        let mut ctx = Context::default();
+        let r = ctx.find_rule("NamedPattern").unwrap();
+        assert_eq!(r.name, "NamedPattern");
+
+        assert_eq!(
+            r.parse("<name: /[a-z]+/>", &mut ctx).ast,
+            json!({"Named": { "name": "name", "pattern": "/[a-z]+/" }})
         );
     }
 

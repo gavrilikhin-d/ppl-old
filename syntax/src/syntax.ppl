@@ -2,11 +2,13 @@ Pattern: Alternatives
 Alternatives: Sequence ('|' Sequence)*
 Sequence: Repeat+
 Repeat: AtomicPattern ('*' | '+' | '?')?
-AtomicPattern: PatternInParentheses | RuleReference | Regex | Text
+AtomicPattern: PatternInParentheses | NamedPattern | RuleReference | Regex | Text
 PatternInParentheses: '(' Pattern ')'
+NamedPattern: '<' Identifier ':' Pattern '>'
+Identifier: /[a-zA-Z_][a-zA-Z_0-9]*/
 RuleReference: RuleName
 RuleName: /[a-zA-Z0-9_]+/
 Regex: //[^/]+//
-Text: Char | String | /[^\s*+?()|]+/
+Text: Char | String | /[^\s*+?()|<:>]+/
 Char: /'.'/
 String: /"([^"\\]|\\.)*"/

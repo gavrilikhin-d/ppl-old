@@ -44,3 +44,19 @@ fn test_named() {
         }
     );
 }
+
+#[test]
+fn deserialize() {
+    use pretty_assertions::assert_eq;
+
+    let named = Named {
+        name: "name".to_string(),
+        pattern: Box::new("/[a-z]+/".into()),
+    };
+    let json = json!({"name": "name", "pattern": "/[a-z]+/"});
+    assert_eq!(named, serde_json::from_value(json.clone()).unwrap());
+    assert_eq!(
+        Pattern::Named(named),
+        serde_json::from_value(json!({ "Named": json })).unwrap()
+    )
+}
