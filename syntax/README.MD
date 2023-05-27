@@ -7,8 +7,11 @@
 * [ ] Remove parse tree
 * [x] Support captures `Rule: <name: RuleName>`
 * [ ] Support `["a", "b", "c"]` syntax
-* [ ] Support `{ name: "abc" }` syntax
-* [ ] AST transformations in code
-* [ ] Errors in code
-* [ ] Import rules
+* [x] Support `{ name: "abc" }` syntax
+* [ ] AST transformations in code.
+      * no captures and single child => return child.
+      * captures and no action => return object with captures.
+      * captures and action => return action with captures as arguments.
+* [ ] Errors in code. Thrown in actions
+* [ ] Export/Import rules
 * [ ] Add syntax highlighting

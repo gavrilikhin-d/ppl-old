@@ -171,6 +171,12 @@ impl From<NamedDTO> for Named {
     }
 }
 
+impl From<char> for Pattern {
+    fn from(value: char) -> Self {
+        Pattern::Text(value.to_string())
+    }
+}
+
 impl From<&str> for Pattern {
     fn from(s: &str) -> Self {
         if s.len() > 1 && s.starts_with('/') && s.ends_with('/') {

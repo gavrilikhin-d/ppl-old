@@ -79,10 +79,12 @@ impl Parser for Repeat {
         ParseResult {
             delta,
             tree: tree.flatten(),
-            ast: if asts.len() == 1 {
-                asts.into_iter().next().unwrap()
-            } else if asts.len() == 0 && self.at_most == Some(1) {
-                json!(null)
+            ast: if self.at_most == Some(1) {
+                if asts.len() == 1 {
+                    asts.into_iter().next().unwrap()
+                } else {
+                    json!(null)
+                }
             } else {
                 asts.into()
             },
@@ -142,7 +144,7 @@ mod test {
             ParseResult {
                 delta: 1,
                 tree: "a".into(),
-                ast: "a".into()
+                ast: vec!["a"].into()
             }
         );
         assert_eq!(
@@ -168,7 +170,7 @@ mod test {
                     at: 0
                 }
                 .into(),
-                ast: json!(null)
+                ast: json!([null])
             }
         );
         assert_eq!(
@@ -176,7 +178,7 @@ mod test {
             ParseResult {
                 delta: 1,
                 tree: "a".into(),
-                ast: "a".into()
+                ast: vec!["a"].into()
             }
         );
         assert_eq!(
