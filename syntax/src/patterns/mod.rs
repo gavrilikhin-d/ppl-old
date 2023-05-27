@@ -192,6 +192,15 @@ impl From<String> for Pattern {
     }
 }
 
+impl From<(&str, Pattern)> for Pattern {
+    fn from(value: (&str, Pattern)) -> Self {
+        Pattern::Named(Named {
+            name: value.0.into(),
+            pattern: Box::new(value.1),
+        })
+    }
+}
+
 impl Parser for Pattern {
     fn parse_at<'s>(&self, source: &'s str, at: usize, context: &mut Context) -> ParseResult<'s> {
         match self {

@@ -2,12 +2,7 @@ use std::sync::Arc;
 
 use serde_json::json;
 
-use crate::{
-    errors::{ExpectedRuleName, RuleNameNotCapitalized},
-    parsers::ParseResult,
-    patterns::Repeat,
-    Pattern, Rule,
-};
+use crate::{parsers::ParseResult, patterns::Repeat, Pattern, Rule};
 
 /// Action to be executed after parsing
 pub type OnParsedAction =
@@ -38,9 +33,6 @@ fn without_quotes<'s>(
     context: &mut Context,
 ) -> ParseResult<'s> {
     res = transparent_ast(at, res, context);
-    if res.has_errors() {
-        return res;
-    }
     let s = res.ast.as_str().unwrap();
     res.ast = json!(s[1..s.len() - 1]);
     res
@@ -141,39 +133,15 @@ impl Default for Context {
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "RuleName".to_string(),
-                        pattern: r"/[a-zA-Z0-9_]+/".into(),
+                        pattern: r"/[A-Z][a-zA-Z0-9]*/".into(),
                     }),
-                    on_parsed: Some(|at, mut res, _| {
-                        if res.has_errors() {
-                            res.tree.children = vec![ExpectedRuleName { at: at.into() }.into()];
-                            return res;
-                        }
-
-                        let rule_name = res.tree.tokens().next().unwrap();
-                        let first_char = rule_name.chars().next().unwrap();
-                        if !first_char.is_ascii_uppercase() {
-                            res.tree.children =
-                                vec![RuleNameNotCapitalized { at: at.into() }.into()]
-                        }
-
-                        res
-                    }),
+                    on_parsed: Some(transparent_ast),
                 },
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "RuleReference".to_string(),
-                        pattern: Pattern::RuleReference("RuleName".to_string()),
-                    }),
-                    on_parsed: Some(|_at, mut res, _| {
-                        res.ast = json!({
-                            "RuleReference": res.ast.get("RuleReference").unwrap().get("RuleName").unwrap()
-                        });
-                        if res.has_errors() {
-                            res.delta = 0;
-                        }
-                        res
-                    }),
-                },
+                Rule {
+                    name: "RuleReference".to_string(),
+                    pattern: Pattern::RuleReference("RuleName".to_string()),
+                }
+                .into(),
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Pattern".to_string(),
@@ -185,29 +153,29 @@ impl Default for Context {
                     rule: Arc::new(Rule {
                         name: "Alternatives".to_string(),
                         pattern: vec![
-                            Pattern::RuleReference("Sequence".to_string()),
-                            Repeat::zero_or_more(
-                                vec!["|".into(), Pattern::RuleReference("Sequence".to_string())]
+                            ("head", Pattern::RuleReference("Sequence".to_string())).into(),
+                            (
+                                "tail",
+                                Repeat::zero_or_more(
+                                    vec![
+                                        "|".into(),
+                                        Pattern::RuleReference("Sequence".to_string()),
+                                    ]
                                     .into(),
+                                )
+                                .into(),
                             )
-                            .into(),
+                                .into(),
                         ]
                         .into(),
                     }),
                     on_parsed: Some(|at, mut res, context| {
                         res = transparent_ast(at, res, context);
-                        if res.has_errors() {
-                            return res;
-                        }
-
-                        if !res.ast.is_array() {
-                            return res;
-                        }
 
                         let mut alts = Vec::new();
-                        alts.push(res.ast.get(0).unwrap());
+                        alts.push(res.ast.get("head").unwrap());
 
-                        let arr = res.ast.get(1).unwrap().as_array().unwrap();
+                        let arr = res.ast.get("tail").unwrap().as_array().unwrap();
                         if arr.len() == 0 {
                             res.ast = alts[0].clone();
                             return res;
@@ -233,9 +201,6 @@ impl Default for Context {
                     }),
                     on_parsed: Some(|at, mut res, context| {
                         res = transparent_ast(at, res, context);
-                        if res.has_errors() {
-                            return res;
-                        }
 
                         let arr = res.ast.as_array_mut().unwrap();
                         if arr.len() == 1 {
@@ -248,22 +213,27 @@ impl Default for Context {
                     rule: Arc::new(Rule {
                         name: "Repeat".to_string(),
                         pattern: vec![
-                            Pattern::RuleReference("AtomicPattern".to_string()),
-                            Repeat::at_most_once(Pattern::Alternatives(
-                                vec!["?".into(), "+".into(), "*".into()].into(),
-                            ))
-                            .into(),
+                            (
+                                "pattern",
+                                Pattern::RuleReference("AtomicPattern".to_string()),
+                            )
+                                .into(),
+                            (
+                                "op",
+                                Repeat::at_most_once(Pattern::Alternatives(
+                                    vec!["?".into(), "+".into(), "*".into()].into(),
+                                ))
+                                .into(),
+                            )
+                                .into(),
                         ]
                         .into(),
                     }),
                     on_parsed: Some(|at, mut res, context| {
                         res = transparent_ast(at, res, context);
-                        if !res.ast.is_array() {
-                            return res;
-                        }
 
-                        let pattern = res.ast.get(0).unwrap().clone();
-                        let op = res.ast.get(1).unwrap();
+                        let pattern = res.ast.get_mut("pattern").unwrap().take();
+                        let op = res.ast.get_mut("op").unwrap().take();
                         if op.is_null() {
                             res.ast = pattern;
                             return res;
@@ -296,7 +266,7 @@ impl Default for Context {
                         name: "AtomicPattern".to_string(),
                         pattern: Pattern::Alternatives(vec![
                             Pattern::RuleReference("PatternInParentheses".to_string()),
-                            Pattern::RuleReference("NamedPattern".to_string()),
+                            Pattern::RuleReference("Named".to_string()),
                             Pattern::RuleReference("RuleReference".to_string()),
                             Pattern::RuleReference("Regex".to_string()),
                             Pattern::RuleReference("Text".to_string()),
@@ -304,33 +274,18 @@ impl Default for Context {
                     }),
                     on_parsed: Some(transparent_ast),
                 },
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "NamedPattern".to_string(),
-                        pattern: vec![
-                            "<".into(),
-                            Pattern::RuleReference("Identifier".to_string()),
-                            ":".into(),
-                            Pattern::RuleReference("Pattern".to_string()),
-                            ">".into(),
-                        ]
-                        .into(),
-                    }),
-                    on_parsed: Some(|at, mut res, context| {
-                        if res.has_errors() {
-                            return res;
-                        }
-
-                        res = transparent_ast(at, res, context);
-                        res.ast = json!({
-                            "Named": {
-                                "name": res.ast.get(1).unwrap(),
-                                "pattern": res.ast.get(3).unwrap()
-                            }
-                        });
-                        res
-                    }),
-                },
+                Rule {
+                    name: "Named".to_string(),
+                    pattern: vec![
+                        "<".into(),
+                        ("name", Pattern::RuleReference("Identifier".to_string())).into(),
+                        ":".into(),
+                        ("pattern", Pattern::RuleReference("Pattern".to_string())).into(),
+                        ">".into(),
+                    ]
+                    .into(),
+                }
+                .into(),
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Identifier".to_string(),
@@ -343,43 +298,45 @@ impl Default for Context {
                         name: "EmptyObject".to_string(),
                         pattern: vec!['{'.into(), '}'.into()].into(),
                     }),
-                    on_parsed: Some(|_, mut res, _| {
-                        res.ast = json!({});
-                        res
-                    }),
+                    on_parsed: Some(transparent_ast),
                 },
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "NonEmptyObject".to_string(),
                         pattern: vec![
                             '{'.into(),
-                            vec![
-                                Pattern::RuleReference("Initializer".to_string()),
-                                Repeat::zero_or_more(
-                                    vec![
-                                        ','.into(),
-                                        Pattern::RuleReference("Initializer".to_string()),
-                                    ]
+                            (
+                                "initializers",
+                                vec![
+                                    Pattern::RuleReference("Initializer".to_string()),
+                                    Repeat::zero_or_more(
+                                        vec![
+                                            ','.into(),
+                                            Pattern::RuleReference("Initializer".to_string()),
+                                        ]
+                                        .into(),
+                                    )
                                     .into(),
-                                )
+                                    Repeat::at_most_once(','.into()).into(),
+                                ]
                                 .into(),
-                                Repeat::at_most_once(','.into()).into(),
-                            ]
-                            .into(),
+                            )
+                                .into(),
                             '}'.into(),
                         ]
                         .into(),
                     }),
                     on_parsed: Some(|at, mut res, context| {
-                        if res.has_errors() {
-                            return res;
-                        }
-
                         res = transparent_ast(at, res, context);
 
-                        let arr = res.ast.get(1).unwrap().as_array().unwrap();
+                        let arr = res
+                            .ast
+                            .get_mut("initializers")
+                            .unwrap()
+                            .as_array_mut()
+                            .unwrap();
 
-                        let mut inits = arr.get(0).unwrap().as_object().unwrap().clone();
+                        let mut inits = arr.get_mut(0).unwrap().as_object_mut().unwrap().clone();
                         for init in arr.get(1).unwrap().as_array().unwrap() {
                             inits.extend(init.get(1).unwrap().as_object().unwrap().clone())
                         }
@@ -412,19 +369,15 @@ impl Default for Context {
                     rule: Arc::new(Rule {
                         name: "Initializer".to_string(),
                         pattern: vec![
-                            Pattern::RuleReference("Identifier".to_string()),
+                            ("name", Pattern::RuleReference("Identifier".to_string())).into(),
                             ":".into(),
-                            Pattern::RuleReference("Expression".to_string()),
+                            ("value", Pattern::RuleReference("Expression".to_string())).into(),
                         ]
                         .into(),
                     }),
                     on_parsed: Some(|at, mut res, context| {
-                        if res.has_errors() {
-                            return res;
-                        }
-
                         res = transparent_ast(at, res, context);
-                        res.ast = json!({ res.ast.get(0).unwrap().as_str().unwrap(): res.ast.get(2).unwrap() });
+                        res.ast = json!({ res.ast.get("name").unwrap().as_str().unwrap(): res.ast.get_mut("value").unwrap().take() });
                         res
                     }),
                 },
@@ -433,23 +386,19 @@ impl Default for Context {
                         name: "PatternInParentheses".to_string(),
                         pattern: vec![
                             "(".into(),
-                            Pattern::RuleReference("Pattern".to_string()),
+                            ("pattern", Pattern::RuleReference("Pattern".to_string())).into(),
                             ")".into(),
                         ]
                         .into(),
                     }),
                     on_parsed: Some(|_at, mut res, _| {
-                        if res.has_errors() {
-                            return res;
-                        }
-
                         res.ast = res
                             .ast
-                            .get("PatternInParentheses")
+                            .get_mut("PatternInParentheses")
                             .unwrap()
-                            .get(1)
+                            .get_mut("pattern")
                             .unwrap()
-                            .clone();
+                            .take();
                         res
                     }),
                 },
@@ -457,21 +406,14 @@ impl Default for Context {
                     rule: Arc::new(Rule {
                         name: "Rule".to_string(),
                         pattern: vec![
-                            Pattern::RuleReference("RuleName".to_string()),
+                            ("name", Pattern::RuleReference("RuleName".to_string())).into(),
                             ":".into(),
-                            Pattern::RuleReference("Pattern".to_string()),
+                            ("pattern", Pattern::RuleReference("Pattern".to_string())).into(),
                         ]
                         .into(),
                     }),
-                    on_parsed: Some(|_at, mut res, context| {
-                        if res.has_errors() {
-                            return res;
-                        }
-                        res.ast = res.ast.get("Rule").unwrap().clone();
-                        res.ast = json!({
-                            "name": res.ast.get(0).unwrap().get("RuleName").unwrap(),
-                            "pattern": res.ast.get(2).unwrap()
-                        });
+                    on_parsed: Some(|at, mut res, context| {
+                        res = transparent_ast(at, res, context);
                         let rule: Rule = serde_json::from_value(res.ast.clone()).unwrap();
                         context.root = context
                             .root
@@ -495,7 +437,7 @@ mod test {
     use serde_json::json;
 
     use crate::{
-        errors::{ExpectedRuleName, RuleNameNotCapitalized},
+        errors::Expected,
         parsers::{ParseResult, Parser},
         Context, ParseTree, Pattern, Rule,
     };
@@ -557,23 +499,29 @@ mod test {
             ParseResult {
                 delta: 3,
                 tree: ParseTree::named("RuleName").with("Foo"),
-                ast: json!({"RuleName": "Foo"})
+                ast: json!("Foo")
             }
         );
         assert_eq!(
             rule_name.parse("foo", &mut ctx),
             ParseResult {
-                delta: 3,
-                tree: ParseTree::named("RuleName").with(RuleNameNotCapitalized { at: 0 }),
-                ast: json!({"RuleName": "foo"})
+                delta: 0,
+                tree: ParseTree::named("RuleName").with(Expected {
+                    expected: "[A-Z][a-zA-Z0-9]*".into(),
+                    at: 0
+                }),
+                ast: json!(null)
             }
         );
         assert_eq!(
             rule_name.parse("", &mut ctx),
             ParseResult {
                 delta: 0,
-                tree: ParseTree::named("RuleName").with(ExpectedRuleName { at: 0 }),
-                ast: json!({ "RuleName": null })
+                tree: ParseTree::named("RuleName").with(Expected {
+                    expected: "[A-Z][a-zA-Z0-9]*".into(),
+                    at: 0
+                }),
+                ast: json!(null)
             }
         );
     }
@@ -590,8 +538,8 @@ mod test {
     #[test]
     fn named_pattern() {
         let mut ctx = Context::default();
-        let r = ctx.find_rule("NamedPattern").unwrap();
-        assert_eq!(r.name, "NamedPattern");
+        let r = ctx.find_rule("Named").unwrap();
+        assert_eq!(r.name, "Named");
 
         assert_eq!(
             r.parse("<name: /[a-z]+/>", &mut ctx).ast,
@@ -611,15 +559,6 @@ mod test {
                 tree: ParseTree::named("RuleReference")
                     .with(ParseTree::named("RuleName").with("Foo")),
                 ast: json!({"RuleReference": "Foo"})
-            }
-        );
-        assert_eq!(
-            r.parse("foo", &mut context),
-            ParseResult {
-                delta: 0,
-                tree: ParseTree::named("RuleReference")
-                    .with(ParseTree::named("RuleName").with(RuleNameNotCapitalized { at: 0 })),
-                ast: json!({"RuleReference": "foo"})
             }
         );
     }

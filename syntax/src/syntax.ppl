@@ -1,14 +1,15 @@
-Pattern: Alternatives
+Rule: <name: RuleName> ':' <pattern: Pattern>
+Pattern: <alts: Alternatives> => alts
 Alternatives: Sequence ('|' Sequence)*
 Sequence: Repeat+
 Repeat: AtomicPattern ('*' | '+' | '?')?
 AtomicPattern: PatternInParentheses | NamedPattern | RuleReference | Regex | Text
-PatternInParentheses: '(' Pattern ')'
-NamedPattern: '<' Identifier ':' Pattern '>'
+PatternInParentheses: '(' <pattern: Pattern> ')' => pattern
+Named: '<' <name: Identifier> ':' <pattern: Pattern> '>'
 Identifier: /[a-zA-Z_][a-zA-Z_0-9]*/
 RuleReference: RuleName
-RuleName: /[a-zA-Z0-9_]+/
-Regex: //[^/]+//
+RuleName: /[A-Z][a-zA-Z0-9]*/
+Regex: '/' /[^/]+/ '/'
 Text: Char | String | /[^\s*+?()|<:>{}]+/
 Char: /'.'/
 String: /"([^"\\]|\\.)*"/
