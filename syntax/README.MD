@@ -14,4 +14,9 @@
       * [ ] captures and action => return action with captures as arguments.
 * [ ] Errors in code. Thrown in actions
 * [ ] Export/Import rules
+* [ ] Change the way rules are added to parsing to be more explicit
 * [ ] Add syntax highlighting
+* [ ] Support left-recursion
+* [ ] Packrat parsing
+* [ ] Add documentation
+* [ ] Make its own library (named *dp*. Reads as *Deep*. Means  **D**ynamic **P**arser)
