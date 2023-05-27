@@ -20,3 +20,5 @@
 * [ ] Packrat parsing
 * [ ] Add documentation
 * [ ] Make its own library (named *dp*. Reads as *Deep*. Means  **D**ynamic **P**arser)
+* [ ] Copy rules on reference
+* [ ] Add `&Rule` as a way to reference a rule without copying it.
