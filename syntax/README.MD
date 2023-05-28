@@ -8,6 +8,11 @@
 * [x] Support captures `Rule: <name: RuleName>`
 * [ ] Support `["a", "b", "c"]` syntax
 * [x] Support `{ name: "abc" }` syntax
+* [x] Actions in sequence
+* [x] Captures in sequences
+* [ ] Print errors only after whole rule failed
+* [ ] Add a way to obtain syntax information from variable name
+* [ ] Store source code in context
 * [ ] AST transformations in code.
       * [ ] no captures and single child => return child.
       * [x] captures and no action => return object with captures.

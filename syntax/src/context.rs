@@ -159,7 +159,11 @@ impl Default for Context {
                                 Repeat::zero_or_more(
                                     vec![
                                         "|".into(),
-                                        Pattern::RuleReference("Sequence".to_string()),
+                                        (
+                                            "sequence",
+                                            Pattern::RuleReference("Sequence".to_string()),
+                                        )
+                                            .into(),
                                     ]
                                     .into(),
                                 )
@@ -181,12 +185,8 @@ impl Default for Context {
                             return res;
                         }
 
-                        if arr.get(0).unwrap() == "|" {
-                            alts.push(arr.get(1).unwrap());
-                        } else {
-                            for x in arr {
-                                alts.push(x.get(1).unwrap());
-                            }
+                        for x in arr {
+                            alts.push(x.get("sequence").unwrap());
                         }
 
                         res.ast = json!({ "Alternatives": alts });
@@ -308,15 +308,26 @@ impl Default for Context {
                             (
                                 "initializers",
                                 vec![
-                                    Pattern::RuleReference("Initializer".to_string()),
-                                    Repeat::zero_or_more(
-                                        vec![
-                                            ','.into(),
-                                            Pattern::RuleReference("Initializer".to_string()),
-                                        ]
+                                    ("head", Pattern::RuleReference("Initializer".to_string()))
+                                        .into(),
+                                    (
+                                        "tail",
+                                        Repeat::zero_or_more(
+                                            vec![
+                                                ','.into(),
+                                                (
+                                                    "init",
+                                                    Pattern::RuleReference(
+                                                        "Initializer".to_string(),
+                                                    ),
+                                                )
+                                                    .into(),
+                                            ]
+                                            .into(),
+                                        )
                                         .into(),
                                     )
-                                    .into(),
+                                        .into(),
                                     Repeat::at_most_once(','.into()).into(),
                                 ]
                                 .into(),
@@ -329,16 +340,11 @@ impl Default for Context {
                     on_parsed: Some(|at, mut res, context| {
                         res = transparent_ast(at, res, context);
 
-                        let arr = res
-                            .ast
-                            .get_mut("initializers")
-                            .unwrap()
-                            .as_array_mut()
-                            .unwrap();
+                        let arr = res.ast.get("initializers").unwrap();
 
-                        let mut inits = arr.get_mut(0).unwrap().as_object_mut().unwrap().clone();
-                        for init in arr.get(1).unwrap().as_array().unwrap() {
-                            inits.extend(init.get(1).unwrap().as_object().unwrap().clone())
+                        let mut inits = arr.get("head").unwrap().as_object().unwrap().clone();
+                        for init in arr.get("tail").unwrap().as_array().unwrap() {
+                            inits.extend(init.get("init").unwrap().as_object().unwrap().clone())
                         }
                         res.ast = json!(inits);
                         res
@@ -361,6 +367,7 @@ impl Default for Context {
                             Pattern::RuleReference("Object".to_string()),
                             Pattern::RuleReference("String".to_string()),
                             Pattern::RuleReference("Char".to_string()),
+                            Pattern::RuleReference("Variable".to_string()),
                         ]),
                     }),
                     on_parsed: Some(transparent_ast),
@@ -423,6 +430,23 @@ impl Default for Context {
                         res
                     }),
                 },
+                RuleWithAction {
+                    rule: Arc::new(Rule {
+                        name: "Action".to_string(),
+                        pattern: Pattern::RuleReference("Return".to_string()),
+                    }),
+                    on_parsed: Some(transparent_ast),
+                },
+                Rule {
+                    name: "Return".to_string(),
+                    pattern: Pattern::RuleReference("Expression".to_string()),
+                }
+                .into(),
+                Rule {
+                    name: "Variable".to_string(),
+                    pattern: Pattern::RuleReference("Identifier".to_string()),
+                }
+                .into(),
             ],
         }
     }
@@ -441,6 +465,22 @@ mod test {
         parsers::{ParseResult, Parser},
         Context, ParseTree, Pattern, Rule,
     };
+
+    #[test]
+    fn action() {
+        let mut context = Context::default();
+        let r = context.find_rule("Action").unwrap();
+        assert_eq!(r.name, "Action");
+        assert_eq!(r.parse("'x'", &mut context).ast, json!({"Return": 'x'}));
+    }
+
+    #[test]
+    fn ret() {
+        let mut context = Context::default();
+        let r = context.find_rule("Return").unwrap();
+        assert_eq!(r.name, "Return");
+        assert_eq!(r.parse("'x'", &mut context).ast, json!({"Return": 'x'}));
+    }
 
     #[test]
     fn object() {
@@ -463,6 +503,15 @@ mod test {
         assert_eq!(r.parse("{}", &mut ctx).ast, json!({}));
         assert_eq!(r.parse("'('", &mut ctx).ast, json!('('));
         assert_eq!(r.parse("\"()\"", &mut ctx).ast, json!("()"));
+        assert_eq!(r.parse("x", &mut ctx).ast, json!({ "Variable": "x" }));
+    }
+
+    #[test]
+    fn variable() {
+        let mut ctx = Context::default();
+        let r = ctx.find_rule("Variable").unwrap();
+        assert_eq!(r.name, "Variable");
+        assert_eq!(r.parse("x", &mut ctx).ast, json!({ "Variable": "x" }));
     }
 
     #[test]

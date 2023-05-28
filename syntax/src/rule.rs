@@ -24,22 +24,7 @@ impl Parser for Rule {
             return res;
         }
 
-        if let Pattern::Sequence(seq) = &self.pattern {
-            let mut ast = serde_json::Map::new();
-            seq.iter()
-                .enumerate()
-                .filter_map(|(i, p)| match p {
-                    Pattern::Named(_) => Some(i),
-                    _ => None,
-                })
-                .for_each(|i| {
-                    let mut named = res.ast.get_mut(i).unwrap().as_object_mut().unwrap();
-                    ast.append(&mut named);
-                });
-            res.ast = json!({ &self.name: ast });
-        } else {
-            res.ast = json!({ &self.name: res.ast.take() });
-        }
+        res.ast = json!({ &self.name: res.ast.take() });
 
         if let Some(on_parsed) = context.on_parsed(&self.name) {
             on_parsed(at, res, context)

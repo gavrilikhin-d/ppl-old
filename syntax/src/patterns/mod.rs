@@ -1,16 +1,18 @@
 mod named;
 mod repeat;
+mod sequence;
 
 use derive_more::From;
 pub use named::*;
 use regex::Regex;
 pub use repeat::*;
+pub use sequence::*;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     errors::Expected,
     parsers::{ParseResult, Parser},
-    Context, ParseTree, ParseTreeNode, Token,
+    Context, ParseTreeNode, Token,
 };
 
 /// Possible patterns
@@ -20,7 +22,7 @@ pub enum Pattern {
     #[from(ignore)]
     RuleReference(String),
     /// Sequence of patterns
-    Sequence(Vec<Pattern>),
+    Sequence(Sequence),
     /// Match specific text
     #[from(ignore)]
     Text(String),
@@ -82,6 +84,13 @@ struct NamedDTO {
     pub pattern: Box<PatternDTO>,
 }
 
+#[derive(Serialize, Deserialize)]
+struct SequenceDTO {
+    pub patterns: Vec<PatternDTO>,
+    #[serde(default)]
+    pub action: Option<serde_json::Value>,
+}
+
 #[derive(Serialize, Deserialize, From)]
 #[serde(untagged)]
 enum PatternDTO {
@@ -97,6 +106,7 @@ enum PatternTaggedDTO {
     Alternatives(Vec<PatternDTO>),
     Repeat(RepeatDTO),
     Named(NamedDTO),
+    Sequence(SequenceDTO),
 }
 
 impl From<Pattern> for PatternDTO {
@@ -104,7 +114,17 @@ impl From<Pattern> for PatternDTO {
         match value {
             Pattern::Text(t) => PatternDTO::TextOrRegex(t),
             Pattern::Regex(r) => PatternDTO::TextOrRegex(format!("/{}/", r)),
-            Pattern::Sequence(s) => PatternDTO::Sequence(s.into_iter().map(|p| p.into()).collect()),
+            Pattern::Sequence(s) => {
+                if s.action.is_none() {
+                    PatternDTO::Sequence(s.patterns.into_iter().map(|p| p.into()).collect())
+                } else {
+                    PatternTaggedDTO::Sequence(SequenceDTO {
+                        patterns: s.patterns.into_iter().map(|p| p.into()).collect(),
+                        action: s.action,
+                    })
+                    .into()
+                }
+            }
 
             Pattern::RuleReference(r) => PatternTaggedDTO::RuleReference(r).into(),
             Pattern::Named(Named { name, pattern }) => PatternTaggedDTO::Named(NamedDTO {
@@ -133,7 +153,9 @@ impl From<PatternDTO> for Pattern {
     fn from(value: PatternDTO) -> Self {
         match value {
             PatternDTO::TextOrRegex(t) => t.into(),
-            PatternDTO::Sequence(s) => Pattern::Sequence(s.into_iter().map(|p| p.into()).collect()),
+            PatternDTO::Sequence(s) => {
+                Pattern::Sequence(s.into_iter().map(|p| p.into()).collect::<Vec<_>>().into())
+            }
             PatternDTO::Tagged(t) => t.into(),
         }
     }
@@ -148,6 +170,7 @@ impl From<PatternTaggedDTO> for Pattern {
             }
             PatternTaggedDTO::Repeat(r) => Repeat::from(r).into(),
             PatternTaggedDTO::Named(n) => Named::from(n).into(),
+            PatternTaggedDTO::Sequence(s) => Sequence::from(s).into(),
         }
     }
 }
@@ -167,6 +190,15 @@ impl From<NamedDTO> for Named {
         Self {
             name: value.name,
             pattern: Box::new(Box::into_inner(value.pattern).into()),
+        }
+    }
+}
+
+impl From<SequenceDTO> for Sequence {
+    fn from(value: SequenceDTO) -> Self {
+        Self {
+            patterns: value.patterns.into_iter().map(|p| p.into()).collect(),
+            action: value.action,
         }
     }
 }
@@ -198,6 +230,12 @@ impl From<(&str, Pattern)> for Pattern {
             name: value.0.into(),
             pattern: Box::new(value.1),
         })
+    }
+}
+
+impl From<Vec<Pattern>> for Pattern {
+    fn from(value: Vec<Pattern>) -> Self {
+        Pattern::Sequence(value.into())
     }
 }
 
@@ -239,31 +277,7 @@ impl Parser for Pattern {
                 let rule = context.find_rule(name).expect("Rule not found");
                 rule.parse_at(source, at, context)
             }
-            Pattern::Sequence(patterns) => {
-                let mut delta = 0;
-                let mut tree = ParseTree::empty();
-                let mut asts = Vec::new();
-                for pattern in patterns {
-                    let result = pattern.parse_at(source, at + delta, context);
-                    let has_errors = result.has_errors();
-                    delta += result.delta;
-                    tree.push(result.tree);
-                    asts.push(result.ast);
-                    if has_errors {
-                        break;
-                    }
-                }
-
-                ParseResult {
-                    delta,
-                    tree: tree.flatten(),
-                    ast: if asts.len() != 1 {
-                        asts.into()
-                    } else {
-                        asts.pop().unwrap().into()
-                    },
-                }
-            }
+            Pattern::Sequence(s) => s.parse_at(source, at, context),
             Pattern::Alternatives(alts) => {
                 let mut res = ParseResult::empty();
                 for alt in alts {
@@ -360,13 +374,13 @@ mod test {
     #[test]
     fn sequence() {
         let mut context = Context::default();
-        let pattern = Pattern::Sequence(vec!["a".into(), "b".into()]);
+        let pattern = Pattern::Sequence(vec!["a".into(), "b".into()].into());
         assert_eq!(
             pattern.parse("ab", &mut context),
             ParseResult {
                 delta: 2,
                 tree: vec!["a", "b"].into(),
-                ast: json!(["a", "b"])
+                ast: json!({})
             }
         );
         assert_eq!(
@@ -393,7 +407,7 @@ mod test {
                     })
                 ]
                 .into(),
-                ast: json!(["a", null])
+                ast: json!(null)
             }
         );
         assert_eq!(
