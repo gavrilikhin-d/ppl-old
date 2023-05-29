@@ -1,7 +1,7 @@
 Rule: <name: RuleName> ':' <pattern: Pattern>
 Pattern: <alts: Alternatives> => alts
 Alternatives: Sequence ('|' Sequence)*
-Sequence: Repeat+
+Sequence: <patterns: Repeat+> <action: Action?>
 Repeat: AtomicPattern ('*' | '+' | '?')?
 AtomicPattern: PatternInParentheses | NamedPattern | RuleReference | Regex | Text
 PatternInParentheses: '(' <pattern: Pattern> ')' => pattern
@@ -10,7 +10,7 @@ Identifier: /[a-zA-Z_][a-zA-Z_0-9]*/
 RuleReference: RuleName
 RuleName: /[A-Z][a-zA-Z0-9]*/
 Regex: '/' /[^/]+/ '/'
-Text: Char | String | /[^\s*+?()|<:>{}]+/
+Text: Char | String | /[^\s*+?()|<:>{}=]+/
 Char: /'.'/
 String: /"([^"\\]|\\.)*"/
 

@@ -64,6 +64,12 @@ pub enum Severity {
     Error,
 }
 
+impl Default for Severity {
+    fn default() -> Self {
+        Severity::Error
+    }
+}
+
 impl From<Severity> for miette::Severity {
     fn from(value: Severity) -> Self {
         match value {
@@ -93,6 +99,7 @@ impl From<LabeledSpan> for miette::LabeledSpan {
 #[derive(Debug, Error, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct CustomError {
     /// Severity of the error
+    #[serde(default)]
     pub severity: Severity,
     /// Error message
     pub message: String,

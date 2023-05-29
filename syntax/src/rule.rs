@@ -55,6 +55,8 @@ impl Parser for Rule {
 
 #[cfg(test)]
 mod tests {
+    use crate::{action, patterns::Repeat};
+
     use super::*;
 
     use pretty_assertions::assert_eq;
@@ -184,5 +186,59 @@ mod tests {
         let rule = context.find_rule("X").unwrap();
         assert_eq!(rule.name, "X");
         assert_eq!(rule.pattern, r"/ab?c/".into());
+    }
+
+    #[test]
+    fn deserialize_and_parse_rule_with_action() {
+        let mut context = Context::default();
+        let rule = context.find_rule("Rule").unwrap();
+        assert_eq!(rule.name, "Rule");
+
+        assert_eq!(
+            rule.parse("List: '(' <letters: x*> ')' => letters", &mut context)
+                .ast,
+            json!({
+                "name": "List",
+                "pattern": {
+                    "Sequence": {
+                        "patterns": [
+                            '(',
+                            {
+                                "Named": {
+                                    "name": "letters",
+                                    "pattern": {
+                                        "Repeat": {
+                                            "pattern": "x",
+                                        }
+                                    }
+                                }
+                            },
+                            ')'
+                        ],
+                        "action": {
+                            "Variable": "letters"
+                        }
+                    }
+                }
+            })
+        );
+
+        let rule = context.find_rule("List").unwrap();
+        assert_eq!(
+            rule.as_ref(),
+            &Rule::new(
+                "List",
+                Sequence::new(
+                    vec![
+                        '('.into(),
+                        ("letters", Repeat::zero_or_more("x").into()).into(),
+                        ')'.into()
+                    ]
+                    .into(),
+                    action::reference("letters")
+                )
+            )
+        );
+        assert_eq!(rule.parse("(x x)", &mut context).ast, json!(["x", "x"]))
     }
 }

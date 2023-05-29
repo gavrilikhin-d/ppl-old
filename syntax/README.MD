@@ -6,11 +6,13 @@
 * [ ] Add a way to obtain syntax information from variable name
 * [ ] Store source code in context
 * [ ] Remove `on_parse` function from rule
+* [ ] Typed objects
 * [ ] AST transformations in code.
       * [ ] no captures and single child => return child.
       * [x] captures and no action => return object with captures.
-      * [ ] captures and action => return action with captures as arguments.
-* [ ] Errors in code. Thrown in actions
+      * [x] captures and action => return action with captures as arguments.
+* [x] Errors in code. Thrown in actions
+* [ ] Move logic to syntax
 * [ ] Export/Import rules
 * [ ] Change the way rules are added to parsing to be more explicit
 * [ ] Add syntax highlighting

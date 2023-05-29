@@ -49,6 +49,16 @@ pub struct RuleWithAction {
     pub on_parsed: Option<OnParsedAction>,
 }
 
+impl RuleWithAction {
+    /// Create a new rule with an action
+    pub fn new(rule: Rule, on_parsed: OnParsedAction) -> Self {
+        RuleWithAction {
+            rule: Arc::new(rule),
+            on_parsed: Some(on_parsed),
+        }
+    }
+}
+
 impl From<Rule> for RuleWithAction {
     fn from(rule: Rule) -> Self {
         RuleWithAction {
@@ -123,7 +133,7 @@ impl Default for Context {
                         pattern: Pattern::Alternatives(vec![
                             Pattern::RuleReference("Char".to_string()),
                             Pattern::RuleReference("String".to_string()),
-                            r"/[^\s*+?()|<:>{}]+/".into(),
+                            r"/[^\s*+?()|<:>{}=]+/".into(),
                         ]),
                     }),
                     on_parsed: Some(transparent_ast),
@@ -161,17 +171,11 @@ impl Default for Context {
                             ("head", Pattern::RuleReference("Sequence".to_string())).into(),
                             (
                                 "tail",
-                                Repeat::zero_or_more(
-                                    vec![
-                                        "|".into(),
-                                        (
-                                            "sequence",
-                                            Pattern::RuleReference("Sequence".to_string()),
-                                        )
-                                            .into(),
-                                    ]
-                                    .into(),
-                                )
+                                Repeat::zero_or_more(vec![
+                                    "|".into(),
+                                    ("sequence", Pattern::RuleReference("Sequence".to_string()))
+                                        .into(),
+                                ])
                                 .into(),
                             )
                                 .into(),
@@ -206,22 +210,31 @@ impl Default for Context {
                     ),
                 )
                 .into(),
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "Sequence".to_string(),
-                        pattern: Repeat::once_or_more(Pattern::RuleReference("Repeat".to_string()))
-                            .into(),
-                    }),
-                    on_parsed: Some(|at, mut res, context| {
+                RuleWithAction::new(
+                    Rule::new(
+                        "Sequence",
+                        vec![
+                            ("patterns", Repeat::once_or_more(rule_ref("Repeat")).into()).into(),
+                            ("action", Repeat::at_most_once(rule_ref("Action")).into()).into(),
+                        ],
+                    ),
+                    |at, mut res, context| {
                         res = transparent_ast(at, res, context);
 
-                        let arr = res.ast.as_array_mut().unwrap();
-                        if arr.len() == 1 {
-                            res.ast = arr.pop().unwrap();
+                        let action = res.ast["action"].clone();
+                        let patterns = res.ast.get_mut("patterns").unwrap().as_array_mut().unwrap();
+                        if action.is_null() {
+                            if patterns.len() == 1 {
+                                res.ast = patterns.pop().unwrap();
+                            } else {
+                                res.ast = patterns.clone().into();
+                            }
+                        } else {
+                            res.ast = json!({"Sequence": res.ast});
                         }
                         res
-                    }),
-                },
+                    },
+                ),
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Repeat".to_string(),
@@ -325,23 +338,18 @@ impl Default for Context {
                                         .into(),
                                     (
                                         "tail",
-                                        Repeat::zero_or_more(
-                                            vec![
-                                                ','.into(),
-                                                (
-                                                    "init",
-                                                    Pattern::RuleReference(
-                                                        "Initializer".to_string(),
-                                                    ),
-                                                )
-                                                    .into(),
-                                            ]
-                                            .into(),
-                                        )
+                                        Repeat::zero_or_more(vec![
+                                            ','.into(),
+                                            (
+                                                "init",
+                                                Pattern::RuleReference("Initializer".to_string()),
+                                            )
+                                                .into(),
+                                        ])
                                         .into(),
                                     )
                                         .into(),
-                                    Repeat::at_most_once(','.into()).into(),
+                                    Repeat::at_most_once(',').into(),
                                 ]
                                 .into(),
                             )
@@ -747,6 +755,24 @@ mod test {
                     }
                 }])
             }
+        );
+        assert_eq!(
+            r.parse("'(' <l: /[a-z]/> ')' => l", &mut context).ast,
+            json!({"Sequence": {
+                "patterns": [
+                    '(',
+                    {
+                        "Named": {
+                            "name": "l",
+                            "pattern": "/[a-z]/"
+                        }
+                    },
+                    ')'
+                ],
+                "action": {
+                    "Variable": "l"
+                }
+            }})
         )
     }
 

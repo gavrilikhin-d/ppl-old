@@ -22,27 +22,27 @@ pub struct Repeat {
 
 impl Repeat {
     /// Repeat pattern zero or more times (`*`)
-    pub fn zero_or_more(pattern: Pattern) -> Self {
+    pub fn zero_or_more(pattern: impl Into<Pattern>) -> Self {
         Self {
-            pattern: Box::new(pattern),
+            pattern: Box::new(pattern.into()),
             at_least: 0,
             at_most: None,
         }
     }
 
     /// Repeat pattern once or more times (`+`)
-    pub fn once_or_more(pattern: Pattern) -> Self {
+    pub fn once_or_more(pattern: impl Into<Pattern>) -> Self {
         Self {
-            pattern: Box::new(pattern),
+            pattern: Box::new(pattern.into()),
             at_least: 1,
             at_most: None,
         }
     }
 
     /// Repeat pattern at most once (`?`)
-    pub fn at_most_once(pattern: Pattern) -> Self {
+    pub fn at_most_once(pattern: impl Into<Pattern>) -> Self {
         Self {
-            pattern: Box::new(pattern),
+            pattern: Box::new(pattern.into()),
             at_least: 0,
             at_most: Some(1),
         }
@@ -108,7 +108,7 @@ mod test {
     #[test]
     fn at_most_once() {
         let mut context = Context::default();
-        let pattern = Repeat::at_most_once("a".into());
+        let pattern = Repeat::at_most_once("a");
         assert_eq!(
             pattern.parse("", &mut context),
             ParseResult::empty().with_ast(json!(null))
@@ -134,7 +134,7 @@ mod test {
     #[test]
     fn zero_or_more() {
         let mut context = Context::default();
-        let pattern = Repeat::zero_or_more("a".into());
+        let pattern = Repeat::zero_or_more("a");
         assert_eq!(
             pattern.parse("", &mut context),
             ParseResult::empty().with_ast(json!([]))
@@ -160,7 +160,7 @@ mod test {
     #[test]
     fn once_or_more() {
         let mut context = Context::default();
-        let pattern = Repeat::once_or_more("a".into());
+        let pattern = Repeat::once_or_more("a");
         assert_eq!(
             pattern.parse("", &mut context),
             ParseResult {
