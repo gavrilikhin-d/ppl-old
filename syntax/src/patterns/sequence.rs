@@ -71,7 +71,7 @@ impl Parser for Sequence {
         }
 
         if let Some(action) = &self.action {
-            ast = expand_variables(action, ast.as_object().unwrap());
+            ast = expand_variables(action, &ast.as_object().cloned().unwrap_or_default());
             if let Some(obj) = ast.as_object() {
                 if obj.keys().len() == 1 && obj.keys().next().unwrap() == "Error" {
                     let error: Error =
