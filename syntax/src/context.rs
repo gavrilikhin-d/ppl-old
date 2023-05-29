@@ -2,7 +2,12 @@ use std::sync::Arc;
 
 use serde_json::json;
 
-use crate::{parsers::ParseResult, patterns::Repeat, Pattern, Rule};
+use crate::{
+    action,
+    parsers::ParseResult,
+    patterns::{rule_ref, Repeat, Sequence},
+    Pattern, Rule,
+};
 
 /// Action to be executed after parsing
 pub type OnParsedAction =
@@ -193,6 +198,14 @@ impl Default for Context {
                         res
                     }),
                 },
+                Rule::new(
+                    "Action",
+                    Sequence::new(
+                        vec!["=>".into(), ("value", rule_ref("Expression")).into()],
+                        action::reference("value"),
+                    ),
+                )
+                .into(),
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Sequence".to_string(),
@@ -430,18 +443,6 @@ impl Default for Context {
                         res
                     }),
                 },
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "Action".to_string(),
-                        pattern: Pattern::RuleReference("Return".to_string()),
-                    }),
-                    on_parsed: Some(transparent_ast),
-                },
-                Rule {
-                    name: "Return".to_string(),
-                    pattern: Pattern::RuleReference("Expression".to_string()),
-                }
-                .into(),
                 Rule {
                     name: "Variable".to_string(),
                     pattern: Pattern::RuleReference("Identifier".to_string()),
@@ -471,15 +472,8 @@ mod test {
         let mut context = Context::default();
         let r = context.find_rule("Action").unwrap();
         assert_eq!(r.name, "Action");
-        assert_eq!(r.parse("'x'", &mut context).ast, json!({"Return": 'x'}));
-    }
-
-    #[test]
-    fn ret() {
-        let mut context = Context::default();
-        let r = context.find_rule("Return").unwrap();
-        assert_eq!(r.name, "Return");
-        assert_eq!(r.parse("'x'", &mut context).ast, json!({"Return": 'x'}));
+        assert_eq!(r.parse("=> 'x'", &mut context).ast, json!('x'));
+        assert_eq!(r.parse("=> x", &mut context).ast, json!({"Variable": 'x'}));
     }
 
     #[test]

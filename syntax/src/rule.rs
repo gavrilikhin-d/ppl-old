@@ -3,6 +3,7 @@ use serde_json::json;
 
 use crate::{
     parsers::{ParseResult, Parser},
+    patterns::Sequence,
     Context, ParseTree, Pattern,
 };
 
@@ -15,6 +16,16 @@ pub struct Rule {
     pub pattern: Pattern,
 }
 
+impl Rule {
+    /// Create a new rule with a name and a pattern
+    pub fn new(name: impl Into<String>, pattern: impl Into<Pattern>) -> Self {
+        Self {
+            name: name.into(),
+            pattern: pattern.into(),
+        }
+    }
+}
+
 impl Parser for Rule {
     fn parse_at<'s>(&self, source: &'s str, at: usize, context: &mut Context) -> ParseResult<'s> {
         let mut res = self.pattern.parse_at(source, at, context);
@@ -24,7 +35,15 @@ impl Parser for Rule {
             return res;
         }
 
-        res.ast = json!({ &self.name: res.ast.take() });
+        if !matches!(
+            self.pattern,
+            Pattern::Sequence(Sequence {
+                action: Some(_),
+                ..
+            })
+        ) {
+            res.ast = json!({ &self.name: res.ast.take() });
+        }
 
         if let Some(on_parsed) = context.on_parsed(&self.name) {
             on_parsed(at, res, context)

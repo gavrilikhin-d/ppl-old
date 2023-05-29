@@ -3,6 +3,8 @@
 mod tree;
 pub use tree::*;
 
+pub mod action;
+
 pub mod patterns;
 pub use patterns::Pattern;
 

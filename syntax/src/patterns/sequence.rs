@@ -17,6 +17,16 @@ pub struct Sequence {
     pub action: Option<serde_json::Value>,
 }
 
+impl Sequence {
+    /// Create a new sequence with an action
+    pub fn new(patterns: Vec<Pattern>, action: serde_json::Value) -> Self {
+        Self {
+            patterns,
+            action: Some(action),
+        }
+    }
+}
+
 impl From<Vec<Pattern>> for Sequence {
     fn from(patterns: Vec<Pattern>) -> Self {
         Self {
@@ -159,7 +169,7 @@ mod test {
                     "Error": {
                         "Expected": {
                             "expected": ")",
-                            "at": 0
+                            "at": 3
                         }
                     }
                 })),

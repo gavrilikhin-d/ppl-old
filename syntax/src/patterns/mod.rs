@@ -38,6 +38,11 @@ pub enum Pattern {
     Named(Named),
 }
 
+/// Reference to another rule
+pub fn rule_ref(name: impl Into<String>) -> Pattern {
+    Pattern::RuleReference(name.into())
+}
+
 impl Pattern {
     /// Return an alternative pattern between this pattern and another
     pub fn or(mut self, other: Pattern) -> Self {
