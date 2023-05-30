@@ -10,6 +10,7 @@ pub use sequence::*;
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    action::Action,
     errors::Expected,
     parsers::{ParseResult, Parser},
     Context, ParseTreeNode, Token,
@@ -93,7 +94,7 @@ struct NamedDTO {
 struct SequenceDTO {
     pub patterns: Vec<PatternDTO>,
     #[serde(default)]
-    pub action: Option<serde_json::Value>,
+    pub action: Option<Action>,
 }
 
 #[derive(Serialize, Deserialize, From)]

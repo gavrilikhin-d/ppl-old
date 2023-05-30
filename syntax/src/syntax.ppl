@@ -14,7 +14,9 @@ Text: Char | String | /[^\s*+?()|<:>{}=]+/
 Char: /'.'/
 String: /"([^"\\]|\\.)*"/
 
-Action: "=>" <value: Expression> => value
+Action: "=>" <value: Throw | Return> => value
+Return: <value: Expression> => { Return: value }
+Throw: "throw" <error: Expression> => { Throw: error }
 
 Object: '{' '}' | '{' Initializer (, Initializer)* ,? '}'
 Initializer: Identifier ':' Expression

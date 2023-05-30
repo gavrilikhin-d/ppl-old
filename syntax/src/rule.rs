@@ -55,7 +55,10 @@ impl Parser for Rule {
 
 #[cfg(test)]
 mod tests {
-    use crate::{action, patterns::Repeat};
+    use crate::{
+        action::{reference, Action},
+        patterns::Repeat,
+    };
 
     use super::*;
 
@@ -216,7 +219,9 @@ mod tests {
                             ')'
                         ],
                         "action": {
-                            "Variable": "letters"
+                            "Return": {
+                                "Variable": "letters"
+                            }
                         }
                     }
                 }
@@ -235,10 +240,68 @@ mod tests {
                         ')'.into()
                     ]
                     .into(),
-                    action::reference("letters")
+                    Action::Return(reference("letters"))
                 )
             )
         );
         assert_eq!(rule.parse("(x x)", &mut context).ast, json!(["x", "x"]))
+    }
+
+    #[test]
+    fn deserialize_and_parse_rule_with_throw() {
+        let mut context = Context::default();
+        let rule = context.find_rule("Rule").unwrap();
+        assert_eq!(rule.name, "Rule");
+
+        assert_eq!(
+            rule.parse(
+                "List: '(' => throw {
+					CustomError: {
+						message: \"expected closing ')'\"
+					}
+				}",
+                &mut context
+            )
+            .ast,
+            json!({
+                "name": "List",
+                "pattern": {
+                    "Sequence": {
+                        "patterns": ['('],
+                        "action": {
+                            "Throw": {
+                                "CustomError": {
+                                    "message": "expected closing ')'"
+                                }
+                            }
+                        }
+                    }
+                }
+            })
+        );
+
+        let rule = context.find_rule("List").unwrap();
+        assert_eq!(
+            rule.as_ref(),
+            &Rule::new(
+                "List",
+                Sequence::new(
+                    vec!['('.into(),].into(),
+                    Action::Throw(json!({
+                        "CustomError": {
+                            "message": "expected closing ')'"
+                        }
+                    }))
+                )
+            )
+        );
+        assert_eq!(
+            rule.parse("(", &mut context).ast,
+            json!({
+                "CustomError": {
+                    "message": "expected closing ')'"
+                }
+            })
+        )
     }
 }

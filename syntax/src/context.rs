@@ -3,7 +3,7 @@ use std::sync::Arc;
 use serde_json::json;
 
 use crate::{
-    action,
+    action::{reference, Action},
     parsers::ParseResult,
     patterns::{rule_ref, Repeat, Sequence},
     Pattern, Rule,
@@ -205,8 +205,31 @@ impl Default for Context {
                 Rule::new(
                     "Action",
                     Sequence::new(
-                        vec!["=>".into(), ("value", rule_ref("Expression")).into()],
-                        action::reference("value"),
+                        vec![
+                            "=>".into(),
+                            (
+                                "value",
+                                Pattern::Alternatives(vec![rule_ref("Throw"), rule_ref("Return")]),
+                            )
+                                .into(),
+                        ],
+                        Action::Return(reference("value")),
+                    ),
+                )
+                .into(),
+                Rule::new(
+                    "Return",
+                    Sequence::new(
+                        vec![("value", rule_ref("Expression")).into()],
+                        Action::Return(json!({"Return": reference("value")})),
+                    ),
+                )
+                .into(),
+                Rule::new(
+                    "Throw",
+                    Sequence::new(
+                        vec!["throw".into(), ("error", rule_ref("Expression")).into()],
+                        Action::Return(json!({"Throw": reference("error")})),
                     ),
                 )
                 .into(),
@@ -480,8 +503,34 @@ mod test {
         let mut context = Context::default();
         let r = context.find_rule("Action").unwrap();
         assert_eq!(r.name, "Action");
-        assert_eq!(r.parse("=> 'x'", &mut context).ast, json!('x'));
-        assert_eq!(r.parse("=> x", &mut context).ast, json!({"Variable": 'x'}));
+        assert_eq!(r.parse("=> 'x'", &mut context).ast, json!({"Return": 'x'}));
+        assert_eq!(
+            r.parse("=> throw x", &mut context).ast,
+            json!({
+                "Throw": {
+                        "Variable": "x"
+                }
+            })
+        );
+    }
+
+    #[test]
+    fn throw() {
+        let mut context = Context::default();
+        let r = context.find_rule("Throw").unwrap();
+        assert_eq!(r.name, "Throw");
+        assert_eq!(
+            r.parse("throw 'x'", &mut context).ast,
+            json!({"Throw": 'x'})
+        );
+    }
+
+    #[test]
+    fn ret() {
+        let mut context = Context::default();
+        let r = context.find_rule("Return").unwrap();
+        assert_eq!(r.name, "Return");
+        assert_eq!(r.parse("'x'", &mut context).ast, json!({"Return": 'x'}));
     }
 
     #[test]
@@ -770,7 +819,9 @@ mod test {
                     ')'
                 ],
                 "action": {
-                    "Variable": "l"
+                    "Return": {
+                        "Variable": "l"
+                    }
                 }
             }})
         )

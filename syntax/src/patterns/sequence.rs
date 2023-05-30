@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
+    action::Action,
     errors::Error,
     parsers::{ParseResult, Parser},
     Context, ParseTree, Pattern,
@@ -14,12 +15,12 @@ pub struct Sequence {
     pub patterns: Vec<Pattern>,
     /// Action to perform after parsing
     #[serde(default)]
-    pub action: Option<serde_json::Value>,
+    pub action: Option<Action>,
 }
 
 impl Sequence {
     /// Create a new sequence with an action
-    pub fn new(patterns: Vec<Pattern>, action: serde_json::Value) -> Self {
+    pub fn new(patterns: Vec<Pattern>, action: Action) -> Self {
         Self {
             patterns,
             action: Some(action),
@@ -71,14 +72,14 @@ impl Parser for Sequence {
         }
 
         if let Some(action) = &self.action {
-            ast = expand_variables(action, &ast.as_object().cloned().unwrap_or_default());
-            if let Some(obj) = ast.as_object() {
-                if obj.keys().len() == 1 && obj.keys().next().unwrap() == "Error" {
-                    let error: Error =
-                        serde_json::from_value(ast.get("Error").unwrap().clone()).unwrap();
-                    println!("{:?}", miette::Report::new(error));
-                    delta = 0;
-                }
+            ast = expand_variables(
+                action.value(),
+                &ast.as_object().cloned().unwrap_or_default(),
+            );
+            if matches!(action, Action::Throw(_)) {
+                let error: Error = serde_json::from_value(ast.clone()).unwrap();
+                println!("{:?}", miette::Report::new(error));
+                delta = 0;
             }
         }
 
@@ -122,7 +123,11 @@ fn expand_variables(
 mod test {
     use serde_json::json;
 
-    use crate::{parsers::Parser, Context, Pattern};
+    use crate::{
+        action::{reference, Action},
+        parsers::Parser,
+        Context, Pattern,
+    };
 
     use super::Sequence;
     use pretty_assertions::assert_eq;
@@ -143,17 +148,14 @@ mod test {
     #[test]
     fn action() {
         let mut context = Context::default();
-        let p = Sequence {
-            patterns: vec![
+        let p = Sequence::new(
+            vec![
                 '('.into(),
                 ("pattern", "/[A-z][a-z]*/".into()).into(),
                 ')'.into(),
-            ]
-            .into(),
-            action: Some(json!({
-                "Variable": "pattern"
-            })),
-        };
+            ],
+            Action::Return(reference("pattern")),
+        );
 
         assert_eq!(p.parse("( x )", &mut context).ast, json!("x"));
     }
@@ -163,17 +165,13 @@ mod test {
         let mut context = Context::default();
         let p = Pattern::Alternatives(vec![
             vec!['('.into(), "/[A-z][a-z]*/".into(), ')'.into()].into(),
-            Sequence {
-                patterns: vec!['('.into(), "/[A-z][a-z]*/".into()].into(),
-                action: Some(json!({
-                    "Error": {
-                        "Expected": {
-                            "expected": ")",
-                            "at": 3
-                        }
-                    }
-                })),
-            }
+            Sequence::new(
+                vec!['('.into(), "/[A-z][a-z]*/".into()],
+                Action::Throw(json!({ "Expected" : {
+                    "expected": ")",
+                    "at": 3
+                }})),
+            )
             .into(),
         ]);
 
@@ -182,11 +180,9 @@ mod test {
         assert_eq!(
             p.parse("( x", &mut context).ast,
             json!({
-                "Error": {
-                    "Expected": {
-                        "expected": ")",
-                        "at": 3
-                    }
+                "Expected": {
+                    "expected": ")",
+                    "at": 3
                 }
             })
         );

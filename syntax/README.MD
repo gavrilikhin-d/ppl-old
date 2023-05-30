@@ -1,8 +1,9 @@
 # Todo
 * [ ] Remove parse tree
+* [ ] Support integers
 * [ ] Support `["a", "b", "c"]` syntax
 * [x] Actions in sequence
-* [ ] Print errors only after whole rule failed
+* [x] Print errors only after whole rule failed
 * [ ] Add a way to obtain syntax information from variable name
 * [ ] Store source code in context
 * [ ] Remove `on_parse` function from rule
