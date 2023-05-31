@@ -3,7 +3,7 @@ use std::sync::Arc;
 use serde_json::json;
 
 use crate::{
-    action::{reference, Action},
+    action::{cast, reference, ret, Action},
     alts,
     parsers::ParseResult,
     patterns::{rule_ref, transparent, Repeat, Sequence},
@@ -240,7 +240,7 @@ impl Default for Context {
                     "Return",
                     Sequence::new(
                         vec![("value", rule_ref("Expression")).into()],
-                        Action::Return(json!({"Return": reference("value")})),
+                        ret(cast(reference("value"), "Return")),
                     ),
                 )
                 .into(),
@@ -248,7 +248,7 @@ impl Default for Context {
                     "Throw",
                     Sequence::new(
                         vec!["throw".into(), ("error", rule_ref("Expression")).into()],
-                        Action::Return(json!({"Throw": reference("error")})),
+                        ret(cast(reference("error"), "Throw")),
                     ),
                 )
                 .into(),
@@ -423,51 +423,30 @@ impl Default for Context {
                     }),
                     on_parsed: Some(transparent_ast),
                 },
-                Rule::new("Type", "/[A-Z][a-zA-Z_0-9]*/").into(),
-                RuleWithAction::new(
-                    Rule::new(
-                        "TypeCast",
-                        vec![
-                            ("value", rule_ref("Value")).into(),
-                            "as".into(),
-                            ("type", rule_ref("Type")).into(),
-                        ],
-                    ),
-                    |at, mut res, context| {
-                        res = transparent_ast(at, res, context);
-                        let typename = res
-                            .ast
-                            .get_mut("type")
-                            .unwrap()
-                            .get_mut("Type")
-                            .unwrap()
-                            .take();
-                        res.ast = json!({ typename.as_str().unwrap(): res.ast.get_mut("value").unwrap().take() });
-                        res
-                    },
+                Rule::new("Type", transparent("/[A-Z][a-zA-Z_0-9]*/")).into(),
+                Rule::new(
+                    "Cast",
+                    vec![
+                        ("expr", rule_ref("Value")).into(),
+                        "as".into(),
+                        ("ty", alts!(rule_ref("Type"), rule_ref("Variable"))).into(),
+                    ],
                 )
                 .into(),
                 Rule::new(
                     "Expression",
-                    transparent(alts!(rule_ref("TypeCast"), rule_ref("Value"))),
+                    transparent(alts!(rule_ref("Cast"), rule_ref("Value"))),
                 )
                 .into(),
                 Rule::new(
                     "Value",
-                    Sequence::new(
-                        vec![(
-                            "expr",
-                            Pattern::Alternatives(vec![
-                                rule_ref("Object"),
-                                rule_ref("String"),
-                                rule_ref("Char"),
-                                rule_ref("Integer"),
-                                rule_ref("Variable"),
-                            ]),
-                        )
-                            .into()],
-                        Action::Return(reference("expr")),
-                    ),
+                    transparent(alts!(
+                        rule_ref("Object"),
+                        rule_ref("String"),
+                        rule_ref("Char"),
+                        rule_ref("Integer"),
+                        rule_ref("Variable")
+                    )),
                 )
                 .into(),
                 RuleWithAction {
@@ -528,11 +507,7 @@ impl Default for Context {
                         res
                     }),
                 },
-                Rule {
-                    name: "Variable".to_string(),
-                    pattern: Pattern::RuleReference("Identifier".to_string()),
-                }
-                .into(),
+                Rule::new("Variable", rule_ref("Identifier")).into(),
             ],
         }
     }
@@ -557,17 +532,17 @@ mod test {
         let mut context = Context::default();
         let r = context.find_rule("Type").unwrap();
         assert_eq!(r.name, "Type");
-        assert_eq!(r.parse("Type", &mut context).ast, json!({"Type": "Type"}));
+        assert_eq!(r.parse("Type", &mut context).ast, json!("Type"));
     }
 
     #[test]
-    fn type_cast() {
+    fn cast() {
         let mut context = Context::default();
-        let r = context.find_rule("TypeCast").unwrap();
-        assert_eq!(r.name, "TypeCast");
+        let r = context.find_rule("Cast").unwrap();
+        assert_eq!(r.name, "Cast");
         assert_eq!(
             r.parse("{ name: \"Igor\" } as Person", &mut context).ast,
-            json!({"Person": { "name": "Igor" }})
+            json!({"Cast": {"expr": { "name": "Igor" }, "ty": "Person"}})
         );
     }
 
@@ -627,7 +602,7 @@ mod test {
         assert_eq!(r.parse("{}", &mut ctx).ast, json!({}));
         assert_eq!(
             r.parse("{} as Person", &mut ctx).ast,
-            json!({ "Person": {}})
+            json!({"Cast": { "expr": {}, "ty": "Person" }})
         );
         assert_eq!(r.parse("'('", &mut ctx).ast, json!('('));
         assert_eq!(r.parse("\"()\"", &mut ctx).ast, json!("()"));

@@ -5,6 +5,7 @@
 * [ ] Store source code in context
 * [ ] Remove `on_parse` function from rule
 * [ ] Distinct types
+* [x] Allow type variables in type cast
 * [ ] Move logic to syntax
 * [ ] Export/Import rules
 * [ ] Change the way rules are added to parsing to be more explicit

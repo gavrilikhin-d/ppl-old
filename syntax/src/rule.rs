@@ -56,8 +56,8 @@ impl Parser for Rule {
 #[cfg(test)]
 mod tests {
     use crate::{
-        action::{reference, Action},
-        patterns::Repeat,
+        action::{cast, reference, ret, throw, Action},
+        patterns::{rule_ref, Repeat},
     };
 
     use super::*;
@@ -287,7 +287,7 @@ mod tests {
                 "List",
                 Sequence::new(
                     vec!['('.into(),].into(),
-                    Action::Throw(json!({
+                    throw(json!({
                         "CustomError": {
                             "message": "expected closing ')'"
                         }
@@ -295,13 +295,60 @@ mod tests {
                 )
             )
         );
+        assert_eq!(rule.parse("(", &mut context).ast, json!(null))
+    }
+
+    #[test]
+    fn rule_action_with_variable_type() {
+        let mut context = Context::default();
+        let rule = context.find_rule("Rule").unwrap();
+        assert_eq!(rule.name, "Rule");
+
         assert_eq!(
-            rule.parse("(", &mut context).ast,
+            rule.parse("X: <ty: Type> => {} as ty", &mut context).ast,
             json!({
-                "CustomError": {
-                    "message": "expected closing ')'"
+                "name": "X",
+                "pattern": {
+                    "Sequence": {
+                        "patterns": [
+                            {
+                                "Named": {
+                                    "name": "ty",
+                                    "pattern": {
+                                        "RuleReference": "Type"
+                                    }
+                                }
+                            }
+                        ],
+                        "action": {
+                            "Return": {
+                                "Cast": {
+                                    "expr": {},
+                                    "ty": {
+                                        "Variable": "ty"
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             })
+        );
+
+        let rule = context.find_rule("X").unwrap();
+        assert_eq!(
+            rule.as_ref(),
+            &Rule::new(
+                "X",
+                Sequence::new(
+                    vec![("ty", rule_ref("Type")).into()],
+                    ret(cast(json!({}), reference("ty")))
+                )
+            )
+        );
+        assert_eq!(
+            rule.parse("Person", &mut context).ast,
+            json!({"Person": {}})
         )
     }
 }

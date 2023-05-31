@@ -80,10 +80,13 @@ impl Parser for Sequence {
 
         if let Some(action) = &self.action {
             let result = action.execute(&ast.as_object().unwrap_or(&serde_json::Map::new()));
-            if result.is_err() {
+            if let Err(error) = result {
+                println!("{:?}", miette::Report::new(error));
                 delta = 0;
+                ast = json!(null);
+            } else {
+                ast = result.unwrap();
             }
-            ast = result.unwrap_or_else(|e| e);
         }
 
         ParseResult {
@@ -99,7 +102,7 @@ mod test {
     use serde_json::json;
 
     use crate::{
-        action::{reference, Action},
+        action::{reference, throw, Action},
         parsers::Parser,
         Context, Pattern,
     };
@@ -142,7 +145,7 @@ mod test {
             vec!['('.into(), "/[A-z][a-z]*/".into(), ')'.into()].into(),
             Sequence::new(
                 vec!['('.into(), "/[A-z][a-z]*/".into()],
-                Action::Throw(json!({ "Expected" : {
+                throw(json!({ "Expected" : {
                     "expected": ")",
                     "at": 3
                 }})),
@@ -152,14 +155,6 @@ mod test {
 
         assert_eq!(p.parse("( x )", &mut context).ast, json!({}));
 
-        assert_eq!(
-            p.parse("( x", &mut context).ast,
-            json!({
-                "Expected": {
-                    "expected": ")",
-                    "at": 3
-                }
-            })
-        );
+        assert_eq!(p.parse("( x", &mut context).ast, json!(null));
     }
 }

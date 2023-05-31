@@ -15,14 +15,14 @@ Char: /'.'/
 String: /"([^"\\]|\\.)*"/
 
 Action: "=>" <value: Throw | Return> => value
-Return: <value: Expression> => { Return: value }
-Throw: "throw" <error: Expression> => { Throw: error }
+Return: <value: Expression> => value as Return
+Throw: "throw" <error: Expression> => error as Throw
 
 Object: '{' '}' | '{' Initializer (, Initializer)* ,? '}'
 Initializer: Identifier ':' Expression
-Expression: TypeCast | Value
-Type: /[A-Z][a-zA-Z0-9]*/
-TypeCast: <value: Value> as <type: Type>
+Expression: Cast | Value
+Type: <ty: /[A-Z][a-zA-Z0-9]*/ | Variable> => ty
+Cast: <expr: Value> as <ty: Type>
 Value: Object | String | Char | Integer | Variable
 Variable: Identifier
 Integer: <value: /[0-9]+/> => value
