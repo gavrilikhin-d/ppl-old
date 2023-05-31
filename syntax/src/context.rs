@@ -4,8 +4,9 @@ use serde_json::json;
 
 use crate::{
     action::{reference, Action},
+    alts,
     parsers::ParseResult,
-    patterns::{rule_ref, Repeat, Sequence},
+    patterns::{rule_ref, transparent, Repeat, Sequence},
     Pattern, Rule,
 };
 
@@ -422,8 +423,37 @@ impl Default for Context {
                     }),
                     on_parsed: Some(transparent_ast),
                 },
+                Rule::new("Type", "/[A-Z][a-zA-Z_0-9]*/").into(),
+                RuleWithAction::new(
+                    Rule::new(
+                        "TypeCast",
+                        vec![
+                            ("value", rule_ref("Value")).into(),
+                            "as".into(),
+                            ("type", rule_ref("Type")).into(),
+                        ],
+                    ),
+                    |at, mut res, context| {
+                        res = transparent_ast(at, res, context);
+                        let typename = res
+                            .ast
+                            .get_mut("type")
+                            .unwrap()
+                            .get_mut("Type")
+                            .unwrap()
+                            .take();
+                        res.ast = json!({ typename.as_str().unwrap(): res.ast.get_mut("value").unwrap().take() });
+                        res
+                    },
+                )
+                .into(),
                 Rule::new(
                     "Expression",
+                    transparent(alts!(rule_ref("TypeCast"), rule_ref("Value"))),
+                )
+                .into(),
+                Rule::new(
+                    "Value",
                     Sequence::new(
                         vec![(
                             "expr",
@@ -523,6 +553,25 @@ mod test {
     };
 
     #[test]
+    fn typename() {
+        let mut context = Context::default();
+        let r = context.find_rule("Type").unwrap();
+        assert_eq!(r.name, "Type");
+        assert_eq!(r.parse("Type", &mut context).ast, json!({"Type": "Type"}));
+    }
+
+    #[test]
+    fn type_cast() {
+        let mut context = Context::default();
+        let r = context.find_rule("TypeCast").unwrap();
+        assert_eq!(r.name, "TypeCast");
+        assert_eq!(
+            r.parse("{ name: \"Igor\" } as Person", &mut context).ast,
+            json!({"Person": { "name": "Igor" }})
+        );
+    }
+
+    #[test]
     fn action() {
         let mut context = Context::default();
         let r = context.find_rule("Action").unwrap();
@@ -576,6 +625,10 @@ mod test {
         let r = ctx.find_rule("Expression").unwrap();
         assert_eq!(r.name, "Expression");
         assert_eq!(r.parse("{}", &mut ctx).ast, json!({}));
+        assert_eq!(
+            r.parse("{} as Person", &mut ctx).ast,
+            json!({ "Person": {}})
+        );
         assert_eq!(r.parse("'('", &mut ctx).ast, json!('('));
         assert_eq!(r.parse("\"()\"", &mut ctx).ast, json!("()"));
         assert_eq!(r.parse("x", &mut ctx).ast, json!({ "Variable": "x" }));

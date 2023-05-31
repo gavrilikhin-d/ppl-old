@@ -1,18 +1,10 @@
 # Todo
 * [ ] Remove parse tree
-* [x] Support integers
 * [ ] Support `["a", "b", "c"]` syntax
-* [x] Actions in sequence
-* [x] Print errors only after whole rule failed
 * [ ] Add a way to obtain syntax information from variable name
 * [ ] Store source code in context
 * [ ] Remove `on_parse` function from rule
-* [ ] Typed objects
 * [ ] Distinct types
-* [X] AST transformations in code.
-      * [x] captures and no action => return object with captures.
-      * [x] captures and action => return action with captures as arguments.
-* [x] Errors in code. Thrown in actions
 * [ ] Move logic to syntax
 * [ ] Export/Import rules
 * [ ] Change the way rules are added to parsing to be more explicit

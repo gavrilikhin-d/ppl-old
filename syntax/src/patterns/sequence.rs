@@ -2,8 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
-    action::Action,
-    errors::Error,
+    action::{reference, Action},
     parsers::{ParseResult, Parser},
     Context, ParseTree, Pattern,
 };
@@ -26,6 +25,14 @@ impl Sequence {
             action: Some(action),
         }
     }
+}
+
+/// Returns sequence like this: <x: Pattern> => x
+pub fn transparent(pattern: impl Into<Pattern>) -> Sequence {
+    Sequence::new(
+        vec![("x", pattern.into()).into()],
+        Action::Return(reference("x")),
+    )
 }
 
 impl From<Vec<Pattern>> for Sequence {
@@ -72,15 +79,11 @@ impl Parser for Sequence {
         }
 
         if let Some(action) = &self.action {
-            ast = expand_variables(
-                action.value(),
-                &ast.as_object().cloned().unwrap_or_default(),
-            );
-            if matches!(action, Action::Throw(_)) {
-                let error: Error = serde_json::from_value(ast.clone()).unwrap();
-                println!("{:?}", miette::Report::new(error));
+            let result = action.execute(&ast.as_object().unwrap_or(&serde_json::Map::new()));
+            if result.is_err() {
                 delta = 0;
             }
+            ast = result.unwrap_or_else(|e| e);
         }
 
         ParseResult {
@@ -88,34 +91,6 @@ impl Parser for Sequence {
             tree: tree.flatten(),
             ast: ast.into(),
         }
-    }
-}
-
-fn expand_variables(
-    action: &serde_json::Value,
-    ast: &serde_json::Map<String, serde_json::Value>,
-) -> serde_json::Value {
-    match action {
-        serde_json::Value::Object(o) => {
-            if o.keys().len() == 1 && o.keys().next().unwrap() == "Variable" {
-                let variable = o.get("Variable").unwrap().as_str().unwrap();
-                return ast.get(variable).unwrap().clone();
-            }
-
-            let mut result = serde_json::Map::new();
-            for (key, value) in o {
-                result.insert(key.clone(), expand_variables(value, ast));
-            }
-            result.into()
-        }
-        serde_json::Value::Array(a) => {
-            let mut result = Vec::new();
-            for value in a {
-                result.push(expand_variables(value, ast));
-            }
-            result.into()
-        }
-        _ => action.clone(),
     }
 }
 

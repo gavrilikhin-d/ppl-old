@@ -20,6 +20,9 @@ Throw: "throw" <error: Expression> => { Throw: error }
 
 Object: '{' '}' | '{' Initializer (, Initializer)* ,? '}'
 Initializer: Identifier ':' Expression
-Expression: Object | String | Char | Integer | Variable
+Expression: TypeCast | Value
+Type: /[A-Z][a-zA-Z0-9]*/
+TypeCast: <value: Value> as <type: Type>
+Value: Object | String | Char | Integer | Variable
 Variable: Identifier
 Integer: <value: /[0-9]+/> => value

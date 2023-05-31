@@ -44,6 +44,13 @@ pub fn rule_ref(name: impl Into<String>) -> Pattern {
     Pattern::RuleReference(name.into())
 }
 
+#[macro_export]
+macro_rules! alts {
+    ($head: expr, $($tail: expr),+) => {
+		Pattern::Alternatives(vec![$head.into(), $($tail.into()),+].into())
+	};
+}
+
 impl Pattern {
     /// Return an alternative pattern between this pattern and another
     pub fn or(mut self, other: Pattern) -> Self {
