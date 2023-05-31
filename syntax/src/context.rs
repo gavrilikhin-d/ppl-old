@@ -120,6 +120,24 @@ impl Default for Context {
                     }),
                     on_parsed: Some(without_quotes),
                 },
+                RuleWithAction::new(
+                    Rule::new(
+                        "Integer",
+                        Sequence::new(
+                            vec![("value", r"/[0-9]+/".into()).into()],
+                            Action::Return(reference("value")),
+                        ),
+                    ),
+                    |_, mut res, _| {
+                        let str = res.ast.as_str().unwrap();
+                        if let Ok(i) = str.parse::<i64>() {
+                            res.ast = i.into();
+                        } else {
+                            res.ast = json!({ "Integer": str });
+                        }
+                        res
+                    },
+                ),
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "String".to_string(),
@@ -404,18 +422,24 @@ impl Default for Context {
                     }),
                     on_parsed: Some(transparent_ast),
                 },
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "Expression".to_string(),
-                        pattern: Pattern::Alternatives(vec![
-                            Pattern::RuleReference("Object".to_string()),
-                            Pattern::RuleReference("String".to_string()),
-                            Pattern::RuleReference("Char".to_string()),
-                            Pattern::RuleReference("Variable".to_string()),
-                        ]),
-                    }),
-                    on_parsed: Some(transparent_ast),
-                },
+                Rule::new(
+                    "Expression",
+                    Sequence::new(
+                        vec![(
+                            "expr",
+                            Pattern::Alternatives(vec![
+                                rule_ref("Object"),
+                                rule_ref("String"),
+                                rule_ref("Char"),
+                                rule_ref("Integer"),
+                                rule_ref("Variable"),
+                            ]),
+                        )
+                            .into()],
+                        Action::Return(reference("expr")),
+                    ),
+                )
+                .into(),
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Initializer".to_string(),
@@ -555,6 +579,21 @@ mod test {
         assert_eq!(r.parse("'('", &mut ctx).ast, json!('('));
         assert_eq!(r.parse("\"()\"", &mut ctx).ast, json!("()"));
         assert_eq!(r.parse("x", &mut ctx).ast, json!({ "Variable": "x" }));
+        assert_eq!(r.parse("123", &mut ctx).ast, json!(123));
+    }
+
+    #[test]
+    fn integer() {
+        let mut ctx = Context::default();
+        let r = ctx.find_rule("Integer").unwrap();
+        assert_eq!(r.name, "Integer");
+        assert_eq!(r.parse("123", &mut ctx).ast, json!(123));
+
+        let big_integer = "99999999999999999999999999999999";
+        assert_eq!(
+            r.parse(big_integer, &mut ctx).ast,
+            json!({ "Integer": big_integer })
+        );
     }
 
     #[test]

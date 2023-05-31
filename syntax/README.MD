@@ -1,6 +1,6 @@
 # Todo
 * [ ] Remove parse tree
-* [ ] Support integers
+* [x] Support integers
 * [ ] Support `["a", "b", "c"]` syntax
 * [x] Actions in sequence
 * [x] Print errors only after whole rule failed
@@ -8,8 +8,8 @@
 * [ ] Store source code in context
 * [ ] Remove `on_parse` function from rule
 * [ ] Typed objects
-* [ ] AST transformations in code.
-      * [ ] no captures and single child => return child.
+* [ ] Distinct types
+* [X] AST transformations in code.
       * [x] captures and no action => return object with captures.
       * [x] captures and action => return action with captures as arguments.
 * [x] Errors in code. Thrown in actions
