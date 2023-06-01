@@ -255,11 +255,11 @@ mod tests {
 
         assert_eq!(
             rule.parse(
-                "List: '(' => throw {
-					CustomError: {
+                "List: '(' =>
+					throw {
 						message: \"expected closing ')'\"
-					}
-				}",
+					} as CustomError
+				",
                 &mut context
             )
             .ast,
@@ -270,8 +270,11 @@ mod tests {
                         "patterns": ['('],
                         "action": {
                             "Throw": {
-                                "CustomError": {
+                                "Cast": {
+                                    "ty": "CustomError",
+                                    "expr": {
                                     "message": "expected closing ')'"
+                                    }
                                 }
                             }
                         }
@@ -287,11 +290,10 @@ mod tests {
                 "List",
                 Sequence::new(
                     vec!['('.into(),].into(),
-                    throw(json!({
-                        "CustomError": {
-                            "message": "expected closing ')'"
-                        }
-                    }))
+                    throw(cast(
+                        json!({"message": "expected closing ')'"}),
+                        "CustomError"
+                    ))
                 )
             )
         );

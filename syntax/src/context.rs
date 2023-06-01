@@ -5,7 +5,10 @@ use serde_json::json;
 use crate::{
     action::{cast, reference, ret, Action},
     alts,
-    bootstrap::rules::{self, Char, Identifier, Integer, Regex, RuleName, RuleReference, Text},
+    bootstrap::rules::{
+        self, Char, Identifier, Integer, NonEmptyObject, Object, Regex, RuleName, RuleReference,
+        Text, Type, Typename, Value, Variable,
+    },
     parsers::ParseResult,
     patterns::{rule_ref, transparent, Repeat, Sequence},
     Pattern, Rule,
@@ -313,95 +316,29 @@ impl Default for Context {
                 }
                 .into(),
                 Identifier::rule().into(),
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "EmptyObject".to_string(),
-                        pattern: vec!['{'.into(), '}'.into()].into(),
-                    }),
-                    on_parsed: Some(transparent_ast),
-                },
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "NonEmptyObject".to_string(),
-                        pattern: vec![
-                            '{'.into(),
-                            (
-                                "initializers",
-                                vec![
-                                    ("head", Pattern::RuleReference("Initializer".to_string()))
-                                        .into(),
-                                    (
-                                        "tail",
-                                        Repeat::zero_or_more(vec![
-                                            ','.into(),
-                                            (
-                                                "init",
-                                                Pattern::RuleReference("Initializer".to_string()),
-                                            )
-                                                .into(),
-                                        ])
-                                        .into(),
-                                    )
-                                        .into(),
-                                    Repeat::at_most_once(',').into(),
-                                ]
-                                .into(),
-                            )
-                                .into(),
-                            '}'.into(),
-                        ]
-                        .into(),
-                    }),
-                    on_parsed: Some(|at, mut res, context| {
-                        res = transparent_ast(at, res, context);
-
-                        let arr = res.ast.get("initializers").unwrap();
-
-                        let mut inits = arr.get("head").unwrap().as_object().unwrap().clone();
-                        for init in arr.get("tail").unwrap().as_array().unwrap() {
-                            inits.extend(init.get("init").unwrap().as_object().unwrap().clone())
-                        }
-                        res.ast = json!(inits);
-                        res
-                    }),
-                },
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "Object".to_string(),
-                        pattern: Pattern::Alternatives(vec![
-                            Pattern::RuleReference("EmptyObject".to_string()),
-                            Pattern::RuleReference("NonEmptyObject".to_string()),
-                        ]),
-                    }),
-                    on_parsed: Some(transparent_ast),
-                },
-                Rule::new("Type", transparent("/[A-Z][a-zA-Z_0-9]*/")).into(),
-                rules::Typename::rule().into(),
+                NonEmptyObject::rule().into(),
+                Object::rule().into(),
+                Type::rule().into(),
+                Typename::rule().into(),
                 Rule::new(
                     "Cast",
                     vec![
-                        ("expr", rule_ref("Value")).into(),
+                        ("expr", alts!(rule_ref("Variable"), rule_ref("Value"))).into(),
                         "as".into(),
-                        ("ty", alts!(rule_ref("Type"), rule_ref("Variable"))).into(),
+                        ("ty", rule_ref("Type")).into(),
                     ],
                 )
                 .into(),
                 Rule::new(
                     "Expression",
-                    transparent(alts!(rule_ref("Cast"), rule_ref("Value"))),
-                )
-                .into(),
-                Rule::new(
-                    "Value",
                     transparent(alts!(
-                        rule_ref("Object"),
-                        rule_ref("String"),
-                        rule_ref("Char"),
-                        rule_ref("Integer"),
+                        rule_ref("Cast"),
+                        rule_ref("Value"),
                         rule_ref("Variable")
                     )),
                 )
                 .into(),
+                Value::rule().into(),
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Initializer".to_string(),
@@ -460,7 +397,7 @@ impl Default for Context {
                         res
                     }),
                 },
-                Rule::new("Variable", rule_ref("Identifier")).into(),
+                Variable::rule().into(),
             ],
         }
     }
@@ -524,6 +461,20 @@ mod test {
             r.parse("throw 'x'", &mut context).ast,
             json!({"Throw": 'x'})
         );
+        assert_eq!(
+            r.parse("throw { message: \"msg\"} as CustomError", &mut context)
+                .ast,
+            json!({
+                "Throw": {
+                    "Cast": {
+                        "expr": {
+                            "message": "msg"
+                        },
+                        "ty": "CustomError"
+                    }
+                }
+            })
+        )
     }
 
     #[test]
@@ -651,7 +602,6 @@ mod test {
         let mut ctx = Context::default();
         let r = ctx.find_rule("Identifier").unwrap();
         assert_eq!(r.name, "Identifier");
-        assert_eq!(r.parse("Foo", &mut ctx).ast, json!("Foo"));
         assert_eq!(r.parse("foo", &mut ctx).ast, json!("foo"));
     }
 

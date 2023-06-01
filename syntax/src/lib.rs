@@ -1,4 +1,5 @@
 #![feature(box_into_inner)]
+#![feature(is_some_and)]
 
 mod tree;
 pub use tree::*;

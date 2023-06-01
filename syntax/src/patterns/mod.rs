@@ -10,7 +10,7 @@ pub use sequence::*;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    action::Action,
+    action::{reference, ret, Action, Expression},
     errors::Expected,
     parsers::{ParseResult, Parser},
     Context, ParseTreeNode, Token,
@@ -42,6 +42,30 @@ pub enum Pattern {
 /// Reference to another rule
 pub fn rule_ref(name: impl Into<String>) -> Pattern {
     Pattern::RuleReference(name.into())
+}
+
+/// <head: Pattern> <tail: (Separator (<value: Pattern> => value))*> => [head, ...tail]
+pub fn separated(pattern: impl Into<Pattern>, separator: impl Into<Pattern>) -> Pattern {
+    let pattern = pattern.into();
+    Sequence::new(
+        vec![
+            ("head", pattern.clone()).into(),
+            (
+                "tail",
+                Repeat::zero_or_more(Sequence::new(
+                    vec![separator.into(), ("value", pattern).into()],
+                    ret(reference("value")),
+                ))
+                .into(),
+            )
+                .into(),
+        ],
+        ret(Expression::Flatten(vec![
+            reference("head"),
+            reference("tail"),
+        ])),
+    )
+    .into()
 }
 
 #[macro_export]
