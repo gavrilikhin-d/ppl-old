@@ -6,10 +6,10 @@ use pretty_assertions::assert_eq;
 use serde_json::json;
 
 use crate::{
-    action::{merge, reference, ret},
+    action::{cast, merge, reference, ret},
     alts,
     patterns::{separated, transparent, Repeat, Sequence},
-    rule_ref, Rule,
+    rule_ref, seq, Rule,
 };
 
 macro_rules! rule {
@@ -177,7 +177,7 @@ rule!(
     Sequence::new(
         vec![
             '{'.into(),
-            ("initializers", separated(rule_ref!("Initializer"), ',')).into(),
+            ("initializers", separated(rule_ref!(Initializer), ',')).into(),
             Repeat::at_most_once(',').into(),
             '}'.into(),
         ],
@@ -197,5 +197,146 @@ fn non_empty_object() {
     assert_eq!(
         r.parse("{a: 1, b: 2,}", &mut context).ast,
         json!({"a": 1, "b": 2})
+    );
+}
+
+rule!(
+    Initializer,
+    seq!(
+        ("name", rule_ref!(Identifier)),
+        ':',
+        ("value", rule_ref!("Expression"))
+        =>
+        ret(cast(reference("value"), reference("name")))
+    )
+);
+#[test]
+fn initializer() {
+    let mut context = Context::default();
+    let r = Initializer::rule();
+    assert_eq!(r.parse("a: 1", &mut context).ast, json!({"a": 1}));
+}
+
+rule!(
+    Cast,
+    seq!(
+        ("expr", alts!(rule_ref!(Variable), rule_ref!(Value))),
+        "as",
+        ("ty", rule_ref!(Type))
+    )
+);
+#[test]
+fn cast_() {
+    let mut context = Context::default();
+    let r = Cast::rule();
+    assert_eq!(
+        r.parse("1 as Integer", &mut context).ast,
+        json!({
+            "Cast": {
+                "ty": "Integer",
+                "expr": 1
+            }
+        })
+    );
+    assert_eq!(
+        r.parse("1 as ty", &mut context).ast,
+        json!({
+            "Cast": {
+                "ty": { "Variable": "ty" },
+                "expr": 1
+            }
+        })
+    );
+}
+
+rule!(
+    Expression,
+    transparent(alts!(
+        rule_ref!(Cast),
+        rule_ref!(Value),
+        rule_ref!(Variable)
+    ))
+);
+#[test]
+fn expression() {
+    let mut context = Context::default();
+    let r = Expression::rule();
+    assert_eq!(r.parse("1", &mut context).ast, json!(1));
+    assert_eq!(r.parse("var", &mut context).ast, json!({"Variable": "var"}));
+    assert_eq!(
+        r.parse("1 as Integer", &mut context).ast,
+        json!({
+            "Cast": {
+                "ty": "Integer",
+                "expr": 1
+            }
+        })
+    );
+}
+
+rule!(
+    Return,
+    seq!(
+        ("value", rule_ref!(Expression))
+        =>
+        ret(cast(reference("value"), "Return"))
+    )
+);
+#[test]
+fn return_() {
+    let mut context = Context::default();
+    let r = Return::rule();
+    assert_eq!(
+        r.parse("1", &mut context).ast,
+        json!({
+            "Return": 1
+        })
+    );
+}
+
+rule!(
+    Throw,
+    seq!(
+        "throw",
+        ("error", rule_ref!(Expression)) =>
+        ret(cast(reference("error"), "Throw"))
+    )
+);
+#[test]
+fn throw() {
+    let mut context = Context::default();
+    let r = Throw::rule();
+    assert_eq!(
+        r.parse("throw 1", &mut context).ast,
+        json!({
+            "Throw": 1
+        })
+    );
+}
+
+rule!(
+    Action,
+    seq!(
+        "=>",
+        ("value", alts!(rule_ref!(Throw), rule_ref!(Return)))
+        =>
+        ret(reference("value"))
+    )
+);
+#[test]
+fn action() {
+    let mut context = Context::default();
+    let r = Action::rule();
+    assert_eq!(
+        r.parse("=> 1", &mut context).ast,
+        json!({
+            "Return": 1
+        })
+    );
+    assert_eq!(
+        r.parse("=> throw 1", &mut context).ast,
+        json!({
+            "Throw": 1
+        })
     );
 }

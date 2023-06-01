@@ -97,6 +97,20 @@ impl Parser for Sequence {
     }
 }
 
+/// Macro to simplify creation of sequences
+#[macro_export]
+macro_rules! seq {
+	($($expr: expr),+) => {
+		vec![$(crate::Pattern::from($expr)),+]
+	};
+	($($expr: expr),+ => $action: expr) => {
+		Sequence::new(
+			vec![$(crate::Pattern::from($expr)),+],
+			$action
+		)
+	};
+}
+
 #[cfg(test)]
 mod test {
     use serde_json::json;

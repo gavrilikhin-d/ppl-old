@@ -18,3 +18,8 @@
 * [ ] Copy rules on reference
 * [ ] Add `&Rule` as a way to reference a rule without copying it.
 * [ ] Simplify separated patterns
+* [ ] Add `#[derive(Rule)]`
+      * [ ] Add `#[rule]` attribute
+	  * [ ] Add `Self::rule()` method
+	  * [ ] Add `Self::parse(str: &str)` method
+      * [ ] Implement deserialize

@@ -6,7 +6,7 @@ Repeat: AtomicPattern ('*' | '+' | '?')?
 AtomicPattern: PatternInParentheses | NamedPattern | RuleReference | Regex | Text
 PatternInParentheses: '(' <pattern: Pattern> ')' => pattern
 Named: '<' <name: Identifier> ':' <pattern: Pattern> '>'
-Identifier: /[a-z_][a-zA-Z_0-9]*/
+Identifier: <x: /[a-z_][a-zA-Z_0-9]*/> => x
 RuleReference: RuleName
 RuleName: /[A-Z][a-zA-Z0-9]*/
 Regex: '/' /[^/]+/ '/'

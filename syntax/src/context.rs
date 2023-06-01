@@ -3,14 +3,12 @@ use std::sync::Arc;
 use serde_json::json;
 
 use crate::{
-    action::{cast, reference, ret, Action},
-    alts,
     bootstrap::rules::{
-        self, Char, Identifier, Integer, NonEmptyObject, Object, Regex, RuleName, RuleReference,
-        Text, Type, Typename, Value, Variable,
+        self, Cast, Char, Expression, Identifier, Initializer, Integer, NonEmptyObject, Object,
+        Regex, Return, RuleName, RuleReference, Text, Throw, Type, Typename, Value, Variable,
     },
     parsers::ParseResult,
-    patterns::{rule_ref, transparent, Repeat, Sequence},
+    patterns::{rule_ref, Repeat},
     Pattern, Rule,
 };
 
@@ -182,37 +180,9 @@ impl Default for Context {
                         res
                     }),
                 },
-                Rule::new(
-                    "Action",
-                    Sequence::new(
-                        vec![
-                            "=>".into(),
-                            (
-                                "value",
-                                Pattern::Alternatives(vec![rule_ref("Throw"), rule_ref("Return")]),
-                            )
-                                .into(),
-                        ],
-                        Action::Return(reference("value")),
-                    ),
-                )
-                .into(),
-                Rule::new(
-                    "Return",
-                    Sequence::new(
-                        vec![("value", rule_ref("Expression")).into()],
-                        ret(cast(reference("value"), "Return")),
-                    ),
-                )
-                .into(),
-                Rule::new(
-                    "Throw",
-                    Sequence::new(
-                        vec!["throw".into(), ("error", rule_ref("Expression")).into()],
-                        ret(cast(reference("error"), "Throw")),
-                    ),
-                )
-                .into(),
+                rules::Action::rule().into(),
+                Return::rule().into(),
+                Throw::rule().into(),
                 RuleWithAction::new(
                     Rule::new(
                         "Sequence",
@@ -320,41 +290,10 @@ impl Default for Context {
                 Object::rule().into(),
                 Type::rule().into(),
                 Typename::rule().into(),
-                Rule::new(
-                    "Cast",
-                    vec![
-                        ("expr", alts!(rule_ref("Variable"), rule_ref("Value"))).into(),
-                        "as".into(),
-                        ("ty", rule_ref("Type")).into(),
-                    ],
-                )
-                .into(),
-                Rule::new(
-                    "Expression",
-                    transparent(alts!(
-                        rule_ref("Cast"),
-                        rule_ref("Value"),
-                        rule_ref("Variable")
-                    )),
-                )
-                .into(),
+                Cast::rule().into(),
+                Expression::rule().into(),
                 Value::rule().into(),
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "Initializer".to_string(),
-                        pattern: vec![
-                            ("name", Pattern::RuleReference("Identifier".to_string())).into(),
-                            ":".into(),
-                            ("value", Pattern::RuleReference("Expression".to_string())).into(),
-                        ]
-                        .into(),
-                    }),
-                    on_parsed: Some(|at, mut res, context| {
-                        res = transparent_ast(at, res, context);
-                        res.ast = json!({ res.ast.get("name").unwrap().as_str().unwrap(): res.ast.get_mut("value").unwrap().take() });
-                        res
-                    }),
-                },
+                Initializer::rule().into(),
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "PatternInParentheses".to_string(),
