@@ -4,8 +4,9 @@ use serde_json::json;
 
 use crate::{
     bootstrap::rules::{
-        self, Cast, Char, Expression, Identifier, Initializer, Integer, NonEmptyObject, Object,
-        Regex, Return, RuleName, RuleReference, Text, Throw, Type, Typename, Value, Variable,
+        self, AtomicPattern, Cast, Char, Expression, Identifier, Initializer, Integer, Named,
+        NonEmptyObject, Object, Regex, Return, RuleName, RuleReference, Text, Throw, Type,
+        Typename, Value, Variable,
     },
     parsers::ParseResult,
     patterns::{rule_ref, Repeat},
@@ -208,83 +209,39 @@ impl Default for Context {
                         res
                     },
                 ),
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "Repeat".to_string(),
-                        pattern: vec![
-                            (
-                                "pattern",
-                                Pattern::RuleReference("AtomicPattern".to_string()),
-                            )
-                                .into(),
-                            (
-                                "op",
-                                Repeat::at_most_once(Pattern::Alternatives(
-                                    vec!["?".into(), "+".into(), "*".into()].into(),
-                                ))
-                                .into(),
-                            )
-                                .into(),
-                        ]
-                        .into(),
-                    }),
-                    on_parsed: Some(|at, mut res, context| {
-                        res = transparent_ast(at, res, context);
+                RuleWithAction::new(rules::Repeat::rule(), |at, mut res, context| {
+                    res = transparent_ast(at, res, context);
 
-                        let pattern = res.ast.get_mut("pattern").unwrap().take();
-                        let op = res.ast.get_mut("op").unwrap().take();
-                        if op.is_null() {
-                            res.ast = pattern;
-                            return res;
-                        }
-                        res.ast = match op.as_str().unwrap() {
-                            "?" => json!({
-                                "Repeat": {
-                                    "pattern": pattern,
-                                    "at_most": 1
-                                }
-                            }),
-                            "+" => json!({
-                                "Repeat": {
-                                    "pattern": pattern,
-                                    "at_least": 1,
-                                }
-                            }),
-                            "*" => json!({
-                                "Repeat": {
-                                    "pattern": pattern,
-                                }
-                            }),
-                            _ => unreachable!(),
-                        };
-                        res
-                    }),
-                },
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "AtomicPattern".to_string(),
-                        pattern: Pattern::Alternatives(vec![
-                            Pattern::RuleReference("PatternInParentheses".to_string()),
-                            Pattern::RuleReference("Named".to_string()),
-                            Pattern::RuleReference("RuleReference".to_string()),
-                            Pattern::RuleReference("Regex".to_string()),
-                            Pattern::RuleReference("Text".to_string()),
-                        ]),
-                    }),
-                    on_parsed: Some(transparent_ast),
-                },
-                Rule {
-                    name: "Named".to_string(),
-                    pattern: vec![
-                        "<".into(),
-                        ("name", Pattern::RuleReference("Identifier".to_string())).into(),
-                        ":".into(),
-                        ("pattern", Pattern::RuleReference("Pattern".to_string())).into(),
-                        ">".into(),
-                    ]
-                    .into(),
-                }
-                .into(),
+                    let pattern = res.ast.get_mut("pattern").unwrap().take();
+                    let op = res.ast.get_mut("op").unwrap().take();
+                    if op.is_null() {
+                        res.ast = pattern;
+                        return res;
+                    }
+                    res.ast = match op.as_str().unwrap() {
+                        "?" => json!({
+                            "Repeat": {
+                                "pattern": pattern,
+                                "at_most": 1
+                            }
+                        }),
+                        "+" => json!({
+                            "Repeat": {
+                                "pattern": pattern,
+                                "at_least": 1,
+                            }
+                        }),
+                        "*" => json!({
+                            "Repeat": {
+                                "pattern": pattern,
+                            }
+                        }),
+                        _ => unreachable!(),
+                    };
+                    res
+                }),
+                AtomicPattern::rule().into(),
+                Named::rule().into(),
                 Identifier::rule().into(),
                 NonEmptyObject::rule().into(),
                 Object::rule().into(),
@@ -294,27 +251,6 @@ impl Default for Context {
                 Expression::rule().into(),
                 Value::rule().into(),
                 Initializer::rule().into(),
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "PatternInParentheses".to_string(),
-                        pattern: vec![
-                            "(".into(),
-                            ("pattern", Pattern::RuleReference("Pattern".to_string())).into(),
-                            ")".into(),
-                        ]
-                        .into(),
-                    }),
-                    on_parsed: Some(|_at, mut res, _| {
-                        res.ast = res
-                            .ast
-                            .get_mut("PatternInParentheses")
-                            .unwrap()
-                            .get_mut("pattern")
-                            .unwrap()
-                            .take();
-                        res
-                    }),
-                },
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Rule".to_string(),
@@ -627,31 +563,29 @@ mod test {
         );
 
         let tree_text = json!({
-            "AtomicPattern": {
-                "PatternInParentheses": [
-                    "(",
-                    {
-                        "Pattern": {
-                            "Alternatives": {
-                                "Sequence": {
-                                    "Repeat": {
-                                        "AtomicPattern": {
-                                            "Text": {
-                                                "value": "bar",
-                                                "trivia": " "
-                                            }
+            "AtomicPattern": [
+                "(",
+                {
+                    "Pattern": {
+                        "Alternatives": {
+                            "Sequence": {
+                                "Repeat": {
+                                    "AtomicPattern": {
+                                        "Text": {
+                                            "value": "bar",
+                                            "trivia": " "
                                         }
                                     }
                                 }
                             }
                         }
-                    },
-                    {
-                        "value": ")",
-                        "trivia": " "
                     }
-                ]
-            }
+                },
+                {
+                    "value": ")",
+                    "trivia": " "
+                }
+            ]
         })
         .to_string();
         assert_eq!(
@@ -841,25 +775,23 @@ mod test {
                     "Sequence": {
                         "Repeat": [
                             {
-                                "AtomicPattern": {
-                                    "PatternInParentheses": [
-                                        "(",
-                                        {
-                                            "Pattern": {
-                                                "Alternatives": {
-                                                    "Sequence": {
-                                                        "Repeat": {
-                                                            "AtomicPattern": {
-                                                                "Text": "bar"
-                                                            }
+                                "AtomicPattern": [
+                                    "(",
+                                    {
+                                        "Pattern": {
+                                            "Alternatives": {
+                                                "Sequence": {
+                                                    "Repeat": {
+                                                        "AtomicPattern": {
+                                                            "Text": "bar"
                                                         }
                                                     }
                                                 }
                                             }
-                                        },
-                                        ")"
-                                    ]
-                                }
+                                        }
+                                    },
+                                    ")"
+                                ]
                             },
                             "+"
                         ]

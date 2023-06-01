@@ -8,7 +8,7 @@ use serde_json::json;
 use crate::{
     action::{cast, merge, reference, ret},
     alts,
-    patterns::{separated, transparent, Repeat, Sequence},
+    patterns::{self, separated, transparent, Sequence},
     rule_ref, seq, Rule,
 };
 
@@ -178,7 +178,7 @@ rule!(
         vec![
             '{'.into(),
             ("initializers", separated(rule_ref!(Initializer), ',')).into(),
-            Repeat::at_most_once(',').into(),
+            patterns::Repeat::at_most_once(',').into(),
             '}'.into(),
         ],
         ret(merge(reference("initializers")))
@@ -337,6 +337,110 @@ fn action() {
         r.parse("=> throw 1", &mut context).ast,
         json!({
             "Throw": 1
+        })
+    );
+}
+
+rule!(
+    Named,
+    seq!(
+        "<",
+        ("name", rule_ref!(Identifier)),
+        ":",
+        ("pattern", rule_ref!("Pattern")),
+        ">"
+    )
+);
+#[test]
+fn named() {
+    let mut context = Context::default();
+    let r = Named::rule();
+    assert_eq!(
+        r.parse("<name: x>", &mut context).ast,
+        json!({
+            "Named": {
+                "name": "name",
+                "pattern": "x"
+            }
+        })
+    );
+}
+
+rule!(
+    AtomicPattern,
+    transparent(alts!(
+        seq!(
+            "(",
+            ("pattern", rule_ref!("Pattern")),
+            ")"
+            => ret(reference("pattern"))
+        ),
+        rule_ref!(Named),
+        rule_ref!(RuleReference),
+        rule_ref!(Regex),
+        rule_ref!(Text)
+    ))
+);
+#[test]
+fn atomic_pattern() {
+    let mut context = Context::default();
+    let r = AtomicPattern::rule();
+    assert_eq!(r.parse("(x)", &mut context).ast, json!("x"));
+    assert_eq!(
+        r.parse("<name: x>", &mut context).ast,
+        json!({
+            "Named": {
+                "name": "name",
+                "pattern": "x"
+            }
+        })
+    );
+    assert_eq!(
+        r.parse("RuleName", &mut context).ast,
+        json!({
+            "RuleReference": "RuleName"
+        })
+    );
+    assert_eq!(r.parse("/x/", &mut context).ast, json!("/x/"));
+    assert_eq!(r.parse("x", &mut context).ast, json!("x"));
+}
+
+rule!(
+    Repeat,
+    seq!(
+        ("pattern", rule_ref!(AtomicPattern)),
+        ("op", patterns::Repeat::at_most_once("/[*+?]/").into())
+    )
+);
+#[test]
+fn repeat() {
+    let mut context = Context::default();
+    let r = Repeat::rule();
+    assert_eq!(r.parse("x", &mut context).ast, json!("x"));
+    assert_eq!(
+        r.parse("x?", &mut context).ast,
+        json!({
+            "Repeat": {
+                "pattern": "x",
+                "at_most": 1
+            }
+        })
+    );
+    assert_eq!(
+        r.parse("x*", &mut context).ast,
+        json!({
+            "Repeat": {
+                "pattern": "x"
+            }
+        })
+    );
+    assert_eq!(
+        r.parse("x+?", &mut context).ast,
+        json!({
+            "Repeat": {
+                "pattern": "x",
+                "at_least": 1
+            }
         })
     );
 }
