@@ -5,6 +5,7 @@ use serde_json::json;
 use crate::{
     action::{cast, reference, ret, Action},
     alts,
+    bootstrap::rules::{self, Char, Identifier, Integer, Regex, RuleName, RuleReference, Text},
     parsers::ParseResult,
     patterns::{rule_ref, transparent, Repeat, Sequence},
     Pattern, Rule,
@@ -20,6 +21,10 @@ fn transparent_ast<'s>(
     mut res: ParseResult<'s>,
     _context: &mut Context,
 ) -> ParseResult<'s> {
+    if !res.ast.is_object() {
+        return res;
+    }
+
     res.ast = res
         .ast
         .as_object()
@@ -114,68 +119,21 @@ impl Default for Context {
         Context {
             root: Pattern::RuleReference("Rule".to_string()),
             rules: vec![
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "Char".to_string(),
-                        pattern: r"/'.'/".into(),
-                    }),
-                    on_parsed: Some(without_quotes),
-                },
-                RuleWithAction::new(
-                    Rule::new(
-                        "Integer",
-                        Sequence::new(
-                            vec![("value", r"/[0-9]+/".into()).into()],
-                            Action::Return(reference("value")),
-                        ),
-                    ),
-                    |_, mut res, _| {
-                        let str = res.ast.as_str().unwrap();
-                        if let Ok(i) = str.parse::<i64>() {
-                            res.ast = i.into();
-                        } else {
-                            res.ast = json!({ "Integer": str });
-                        }
-                        res
-                    },
-                ),
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "String".to_string(),
-                        pattern: "/\"([^\"\\\\]|\\.)*\"/".into(),
-                    }),
-                    on_parsed: Some(without_quotes),
-                },
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "Text".to_string(),
-                        pattern: Pattern::Alternatives(vec![
-                            Pattern::RuleReference("Char".to_string()),
-                            Pattern::RuleReference("String".to_string()),
-                            r"/[^\s*+?()|<:>{}=]+/".into(),
-                        ]),
-                    }),
-                    on_parsed: Some(transparent_ast),
-                },
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "Regex".to_string(),
-                        pattern: r"//[^/]+//".into(),
-                    }),
-                    on_parsed: Some(transparent_ast),
-                },
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "RuleName".to_string(),
-                        pattern: r"/[A-Z][a-zA-Z0-9]*/".into(),
-                    }),
-                    on_parsed: Some(transparent_ast),
-                },
-                Rule {
-                    name: "RuleReference".to_string(),
-                    pattern: Pattern::RuleReference("RuleName".to_string()),
-                }
-                .into(),
+                RuleWithAction::new(Char::rule(), without_quotes),
+                RuleWithAction::new(Integer::rule(), |_, mut res, _| {
+                    let str = res.ast.as_str().unwrap();
+                    if let Ok(i) = str.parse::<i64>() {
+                        res.ast = i.into();
+                    } else {
+                        res.ast = json!({ "Integer": str });
+                    }
+                    res
+                }),
+                RuleWithAction::new(rules::String::rule(), without_quotes),
+                Text::rule().into(),
+                Regex::rule().into(),
+                RuleName::rule().into(),
+                RuleReference::rule().into(),
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "Pattern".to_string(),
@@ -354,13 +312,7 @@ impl Default for Context {
                     .into(),
                 }
                 .into(),
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "Identifier".to_string(),
-                        pattern: r"/[a-zA-Z_][a-zA-Z0-9_]*/".into(),
-                    }),
-                    on_parsed: Some(transparent_ast),
-                },
+                Identifier::rule().into(),
                 RuleWithAction {
                     rule: Arc::new(Rule {
                         name: "EmptyObject".to_string(),
@@ -424,6 +376,7 @@ impl Default for Context {
                     on_parsed: Some(transparent_ast),
                 },
                 Rule::new("Type", transparent("/[A-Z][a-zA-Z_0-9]*/")).into(),
+                rules::Typename::rule().into(),
                 Rule::new(
                     "Cast",
                     vec![

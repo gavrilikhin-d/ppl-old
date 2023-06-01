@@ -47,7 +47,7 @@ pub fn rule_ref(name: impl Into<String>) -> Pattern {
 #[macro_export]
 macro_rules! alts {
     ($head: expr, $($tail: expr),+) => {
-		Pattern::Alternatives(vec![$head.into(), $($tail.into()),+].into())
+		crate::Pattern::Alternatives(vec![$head.into(), $($tail.into()),+].into())
 	};
 }
 
