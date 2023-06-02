@@ -11,9 +11,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     action::{reference, ret, Action, Expression},
+    bootstrap::rules::Alternatives,
     errors::Expected,
     parsers::{ParseResult, Parser},
-    Context, ParseTreeNode, Token,
+    rule_ref, Context, ParseTreeNode, Rule, Token,
 };
 
 /// Possible patterns
@@ -85,6 +86,10 @@ impl Pattern {
             }
         }
         self
+    }
+
+    pub fn rule() -> Rule {
+        Rule::new("Pattern", transparent(rule_ref!(Alternatives)))
     }
 }
 

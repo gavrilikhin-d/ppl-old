@@ -137,13 +137,7 @@ impl Default for Context {
                 Regex::rule().into(),
                 RuleName::rule().into(),
                 RuleReference::rule().into(),
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "Pattern".to_string(),
-                        pattern: Pattern::RuleReference("Alternatives".to_string()),
-                    }),
-                    on_parsed: Some(transparent_ast),
-                },
+                Pattern::rule().into(),
                 RuleWithAction::new(Alternatives::rule(), |_, mut res, _| {
                     let alts = res.ast.as_array_mut().unwrap();
                     let mut alts = alts.iter().map(|a| a.get("x").unwrap());
@@ -213,27 +207,16 @@ impl Default for Context {
                 Expression::rule().into(),
                 Value::rule().into(),
                 Initializer::rule().into(),
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "Rule".to_string(),
-                        pattern: vec![
-                            ("name", Pattern::RuleReference("RuleName".to_string())).into(),
-                            ":".into(),
-                            ("pattern", Pattern::RuleReference("Pattern".to_string())).into(),
-                        ]
-                        .into(),
-                    }),
-                    on_parsed: Some(|at, mut res, context| {
-                        res = transparent_ast(at, res, context);
-                        let rule: Rule = serde_json::from_value(res.ast.clone()).unwrap();
-                        context.root = context
-                            .root
-                            .clone()
-                            .or(Pattern::RuleReference(rule.name.clone()));
-                        context.add_rule(rule);
-                        res
-                    }),
-                },
+                RuleWithAction::new(Rule::rule(), |at, mut res, context| {
+                    res = transparent_ast(at, res, context);
+                    let rule: Rule = serde_json::from_value(res.ast.clone()).unwrap();
+                    context.root = context
+                        .root
+                        .clone()
+                        .or(Pattern::RuleReference(rule.name.clone()));
+                    context.add_rule(rule);
+                    res
+                }),
                 Variable::rule().into(),
             ],
         }

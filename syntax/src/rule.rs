@@ -2,9 +2,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
+    bootstrap::rules::RuleName,
     parsers::{ParseResult, Parser},
     patterns::Sequence,
-    Context, ParseTree, Pattern,
+    rule_ref, seq, Context, ParseTree, Pattern,
 };
 
 /// Syntax rule
@@ -23,6 +24,17 @@ impl Rule {
             name: name.into(),
             pattern: pattern.into(),
         }
+    }
+
+    pub fn rule() -> Rule {
+        Rule::new(
+            "Rule",
+            seq!(
+                ("name", rule_ref!(RuleName)),
+                ":",
+                ("pattern", rule_ref!(Pattern))
+            ),
+        )
     }
 }
 
