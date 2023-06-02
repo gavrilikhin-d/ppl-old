@@ -4,8 +4,13 @@ use serde_json::json;
 use crate::{
     action::{reference, Action},
     parsers::{ParseResult, Parser},
-    Context, ParseTree, Pattern,
+    rule_ref, Context, ParseTree, Pattern, Rule,
 };
+
+#[cfg(test)]
+use pretty_assertions::assert_eq;
+
+use super::Repeat;
 
 /// Sequence of patterns with optional action
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
@@ -104,11 +109,41 @@ macro_rules! seq {
 		vec![$(crate::Pattern::from($expr)),+]
 	};
 	($($expr: expr),+ => $action: expr) => {
-		Sequence::new(
+		crate::patterns::Sequence::new(
 			vec![$(crate::Pattern::from($expr)),+],
 			$action
 		)
 	};
+}
+
+impl Sequence {
+    pub fn rule() -> Rule {
+        Rule::new(
+            "Sequence",
+            transparent(seq!(
+                ("patterns", Repeat::once_or_more(rule_ref!(Repeat)).into()),
+                ("action", Repeat::at_most_once(rule_ref!(Action)).into())
+            )),
+        )
+    }
+}
+#[test]
+fn sequence() {
+    let mut context = Context::default();
+    let r = Sequence::rule();
+    assert_eq!(r.parse("x", &mut context).ast, json!("x"));
+    assert_eq!(r.parse("x y", &mut context).ast, json!(["x", "y"]));
+    assert_eq!(
+        r.parse("x y => 1", &mut context).ast,
+        json!({
+            "Sequence": {
+                "patterns": ["x", "y"],
+                "action": {
+                    "Return": 1
+                }
+            }
+        })
+    );
 }
 
 #[cfg(test)]

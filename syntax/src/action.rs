@@ -2,7 +2,17 @@ use derive_more::From;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 
-use crate::errors::Error;
+use crate::{
+    alts,
+    bootstrap::rules::{Return, Throw},
+    errors::Error,
+    rule_ref, seq, Rule,
+};
+
+#[cfg(test)]
+use crate::{parsers::Parser, Context};
+#[cfg(test)]
+use pretty_assertions::assert_eq;
 
 /// Action to do on AST
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
@@ -11,6 +21,37 @@ pub enum Action {
     Throw(Expression),
     /// Return value
     Return(Expression),
+}
+
+impl Action {
+    pub fn rule() -> Rule {
+        Rule::new(
+            "Action",
+            seq!(
+                "=>",
+                ("value", alts!(rule_ref!(Throw), rule_ref!(Return)))
+                =>
+                ret(reference("value"))
+            ),
+        )
+    }
+}
+#[test]
+fn action() {
+    let mut context = Context::default();
+    let r = Action::rule();
+    assert_eq!(
+        r.parse("=> 1", &mut context).ast,
+        json!({
+            "Return": 1
+        })
+    );
+    assert_eq!(
+        r.parse("=> throw 1", &mut context).ast,
+        json!({
+            "Throw": 1
+        })
+    );
 }
 
 /// Cast expression to type

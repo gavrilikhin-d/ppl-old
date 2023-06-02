@@ -2,8 +2,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::{
+    bootstrap::rules::AtomicPattern,
     parsers::{ParseResult, Parser},
-    Context, ParseTree,
+    rule_ref, seq, Context, ParseTree, Rule,
 };
 
 use super::Pattern;
@@ -90,6 +91,50 @@ impl Parser for Repeat {
             },
         }
     }
+}
+
+impl Repeat {
+    pub fn rule() -> Rule {
+        Rule::new(
+            "Repeat",
+            seq!(
+                ("pattern", rule_ref!(AtomicPattern)),
+                ("op", Repeat::at_most_once("/[*+?]/").into())
+            ),
+        )
+    }
+}
+#[test]
+fn repeat() {
+    let mut context = Context::default();
+    let r = Repeat::rule();
+    assert_eq!(r.parse("x", &mut context).ast, json!("x"));
+    assert_eq!(
+        r.parse("x?", &mut context).ast,
+        json!({
+            "Repeat": {
+                "pattern": "x",
+                "at_most": 1
+            }
+        })
+    );
+    assert_eq!(
+        r.parse("x*", &mut context).ast,
+        json!({
+            "Repeat": {
+                "pattern": "x"
+            }
+        })
+    );
+    assert_eq!(
+        r.parse("x+?", &mut context).ast,
+        json!({
+            "Repeat": {
+                "pattern": "x",
+                "at_least": 1
+            }
+        })
+    );
 }
 
 #[cfg(test)]

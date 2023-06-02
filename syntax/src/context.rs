@@ -3,13 +3,14 @@ use std::sync::Arc;
 use serde_json::json;
 
 use crate::{
+    action::Action,
     bootstrap::rules::{
         self, AtomicPattern, Cast, Char, Expression, Identifier, Initializer, Integer, Named,
         NonEmptyObject, Object, Regex, Return, RuleName, RuleReference, Text, Throw, Type,
         Typename, Value, Variable,
     },
     parsers::ParseResult,
-    patterns::{rule_ref, Repeat},
+    patterns::{Repeat, Sequence},
     Pattern, Rule,
 };
 
@@ -181,35 +182,24 @@ impl Default for Context {
                         res
                     }),
                 },
-                rules::Action::rule().into(),
+                Action::rule().into(),
                 Return::rule().into(),
                 Throw::rule().into(),
-                RuleWithAction::new(
-                    Rule::new(
-                        "Sequence",
-                        vec![
-                            ("patterns", Repeat::once_or_more(rule_ref("Repeat")).into()).into(),
-                            ("action", Repeat::at_most_once(rule_ref("Action")).into()).into(),
-                        ],
-                    ),
-                    |at, mut res, context| {
-                        res = transparent_ast(at, res, context);
-
-                        let action = res.ast["action"].clone();
-                        let patterns = res.ast.get_mut("patterns").unwrap().as_array_mut().unwrap();
-                        if action.is_null() {
-                            if patterns.len() == 1 {
-                                res.ast = patterns.pop().unwrap();
-                            } else {
-                                res.ast = patterns.clone().into();
-                            }
+                RuleWithAction::new(Sequence::rule(), |_, mut res, _| {
+                    let action = res.ast["action"].clone();
+                    let patterns = res.ast.get_mut("patterns").unwrap().as_array_mut().unwrap();
+                    if action.is_null() {
+                        if patterns.len() == 1 {
+                            res.ast = patterns.pop().unwrap();
                         } else {
-                            res.ast = json!({"Sequence": res.ast});
+                            res.ast = patterns.clone().into();
                         }
-                        res
-                    },
-                ),
-                RuleWithAction::new(rules::Repeat::rule(), |at, mut res, context| {
+                    } else {
+                        res.ast = json!({"Sequence": res.ast});
+                    }
+                    res
+                }),
+                RuleWithAction::new(Repeat::rule(), |at, mut res, context| {
                     res = transparent_ast(at, res, context);
 
                     let pattern = res.ast.get_mut("pattern").unwrap().take();

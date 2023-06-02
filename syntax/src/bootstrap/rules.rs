@@ -315,33 +315,6 @@ fn throw() {
 }
 
 rule!(
-    Action,
-    seq!(
-        "=>",
-        ("value", alts!(rule_ref!(Throw), rule_ref!(Return)))
-        =>
-        ret(reference("value"))
-    )
-);
-#[test]
-fn action() {
-    let mut context = Context::default();
-    let r = Action::rule();
-    assert_eq!(
-        r.parse("=> 1", &mut context).ast,
-        json!({
-            "Return": 1
-        })
-    );
-    assert_eq!(
-        r.parse("=> throw 1", &mut context).ast,
-        json!({
-            "Throw": 1
-        })
-    );
-}
-
-rule!(
     Named,
     seq!(
         "<",
@@ -403,44 +376,4 @@ fn atomic_pattern() {
     );
     assert_eq!(r.parse("/x/", &mut context).ast, json!("/x/"));
     assert_eq!(r.parse("x", &mut context).ast, json!("x"));
-}
-
-rule!(
-    Repeat,
-    seq!(
-        ("pattern", rule_ref!(AtomicPattern)),
-        ("op", patterns::Repeat::at_most_once("/[*+?]/").into())
-    )
-);
-#[test]
-fn repeat() {
-    let mut context = Context::default();
-    let r = Repeat::rule();
-    assert_eq!(r.parse("x", &mut context).ast, json!("x"));
-    assert_eq!(
-        r.parse("x?", &mut context).ast,
-        json!({
-            "Repeat": {
-                "pattern": "x",
-                "at_most": 1
-            }
-        })
-    );
-    assert_eq!(
-        r.parse("x*", &mut context).ast,
-        json!({
-            "Repeat": {
-                "pattern": "x"
-            }
-        })
-    );
-    assert_eq!(
-        r.parse("x+?", &mut context).ast,
-        json!({
-            "Repeat": {
-                "pattern": "x",
-                "at_least": 1
-            }
-        })
-    );
 }
