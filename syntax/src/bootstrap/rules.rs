@@ -377,3 +377,22 @@ fn atomic_pattern() {
     assert_eq!(r.parse("/x/", &mut context).ast, json!("/x/"));
     assert_eq!(r.parse("x", &mut context).ast, json!("x"));
 }
+
+rule!(
+    Alternatives,
+    transparent(separated(("x", rule_ref!(Sequence)), "|"))
+);
+#[test]
+fn alternatives() {
+    let mut context = Context::default();
+    let r = Alternatives::rule();
+    assert_eq!(r.parse("x", &mut context).ast, json!("x"));
+    assert_eq!(
+        r.parse("x | y", &mut context).ast,
+        json!({"Alternatives": ["x", "y"]})
+    );
+    assert_eq!(
+        r.parse("x y | z | f g", &mut context).ast,
+        json!({"Alternatives": [["x", "y"], "z", ["f", "g"]]})
+    );
+}

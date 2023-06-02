@@ -5,9 +5,9 @@ use serde_json::json;
 use crate::{
     action::Action,
     bootstrap::rules::{
-        self, AtomicPattern, Cast, Char, Expression, Identifier, Initializer, Integer, Named,
-        NonEmptyObject, Object, Regex, Return, RuleName, RuleReference, Text, Throw, Type,
-        Typename, Value, Variable,
+        self, Alternatives, AtomicPattern, Cast, Char, Expression, Identifier, Initializer,
+        Integer, Named, NonEmptyObject, Object, Regex, Return, RuleName, RuleReference, Text,
+        Throw, Type, Typename, Value, Variable,
     },
     parsers::ParseResult,
     patterns::{Repeat, Sequence},
@@ -144,44 +144,16 @@ impl Default for Context {
                     }),
                     on_parsed: Some(transparent_ast),
                 },
-                RuleWithAction {
-                    rule: Arc::new(Rule {
-                        name: "Alternatives".to_string(),
-                        pattern: vec![
-                            ("head", Pattern::RuleReference("Sequence".to_string())).into(),
-                            (
-                                "tail",
-                                Repeat::zero_or_more(vec![
-                                    "|".into(),
-                                    ("sequence", Pattern::RuleReference("Sequence".to_string()))
-                                        .into(),
-                                ])
-                                .into(),
-                            )
-                                .into(),
-                        ]
-                        .into(),
-                    }),
-                    on_parsed: Some(|at, mut res, context| {
-                        res = transparent_ast(at, res, context);
-
-                        let mut alts = Vec::new();
-                        alts.push(res.ast.get("head").unwrap());
-
-                        let arr = res.ast.get("tail").unwrap().as_array().unwrap();
-                        if arr.len() == 0 {
-                            res.ast = alts[0].clone();
-                            return res;
-                        }
-
-                        for x in arr {
-                            alts.push(x.get("sequence").unwrap());
-                        }
-
-                        res.ast = json!({ "Alternatives": alts });
-                        res
-                    }),
-                },
+                RuleWithAction::new(Alternatives::rule(), |_, mut res, _| {
+                    let alts = res.ast.as_array_mut().unwrap();
+                    let mut alts = alts.iter().map(|a| a.get("x").unwrap());
+                    if alts.len() == 1 {
+                        res.ast = alts.next().unwrap().clone();
+                    } else {
+                        res.ast = json!({ "Alternatives": alts.collect::<Vec<_>>() });
+                    }
+                    res
+                }),
                 Action::rule().into(),
                 Return::rule().into(),
                 Throw::rule().into(),
