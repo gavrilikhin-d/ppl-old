@@ -114,21 +114,18 @@ impl<'de> Deserialize<'de> for Pattern {
 }
 
 #[derive(Serialize, Deserialize, From)]
-#[serde(untagged)]
 enum PatternDTO {
-    TextOrRegex(String),
-    Sequence(Vec<Pattern>),
-
-    Tagged(PatternTaggedDTO),
-}
-
-#[derive(Serialize, Deserialize)]
-enum PatternTaggedDTO {
     RuleReference(Box<RuleReference>),
+    #[from(ignore)]
     Alternatives(Vec<Pattern>),
     Repeat(Repeat),
     Named(Named),
     Sequence(Sequence),
+
+    #[serde(untagged)]
+    TextOrRegex(String),
+    #[serde(untagged)]
+    SequenceWithoutAction(Vec<Pattern>),
 }
 
 impl From<Pattern> for PatternDTO {
@@ -138,17 +135,17 @@ impl From<Pattern> for PatternDTO {
             Pattern::Regex(r) => PatternDTO::TextOrRegex(format!("/{}/", r)),
             Pattern::Sequence(s) => {
                 if s.action.is_none() {
-                    PatternDTO::Sequence(s.patterns)
+                    PatternDTO::SequenceWithoutAction(s.patterns)
                 } else {
-                    PatternTaggedDTO::Sequence(s).into()
+                    PatternDTO::Sequence(s).into()
                 }
             }
 
-            Pattern::RuleReference(r) => PatternTaggedDTO::RuleReference(r).into(),
-            Pattern::Named(named) => PatternTaggedDTO::Named(named).into(),
-            Pattern::Repeat(r) => PatternTaggedDTO::Repeat(r).into(),
+            Pattern::RuleReference(r) => PatternDTO::RuleReference(r).into(),
+            Pattern::Named(named) => PatternDTO::Named(named).into(),
+            Pattern::Repeat(r) => PatternDTO::Repeat(r).into(),
             Pattern::Alternatives(alts) => {
-                PatternTaggedDTO::Alternatives(alts.into_iter().map(|a| a.into()).collect()).into()
+                PatternDTO::Alternatives(alts.into_iter().map(|a| a.into()).collect()).into()
             }
         }
     }
@@ -159,19 +156,11 @@ impl From<PatternDTO> for Pattern {
         match value {
             PatternDTO::TextOrRegex(t) => t.into(),
             PatternDTO::Sequence(s) => s.into(),
-            PatternDTO::Tagged(t) => t.into(),
-        }
-    }
-}
-
-impl From<PatternTaggedDTO> for Pattern {
-    fn from(value: PatternTaggedDTO) -> Self {
-        match value {
-            PatternTaggedDTO::Alternatives(alts) => Pattern::Alternatives(alts),
-            PatternTaggedDTO::RuleReference(r) => r.into(),
-            PatternTaggedDTO::Repeat(r) => r.into(),
-            PatternTaggedDTO::Named(n) => n.into(),
-            PatternTaggedDTO::Sequence(s) => s.into(),
+            PatternDTO::RuleReference(r) => r.into(),
+            PatternDTO::Named(n) => n.into(),
+            PatternDTO::Repeat(r) => r.into(),
+            PatternDTO::Alternatives(alts) => Pattern::Alternatives(alts),
+            PatternDTO::SequenceWithoutAction(s) => s.into(),
         }
     }
 }
