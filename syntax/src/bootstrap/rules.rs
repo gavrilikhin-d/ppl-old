@@ -6,7 +6,7 @@ use pretty_assertions::assert_eq;
 use serde_json::json;
 
 use crate::{
-    action::{cast, merge, reference, ret},
+    action::{merge, reference, ret},
     alts,
     patterns::{self, separated, transparent, Sequence},
     rule_ref, seq, Rule,
@@ -138,6 +138,7 @@ fn ty() {
 rule!(
     Value,
     transparent(alts!(
+        rule_ref!("Distinct"),
         rule_ref!(Char),
         rule_ref!(String),
         rule_ref!(Integer),
@@ -207,7 +208,7 @@ rule!(
         ':',
         ("value", rule_ref!("Expression"))
         =>
-        ret(cast(reference("value"), reference("name")))
+        ret(reference("value").cast_to(reference("name")))
     )
 );
 #[test]
@@ -279,7 +280,7 @@ rule!(
     seq!(
         ("value", rule_ref!(Expression))
         =>
-        ret(cast(reference("value"), "Return"))
+        ret(reference("value").cast_to("Return"))
     )
 );
 #[test]
@@ -299,7 +300,7 @@ rule!(
     seq!(
         "throw",
         ("error", rule_ref!(Expression)) =>
-        ret(cast(reference("error"), "Throw"))
+        ret(reference("error").cast_to("Throw"))
     )
 );
 #[test]
@@ -394,5 +395,105 @@ fn alternatives() {
     assert_eq!(
         r.parse("x y | z | f g", &mut context).ast,
         json!({"Alternatives": [["x", "y"], "z", ["f", "g"]]})
+    );
+}
+
+rule!(
+    DistinctObject,
+    transparent(seq!(
+        ("ty", rule_ref!(Typename)),
+        ("obj", rule_ref!(Object))
+        =>
+        ret(reference("obj").cast_to(reference("ty")))
+    ))
+);
+#[test]
+fn distinct_object() {
+    let mut context = Context::default();
+    let r = DistinctObject::rule();
+    assert_eq!(
+        r.parse("Type {}", &mut context).ast,
+        json!({
+            "Type": {}
+        })
+    );
+}
+
+rule!(
+    DistinctValue,
+    transparent(seq!(
+        ("ty", rule_ref!(Typename)),
+        '(',
+        ("value", rule_ref!(Value)),
+        ')'
+        =>
+        ret(reference("value").cast_to(reference("ty")))
+    ))
+);
+#[test]
+fn distinct_value() {
+    let mut context = Context::default();
+    let r = DistinctValue::rule();
+    assert_eq!(
+        r.parse("Type(1)", &mut context).ast,
+        json!({
+            "Type": 1
+        })
+    );
+    assert_eq!(
+        r.parse("Type('c')", &mut context).ast,
+        json!({
+            "Type": 'c'
+        })
+    );
+    assert_eq!(
+        r.parse("Type(\"str\")", &mut context).ast,
+        json!({
+            "Type": "str"
+        })
+    );
+    assert_eq!(
+        r.parse("Type({})", &mut context).ast,
+        json!({
+            "Type": {}
+        })
+    );
+    assert_eq!(
+        r.parse("Type({a: 1})", &mut context).ast,
+        json!({
+            "Type": {"a": 1}
+        })
+    );
+    assert_eq!(
+        r.parse("Foo( Bar { a: 1 } )", &mut context).ast,
+        json!({
+            "Foo": {
+                "Bar": {
+                    "a": 1
+                }
+            }
+        })
+    );
+}
+
+rule!(
+    Distinct,
+    transparent(alts!(rule_ref!(DistinctObject), rule_ref!(DistinctValue)))
+);
+#[test]
+fn distinct() {
+    let mut context = Context::default();
+    let r = Distinct::rule();
+    assert_eq!(
+        r.parse("Type {}", &mut context).ast,
+        json!({
+            "Type": {}
+        })
+    );
+    assert_eq!(
+        r.parse("Type(1)", &mut context).ast,
+        json!({
+            "Type": 1
+        })
     );
 }

@@ -241,6 +241,17 @@ impl Expression {
             }
         }
     }
+
+    /// Equivalent to:
+    /// ```text
+    /// <expr: Expression> as <ty: Type>
+    /// ```
+    pub fn cast_to(self, ty: impl Into<Expression>) -> Expression {
+        Expression::Cast(Box::new(Cast {
+            expr: self,
+            ty: ty.into(),
+        }))
+    }
 }
 
 impl Action {
@@ -271,12 +282,4 @@ pub fn ret(expr: impl Into<Expression>) -> Action {
 /// Merge an array of objects into one object
 pub fn merge(expr: impl Into<Expression>) -> Expression {
     Expression::Merge(Box::new(expr.into()))
-}
-
-/// Create a cast expression
-pub fn cast(expr: impl Into<Expression>, typename: impl Into<Expression>) -> Expression {
-    Expression::Cast(Box::new(Cast {
-        expr: expr.into(),
-        ty: typename.into(),
-    }))
 }

@@ -5,9 +5,9 @@ use serde_json::json;
 use crate::{
     action::Action,
     bootstrap::rules::{
-        self, Alternatives, AtomicPattern, Cast, Char, Expression, Identifier, Initializer,
-        Integer, Named, NonEmptyObject, Object, Regex, Return, RuleName, RuleReference, Text,
-        Throw, Type, Typename, Value, Variable,
+        self, Alternatives, AtomicPattern, Cast, Char, Distinct, DistinctObject, DistinctValue,
+        Expression, Identifier, Initializer, Integer, Named, NonEmptyObject, Object, Regex, Return,
+        RuleName, RuleReference, Text, Throw, Type, Typename, Value, Variable,
     },
     parsers::ParseResult,
     patterns::{Repeat, Sequence},
@@ -218,6 +218,9 @@ impl Default for Context {
                     res
                 }),
                 Variable::rule().into(),
+                DistinctObject::rule().into(),
+                DistinctValue::rule().into(),
+                Distinct::rule().into(),
             ],
         }
     }

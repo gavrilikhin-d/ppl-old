@@ -68,7 +68,7 @@ impl Parser for Rule {
 #[cfg(test)]
 mod tests {
     use crate::{
-        action::{cast, reference, ret, throw, Action},
+        action::{reference, ret, throw, Action, Expression},
         patterns::{rule_ref, Repeat},
     };
 
@@ -300,12 +300,14 @@ mod tests {
             rule.as_ref(),
             &Rule::new(
                 "List",
-                Sequence::new(
-                    vec!['('.into(),].into(),
-                    throw(cast(
-                        json!({"message": "expected closing ')'"}),
-                        "CustomError"
-                    ))
+                seq!(
+                    '(' => throw(
+                        Expression::Value(
+                            json!({
+                                "message": "expected closing ')'"
+                            })
+                        ).cast_to("CustomError")
+                    )
                 )
             )
         );
@@ -354,9 +356,9 @@ mod tests {
             rule.as_ref(),
             &Rule::new(
                 "X",
-                Sequence::new(
-                    vec![("ty", rule_ref("Type")).into()],
-                    ret(cast(json!({}), reference("ty")))
+                seq!(
+                    ("ty", rule_ref("Type")) =>
+                    ret(Expression::Value(json!({})).cast_to(reference("ty")))
                 )
             )
         );

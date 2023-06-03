@@ -20,10 +20,10 @@ Char: /'.'/
 String: /"([^"\\]|\\.)*"/
 
 Action: "=>" <value: Throw | Return> => value
-Return: <value: Expression> => value as Return
-Throw: "throw" <error: Expression> => error as Throw
+Return: <value: Expression> => Return(value)
+Throw: "throw" <error: Expression> => Throw(error)
 
-DistinctType: <ty: DistinctObject | DistinctValue> => ty
+Distinct: <ty: DistinctObject | DistinctValue> => ty
 DistinctObject: <ty: Typename> <obj: Object> => obj as ty
 DistinctValue: <ty: Typename> '(' <value: Value> ')' => value as ty
 Object: '{' '}' | '{' Initializer (, Initializer)* ,? '}'
@@ -32,6 +32,6 @@ Expression: Cast | Variable | Value
 Typename: <ty: /[A-Z][a-zA-Z0-9]*/> => ty
 Type: <ty: Typename | Variable> => ty
 Cast: <expr: Value | Variable> as <ty: Type>
-Value: Object | String | Char | Integer
+Value: Distinct | Object | String | Char | Integer
 Variable: Identifier
 Integer: <value: /[0-9]+/> => value

@@ -4,8 +4,8 @@
 * [ ] Add a way to obtain syntax information from variable name
 * [ ] Store source code in context
 * [ ] Remove `on_parse` function from rule
-* [ ] Distinct types
-* [ ] Write all rules in bootstrap
+* [x] Distinct types
+* [x] Write all rules in bootstrap
 * [x] Allow type variables in type cast
 * [ ] Move logic to syntax
 * [ ] Export/Import rules
