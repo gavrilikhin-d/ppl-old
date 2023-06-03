@@ -69,7 +69,8 @@ impl Parser for Rule {
 mod tests {
     use crate::{
         action::{reference, ret, throw, Action, Expression},
-        patterns::{rule_ref, Repeat},
+        patterns::Repeat,
+        rule_ref,
     };
 
     use super::*;
@@ -357,7 +358,7 @@ mod tests {
             &Rule::new(
                 "X",
                 seq!(
-                    ("ty", rule_ref("Type")) =>
+                    ("ty", rule_ref!("Type")) =>
                     ret(Expression::Value(json!({})).cast_to(reference("ty")))
                 )
             )

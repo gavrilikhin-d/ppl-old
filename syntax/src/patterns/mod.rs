@@ -1,16 +1,23 @@
 mod named;
+pub use named::*;
+
 mod repeat;
+pub use repeat::*;
+
 mod sequence;
+pub use sequence::*;
+
+mod rule_ref;
+pub use rule_ref::*;
 
 use derive_more::From;
-pub use named::*;
+
 use regex::Regex;
-pub use repeat::*;
-pub use sequence::*;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    action::{reference, ret, Action, Expression},
+    action::{reference, ret, Expression},
     bootstrap::rules::Alternatives,
     errors::Expected,
     parsers::{ParseResult, Parser},
@@ -21,8 +28,7 @@ use crate::{
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum Pattern {
     /// Reference to another rule
-    #[from(ignore)]
-    RuleReference(String),
+    RuleReference(Box<RuleReference>),
     /// Sequence of patterns
     Sequence(Sequence),
     /// Match specific text
@@ -38,11 +44,6 @@ pub enum Pattern {
     Repeat(Repeat),
     /// Adds name to the ast of pattern
     Named(Named),
-}
-
-/// Reference to another rule
-pub fn rule_ref(name: impl Into<String>) -> Pattern {
-    Pattern::RuleReference(name.into())
 }
 
 /// <head: Pattern> <tail: (Separator (<value: Pattern> => value))*> => [head, ...tail]
@@ -112,43 +113,22 @@ impl<'de> Deserialize<'de> for Pattern {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-struct RepeatDTO {
-    pub pattern: Box<PatternDTO>,
-    #[serde(default)]
-    pub at_least: usize,
-    pub at_most: Option<usize>,
-}
-
-#[derive(Serialize, Deserialize)]
-struct NamedDTO {
-    pub name: String,
-    pub pattern: Box<PatternDTO>,
-}
-
-#[derive(Serialize, Deserialize)]
-struct SequenceDTO {
-    pub patterns: Vec<PatternDTO>,
-    #[serde(default)]
-    pub action: Option<Action>,
-}
-
 #[derive(Serialize, Deserialize, From)]
 #[serde(untagged)]
 enum PatternDTO {
     TextOrRegex(String),
-    Sequence(Vec<PatternDTO>),
+    Sequence(Vec<Pattern>),
 
     Tagged(PatternTaggedDTO),
 }
 
 #[derive(Serialize, Deserialize)]
 enum PatternTaggedDTO {
-    RuleReference(String),
-    Alternatives(Vec<PatternDTO>),
-    Repeat(RepeatDTO),
-    Named(NamedDTO),
-    Sequence(SequenceDTO),
+    RuleReference(Box<RuleReference>),
+    Alternatives(Vec<Pattern>),
+    Repeat(Repeat),
+    Named(Named),
+    Sequence(Sequence),
 }
 
 impl From<Pattern> for PatternDTO {
@@ -158,32 +138,15 @@ impl From<Pattern> for PatternDTO {
             Pattern::Regex(r) => PatternDTO::TextOrRegex(format!("/{}/", r)),
             Pattern::Sequence(s) => {
                 if s.action.is_none() {
-                    PatternDTO::Sequence(s.patterns.into_iter().map(|p| p.into()).collect())
+                    PatternDTO::Sequence(s.patterns)
                 } else {
-                    PatternTaggedDTO::Sequence(SequenceDTO {
-                        patterns: s.patterns.into_iter().map(|p| p.into()).collect(),
-                        action: s.action,
-                    })
-                    .into()
+                    PatternTaggedDTO::Sequence(s).into()
                 }
             }
 
             Pattern::RuleReference(r) => PatternTaggedDTO::RuleReference(r).into(),
-            Pattern::Named(Named { name, pattern }) => PatternTaggedDTO::Named(NamedDTO {
-                name,
-                pattern: Box::new(pattern.as_ref().clone().into()),
-            })
-            .into(),
-            Pattern::Repeat(Repeat {
-                pattern,
-                at_least,
-                at_most,
-            }) => PatternTaggedDTO::Repeat(RepeatDTO {
-                pattern: Box::new(pattern.as_ref().clone().into()),
-                at_least,
-                at_most,
-            })
-            .into(),
+            Pattern::Named(named) => PatternTaggedDTO::Named(named).into(),
+            Pattern::Repeat(r) => PatternTaggedDTO::Repeat(r).into(),
             Pattern::Alternatives(alts) => {
                 PatternTaggedDTO::Alternatives(alts.into_iter().map(|a| a.into()).collect()).into()
             }
@@ -195,9 +158,7 @@ impl From<PatternDTO> for Pattern {
     fn from(value: PatternDTO) -> Self {
         match value {
             PatternDTO::TextOrRegex(t) => t.into(),
-            PatternDTO::Sequence(s) => {
-                Pattern::Sequence(s.into_iter().map(|p| p.into()).collect::<Vec<_>>().into())
-            }
+            PatternDTO::Sequence(s) => s.into(),
             PatternDTO::Tagged(t) => t.into(),
         }
     }
@@ -206,41 +167,11 @@ impl From<PatternDTO> for Pattern {
 impl From<PatternTaggedDTO> for Pattern {
     fn from(value: PatternTaggedDTO) -> Self {
         match value {
-            PatternTaggedDTO::RuleReference(r) => Pattern::RuleReference(r),
-            PatternTaggedDTO::Alternatives(alts) => {
-                Pattern::Alternatives(alts.into_iter().map(|p| p.into()).collect())
-            }
-            PatternTaggedDTO::Repeat(r) => Repeat::from(r).into(),
-            PatternTaggedDTO::Named(n) => Named::from(n).into(),
-            PatternTaggedDTO::Sequence(s) => Sequence::from(s).into(),
-        }
-    }
-}
-
-impl From<RepeatDTO> for Repeat {
-    fn from(value: RepeatDTO) -> Self {
-        Self {
-            pattern: Box::new(Box::into_inner(value.pattern).into()),
-            at_least: value.at_least,
-            at_most: value.at_most,
-        }
-    }
-}
-
-impl From<NamedDTO> for Named {
-    fn from(value: NamedDTO) -> Self {
-        Self {
-            name: value.name,
-            pattern: Box::new(Box::into_inner(value.pattern).into()),
-        }
-    }
-}
-
-impl From<SequenceDTO> for Sequence {
-    fn from(value: SequenceDTO) -> Self {
-        Self {
-            patterns: value.patterns.into_iter().map(|p| p.into()).collect(),
-            action: value.action,
+            PatternTaggedDTO::Alternatives(alts) => Pattern::Alternatives(alts),
+            PatternTaggedDTO::RuleReference(r) => r.into(),
+            PatternTaggedDTO::Repeat(r) => r.into(),
+            PatternTaggedDTO::Named(n) => n.into(),
+            PatternTaggedDTO::Sequence(s) => s.into(),
         }
     }
 }
@@ -315,10 +246,7 @@ impl Parser for Pattern {
                     ast: m.into(),
                 }
             }
-            Pattern::RuleReference(name) => {
-                let rule = context.find_rule(name).expect("Rule not found");
-                rule.parse_at(source, at, context)
-            }
+            Pattern::RuleReference(r) => r.parse_at(source, at, context),
             Pattern::Sequence(s) => s.parse_at(source, at, context),
             Pattern::Alternatives(alts) => {
                 let mut res = ParseResult::empty();
@@ -469,7 +397,7 @@ mod test {
     #[test]
     fn rule_ref() {
         let mut context = Context::default();
-        let pattern = Pattern::RuleReference("Text".into());
+        let pattern = crate::rule_ref!("Text");
         assert_eq!(
             pattern.parse("abc", &mut context),
             ParseResult {
