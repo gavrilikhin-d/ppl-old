@@ -129,12 +129,18 @@ mod tests {
                 lbrace: 6,
                 initializers: vec![
                     Initializer {
-                        name: StringWithOffset::from("x").at(7).into(),
-                        value: None,
+                        name: None,
+                        value: VariableReference {
+                            name: StringWithOffset::from("x").at(7)
+                        }
+                        .into(),
                     },
                     Initializer {
-                        name: StringWithOffset::from("y").at(10).into(),
-                        value: None,
+                        name: None,
+                        value: VariableReference {
+                            name: StringWithOffset::from("y").at(10)
+                        }
+                        .into(),
                     },
                 ],
                 rbrace: 11,
@@ -154,24 +160,20 @@ mod tests {
                 lbrace: 6,
                 initializers: vec![
                     Initializer {
-                        name: StringWithOffset::from("x").at(7),
-                        value: Some(
-                            Literal::Integer {
-                                offset: 10,
-                                value: "0".to_string()
-                            }
-                            .into()
-                        ),
+                        name: StringWithOffset::from("x").at(7).into(),
+                        value: Literal::Integer {
+                            offset: 10,
+                            value: "0".to_string()
+                        }
+                        .into()
                     },
                     Initializer {
-                        name: StringWithOffset::from("y").at(13),
-                        value: Some(
-                            Literal::Integer {
-                                offset: 16,
-                                value: "0".to_string()
-                            }
-                            .into()
-                        ),
+                        name: StringWithOffset::from("y").at(13).into(),
+                        value: Literal::Integer {
+                            offset: 16,
+                            value: "0".to_string()
+                        }
+                        .into()
                     },
                 ],
                 rbrace: 17,
