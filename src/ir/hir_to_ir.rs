@@ -512,6 +512,11 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Constructor {
             let field = context
                 .builder
                 .build_struct_gep(
+                    init.value
+                        .ty()
+                        .lower_to_ir(context)
+                        .try_into_basic_type()
+                        .unwrap(),
                     alloca,
                     init.index as u32,
                     format!("{}.{}", self.ty.referenced_type.name(), init.member.name()).as_str(),
@@ -548,7 +553,16 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for MemberReference 
         Some(
             context
                 .builder
-                .build_struct_gep(base, self.index as u32, self.member.name())
+                .build_struct_gep(
+                    self.member
+                        .ty()
+                        .lower_to_ir(context)
+                        .try_into_basic_type()
+                        .unwrap(),
+                    base,
+                    self.index as u32,
+                    self.member.name(),
+                )
                 .unwrap()
                 .into(),
         )
@@ -595,12 +609,17 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
             return Some(value);
         }
 
+        // FIXME: sigfault due-to invalid type
         let ptr = value.into_pointer_value();
-        let elem = ptr.get_type().get_element_type();
-        if elem.is_struct_type() && elem.into_struct_type().is_opaque() {
+        let elem_ty = self.ty().lower_to_ir(context);
+        if elem_ty.is_struct_type() && elem_ty.into_struct_type().is_opaque() {
             return Some(ptr.into());
         }
-        Some(context.builder.build_load(ptr, ""))
+        Some(
+            context
+                .builder
+                .build_load(elem_ty.try_into_basic_type().unwrap(), ptr, ""),
+        )
     }
 }
 
