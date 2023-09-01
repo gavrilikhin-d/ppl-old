@@ -22,5 +22,12 @@
 * Metaprogramming
 * Documentation
 
+---
+### Current task
+* [ ] Fix segmentation fault
+---
+
 * [ ] Save ir to file
 * [ ] Load builtin module from ir file
+* [ ] Make `if to be an expression?
+* [ ] Merge `evaluate` and `execute` functions
