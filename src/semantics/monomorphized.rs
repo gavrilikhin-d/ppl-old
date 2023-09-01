@@ -3,8 +3,8 @@ use std::sync::Arc;
 use crate::{
     hir::{
         Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
-        FunctionDefinition, FunctionNamePart, If, Loop, Parameter, ParameterOrVariable, Return,
-        Statement, Type, Typed, VariableReference, While,
+        FunctionDefinition, FunctionNamePart, If, Loop, Parameter, Return, Statement, Type, Typed,
+        VariableReference, While,
     },
     named::Named,
     semantics::FunctionContext,

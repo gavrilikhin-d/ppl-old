@@ -17,9 +17,7 @@ pub use member::*;
 mod constructor;
 pub use constructor::*;
 
-use crate::{syntax::Ranged, mutability::Mutable};
-
-use super::Typed;
+use crate::{mutability::Mutable, syntax::Ranged};
 
 /// Any PPL expression
 #[enum_dispatch(Ranged, Mutable, Typed)]
@@ -28,7 +26,7 @@ pub enum Expression {
     Literal(Literal),
     VariableReference(VariableReference),
     Call(Call),
-	TypeReference(TypeReference),
-	MemberReference(MemberReference),
-	Constructor(Constructor),
+    TypeReference(TypeReference),
+    MemberReference(MemberReference),
+    Constructor(Constructor),
 }

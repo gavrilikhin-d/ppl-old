@@ -1,7 +1,5 @@
 use core::panic;
-use std::fmt::format;
-use std::mem;
-use std::sync::{Arc, Weak};
+use std::sync::Arc;
 
 use crate::from_decimal::FromDecimal;
 use crate::hir::{self, CallKind, FunctionDefinition, FunctionNamePart, Type, Typed};
@@ -10,8 +8,7 @@ use crate::named::Named;
 use crate::syntax::Ranged;
 
 use super::{
-    error::*, Context, FunctionContext, ModuleContext, Monomorphized, MonomorphizedWithArgs,
-    TraitContext,
+    error::*, Context, FunctionContext, ModuleContext, MonomorphizedWithArgs, TraitContext,
 };
 use crate::ast::{self, CallNamePart, If};
 

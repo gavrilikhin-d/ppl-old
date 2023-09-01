@@ -1,5 +1,3 @@
-use crate::ast::Statement;
-
 use super::{
     error::{LexerError, ParseError},
     PrecedenceGroups, StringWithOffset, Token,

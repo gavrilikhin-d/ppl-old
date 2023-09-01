@@ -1,7 +1,6 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::ast::Expression;
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
 use crate::syntax::{Context, Ranged, StartsHere, StringWithOffset};
 

@@ -7,9 +7,9 @@ use std::{
 use crate::{
     ast::CallNamePart,
     hir::{
-        CallKind, Expression, Function, FunctionDeclaration, FunctionDefinition, FunctionNamePart,
-        Module, Name, Parameter, ParameterOrVariable, SelfType, TraitDeclaration, Type,
-        TypeDeclaration, Typed, VariableDeclaration,
+        CallKind, Expression, Function, FunctionDeclaration, FunctionNamePart, Module, Name,
+        ParameterOrVariable, SelfType, TraitDeclaration, Type, TypeDeclaration, Typed,
+        VariableDeclaration,
     },
     named::Named,
     syntax::Ranged,

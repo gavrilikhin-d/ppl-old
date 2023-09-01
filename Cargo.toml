@@ -12,7 +12,7 @@ ast_derive = { path = "src/ast_derive" }
 miette = { version = "5.5.0", features = ["fancy"] }
 thiserror = "1.0.37"
 derive_more = "0.99.17"
-inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = ["llvm14-0"] }
 runtime = { path = "src/runtime" }
 enum_dispatch = "0.3.11"
 clap = { version = "4.1.6", features = ["derive"] }
+inkwell = { version = "0.2.0", features = ["llvm16-0"] }

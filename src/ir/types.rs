@@ -1,4 +1,8 @@
-use inkwell::{AddressSpace, context::ContextRef, types::{VoidType, IntType, StructType, PointerType}};
+use inkwell::{
+    context::ContextRef,
+    types::{IntType, PointerType, StructType, VoidType},
+    AddressSpace,
+};
 
 /// LLVM IR for PPL's types
 pub struct Types<'llvm> {
@@ -17,10 +21,10 @@ impl<'llvm> Types<'llvm> {
         self.llvm.void_type()
     }
 
-	/// LLVM bool type
-	pub fn bool(&self) -> IntType<'llvm> {
-		self.llvm.bool_type()
-	}
+    /// LLVM bool type
+    pub fn bool(&self) -> IntType<'llvm> {
+        self.llvm.bool_type()
+    }
 
     /// LLVM int type
     pub fn i(&self, bits: u32) -> IntType<'llvm> {
@@ -44,7 +48,7 @@ impl<'llvm> Types<'llvm> {
     /// LLVM IR for [`Class`](Type::Class) type
     pub fn opaque(&self, name: &str) -> PointerType<'llvm> {
         self.get_or_add_opaque_struct(name)
-            .ptr_type(AddressSpace::Generic)
+            .ptr_type(AddressSpace::default())
     }
 
     /// LLVM IR for [`None`](Type::None) type
@@ -69,6 +73,6 @@ impl<'llvm> Types<'llvm> {
 
     /// LLVM IR for C string type
     pub fn c_string(&self) -> PointerType<'llvm> {
-        self.llvm.i8_type().ptr_type(AddressSpace::Generic)
+        self.llvm.i8_type().ptr_type(AddressSpace::default())
     }
 }

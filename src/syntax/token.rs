@@ -2,8 +2,6 @@ use std::fmt::Display;
 
 use logos::{Lexer, Logos};
 
-use super::StringWithOffset;
-
 /// Kind of operator
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum OperatorKind {
