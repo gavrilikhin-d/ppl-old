@@ -1,4 +1,4 @@
-use inkwell::{module::Module, values::FunctionValue, types::FunctionType};
+use inkwell::{module::Module, types::FunctionType, values::FunctionValue};
 
 use crate::ir::Types;
 
@@ -9,7 +9,7 @@ pub struct Functions<'llvm, 'm> {
 
 // Macro to add builtin function
 macro_rules! add_builtin_function {
-	($name:ident, $ret:ident, $($args:ident),*) => {
+	($name:ident : ( $($args:ident),* ) -> $ret:ident ) => {
 		pub fn $name(&self) -> FunctionValue<'llvm> {
 			let types = Types::new(self.module.get_context());
 			self.get_or_add_function(
@@ -32,11 +32,7 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
     }
 
     /// Get function by name if it exists, or add a declaration for it
-    pub fn get_or_add_function(
-        &self,
-        name: &str,
-        ty: FunctionType<'llvm>,
-    ) -> FunctionValue<'llvm> {
+    pub fn get_or_add_function(&self, name: &str, ty: FunctionType<'llvm>) -> FunctionValue<'llvm> {
         if let Some(f) = self.module.get_function(&name) {
             return f;
         }
@@ -53,10 +49,10 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
     }
 
     // LLVM IR for constructor of [`Integer`](Type::Integer) type from C string
-	add_builtin_function!(integer_from_c_string, integer, c_string);
+    add_builtin_function!(integer_from_c_string: (c_string) -> integer);
 
-	// LLVM IR for constructor of `Rational` type from C string
-	add_builtin_function!(rational_from_c_string, rational, c_string);
+    // LLVM IR for constructor of `Rational` type from C string
+    add_builtin_function!(rational_from_c_string: (c_string) -> rational);
 
     /// LLVM IR for constructor of [`String`](Type::String) type from C string
     /// and its length
@@ -71,25 +67,25 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
     }
 
     // LLVM IR for "<:Integer> as String -> String" builtin function
-	add_builtin_function!(integer_as_string, string, integer);
+    add_builtin_function!(integer_as_string: (integer) -> string);
 
     // LLVM IR for "print <str: String> -> None" builtin function
-	add_builtin_function!(print_string, none, string);
+    add_builtin_function!(print_string: (string) -> none);
 
     // LLVM IR for "- <:Integer> -> Integer" builtin function
-	add_builtin_function!(minus_integer, integer, integer);
+    add_builtin_function!(minus_integer: (integer) -> integer);
 
-	// LLVM IR for "<:Integer> + <:Integer> -> Integer" builtin function
-   	add_builtin_function!(integer_plus_integer, integer, integer, integer);
+    // LLVM IR for "<:Integer> + <:Integer> -> Integer" builtin function
+    add_builtin_function!(integer_plus_integer: (integer, integer) -> integer);
 
-   	// LLVM IR for "<:Integer> * <:Integer> -> Integer" builtin function
-	add_builtin_function!(integer_star_integer, integer, integer, integer);
+    // LLVM IR for "<:Integer> * <:Integer> -> Integer" builtin function
+    add_builtin_function!(integer_star_integer: (integer, integer) -> integer);
 
-	// LLVM IR for "<:Integer> == <:Integer> -> Bool" builtin function
-	add_builtin_function!(integer_eq_integer, bool, integer, integer);
+    // LLVM IR for "<:Integer> == <:Integer> -> Bool" builtin function
+    add_builtin_function!(integer_eq_integer: (integer, integer) -> bool);
 
-	// LLVM IR for "<:Integer> < <:Integer> -> Bool" builtin function
-	add_builtin_function!(integer_less_integer, bool, integer, integer);
+    // LLVM IR for "<:Integer> < <:Integer> -> Bool" builtin function
+    add_builtin_function!(integer_less_integer: (integer, integer) -> bool);
 
     // IMPORTANT: don't forget to update global mapping when adding new function!!!
 }
