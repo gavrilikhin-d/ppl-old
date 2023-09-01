@@ -1,5 +1,6 @@
 #![feature(anonymous_lifetime_in_impl_trait)]
 
+use log::debug;
 use ppl::ast::*;
 use ppl::compilation::Compiler;
 use ppl::hir::{self, Type, Typed};
@@ -18,10 +19,10 @@ fn process_single_statement<'llvm>(
     compiler: &mut Compiler<'llvm>,
 ) -> miette::Result<()> {
     let ast = Statement::parse(parse_context)?;
-    dbg!(&ast);
+    debug!(target: "ast", "{:#?}", ast);
 
     let hir = ast.lower_to_hir_within_context(ast_lowering_context)?;
-    dbg!(&hir);
+    debug!(target: "hir", "{:#?}", hir);
 
     let module = compiler.llvm.create_module("main");
     let mut context = ir::ModuleContext::new(module);
@@ -29,7 +30,7 @@ fn process_single_statement<'llvm>(
 
     let module = &context.module;
 
-    module.print_to_stderr();
+    debug!(target: "ir", "{:#?}", module.to_string());
 
     module.verify().unwrap();
 
@@ -110,5 +111,6 @@ fn repl() {
 
 fn main() {
     miette::set_panic_hook();
+    pretty_env_logger::init();
     repl()
 }

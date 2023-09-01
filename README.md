@@ -21,3 +21,6 @@
 * Pattern matching
 * Metaprogramming
 * Documentation
+
+* [ ] Save ir to file
+* [ ] Load builtin module from ir file

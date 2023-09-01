@@ -1,6 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use inkwell::{context::Context, execution_engine::ExecutionEngine, OptimizationLevel};
+use log::debug;
 
 use crate::{
     hir::Module,
@@ -16,8 +17,10 @@ pub struct Compiler<'llvm> {
 impl<'llvm> Compiler<'llvm> {
     /* TODO: settings (Optimization, etc) */
     pub fn new(llvm: &'llvm Context) -> Self {
+        // TODO: save/load builtin module from ir file
         let builtin = Module::builtin().lower_to_ir(&llvm);
-        builtin.print_to_stderr();
+        debug!(target: "builtin", "{}", builtin.to_string());
+
         let engine = builtin
             .create_jit_execution_engine(OptimizationLevel::None)
             .unwrap();
