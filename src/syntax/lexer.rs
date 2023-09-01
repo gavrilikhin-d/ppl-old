@@ -4,15 +4,26 @@ use logos::{Logos, Span};
 
 use crate::syntax::error::{InvalidToken, LexerError, MissingToken, UnexpectedToken};
 
-use super::{StringWithOffset, Token, OperatorKind};
+use super::{OperatorKind, StringWithOffset, Token};
+
+/// Convert Logos' `Result` to `Option` with `Token::Error` on error
+trait LogosLexErrorToken {
+    fn lex(&mut self) -> Option<Token>;
+}
+
+impl LogosLexErrorToken for logos::Lexer<'_, Token> {
+    fn lex(&mut self) -> Option<Token> {
+        self.next()?.ok().or(Some(Token::Error))
+    }
+}
 
 /// Trait for PPL's lexers
 pub trait Lexer: Iterator<Item = Token> {
     /// Get source code of lexer
     fn source(&self) -> &str;
 
-	/// Get current token
-	fn token(&self) -> Option<Token>;
+    /// Get current token
+    fn token(&self) -> Option<Token>;
 
     /// Peek next token
     fn peek(&self) -> Option<Token>;
@@ -186,7 +197,7 @@ pub trait Lexer: Iterator<Item = Token> {
         Ok(token)
     }
 
-	/// Lex next token if it's an operator
+    /// Lex next token if it's an operator
     ///
     /// **Note:** doesn't lex, on failure
     ///
@@ -203,29 +214,28 @@ pub trait Lexer: Iterator<Item = Token> {
     /// 	Err(
     /// 		UnexpectedToken {
     /// 			expected: vec![
-	/// 				Token::Operator(OperatorKind::Prefix),
-	/// 				Token::Operator(OperatorKind::Infix),
-	/// 				Token::Operator(OperatorKind::Postfix),
-	/// 				Token::Less,
-	/// 				Token::Greater
-	/// 			],
+    /// 				Token::Operator(OperatorKind::Prefix),
+    /// 				Token::Operator(OperatorKind::Infix),
+    /// 				Token::Operator(OperatorKind::Postfix),
+    /// 				Token::Less,
+    /// 				Token::Greater
+    /// 			],
     /// 			got: Token::Integer,
     /// 			at: lexer.peek_span().into()
     /// 		}.into()
     /// 	)
     /// );
     /// ```
-	fn consume_operator(&mut self) -> Result<StringWithOffset, LexerError> {
-		self.consume_one_of(
-			&[Token::Operator(OperatorKind::Prefix),
-			  Token::Operator(OperatorKind::Infix),
-			  Token::Operator(OperatorKind::Postfix),
-			  Token::Less,
-			  Token::Greater
-			]
-		)?;
-		Ok(self.string_with_offset())
-	}
+    fn consume_operator(&mut self) -> Result<StringWithOffset, LexerError> {
+        self.consume_one_of(&[
+            Token::Operator(OperatorKind::Prefix),
+            Token::Operator(OperatorKind::Infix),
+            Token::Operator(OperatorKind::Postfix),
+            Token::Less,
+            Token::Greater,
+        ])?;
+        Ok(self.string_with_offset())
+    }
 
     /// Skip space tokens
     ///
@@ -259,8 +269,8 @@ pub struct FullSourceLexer<'source> {
     lexer: RefCell<logos::Lexer<'source, Token>>,
     /// Span of current token
     span: Span,
-	/// Current token
-	token: Option<Token>,
+    /// Current token
+    token: Option<Token>,
     /// Peeked token
     peeked: RefCell<Option<Token>>,
     /// Current indentation level
@@ -281,10 +291,15 @@ impl<'source> FullSourceLexer<'source> {
         Self {
             lexer: Token::lexer(source).into(),
             span: 0..0,
-			token: None,
+            token: None,
             peeked: None.into(),
             indentation: 0,
         }
+    }
+
+    /// Internal function to lex next token
+    fn lex(&self) -> Option<Token> {
+        self.lexer.borrow_mut().lex()
     }
 }
 
@@ -294,19 +309,19 @@ impl<'source> Iterator for FullSourceLexer<'source> {
     /// Lex next token
     fn next(&mut self) -> Option<Token> {
         if matches!(self.peek(), None | Some(Token::Newline)) {
-			self.indentation = 0;
-		}
+            self.indentation = 0;
+        }
         self.span = self.lexer.get_mut().span();
         self.token = self.peeked.take();
-		self.token()
+        self.token()
     }
 }
 
 impl Lexer for FullSourceLexer<'_> {
-	/// Get current token
-	fn token(&self) -> Option<Token> {
-		self.token.clone()
-	}
+    /// Get current token
+    fn token(&self) -> Option<Token> {
+        self.token.clone()
+    }
 
     /// Get source code of lexer
     fn source(&self) -> &str {
@@ -329,12 +344,12 @@ impl Lexer for FullSourceLexer<'_> {
     /// ```
     fn peek(&self) -> Option<Token> {
         if self.peeked.borrow().is_none() {
-            *self.peeked.borrow_mut() = self.lexer.borrow_mut().next();
-			if self.token == Some(Token::Newline) {
-				while *self.peeked.borrow() == Some(Token::Newline) {
-					*self.peeked.borrow_mut() = self.lexer.borrow_mut().next();
-				}
-			}
+            *self.peeked.borrow_mut() = self.lex();
+            if self.token == Some(Token::Newline) {
+                while *self.peeked.borrow() == Some(Token::Newline) {
+                    *self.peeked.borrow_mut() = self.lex();
+                }
+            }
         }
         self.peeked.borrow().clone()
     }
@@ -419,16 +434,16 @@ impl Lexer for FullSourceLexer<'_> {
 
 /// Lexer for reading from interactive stream (stdin)
 pub struct InteractiveLexer {
-	/// Prompt to display before reading next line
-	pub prompt: String,
-	/// Used to override next prompt
-	next_prompt: RefCell<Option<String>>,
+    /// Prompt to display before reading next line
+    pub prompt: String,
+    /// Used to override next prompt
+    next_prompt: RefCell<Option<String>>,
     /// Current source code of lexer
     source: RefCell<String>,
     /// Span of current token
     span: Span,
-	/// Current token
-	token: Option<Token>,
+    /// Current token
+    token: Option<Token>,
     /// Current indentation level
     indentation: usize,
 }
@@ -437,11 +452,11 @@ impl InteractiveLexer {
     /// Create new interactive lexer
     pub fn new() -> Self {
         Self {
-			prompt: "... ".to_string(),
-			next_prompt: None.into(),
+            prompt: "... ".to_string(),
+            next_prompt: None.into(),
             source: String::new().into(),
             span: 0..0,
-			token: None,
+            token: None,
             indentation: 0,
         }
     }
@@ -455,13 +470,11 @@ impl InteractiveLexer {
 
     /// Request next line
     fn request_line(&self) {
-		if let Some(prompt) = self.next_prompt.take() {
-        	print!("{}", prompt);
-		}
-		else
-		{
-			print!("{}", self.prompt);
-		}
+        if let Some(prompt) = self.next_prompt.take() {
+            print!("{}", prompt);
+        } else {
+            print!("{}", self.prompt);
+        }
         std::io::stdout().flush().unwrap();
         let mut line = String::new();
         std::io::stdin().read_line(&mut line).unwrap();
@@ -475,22 +488,22 @@ impl InteractiveLexer {
         }
     }
 
-	/// Implementation of peek without requesting new line
-	fn peek_impl(&self) -> Option<Token> {
-		let mut lexer = self.lexer();
-        let mut peeked = lexer.next();
-		if self.token == Some(Token::Newline) {
-			while peeked == Some(Token::Newline) {
-				peeked = lexer.next();
-			}
-		}
-		peeked
-	}
+    /// Implementation of peek without requesting new line
+    fn peek_impl(&self) -> Option<Token> {
+        let mut lexer = self.lexer();
+        let mut peeked = lexer.lex();
+        if self.token == Some(Token::Newline) {
+            while peeked == Some(Token::Newline) {
+                peeked = lexer.lex();
+            }
+        }
+        peeked
+    }
 
-	/// Override next prompt
-	pub fn override_next_prompt(&mut self, prompt: &str) {
-		self.next_prompt = Some(prompt.to_string()).into()
-	}
+    /// Override next prompt
+    pub fn override_next_prompt(&mut self, prompt: &str) {
+        self.next_prompt = Some(prompt.to_string()).into()
+    }
 }
 
 impl Iterator for InteractiveLexer {
@@ -499,18 +512,18 @@ impl Iterator for InteractiveLexer {
     /// Lex next token
     fn next(&mut self) -> Option<Token> {
         self.maybe_request_line();
-		let mut lexer = self.lexer();
-        let mut peeked = lexer.next();
-		if self.token == Some(Token::Newline) {
-			while peeked == Some(Token::Newline) {
-				peeked = lexer.next();
-			}
-		}
-		self.span = lexer.span();
-		self.token = peeked;
-		if matches!(self.token, None | Some(Token::Newline)) {
-			self.indentation = 0;
-		}
+        let mut lexer = self.lexer();
+        let mut peeked = lexer.lex();
+        if self.token == Some(Token::Newline) {
+            while peeked == Some(Token::Newline) {
+                peeked = lexer.lex();
+            }
+        }
+        self.span = lexer.span();
+        self.token = peeked;
+        if matches!(self.token, None | Some(Token::Newline)) {
+            self.indentation = 0;
+        }
         self.token()
     }
 }
@@ -521,19 +534,19 @@ impl Lexer for InteractiveLexer {
         unsafe { &*self.source.as_ptr() }
     }
 
-	/// Get current token
-	fn token(&self) -> Option<Token> {
-		self.token.clone()
-	}
+    /// Get current token
+    fn token(&self) -> Option<Token> {
+        self.token.clone()
+    }
 
     /// Peek next token
     fn peek(&self) -> Option<Token> {
-		let mut peeked = self.peek_impl();
-		if peeked.is_none() {
-			self.request_line();
-			peeked = self.peek_impl();
-		}
-		peeked
+        let mut peeked = self.peek_impl();
+        if peeked.is_none() {
+            self.request_line();
+            peeked = self.peek_impl();
+        }
+        peeked
     }
 
     /// Get span of next token

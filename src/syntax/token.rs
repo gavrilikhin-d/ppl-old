@@ -37,6 +37,8 @@ fn without_quotes(lexer: &mut Lexer<Token>) -> String {
 
 /// The different kinds of tokens that can be lexed.
 #[derive(Logos, Debug, PartialEq, Eq, Clone)]
+#[logos(skip "[ ]+")]
+#[logos(skip "//[^\n]*")]
 pub enum Token {
     /// None literal
     #[token("none")]
@@ -179,9 +181,6 @@ pub enum Token {
     Use,
 
     /// Error token
-    #[error]
-    #[regex("[ ]+", logos::skip)]
-    #[regex("//[^\n]*", logos::skip)]
     Error,
 }
 
