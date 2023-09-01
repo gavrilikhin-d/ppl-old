@@ -364,7 +364,7 @@ impl ASTLoweringWithinContext for ast::MemberReference {
             .members()
             .iter()
             .enumerate()
-            .find(|(i, m)| m.name() == self.name.as_str())
+            .find(|(_, m)| m.name() == self.name.as_str())
         {
             Ok(hir::MemberReference {
                 span: self.range().into(),

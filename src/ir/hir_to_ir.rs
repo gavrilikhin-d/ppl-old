@@ -587,7 +587,7 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
 
             Expression::Literal(l) => l.lower_to_ir(context),
             Expression::Call(call) => call.lower_to_ir(context).try_as_basic_value().left(),
-            Expression::TypeReference(ty) => unimplemented!("TypeReference as expresssion"),
+            Expression::TypeReference(_ty) => unimplemented!("TypeReference as expresssion"),
             Expression::MemberReference(m) => m.lower_to_ir_without_load(context),
             Expression::Constructor(c) => Some(c.lower_to_ir(context).into()),
         }

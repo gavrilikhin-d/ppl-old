@@ -1,12 +1,10 @@
 #![feature(anonymous_lifetime_in_impl_trait)]
 
-use inkwell::execution_engine::ExecutionEngine;
-use inkwell::OptimizationLevel;
 use ppl::ast::*;
 use ppl::compilation::Compiler;
 use ppl::hir::{self, Type, Typed};
+use ppl::ir;
 use ppl::ir::GlobalHIRLowering;
-use ppl::ir::{self, HIRModuleLowering};
 use ppl::named::Named;
 use ppl::semantics::{ASTLoweringWithinContext, ModuleContext};
 use ppl::syntax::{InteractiveLexer, Lexer, Parse};

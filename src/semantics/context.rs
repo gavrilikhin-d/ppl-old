@@ -401,11 +401,11 @@ impl Context for FunctionContext<'_> {
             .or_else(|| self.parent.find_variable(name))
     }
 
-    fn add_type(&mut self, ty: Arc<TypeDeclaration>) {
+    fn add_type(&mut self, _ty: Arc<TypeDeclaration>) {
         todo!("local types")
     }
 
-    fn add_trait(&mut self, tr: Arc<TraitDeclaration>) {
+    fn add_trait(&mut self, _tr: Arc<TraitDeclaration>) {
         todo!("local traits")
     }
 
@@ -414,7 +414,7 @@ impl Context for FunctionContext<'_> {
         self.parent.add_function(f)
     }
 
-    fn add_variable(&mut self, v: Arc<VariableDeclaration>) {
+    fn add_variable(&mut self, _v: Arc<VariableDeclaration>) {
         todo!("local variables")
     }
 
@@ -476,11 +476,11 @@ impl Context for TraitContext<'_> {
         self.parent.find_variable(name)
     }
 
-    fn add_type(&mut self, ty: Arc<TypeDeclaration>) {
+    fn add_type(&mut self, _ty: Arc<TypeDeclaration>) {
         todo!("types in traits")
     }
 
-    fn add_trait(&mut self, tr: Arc<TraitDeclaration>) {
+    fn add_trait(&mut self, _tr: Arc<TraitDeclaration>) {
         todo!("traits in traits?")
     }
 
@@ -488,7 +488,7 @@ impl Context for TraitContext<'_> {
         self.tr.functions.push(f)
     }
 
-    fn add_variable(&mut self, v: Arc<VariableDeclaration>) {
+    fn add_variable(&mut self, _v: Arc<VariableDeclaration>) {
         todo!("variables in traits")
     }
 

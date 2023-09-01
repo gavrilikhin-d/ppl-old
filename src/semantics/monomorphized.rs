@@ -109,7 +109,7 @@ impl Monomorphized for Expression {
 }
 
 impl Monomorphized for Constructor {
-    fn monomorphized(&self, context: &mut impl Context) -> Self {
+    fn monomorphized(&self, _context: &mut impl Context) -> Self {
         // TODO: real monomorphization
         self.clone()
     }
