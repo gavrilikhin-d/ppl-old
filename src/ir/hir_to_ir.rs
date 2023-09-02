@@ -3,7 +3,6 @@ use std::sync::Arc;
 use inkwell::types::BasicMetadataTypeEnum;
 
 use inkwell::values::BasicMetadataValueEnum;
-use inkwell::values::BasicValue;
 
 use super::inkwell::*;
 use crate::hir::*;
@@ -609,6 +608,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
         let ptr = value.into_pointer_value();
         match self.ty() {
             Type::Class(cl) => {
+                // FIXME: pointer to pointer goes here
                 if cl.is_opaque() && !(cl.is_none() || cl.is_bool()) {
                     return Some(ptr.into());
                 }
