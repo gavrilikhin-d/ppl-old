@@ -609,7 +609,8 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
         match self.ty() {
             Type::Class(cl) => {
                 // FIXME: pointer to pointer goes here
-                if cl.is_opaque() && !(cl.is_none() || cl.is_bool()) {
+                if cl.is_opaque() && !(cl.is_none() || cl.is_bool() || self.is_variable_reference())
+                {
                     return Some(ptr.into());
                 }
                 return Some(context.builder.build_load(

@@ -30,3 +30,10 @@ pub enum Expression {
     MemberReference(MemberReference),
     Constructor(Constructor),
 }
+
+impl Expression {
+    /// Check if expression is a variable reference
+    pub fn is_variable_reference(&self) -> bool {
+        matches!(self, Expression::VariableReference(_))
+    }
+}
