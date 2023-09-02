@@ -512,11 +512,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Constructor {
             let field = context
                 .builder
                 .build_struct_gep(
-                    init.value
-                        .ty()
-                        .lower_to_ir(context)
-                        .try_into_basic_type()
-                        .unwrap(),
+                    ty,
                     alloca,
                     init.index as u32,
                     format!("{}.{}", self.ty.referenced_type.name(), init.member.name()).as_str(),
@@ -554,7 +550,7 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for MemberReference 
             context
                 .builder
                 .build_struct_gep(
-                    self.member
+                    self.base
                         .ty()
                         .lower_to_ir(context)
                         .try_into_basic_type()
