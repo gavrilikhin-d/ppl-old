@@ -1,28 +1,32 @@
 use std::sync::Arc;
 
-use crate::{named::Named, syntax::StringWithOffset, hir::{Type, Typed}};
+use crate::{
+    hir::{Type, Typed},
+    named::Named,
+    syntax::StringWithOffset,
+};
 
 /// Member of type
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Member {
     /// Member's name
     pub name: StringWithOffset,
-	/// Member's type
-	pub ty: Type,
+    /// Member's type
+    pub ty: Type,
 }
 
 impl Named for Member {
-	/// Get name of member
-	fn name(&self) -> &str {
-		&self.name
-	}
+    /// Get name of member
+    fn name(&self) -> &str {
+        &self.name
+    }
 }
 
 impl Typed for Member {
-	/// Get type of member
-	fn ty(&self) -> Type {
-		self.ty.clone()
-	}
+    /// Get type of member
+    fn ty(&self) -> Type {
+        self.ty.clone()
+    }
 }
 
 /// Declaration of a type
@@ -30,47 +34,52 @@ impl Typed for Member {
 pub struct TypeDeclaration {
     /// Type's name
     pub name: StringWithOffset,
-	/// Is this type from builtin module?
-	pub is_builtin: bool,
-	/// Members of type
-	pub members: Vec<Arc<Member>>,
+    /// Is this type from builtin module?
+    pub is_builtin: bool,
+    /// Members of type
+    pub members: Vec<Arc<Member>>,
 }
 
 impl TypeDeclaration {
-	/// Get member by name
-	pub fn members(&self) -> &[Arc<Member>] {
-		self.members.as_slice()
-	}
+    /// Get member by name
+    pub fn members(&self) -> &[Arc<Member>] {
+        self.members.as_slice()
+    }
 
-	/// Is this a builtin type?
-	pub fn is_builtin(&self) -> bool {
-		self.is_builtin
-	}
+    /// Is this a builtin type?
+    pub fn is_builtin(&self) -> bool {
+        self.is_builtin
+    }
 
-	/// Is this a builtin "None" type?
-	pub fn is_none(&self) -> bool {
-		self.is_builtin && self.name == "None"
-	}
+    /// Is this a builtin "None" type?
+    pub fn is_none(&self) -> bool {
+        self.is_builtin && self.name == "None"
+    }
 
-	/// Is this a builtin "Bool" type?
-	pub fn is_bool(&self) -> bool {
-		self.is_builtin && self.name == "Bool"
-	}
+    /// Is this a builtin "Bool" type?
+    pub fn is_bool(&self) -> bool {
+        self.is_builtin && self.name == "Bool"
+    }
 
-	/// Is this a builtin "Integer" type?
-	pub fn is_integer(&self) -> bool {
-		self.is_builtin && self.name == "Integer"
-	}
+    /// Is this a builtin "Integer" type?
+    pub fn is_integer(&self) -> bool {
+        self.is_builtin && self.name == "Integer"
+    }
 
-	/// Is this a builtin "Rational" type?
-	pub fn is_rational(&self) -> bool {
-		self.is_builtin && self.name == "Rational"
-	}
+    /// Is this a builtin "Rational" type?
+    pub fn is_rational(&self) -> bool {
+        self.is_builtin && self.name == "Rational"
+    }
 
-	/// Is this a builtin "String" type?
-	pub fn is_string(&self) -> bool {
-		self.is_builtin && self.name == "String"
-	}
+    /// Is this a builtin "String" type?
+    pub fn is_string(&self) -> bool {
+        self.is_builtin && self.name == "String"
+    }
+
+    /// Is this an opaque type?
+    pub fn is_opaque(&self) -> bool {
+        self.members.is_empty()
+    }
 }
 
 impl Named for TypeDeclaration {
@@ -82,55 +91,53 @@ impl Named for TypeDeclaration {
 
 #[cfg(test)]
 mod tests {
-	use super::*;
-	use crate::ast;
-	use crate::hir::{Type, Member};
-	use crate::semantics::ASTLowering;
+    use super::*;
+    use crate::ast;
+    use crate::hir::{Member, Type};
+    use crate::semantics::ASTLowering;
 
-	#[test]
-	fn test_type_without_body() {
-		let type_decl =
-			"type x"
-				.parse::<ast::TypeDeclaration>()
-				.unwrap()
-				.lower_to_hir()
-				.unwrap();
+    #[test]
+    fn test_type_without_body() {
+        let type_decl = "type x"
+            .parse::<ast::TypeDeclaration>()
+            .unwrap()
+            .lower_to_hir()
+            .unwrap();
 
-		assert_eq!(
-			*type_decl,
-			TypeDeclaration {
-				name: StringWithOffset::from("x").at(5),
-				is_builtin: false,
-				members: vec![],
-			}
-		);
-	}
+        assert_eq!(
+            *type_decl,
+            TypeDeclaration {
+                name: StringWithOffset::from("x").at(5),
+                is_builtin: false,
+                members: vec![],
+            }
+        );
+    }
 
-	#[test]
-	fn test_type_with_body() {
-		let type_decl =
-			include_str!("../../../examples/point.ppl")
-				.parse::<ast::TypeDeclaration>()
-				.unwrap()
-				.lower_to_hir()
-				.unwrap();
+    #[test]
+    fn test_type_with_body() {
+        let type_decl = include_str!("../../../examples/point.ppl")
+            .parse::<ast::TypeDeclaration>()
+            .unwrap()
+            .lower_to_hir()
+            .unwrap();
 
-		assert_eq!(
-			*type_decl,
-			TypeDeclaration {
-				name: StringWithOffset::from("Point").at(5),
-				is_builtin: false,
-				members: vec![
-					Arc::new(Member {
-						name: StringWithOffset::from("x").at(13),
-						ty: Type::integer(),
-					}),
-					Arc::new(Member {
-						name: StringWithOffset::from("y").at(16),
-						ty: Type::integer(),
-					}),
-				],
-			}
-		);
-	}
+        assert_eq!(
+            *type_decl,
+            TypeDeclaration {
+                name: StringWithOffset::from("Point").at(5),
+                is_builtin: false,
+                members: vec![
+                    Arc::new(Member {
+                        name: StringWithOffset::from("x").at(13),
+                        ty: Type::integer(),
+                    }),
+                    Arc::new(Member {
+                        name: StringWithOffset::from("y").at(16),
+                        ty: Type::integer(),
+                    }),
+                ],
+            }
+        );
+    }
 }

@@ -22,11 +22,11 @@
 * Metaprogramming
 * Documentation
 
+* [x] Fix segmentation fault
 ---
 ### Current task
-* [ ] Fix segmentation fault
+* [ ] Fix infinite loop on wrong input
 ---
-
 * [ ] Save ir to file
 * [ ] Load builtin module from ir file
 * [ ] Make `if to be an expression?

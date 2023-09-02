@@ -3,6 +3,7 @@ use std::sync::Arc;
 use inkwell::types::BasicMetadataTypeEnum;
 
 use inkwell::values::BasicMetadataValueEnum;
+use inkwell::values::BasicValue;
 
 use super::inkwell::*;
 use crate::hir::*;
@@ -605,17 +606,20 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
             return Some(value);
         }
 
-        // FIXME: sigfault due-to invalid type
         let ptr = value.into_pointer_value();
-        let elem_ty = self.ty().lower_to_ir(context);
-        if elem_ty.is_struct_type() && elem_ty.into_struct_type().is_opaque() {
-            return Some(ptr.into());
-        }
-        Some(
-            context
-                .builder
-                .build_load(elem_ty.try_into_basic_type().unwrap(), ptr, ""),
-        )
+        match self.ty() {
+            Type::Class(cl) => {
+                if cl.is_opaque() && !(cl.is_none() || cl.is_bool()) {
+                    return Some(ptr.into());
+                }
+                return Some(context.builder.build_load(
+                    cl.lower_to_ir(context).try_into_basic_type().unwrap(),
+                    ptr,
+                    "",
+                ));
+            }
+            _ => unimplemented!("Load reference of type {:?}", self.ty()),
+        };
     }
 }
 
