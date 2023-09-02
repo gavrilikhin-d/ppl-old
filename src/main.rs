@@ -1,8 +1,10 @@
 #![feature(anonymous_lifetime_in_impl_trait)]
 
+use clap::Parser;
 use log::debug;
 use ppl::ast::*;
 use ppl::compilation::Compiler;
+use ppl::driver::{self, commands::Execute};
 use ppl::hir::{self, Type, Typed};
 use ppl::ir;
 use ppl::ir::GlobalHIRLowering;
@@ -113,5 +115,11 @@ fn repl() {
 fn main() {
     miette::set_panic_hook();
     pretty_env_logger::init();
-    repl()
+
+    let args = driver::Args::parse();
+    if let Some(cmd) = args.command {
+        cmd.execute()
+    } else {
+        repl()
+    }
 }

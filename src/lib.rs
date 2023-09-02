@@ -18,3 +18,5 @@ pub mod ir;
 pub mod compilation;
 
 pub mod from_decimal;
+
+pub mod driver;
