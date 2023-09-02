@@ -504,6 +504,13 @@ impl InteractiveLexer {
     pub fn override_next_prompt(&mut self, prompt: &str) {
         self.next_prompt = Some(prompt.to_string()).into()
     }
+
+    /// Force lexer to go to the end of input
+    pub fn go_to_end(&mut self) {
+        let end = self.source().len();
+        self.span = end..end;
+        self.token = None;
+    }
 }
 
 impl Iterator for InteractiveLexer {

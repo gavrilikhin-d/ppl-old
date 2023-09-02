@@ -104,7 +104,8 @@ fn repl() {
                     "stdin",
                     String::from(parse_context.lexer.source())
                 ))
-            )
+            );
+            parse_context.lexer.go_to_end();
         }
     }
 }
