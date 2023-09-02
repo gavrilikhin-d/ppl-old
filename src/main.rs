@@ -30,7 +30,7 @@ fn process_single_statement<'llvm>(
 
     let module = &context.module;
 
-    debug!(target: "ir", "{:#?}", module.to_string());
+    debug!(target: "ir", "{}", module.to_string());
 
     module.verify().unwrap();
 
