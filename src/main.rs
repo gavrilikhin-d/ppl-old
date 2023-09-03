@@ -118,7 +118,7 @@ fn main() {
 
     let args = driver::Args::parse();
     if let Some(cmd) = args.command {
-        cmd.execute()
+        cmd.execute().unwrap()
     } else {
         repl()
     }

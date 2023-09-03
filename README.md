@@ -25,10 +25,10 @@
 * [x] Fix segmentation fault
 * [x] Fix loading of pointers to pointers and wrong printing of integers
 * [x] Fix infinite loop on wrong input
+* [x] Save ir to file (compile file till IR and save it)
 ---
 ### Current task
-* [ ] Save ir to file (compile file till IR and save it)
----
 * [ ] Load builtin module from ir file
+---
 * [ ] Make `if to be an expression?
 * [ ] Merge `evaluate` and `execute` functions
