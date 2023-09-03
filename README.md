@@ -26,6 +26,7 @@
 * [x] Fix loading of pointers to pointers and wrong printing of integers
 * [x] Fix infinite loop on wrong input
 * [x] Save ir to file (compile file till IR and save it)
+* [x] Show errors location when parsing whole module
 ---
 ### Current task
 * [ ] Load builtin module from ir file

@@ -87,7 +87,12 @@ impl Module {
     fn from_file_with_builtin(path: &Path, is_builtin: bool) -> miette::Result<Self> {
         let content = std::fs::read_to_string(path).map_err(|e| miette!("{path:?}: {e}"))?;
 
-        let ast = content.parse::<ast::Module>()?;
+        let ast = content.parse::<ast::Module>().map_err(|e| {
+            miette::Report::from(e).with_source_code(miette::NamedSource::new(
+                path.to_string_lossy(),
+                content.clone(),
+            ))
+        })?;
 
         let mut module = Module::new(
             path.file_stem().unwrap().to_str().unwrap(),
@@ -96,7 +101,10 @@ impl Module {
         module.is_builtin = is_builtin;
 
         let mut context = ModuleContext { module };
-        ast.lower_to_hir_within_context(&mut context)?;
+        ast.lower_to_hir_within_context(&mut context).map_err(|e| {
+            miette::Report::from(e)
+                .with_source_code(miette::NamedSource::new(path.to_string_lossy(), content))
+        })?;
 
         Ok(context.module)
     }
