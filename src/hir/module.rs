@@ -84,7 +84,7 @@ impl Module {
     }
 
     /// Create module from file with providing builtin module
-    fn from_file_with_builtin(path: &Path, is_builtin: bool) -> miette::Result<Self> {
+    pub(crate) fn from_file_with_builtin(path: &Path, is_builtin: bool) -> miette::Result<Self> {
         let content = std::fs::read_to_string(path).map_err(|e| miette!("{path:?}: {e}"))?;
 
         let ast = content.parse::<ast::Module>().map_err(|e| {

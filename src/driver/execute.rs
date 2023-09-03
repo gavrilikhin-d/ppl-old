@@ -2,6 +2,7 @@ use crate::hir::Module;
 use crate::ir::HIRModuleLowering;
 use miette::miette;
 
+use super::commands::compile::OutputType;
 use super::commands::Compile;
 use super::Command;
 
@@ -29,15 +30,23 @@ impl Execute for Compile {
 
     /// Compile single ppl file
     fn execute(&self) -> Self::Output {
-        let module = Module::from_file(&self.file)?;
+        let module = Module::from_file_with_builtin(&self.file, self.no_core)?;
         let llvm = inkwell::context::Context::create();
         let ir = module.lower_to_ir(&llvm);
+        let output_type = self.output_type.unwrap_or_default();
         let output_file = self
             .output_dir
             .join(self.file.file_stem().unwrap())
-            .with_extension("ll");
-        std::fs::write(&output_file, ir.to_string())
-            .map_err(|e| miette!("{output_file:?}: {e}"))?;
+            .with_extension(output_type.extension());
+        match output_type {
+            OutputType::Bytecode => {
+                ir.write_bitcode_to_path(&output_file);
+            }
+            OutputType::IR => {
+                std::fs::write(&output_file, ir.to_string())
+                    .map_err(|e| miette!("{output_file:?}: {e}"))?;
+            }
+        }
         Ok(())
     }
 }

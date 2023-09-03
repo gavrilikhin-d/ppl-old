@@ -1,8 +1,8 @@
-mod args;
-pub use args::Args;
+mod cli;
+pub use cli::Args;
 
 mod execute;
 pub use execute::Execute;
 
-pub use args::commands;
-pub use args::Command;
+pub use cli::commands;
+pub use cli::Command;

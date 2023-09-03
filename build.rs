@@ -4,7 +4,7 @@ use clap_complete::{generate_to, Shell};
 use clap_complete_fig::Fig;
 use std::io::Error;
 
-include!("src/driver/args.rs");
+include!("src/driver/cli.rs");
 
 fn main() -> Result<(), Error> {
     let out_dir = "target/autocomplete";
