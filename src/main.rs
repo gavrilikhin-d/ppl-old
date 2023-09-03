@@ -4,7 +4,7 @@ use clap::Parser;
 use log::debug;
 use ppl::ast::*;
 use ppl::compilation::Compiler;
-use ppl::driver::{self, commands::Execute};
+use ppl::driver::{self, Execute};
 use ppl::hir::{self, Type, Typed};
 use ppl::ir;
 use ppl::ir::GlobalHIRLowering;

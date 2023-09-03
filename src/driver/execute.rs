@@ -1,21 +1,27 @@
-use std::path::PathBuf;
-
-use clap::Parser;
-
-use super::Execute;
 use crate::hir::Module;
 use crate::ir::HIRModuleLowering;
 use miette::miette;
 
-/// Command to compile single ppl file
-#[derive(Parser, Debug)]
-pub struct Compile {
-    /// File to compile
-    #[arg(value_name = "file")]
-    pub file: PathBuf,
-    /// Directory where compiler output will be placed.
-    #[arg(long, value_name = "dir", default_value = ".")]
-    pub output_dir: PathBuf,
+use super::commands::Compile;
+use super::Command;
+
+/// Trait for executing commands
+pub trait Execute {
+    /// The output of the command execution
+    type Output = ();
+
+    /// Execute the command
+    fn execute(&self) -> Self::Output;
+}
+
+impl Execute for Command {
+    type Output = miette::Result<()>;
+
+    fn execute(&self) -> Self::Output {
+        match self {
+            Command::Compile(compile) => compile.execute(),
+        }
+    }
 }
 
 impl Execute for Compile {
