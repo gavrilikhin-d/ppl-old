@@ -112,14 +112,15 @@ fn repl() {
     }
 }
 
-fn main() {
+fn main() -> miette::Result<()> {
     miette::set_panic_hook();
     pretty_env_logger::init();
 
     let args = driver::Args::parse();
     if let Some(cmd) = args.command {
-        cmd.execute().unwrap()
+        cmd.execute()
     } else {
-        repl()
+        repl();
+        Ok(())
     }
 }

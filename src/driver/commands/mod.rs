@@ -8,8 +8,6 @@ pub use compile::*;
 mod execute;
 pub use execute::*;
 
-use std::error::Error;
-
 /// The subcommands of ppl
 #[derive(Subcommand, Debug, From)]
 pub enum Command {
@@ -18,7 +16,7 @@ pub enum Command {
 }
 
 impl Execute for Command {
-    type Output = Result<(), Box<dyn Error>>;
+    type Output = miette::Result<()>;
 
     fn execute(&self) -> Self::Output {
         match self {

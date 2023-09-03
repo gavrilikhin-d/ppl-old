@@ -5,7 +5,7 @@ use clap::Parser;
 use super::Execute;
 use crate::hir::Module;
 use crate::ir::HIRModuleLowering;
-use std::error::Error;
+use miette::miette;
 
 /// Command to compile single ppl file
 #[derive(Parser, Debug)]
@@ -19,7 +19,7 @@ pub struct Compile {
 }
 
 impl Execute for Compile {
-    type Output = Result<(), Box<dyn Error>>;
+    type Output = miette::Result<()>;
 
     /// Compile single ppl file
     fn execute(&self) -> Self::Output {
@@ -30,7 +30,8 @@ impl Execute for Compile {
             .output_dir
             .join(self.file.file_stem().unwrap())
             .with_extension("ll");
-        std::fs::write(output_file, ir.to_string())?;
+        std::fs::write(&output_file, ir.to_string())
+            .map_err(|e| miette!("{output_file:?}: {e}"))?;
         Ok(())
     }
 }

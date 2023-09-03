@@ -7,6 +7,7 @@ use crate::ast;
 use crate::hir::{Statement, TypeDeclaration, VariableDeclaration};
 use crate::named::Named;
 use crate::semantics::{ASTLoweringWithinModule, ModuleContext};
+use miette::miette;
 use std::sync::{Arc, LazyLock};
 
 use super::{Function, FunctionDefinition, TraitDeclaration, Type};
@@ -84,8 +85,7 @@ impl Module {
 
     /// Create module from file with providing builtin module
     fn from_file_with_builtin(path: &Path, is_builtin: bool) -> miette::Result<Self> {
-        let content = std::fs::read_to_string(path)
-            .expect(format!("Failed to read {}", path.to_str().unwrap()).as_str());
+        let content = std::fs::read_to_string(path).map_err(|e| miette!("{path:?}: {e}"))?;
 
         let ast = content.parse::<ast::Module>()?;
 
