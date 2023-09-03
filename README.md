@@ -33,3 +33,5 @@
 ---
 * [ ] Make `if to be an expression?
 * [ ] Merge `evaluate` and `execute` functions
+* [ ] Add `Array` type
+* [ ] Add `HashMap` type
