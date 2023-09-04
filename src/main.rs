@@ -45,39 +45,38 @@ fn process_single_statement<'llvm>(
     }
 
     if let Some(f) = module.get_function("execute") {
-        unsafe {
-            compiler.engine.run_function(f, &[]);
-        }
-    } else if let Some(f) = module.get_function("evaluate") {
         let result = unsafe { compiler.engine.run_function(f, &[]) };
-        let expr: hir::Expression = hir.try_into().unwrap();
-        match expr.ty() {
-            Type::Class(c) => {
-                if !c.is_builtin() {
-                    println!("<object of type \"{}\">", c.name())
-                } else if c.is_integer() {
-                    let result = unsafe { result.into_pointer::<rug::Integer>() };
-                    println!("{}", unsafe { &*result });
-                } else if c.is_rational() {
-                    let result = unsafe { result.into_pointer::<rug::Rational>() };
-                    println!("{}", unsafe { &*result });
-                } else if c.is_string() {
-                    let result = unsafe { result.into_pointer::<String>() };
-                    println!("{:?}", unsafe { &*result });
-                } else if c.is_bool() {
-                    let result = result.as_int(false);
-                    if result == 0 {
-                        println!("false");
-                    } else {
-                        println!("true");
+        if let hir::Statement::Expression(expr) = hir {
+            match expr.ty() {
+                Type::Class(c) => {
+                    if !c.is_builtin() {
+                        println!("<object of type \"{}\">", c.name())
+                    } else if c.is_integer() {
+                        let result = unsafe { result.into_pointer::<rug::Integer>() };
+                        println!("{}", unsafe { &*result });
+                    } else if c.is_rational() {
+                        let result = unsafe { result.into_pointer::<rug::Rational>() };
+                        println!("{}", unsafe { &*result });
+                    } else if c.is_string() {
+                        let result = unsafe { result.into_pointer::<String>() };
+                        println!("{:?}", unsafe { &*result });
+                    } else if c.is_bool() {
+                        let result = result.as_int(false);
+                        if result == 0 {
+                            println!("false");
+                        } else {
+                            println!("true");
+                        }
+                    } else if !c.is_none() {
+                        unreachable!("forgot to handle builtin class");
                     }
-                } else if !c.is_none() {
-                    unreachable!("forgot to handle builtin class");
+                }
+                Type::Function(_) => unimplemented!("returning functions"),
+                Type::Trait(_) => unimplemented!("returning traits"),
+                Type::SelfType(_) => {
+                    unreachable!("Self may not be returned as result of expression")
                 }
             }
-            Type::Function(_) => unimplemented!("returning functions"),
-            Type::Trait(_) => unimplemented!("returning traits"),
-            Type::SelfType(_) => unreachable!("Self may not be returned as result of expression"),
         }
     }
 

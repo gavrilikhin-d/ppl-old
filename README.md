@@ -28,9 +28,10 @@
 * [x] Save ir to file (compile file till IR and save it)
 * [x] Show errors location when parsing whole module
 * [x] Load builtin module from ir file
+* [x] Merge `evaluate` and `execute` functions
 ---
 ### Current task
-* [ ] Merge `evaluate` and `execute` functions
+* [ ] Make statements to return `None` type for convenience
 ---
 * [ ] Make `if to be an expression?
 * [ ] Add `Array` type

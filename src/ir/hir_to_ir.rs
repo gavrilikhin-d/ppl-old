@@ -657,17 +657,23 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
             | Statement::While(_) => {
                 let function = context.module.add_function(
                     "execute",
-                    context.llvm().void_type().fn_type(&[], false),
+                    context.types().none().fn_type(&[], false),
                     None,
                 );
 
                 let mut context = FunctionContext::new(context, function);
                 self.lower_local_to_ir(&mut context);
+
+                context.builder.build_return(None);
+
+                if !function.verify(true) {
+                    panic!("Should never produce invalid functions")
+                }
             }
 
             Statement::Expression(expr) => {
                 let function = context.module.add_function(
-                    "evaluate",
+                    "execute",
                     expr.ty().lower_to_ir(context).fn_type(&[], false),
                     None,
                 );
@@ -681,7 +687,9 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
                     context.builder.build_return(None);
                 }
 
-                function.verify(true);
+                if !function.verify(true) {
+                    panic!("Should never produce invalid functions")
+                }
             }
             Statement::Return(_) => unreachable!("Return statement is not allowed in global scope"),
             Statement::Use(_) => {
@@ -882,6 +890,11 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         for statement in &self.statements {
             statement.lower_global_to_ir(&mut context);
         }
+
+        context
+            .module
+            .verify()
+            .expect("Should never produce invalid modules");
 
         context.module
     }
