@@ -27,11 +27,12 @@
 * [x] Fix infinite loop on wrong input
 * [x] Save ir to file (compile file till IR and save it)
 * [x] Show errors location when parsing whole module
+* [x] Load builtin module from ir file
 ---
 ### Current task
-* [ ] Load builtin module from ir file
+* [ ] Merge `evaluate` and `execute` functions
 ---
 * [ ] Make `if to be an expression?
-* [ ] Merge `evaluate` and `execute` functions
 * [ ] Add `Array` type
 * [ ] Add `HashMap` type
+* [ ] Provide runtime as dylib

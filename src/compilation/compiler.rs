@@ -1,12 +1,9 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, path::Path, sync::Arc};
 
 use inkwell::{context::Context, execution_engine::ExecutionEngine, OptimizationLevel};
 use log::debug;
 
-use crate::{
-    hir::Module,
-    ir::{self, HIRModuleLowering},
-};
+use crate::{hir::Module, ir};
 
 pub struct Compiler<'llvm> {
     pub llvm: &'llvm Context,
@@ -17,8 +14,10 @@ pub struct Compiler<'llvm> {
 impl<'llvm> Compiler<'llvm> {
     /* TODO: settings (Optimization, etc) */
     pub fn new(llvm: &'llvm Context) -> Self {
-        // TODO: save/load builtin module from ir file
-        let builtin = Module::builtin().lower_to_ir(&llvm);
+        let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime/ppl.bc"));
+
+        let builtin = inkwell::module::Module::parse_bitcode_from_path(path, llvm)
+            .expect("Bytecode for builtin module not found or invalid");
         debug!(target: "builtin", "{}", builtin.to_string());
 
         let engine = builtin
