@@ -31,8 +31,9 @@
 * [x] Merge `evaluate` and `execute` functions
 ---
 ### Current task
-* [ ] Make statements to return `None` type for convenience
+* [ ] Generic members
 ---
+* [ ] Make statements to return `None` type for convenience
 * [ ] Make `if to be an expression?
 * [ ] Add `Array` type
 * [ ] Add `HashMap` type
