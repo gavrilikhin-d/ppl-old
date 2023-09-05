@@ -103,6 +103,7 @@ impl Parse for TypeDeclaration {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_type_without_body() {

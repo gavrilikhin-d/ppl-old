@@ -95,6 +95,7 @@ mod tests {
     use crate::ast;
     use crate::hir::{Member, Type};
     use crate::semantics::ASTLowering;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_type_without_body() {

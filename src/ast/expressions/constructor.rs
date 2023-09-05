@@ -98,6 +98,7 @@ impl Parse for Constructor {
 #[cfg(test)]
 mod tests {
     use crate::ast::Literal;
+    use pretty_assertions::assert_eq;
 
     use super::*;
 
