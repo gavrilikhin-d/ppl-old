@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    hir::{Type, Typed},
+    hir::{GenericType, Type, Typed},
     named::Named,
     syntax::StringWithOffset,
 };
@@ -34,6 +34,8 @@ impl Typed for Member {
 pub struct TypeDeclaration {
     /// Type's name
     pub name: StringWithOffset,
+    /// Generic parameters of type
+    pub generic_parameters: Vec<GenericType>,
     /// Is this type from builtin module?
     pub is_builtin: bool,
     /// Members of type
@@ -109,8 +111,36 @@ mod tests {
             *type_decl,
             TypeDeclaration {
                 name: StringWithOffset::from("x").at(5),
+                generic_parameters: vec![],
                 is_builtin: false,
                 members: vec![],
+            }
+        );
+    }
+
+    #[test]
+    fn type_with_generics() {
+        let type_decl = "type Point<U>:\n\tx: U"
+            .parse::<ast::TypeDeclaration>()
+            .unwrap()
+            .lower_to_hir()
+            .unwrap();
+
+        assert_eq!(
+            *type_decl,
+            TypeDeclaration {
+                name: StringWithOffset::from("Point").at(5),
+                generic_parameters: vec![GenericType {
+                    name: StringWithOffset::from("U").at(11),
+                }],
+                is_builtin: false,
+                members: vec![Arc::new(Member {
+                    name: StringWithOffset::from("x").at(16),
+                    ty: GenericType {
+                        name: StringWithOffset::from("U").at(11),
+                    }
+                    .into(),
+                }),],
             }
         );
     }
@@ -127,6 +157,7 @@ mod tests {
             *type_decl,
             TypeDeclaration {
                 name: StringWithOffset::from("Point").at(5),
+                generic_parameters: vec![],
                 is_builtin: false,
                 members: vec![
                     Arc::new(Member {

@@ -53,6 +53,7 @@ impl<'llvm> HIRTypesLowering<'llvm> for Type {
             Type::Class(ty) => ty.lower_to_ir(context).into(),
             Type::SelfType(_) => unreachable!("Self must not be lowered to IR"),
             Type::Trait(_) => unreachable!("Trait must not be lowered to IR"),
+            Type::Generic(_) => unreachable!("Generic must not be lowered to IR"),
             Type::Function { .. } => unimplemented!("Function type lowering"),
         }
     }

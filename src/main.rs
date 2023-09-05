@@ -50,7 +50,8 @@ fn process_single_statement<'llvm>(
             match expr.ty() {
                 Type::Class(c) => {
                     if !c.is_builtin() {
-                        println!("<object of type \"{}\">", c.name())
+                        // TODO: implement proper printing for user-defined classes through `as String`
+                        println!("<object of type {:?}>", c.name())
                     } else if c.is_integer() {
                         let result = unsafe { result.into_pointer::<rug::Integer>() };
                         println!("{}", unsafe { &*result });
@@ -76,6 +77,7 @@ fn process_single_statement<'llvm>(
                 Type::SelfType(_) => {
                     unreachable!("Self may not be returned as result of expression")
                 }
+                Type::Generic(_) => unreachable!("generic types may not be returned"),
             }
         }
     }

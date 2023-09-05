@@ -7,8 +7,8 @@ use std::{
 use crate::{
     ast::CallNamePart,
     hir::{
-        CallKind, Expression, Function, FunctionDeclaration, FunctionNamePart, Module, Name,
-        ParameterOrVariable, SelfType, TraitDeclaration, Type, TypeDeclaration, Typed,
+        CallKind, Expression, Function, FunctionDeclaration, FunctionNamePart, GenericType, Module,
+        Name, ParameterOrVariable, SelfType, TraitDeclaration, Type, TypeDeclaration, Typed,
         VariableDeclaration,
     },
     named::Named,
@@ -506,6 +506,73 @@ impl Context for TraitContext<'_> {
                 .cloned(),
         );
         functions
+    }
+
+    fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
+        self.parent.functions_with_format(format)
+    }
+}
+
+/// Context for lowering body of types
+pub struct TypeContext<'p> {
+    /// Types of generic parameters
+    pub generic_parameters: Vec<GenericType>,
+
+    /// Parent context for this function
+    pub parent: &'p mut dyn Context,
+}
+
+impl Context for TypeContext<'_> {
+    fn module(&self) -> &Module {
+        &self.parent.module()
+    }
+
+    fn module_mut(&mut self) -> &mut Module {
+        self.parent.module_mut()
+    }
+
+    fn builtin(&self) -> BuiltinContext {
+        self.parent.builtin()
+    }
+
+    fn function(&self) -> Option<Arc<FunctionDeclaration>> {
+        self.parent.function()
+    }
+
+    fn find_type(&self, name: &str) -> Option<Type> {
+        self.generic_parameters
+            .iter()
+            .find(|p| p.name == name)
+            .map(|p| Type::Generic(p.clone()))
+            .or_else(|| self.parent.find_type(name))
+    }
+
+    fn find_variable(&self, name: &str) -> Option<ParameterOrVariable> {
+        self.parent.find_variable(name)
+    }
+
+    fn add_type(&mut self, _ty: Arc<TypeDeclaration>) {
+        todo!("types inside types")
+    }
+
+    fn add_trait(&mut self, _tr: Arc<TraitDeclaration>) {
+        todo!("traits inside types")
+    }
+
+    fn add_function(&mut self, _f: Function) {
+        unreachable!("functions inside types")
+    }
+
+    fn add_variable(&mut self, _v: Arc<VariableDeclaration>) {
+        unreachable!("variables inside types")
+    }
+
+    fn function_with_name(&self, name: &str) -> Option<Function> {
+        self.parent.function_with_name(name)
+    }
+
+    fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
+        self.parent.functions_with_n_name_parts(n)
     }
 
     fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {

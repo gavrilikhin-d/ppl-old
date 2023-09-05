@@ -120,16 +120,18 @@ mod tests {
 
     #[test]
     fn type_with_generic_parameters() {
-        let type_decl = "type x<T, U>".parse::<TypeDeclaration>().unwrap();
+        let type_decl = "type Point<U>:\n\tx:U".parse::<TypeDeclaration>().unwrap();
         assert_eq!(
             type_decl,
             TypeDeclaration {
-                name: StringWithOffset::from("x").at(5),
-                generic_parameters: vec![
-                    StringWithOffset::from("T").at(7),
-                    StringWithOffset::from("U").at(10),
-                ],
-                members: vec![],
+                name: StringWithOffset::from("Point").at(5),
+                generic_parameters: vec![StringWithOffset::from("U").at(11),],
+                members: vec![Member {
+                    name: StringWithOffset::from("x").at(16),
+                    ty: TypeReference {
+                        name: StringWithOffset::from("U").at(18),
+                    },
+                },],
             }
         )
     }

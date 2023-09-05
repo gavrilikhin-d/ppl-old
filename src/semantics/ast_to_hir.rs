@@ -2,13 +2,14 @@ use core::panic;
 use std::sync::Arc;
 
 use crate::from_decimal::FromDecimal;
-use crate::hir::{self, CallKind, FunctionDefinition, FunctionNamePart, Type, Typed};
+use crate::hir::{self, CallKind, FunctionDefinition, FunctionNamePart, GenericType, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
 
 use super::{
     error::*, Context, FunctionContext, ModuleContext, MonomorphizedWithArgs, TraitContext,
+    TypeContext,
 };
 use crate::ast::{self, CallNamePart, If};
 
@@ -498,13 +499,28 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
 
     /// Lower [`ast::TypeDeclaration`] to [`hir::TypeDeclaration`] within lowering context
     fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
+        let generic_parameters: Vec<_> = self
+            .generic_parameters
+            .iter()
+            .cloned()
+            .map(|name| GenericType { name })
+            .collect();
+
+        let is_builtin = context.is_for_builtin_module();
+        let mut ty_context = TypeContext {
+            parent: context,
+            generic_parameters: generic_parameters.clone(),
+        };
+
+        // TODO: recursive types
         let ty = Arc::new(hir::TypeDeclaration {
             name: self.name.clone(),
-            is_builtin: context.is_for_builtin_module(),
+            generic_parameters,
+            is_builtin,
             members: self
                 .members
                 .iter()
-                .map(|m| m.lower_to_hir_within_context(context))
+                .map(|m| m.lower_to_hir_within_context(&mut ty_context))
                 .try_collect()?,
         });
 
