@@ -6,7 +6,7 @@ use std::{
 use crate::{mutability::Mutable, named::Named, syntax::StringWithOffset};
 
 use super::{Member, Module, TraitDeclaration, TypeDeclaration};
-use derive_more::From;
+use derive_more::{From, TryInto};
 use enum_dispatch::enum_dispatch;
 
 use super::Expression;
@@ -114,7 +114,7 @@ impl Named for GenericType {
 }
 
 /// Type of values
-#[derive(Debug, PartialEq, Eq, Clone, From)]
+#[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Type {
     /// User defined type
     Class(Arc<TypeDeclaration>),
@@ -122,6 +122,7 @@ pub enum Type {
     Trait(Arc<TraitDeclaration>),
     /// Self type and trait it represents
     SelfType(SelfType),
+    // TODO: add `Resolved` and `Unresolved` generic types instead
     /// Type for class' generic parameter
     Generic(GenericType),
     /// Function type

@@ -69,7 +69,9 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Declaration {
                 var.lower_global_to_ir(context);
             }
             Declaration::Type(ty) => {
-                ty.lower_to_ir(context);
+                if !ty.is_generic() {
+                    ty.lower_to_ir(context);
+                }
             }
             Declaration::Function(f) => {
                 if !f.is_generic() {
@@ -610,8 +612,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
         match self.ty() {
             Type::Class(cl) => {
                 // FIXME: pointer to pointer goes here
-                if cl.is_opaque() && !(cl.is_none() || cl.is_bool() || self.is_variable_reference())
-                {
+                if cl.is_opaque() && !(cl.is_none() || cl.is_bool() || self.is_reference()) {
                     return Some(ptr.into());
                 }
                 return Some(context.builder.build_load(

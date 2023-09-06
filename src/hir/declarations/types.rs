@@ -82,6 +82,14 @@ impl TypeDeclaration {
     pub fn is_opaque(&self) -> bool {
         self.members.is_empty()
     }
+
+    /// Is this a generic type?
+    ///
+    /// Note: even if [`generic_parameters`](Self::generic_parameters)
+    /// aren't empty, type may be non-generic, if all members are non-generic
+    pub fn is_generic(&self) -> bool {
+        !self.generic_parameters.is_empty() && self.members.iter().any(|m| m.ty().is_generic())
+    }
 }
 
 impl Named for TypeDeclaration {

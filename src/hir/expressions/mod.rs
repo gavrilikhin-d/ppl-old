@@ -32,8 +32,13 @@ pub enum Expression {
 }
 
 impl Expression {
-    /// Check if expression is a variable reference
-    pub fn is_variable_reference(&self) -> bool {
-        matches!(self, Expression::VariableReference(_))
+    /// Check if expression is a reference to something
+    pub fn is_reference(&self) -> bool {
+        matches!(
+            self,
+            Expression::VariableReference(_)
+                | Expression::MemberReference(_)
+                | Expression::TypeReference(_)
+        )
     }
 }

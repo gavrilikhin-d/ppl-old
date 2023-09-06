@@ -390,8 +390,11 @@ impl ASTLoweringWithinContext for ast::Constructor {
 
     /// Lower [`ast::Constructor`] to [`hir::Constructor`] within lowering context
     fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
-        let ty = self.ty.lower_to_hir_within_context(context)?;
+        let mut ty = self.ty.lower_to_hir_within_context(context)?;
 
+        let mut members = ty.referenced_type.members().to_vec();
+
+        // TODO: check that all fields are initialized
         let initializers = self
             .initializers
             .iter()
@@ -402,6 +405,9 @@ impl ASTLoweringWithinContext for ast::Constructor {
                 });
                 let value = init.value.lower_to_hir_within_context(context)?;
 
+                // TODO: check that member is not initialized twice
+                // TODO: check for type mismatch
+
                 if let Some((index, member)) = ty
                     .referenced_type
                     .members()
@@ -409,10 +415,17 @@ impl ASTLoweringWithinContext for ast::Constructor {
                     .enumerate()
                     .find(|(_, m)| m.name() == name.as_str())
                 {
+                    if member.ty.is_generic() {
+                        members[index] = Arc::new(hir::Member {
+                            name: member.name.clone(),
+                            ty: value.ty().clone(),
+                        });
+                    }
+
                     Ok::<_, Error>(hir::Initializer {
                         span: name.range(),
                         index,
-                        member: member.clone(),
+                        member: members[index].clone(),
                         value,
                     })
                 } else {
@@ -426,6 +439,18 @@ impl ASTLoweringWithinContext for ast::Constructor {
                 }
             })
             .try_collect::<Vec<_>>()?;
+
+        let generic_ty: Arc<hir::TypeDeclaration> = ty
+            .referenced_type
+            .clone()
+            .try_into()
+            .expect("constructors only meant for classes");
+
+        ty.referenced_type = Arc::new(hir::TypeDeclaration {
+            members,
+            ..(*generic_ty).clone()
+        })
+        .into();
 
         Ok(hir::Constructor {
             ty,
