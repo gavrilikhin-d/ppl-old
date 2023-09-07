@@ -14,6 +14,7 @@ pub struct Compiler<'llvm> {
 impl<'llvm> Compiler<'llvm> {
     /* TODO: settings (Optimization, etc) */
     pub fn new(llvm: &'llvm Context) -> Self {
+        // TODO: env var for runtime path
         let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime/ppl.bc"));
 
         let builtin = inkwell::module::Module::parse_bitcode_from_path(path, llvm)

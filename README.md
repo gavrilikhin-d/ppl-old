@@ -38,3 +38,4 @@
 * [ ] Add `Array` type
 * [ ] Add `HashMap` type
 * [ ] Provide runtime as dylib
+* [ ] Multiple errors support instead of exiting on first error
