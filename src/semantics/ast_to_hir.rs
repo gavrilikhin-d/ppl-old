@@ -191,6 +191,8 @@ impl ConvertibleToCheck {
             }
             // TODO: this needs context of all visible functions to check if class implements trait
             (Type::Class(c), Type::Trait(tr)) => c.implements(tr.clone()).within(context),
+            // TODO: check for constraints
+            (_, Type::Generic(_)) => true,
             _ => self.from == self.to,
         }
     }
@@ -406,7 +408,6 @@ impl ASTLoweringWithinContext for ast::Constructor {
                 let value = init.value.lower_to_hir_within_context(context)?;
 
                 // TODO: check that member is not initialized twice
-                // TODO: check for type mismatch
 
                 if let Some((index, member)) = ty
                     .referenced_type
@@ -415,6 +416,16 @@ impl ASTLoweringWithinContext for ast::Constructor {
                     .enumerate()
                     .find(|(_, m)| m.name() == name.as_str())
                 {
+                    if !value.ty().convertible_to(member.ty()).within(context) {
+                        return Err(TypeMismatch {
+                            expected: member.ty(),
+                            expected_span: member.name.range().into(),
+                            got: value.ty(),
+                            got_span: value.range().into(),
+                        }
+                        .into());
+                    }
+
                     if member.ty.is_generic() {
                         members[index] = Arc::new(hir::Member {
                             name: member.name.clone(),
@@ -422,21 +433,21 @@ impl ASTLoweringWithinContext for ast::Constructor {
                         });
                     }
 
-                    Ok::<_, Error>(hir::Initializer {
+                    return Ok::<_, Error>(hir::Initializer {
                         span: name.range(),
                         index,
                         member: members[index].clone(),
                         value,
-                    })
-                } else {
-                    Err(NoMember {
-                        name: name.clone().into(),
-                        at: name.range().into(),
-                        ty: ty.referenced_type.clone(),
-                        base_span: self.ty.range().into(),
-                    }
-                    .into())
+                    });
                 }
+
+                Err(NoMember {
+                    name: name.clone().into(),
+                    at: name.range().into(),
+                    ty: ty.referenced_type.clone(),
+                    base_span: self.ty.range().into(),
+                }
+                .into())
             })
             .try_collect::<Vec<_>>()?;
 
