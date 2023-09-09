@@ -3,6 +3,8 @@ use std::fmt::Display;
 use miette::{Diagnostic, SourceSpan};
 use thiserror::Error;
 
+use derive_more::From;
+
 use crate::hir::{CallKind, Type};
 
 /// Diagnostic for undefined variables
@@ -310,6 +312,38 @@ impl Diagnostic for MultipleInitialization {
     }
 }
 
+/// Diagnostic for missing fields in constructor
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("type `{ty}` has missing fields: {fields}")]
+#[diagnostic(code(semantics::missing_fields))]
+pub struct MissingFields {
+    /// Type of constructed class
+    pub ty: Type,
+    /// Span of constructor name
+    #[label("missing fields: {fields}")]
+    pub at: SourceSpan,
+    /// Names of missing fields
+    pub fields: DisplayVec<String>,
+}
+
+/// Wrapper around [`Vec`] to display it
+#[derive(Debug, PartialEq, Eq, Clone, From)]
+pub struct DisplayVec<D: Display>(pub Vec<D>);
+
+impl<D: Display> Display for DisplayVec<D> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[{}]",
+            self.0
+                .iter()
+                .map(|p| format!("{}", p))
+                .collect::<Vec<_>>()
+                .join(", ")
+        )
+    }
+}
+
 /// Helper macro to create error enumeration
 macro_rules! error_enum {
 	($($name:ident),*) => {
@@ -339,5 +373,6 @@ error_enum!(
     ReturnTypeMismatch,
     CantDeduceReturnType,
     NoMember,
-    MultipleInitialization
+    MultipleInitialization,
+    MissingFields
 );

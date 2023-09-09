@@ -396,7 +396,6 @@ impl ASTLoweringWithinContext for ast::Constructor {
 
         let mut members = ty.referenced_type.members().to_vec();
 
-        // TODO: check that all fields are initialized
         let mut initializers = Vec::<hir::Initializer>::new();
         for init in &self.initializers {
             let name = init.name.clone().unwrap_or_else(|| match &init.value {
@@ -459,6 +458,24 @@ impl ASTLoweringWithinContext for ast::Constructor {
             .clone()
             .try_into()
             .expect("constructors only meant for classes");
+
+        if initializers.len() != generic_ty.members.len() {
+            assert!(
+                initializers.len() < generic_ty.members.len(),
+                "impossible to have more initializers at this point"
+            );
+            let diff = (0..generic_ty.members.len())
+                .filter(|i| initializers.iter().find(|init| init.index == *i).is_none());
+            return Err(MissingFields {
+                ty: ty.referenced_type.clone(),
+                at: self.ty.name.range().into(),
+                fields: diff
+                    .map(|i| generic_ty.members[i].name().to_string())
+                    .collect::<Vec<_>>()
+                    .into(),
+            }
+            .into());
+        }
 
         ty.referenced_type = Arc::new(hir::TypeDeclaration {
             members,
