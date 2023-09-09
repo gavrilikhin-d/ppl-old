@@ -18,6 +18,16 @@ pub struct Initializer {
     pub value: Expression,
 }
 
+impl Ranged for Initializer {
+    fn start(&self) -> usize {
+        self.span.start
+    }
+
+    fn end(&self) -> usize {
+        self.value.end()
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Constructor {
     /// Type of constructed object

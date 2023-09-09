@@ -397,59 +397,62 @@ impl ASTLoweringWithinContext for ast::Constructor {
         let mut members = ty.referenced_type.members().to_vec();
 
         // TODO: check that all fields are initialized
-        let initializers = self
-            .initializers
-            .iter()
-            .map(|init| {
-                let name = init.name.clone().unwrap_or_else(|| match &init.value {
-                    ast::Expression::VariableReference(var) => var.name.clone(),
-                    _ => unreachable!(),
-                });
-                let value = init.value.lower_to_hir_within_context(context)?;
+        let mut initializers = Vec::<hir::Initializer>::new();
+        for init in &self.initializers {
+            let name = init.name.clone().unwrap_or_else(|| match &init.value {
+                ast::Expression::VariableReference(var) => var.name.clone(),
+                _ => unreachable!(),
+            });
+            let value = init.value.lower_to_hir_within_context(context)?;
 
-                // TODO: check that member is not initialized twice
-
-                if let Some((index, member)) = ty
-                    .referenced_type
-                    .members()
-                    .iter()
-                    .enumerate()
-                    .find(|(_, m)| m.name() == name.as_str())
-                {
-                    if !value.ty().convertible_to(member.ty()).within(context) {
-                        return Err(TypeMismatch {
-                            expected: member.ty(),
-                            expected_span: member.name.range().into(),
-                            got: value.ty(),
-                            got_span: value.range().into(),
-                        }
-                        .into());
+            if let Some((index, member)) = ty
+                .referenced_type
+                .members()
+                .iter()
+                .enumerate()
+                .find(|(_, m)| m.name() == name.as_str())
+            {
+                if !value.ty().convertible_to(member.ty()).within(context) {
+                    return Err(TypeMismatch {
+                        expected: member.ty(),
+                        expected_span: member.name.range().into(),
+                        got: value.ty(),
+                        got_span: value.range().into(),
                     }
+                    .into());
+                }
 
-                    if member.ty.is_generic() {
-                        members[index] = Arc::new(hir::Member {
-                            name: member.name.clone(),
-                            ty: value.ty().clone(),
-                        });
+                if let Some(prev) = initializers.iter().find(|i| i.index == index) {
+                    return Err(MultipleInitialization {
+                        name: member.name().to_string(),
+                        at: [prev.range().into(), init.range().into()].into(),
                     }
+                    .into());
+                }
 
-                    return Ok::<_, Error>(hir::Initializer {
-                        span: name.range(),
-                        index,
-                        member: members[index].clone(),
-                        value,
+                if member.ty.is_generic() {
+                    members[index] = Arc::new(hir::Member {
+                        name: member.name.clone(),
+                        ty: value.ty().clone(),
                     });
                 }
 
-                Err(NoMember {
+                initializers.push(hir::Initializer {
+                    span: name.range(),
+                    index,
+                    member: members[index].clone(),
+                    value,
+                });
+            } else {
+                return Err(NoMember {
                     name: name.clone().into(),
                     at: name.range().into(),
                     ty: ty.referenced_type.clone(),
                     base_span: self.ty.range().into(),
                 }
-                .into())
-            })
-            .try_collect::<Vec<_>>()?;
+                .into());
+            }
+        }
 
         let generic_ty: Arc<hir::TypeDeclaration> = ty
             .referenced_type

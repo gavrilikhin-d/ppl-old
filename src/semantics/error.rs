@@ -262,7 +262,7 @@ pub struct CantDeduceReturnType {
 /// Diagnostic for missing members
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 #[error("no member \"{name}\" in \"{ty}\"")]
-#[diagnostic(code(semantics::cant_deduce_return_type))]
+#[diagnostic(code(semantics::no_member))]
 pub struct NoMember {
     /// Type of base expression
     pub ty: Type,
@@ -275,6 +275,39 @@ pub struct NoMember {
     pub at: SourceSpan,
     /// Name of member
     pub name: String,
+}
+
+/// Diagnostic for multiple initializers for single field
+#[derive(Error, Debug, Clone, PartialEq)]
+#[error("field `{name}` initialized multiple times")]
+pub struct MultipleInitialization {
+    /// Name of the field
+    pub name: String,
+    /// Span of the initializers
+    pub at: Vec<SourceSpan>,
+}
+
+impl Diagnostic for MultipleInitialization {
+    fn code<'a>(&'a self) -> Option<Box<dyn std::fmt::Display + 'a>> {
+        Some(Box::new("semantics::multiple_initialization"))
+    }
+
+    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
+        assert!(self.at.len() >= 2);
+
+        Some(Box::new(
+            std::iter::once(miette::LabeledSpan::new_with_span(
+                Some("was firstly initialized here".to_string()),
+                self.at.first().unwrap().clone(),
+            ))
+            .chain(self.at.iter().skip(1).map(|at| {
+                miette::LabeledSpan::new_with_span(
+                    Some("repeated initialization".to_string()),
+                    at.clone(),
+                )
+            })),
+        ))
+    }
 }
 
 /// Helper macro to create error enumeration
@@ -305,5 +338,6 @@ error_enum!(
     MissingReturnValue,
     ReturnTypeMismatch,
     CantDeduceReturnType,
-    NoMember
+    NoMember,
+    MultipleInitialization
 );
