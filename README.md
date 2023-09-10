@@ -33,8 +33,9 @@
 * [x] Check errors emitted by compiler
 ---
 ### Current task
-* [ ] Add more checks for compiler
+* [ ] Allow generics types usage
 ---
+* [ ] Add more checks for compiler
 * [ ] Add constrains to generics
 * [ ] Make statements to return `None` type for convenience
 * [ ] Make `if to be an expression?

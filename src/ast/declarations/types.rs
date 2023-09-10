@@ -130,6 +130,7 @@ mod tests {
                     name: StringWithOffset::from("x").at(16),
                     ty: TypeReference {
                         name: StringWithOffset::from("U").at(18),
+                        generic_parameters: Vec::new(),
                     },
                 },],
             }
@@ -144,6 +145,7 @@ mod tests {
 
         let ty = TypeReference {
             name: StringWithOffset::from("Integer").at(19),
+            generic_parameters: Vec::new(),
         };
         assert_eq!(
             type_decl,

@@ -4,8 +4,11 @@ use ast_derive::AST;
 use derive_more::From;
 
 use crate::{
-    ast::{Annotation, Statement, Expression, TypeReference},
-    syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token, Context, OperatorKind, Ranged},
+    ast::{Annotation, Expression, Statement, TypeReference},
+    syntax::{
+        error::ParseError, Context, Lexer, OperatorKind, Parse, Ranged, StartsHere,
+        StringWithOffset, Token,
+    },
 };
 
 /// Parameter of function
@@ -18,10 +21,10 @@ pub struct Parameter {
 }
 
 impl Ranged for Parameter {
-	/// Get range of parameter
-	fn range(&self) -> std::ops::Range<usize> {
-		self.name.range().start..self.ty.range().end
-	}
+    /// Get range of parameter
+    fn range(&self) -> std::ops::Range<usize> {
+        self.name.range().start..self.ty.range().end
+    }
 }
 
 impl Parse for Parameter {
@@ -29,7 +32,8 @@ impl Parse for Parameter {
 
     /// Parse parameter using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        let name = context.lexer
+        let name = context
+            .lexer
             .consume(Token::Id)
             .ok()
             .unwrap_or_else(|| StringWithOffset::from("").at(context.lexer.span().end));
@@ -46,21 +50,21 @@ impl Parse for Parameter {
 #[derive(Debug, PartialEq, Eq, AST, Clone, From)]
 pub enum FunctionNamePart {
     Text(StringWithOffset),
-    Parameter{
-		less: usize,
-		parameter: Parameter,
-		greater: usize,
-	},
+    Parameter {
+        less: usize,
+        parameter: Parameter,
+        greater: usize,
+    },
 }
 
 impl Ranged for FunctionNamePart {
-	/// Get range of function name part
-	fn range(&self) -> std::ops::Range<usize> {
-		match self {
-			FunctionNamePart::Text(s) => s.range(),
-			FunctionNamePart::Parameter{less, greater, ..} => *less..*greater + 1,
-		}
-	}
+    /// Get range of function name part
+    fn range(&self) -> std::ops::Range<usize> {
+        match self {
+            FunctionNamePart::Text(s) => s.range(),
+            FunctionNamePart::Parameter { less, greater, .. } => *less..*greater + 1,
+        }
+    }
 }
 
 impl Parse for FunctionNamePart {
@@ -69,34 +73,34 @@ impl Parse for FunctionNamePart {
     /// Parse function name part using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
         let token = context.lexer.consume_one_of(&[
-			Token::Id,
-			Token::Less, Token::Greater,
-			Token::Operator(OperatorKind::Prefix),
-			Token::Operator(OperatorKind::Infix),
-			Token::Operator(OperatorKind::Postfix)
-		])?;
+            Token::Id,
+            Token::Less,
+            Token::Greater,
+            Token::Operator(OperatorKind::Prefix),
+            Token::Operator(OperatorKind::Infix),
+            Token::Operator(OperatorKind::Postfix),
+        ])?;
         match token {
-            Token::Id | Token::Greater | Token::Operator(_)
-				=> Ok(context.lexer.string_with_offset().into()),
+            Token::Id | Token::Greater | Token::Operator(_) => {
+                Ok(context.lexer.string_with_offset().into())
+            }
             Token::Less => {
-				// '<' here is an operator
-				if context.lexer.peek() == Some(Token::Less) {
-					return Ok(context.lexer.string_with_offset().into())
-				}
+                // '<' here is an operator
+                if context.lexer.peek() == Some(Token::Less) {
+                    return Ok(context.lexer.string_with_offset().into());
+                }
 
-				let less = context.lexer.span().start;
+                let less = context.lexer.span().start;
 
                 let parameter = Parameter::parse(context)?;
 
                 let greater = context.lexer.consume(Token::Greater)?.start();
 
-                Ok(
-					FunctionNamePart::Parameter{
-						less,
-						parameter,
-						greater,
-					}
-				)
+                Ok(FunctionNamePart::Parameter {
+                    less,
+                    parameter,
+                    greater,
+                })
             }
             _ => unreachable!("consume_one_of returned unexpected token"),
         }
@@ -113,8 +117,8 @@ pub struct FunctionDeclaration {
     /// Body of function
     pub body: Vec<Statement>,
 
-	/// Does this function use implicit return (=>)
-	pub implicit_return: bool,
+    /// Does this function use implicit return (=>)
+    pub implicit_return: bool,
 
     /// Annotations for function
     pub annotations: Vec<Annotation>,
@@ -157,24 +161,23 @@ impl Parse for FunctionDeclaration {
         };
 
         let mut body = Vec::new();
-		let mut implicit_return = false;
+        let mut implicit_return = false;
         if context.lexer.consume(Token::FatArrow).is_ok() {
             body.push(Expression::parse(context)?.into());
-			implicit_return = true;
+            implicit_return = true;
 
-			context.consume_eol()?;
+            context.consume_eol()?;
         } else if context.lexer.consume(Token::Colon).is_ok() {
             body = context.parse_block(Statement::parse)?;
+        } else {
+            context.consume_eol()?;
         }
-		else {
-			context.consume_eol()?;
-		}
 
         Ok(FunctionDeclaration {
             name_parts,
             return_type,
             body,
-			implicit_return,
+            implicit_return,
             annotations: vec![],
         })
     }
@@ -191,36 +194,37 @@ fn test_function_declaration() {
             name_parts: vec![
                 StringWithOffset::from("distance").at(3).into(),
                 StringWithOffset::from("from").at(12).into(),
-				FunctionNamePart::Parameter{
-					less: 17,
-					parameter:
-						Parameter {
-							name: StringWithOffset::from("a").at(18).into(),
-							ty: TypeReference {
-								name: StringWithOffset::from("Point").at(21).into()
-							},
-						},
-					greater: 26,
-				},
+                FunctionNamePart::Parameter {
+                    less: 17,
+                    parameter: Parameter {
+                        name: StringWithOffset::from("a").at(18).into(),
+                        ty: TypeReference {
+                            name: StringWithOffset::from("Point").at(21).into(),
+                            generic_parameters: Vec::new(),
+                        },
+                    },
+                    greater: 26,
+                },
                 StringWithOffset::from("to").at(28).into(),
-				FunctionNamePart::Parameter{
-					less: 31,
-					parameter:
-						Parameter {
-							name: StringWithOffset::from("b").at(32).into(),
-							ty: TypeReference {
-								name: StringWithOffset::from("Point").at(35).into()
-							},
-						},
-					greater: 40,
-				},
+                FunctionNamePart::Parameter {
+                    less: 31,
+                    parameter: Parameter {
+                        name: StringWithOffset::from("b").at(32).into(),
+                        ty: TypeReference {
+                            name: StringWithOffset::from("Point").at(35).into(),
+                            generic_parameters: Vec::new(),
+                        },
+                    },
+                    greater: 40,
+                },
             ],
             return_type: Some(TypeReference {
-				name: StringWithOffset::from("Distance").at(45).into()
-			}),
+                name: StringWithOffset::from("Distance").at(45).into(),
+                generic_parameters: Vec::new(),
+            }),
             annotations: vec![],
             body: vec![],
-			implicit_return: false,
+            implicit_return: false,
         }
     );
 }
@@ -236,16 +240,14 @@ fn test_function_with_single_line_body() {
             name_parts: vec![StringWithOffset::from("test").at(3).into(),],
             return_type: None,
             annotations: vec![],
-            body: vec![
-                Statement::Expression(
-                    Literal::Integer {
-                        value: "1".into(),
-                        offset: 11,
-                    }
-                    .into()
-                ),
-            ],
-			implicit_return: true
+            body: vec![Statement::Expression(
+                Literal::Integer {
+                    value: "1".into(),
+                    offset: 11,
+                }
+                .into()
+            ),],
+            implicit_return: true
         }
     );
 }

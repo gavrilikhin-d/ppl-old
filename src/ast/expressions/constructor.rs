@@ -110,6 +110,7 @@ mod tests {
             Constructor {
                 ty: TypeReference {
                     name: StringWithOffset::from("Empty"),
+                    generic_parameters: Vec::new(),
                 },
                 lbrace: 6,
                 initializers: Vec::new(),
@@ -126,6 +127,7 @@ mod tests {
             Constructor {
                 ty: TypeReference {
                     name: StringWithOffset::from("Point"),
+                    generic_parameters: Vec::new(),
                 },
                 lbrace: 6,
                 initializers: vec![
@@ -157,6 +159,7 @@ mod tests {
             Constructor {
                 ty: TypeReference {
                     name: StringWithOffset::from("Point"),
+                    generic_parameters: Vec::new(),
                 },
                 lbrace: 6,
                 initializers: vec![
