@@ -1059,3 +1059,12 @@ impl ASTLowering for ast::Module {
         Ok(context.module)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::test_compiler_error;
+
+    test_compiler_error!(missing_fields);
+    test_compiler_error!(multiple_initialization);
+    test_compiler_error!(wrong_initializer_type);
+}

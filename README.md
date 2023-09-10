@@ -29,14 +29,16 @@
 * [x] Show errors location when parsing whole module
 * [x] Load builtin module from ir file
 * [x] Merge `evaluate` and `execute` functions
+* [x] Generic members
+* [x] Check errors emitted by compiler
 ---
 ### Current task
-* [ ] Generic members
+* [ ] Add more checks for compiler
 ---
+* [ ] Add constrains to generics
 * [ ] Make statements to return `None` type for convenience
 * [ ] Make `if to be an expression?
 * [ ] Add `Array` type
 * [ ] Add `HashMap` type
 * [ ] Provide runtime as dylib
 * [ ] Multiple errors support instead of exiting on first error
-* [ ] Check errors emitted by compiler
