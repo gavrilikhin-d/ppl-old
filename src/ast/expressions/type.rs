@@ -36,7 +36,7 @@ impl Parse for TypeReference {
                     break;
                 }
             }
-            context.lexer.consume(Token::Greater)?;
+            context.lexer.consume_greater()?;
         }
 
         Ok(TypeReference {
@@ -55,6 +55,8 @@ impl Ranged for TypeReference {
 
 #[cfg(test)]
 mod tests {
+    use pretty_assertions::assert_eq;
+
     #[test]
     fn without_generics() {
         use super::*;
@@ -88,6 +90,27 @@ mod tests {
                         generic_parameters: Vec::new(),
                     },
                 ],
+            })
+        );
+    }
+
+    #[test]
+    fn reference_generic_with_generic() {
+        use super::*;
+
+        let res = "Foo<Bar<Baz>>".parse::<TypeReference>();
+        assert_eq!(
+            res,
+            Ok(TypeReference {
+                name: StringWithOffset::from("Foo").at(0),
+                generic_parameters: vec![TypeReference {
+                    name: StringWithOffset::from("Bar").at(4),
+                    generic_parameters: [TypeReference {
+                        name: StringWithOffset::from("Baz").at(8),
+                        generic_parameters: Vec::new(),
+                    }]
+                    .into(),
+                },],
             })
         );
     }

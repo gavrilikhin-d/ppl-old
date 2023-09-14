@@ -4,7 +4,7 @@ use logos::{Logos, Span};
 
 use crate::syntax::error::{InvalidToken, LexerError, MissingToken, UnexpectedToken};
 
-use super::{OperatorKind, StringWithOffset, Token};
+use super::{OperatorKind, Ranged, StringWithOffset, Token};
 
 /// Convert Logos' `Result` to `Option` with `Token::Error` on error
 trait LogosLexErrorToken {
@@ -237,6 +237,22 @@ pub trait Lexer: Iterator<Item = Token> {
         Ok(self.string_with_offset())
     }
 
+    /// Consume [`Token::Greater`], even if it's part of another token
+    fn consume_greater(&mut self) -> Result<StringWithOffset, LexerError> {
+        let res = self.consume(Token::Greater);
+        if res.is_ok() {
+            return res;
+        }
+
+        if self.peek_slice().starts_with(">") {
+            let at = self.peek_span().start;
+            let token = StringWithOffset::from(">").at(at);
+            self.set_start_position(at + 1);
+            return Ok(token);
+        }
+        return res;
+    }
+
     /// Skip space tokens
     ///
     /// # Example
@@ -261,6 +277,9 @@ pub trait Lexer: Iterator<Item = Token> {
     /// Skip indentation.
     /// Changes current indentation level to the amount of tabs skipped
     fn skip_indentation(&mut self) -> &mut Self;
+
+    /// Set lexer's start byte position
+    fn set_start_position(&mut self, position: usize);
 }
 
 /// Lexer for full source code of PPL
@@ -429,6 +448,13 @@ impl Lexer for FullSourceLexer<'_> {
             self.indentation += 1;
         }
         self
+    }
+
+    fn set_start_position(&mut self, position: usize) {
+        let new_lexer = Token::lexer(self.lexer.borrow().source());
+        *self.lexer.borrow_mut() = new_lexer;
+        self.lexer.borrow_mut().bump(position);
+        *self.peeked.borrow_mut() = None;
     }
 }
 
@@ -635,5 +661,9 @@ impl Lexer for InteractiveLexer {
             self.indentation += 1;
         }
         self
+    }
+
+    fn set_start_position(&mut self, position: usize) {
+        self.span.end = position;
     }
 }
