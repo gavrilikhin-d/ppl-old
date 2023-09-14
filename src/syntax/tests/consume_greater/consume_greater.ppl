@@ -1,0 +1,4 @@
+type Point<U>:
+	x: U
+
+Point<Integer> { x: 1 }

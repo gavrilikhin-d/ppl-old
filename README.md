@@ -33,6 +33,7 @@
 * [x] Check errors emitted by compiler
 ---
 ### Current task
+* [ ] Fix problems with interactive lexer
 * [ ] Allow generics types usage
 ---
 * [ ] Add more checks for compiler
