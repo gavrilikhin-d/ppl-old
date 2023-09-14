@@ -3,7 +3,10 @@ use std::{collections::HashMap, path::Path, sync::Arc};
 use inkwell::{context::Context, execution_engine::ExecutionEngine, OptimizationLevel};
 use log::debug;
 
-use crate::{hir::Module, ir};
+use crate::{
+    hir::Module,
+    ir::{self, HIRModuleLowering},
+};
 
 pub struct Compiler<'llvm> {
     pub llvm: &'llvm Context,
@@ -17,8 +20,13 @@ impl<'llvm> Compiler<'llvm> {
         // TODO: env var for runtime path
         let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime/ppl.bc"));
 
-        let builtin = inkwell::module::Module::parse_bitcode_from_path(path, llvm)
-            .expect("Bytecode for builtin module not found or invalid");
+        let error_message = "Invalid bytecode in builtin module";
+        let builtin = if path.exists() {
+            inkwell::module::Module::parse_bitcode_from_path(path, llvm).expect(error_message)
+        } else {
+            Module::builtin().lower_to_ir(llvm)
+        };
+        builtin.verify().expect(error_message);
         debug!(target: "builtin", "{}", builtin.to_string());
 
         let engine = builtin

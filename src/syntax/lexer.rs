@@ -4,7 +4,7 @@ use logos::{Logos, Span};
 
 use crate::syntax::error::{InvalidToken, LexerError, MissingToken, UnexpectedToken};
 
-use super::{OperatorKind, Ranged, StringWithOffset, Token};
+use super::{OperatorKind, StringWithOffset, Token};
 
 /// Convert Logos' `Result` to `Option` with `Token::Error` on error
 trait LogosLexErrorToken {

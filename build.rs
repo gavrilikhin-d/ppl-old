@@ -3,6 +3,7 @@ use clap::ValueEnum;
 use clap_complete::{generate_to, Shell};
 use clap_complete_fig::Fig;
 use std::io::Error;
+use std::path::Path;
 
 include!("src/driver/cli.rs");
 
@@ -22,7 +23,12 @@ fn generate_autocompletion() -> Result<(), Error> {
 
 /// Precompile the builtin module
 fn compile_builtin_module() -> Result<(), Error> {
-    let status = std::process::Command::new("target/debug/ppl")
+    let ppl = Path::new("target/debug/ppl");
+    if !ppl.exists() {
+        return Ok(());
+    }
+
+    let status = std::process::Command::new(ppl)
         .args(&[
             "compile",
             "src/runtime/ppl.ppl",
