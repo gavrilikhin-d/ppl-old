@@ -86,7 +86,9 @@ fn parse_atomic_expression(context: &mut Context<impl Lexer>) -> Result<Expressi
                 }
                 return Ok(Constructor::parse_with_ty(context, ty)?.into());
             }
-            _ => {}
+            t => {
+                unreachable!("unexpected id token: {:?}", t);
+            }
         }
     }
 
