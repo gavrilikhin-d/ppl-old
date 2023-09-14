@@ -4,15 +4,17 @@ use ast_derive::AST;
 
 use derive_more::{From, TryInto};
 
-use super::{Expression, parse_binary_expression};
+use super::{parse_binary_expression, Expression};
 
-use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, StringWithOffset, Token, Context};
+use crate::syntax::{
+    error::ParseError, Context, Lexer, Parse, Ranged, StartsHere, StringWithOffset, Token,
+};
 
 /// Cell of function
 #[derive(Debug, PartialEq, Eq, AST, Clone, From, TryInto)]
 pub enum CallNamePart {
     Text(StringWithOffset),
-	Argument(Expression),
+    Argument(Expression),
 }
 
 impl Ranged for CallNamePart {
@@ -30,11 +32,12 @@ impl Parse for CallNamePart {
 
     /// Parse function call cell using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-   		let expr = parse_binary_expression(context)?;
-		Ok(match expr {
-			Expression::VariableReference(var) => var.name.into(),
-			_ => expr.into(),
-		})
+        let expr = parse_binary_expression(context)?;
+        Ok(match expr {
+            Expression::VariableReference(var) => var.name.into(),
+            Expression::TypeReference(ty) if ty.generic_parameters.len() == 0 => ty.name.into(),
+            _ => expr.into(),
+        })
     }
 }
 

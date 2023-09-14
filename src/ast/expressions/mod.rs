@@ -69,45 +69,24 @@ fn parse_atomic_expression(context: &mut Context<impl Lexer>) -> Result<Expressi
         return Ok(Tuple::parse(context)?.into());
     }
 
-    if let Ok(name) = context.lexer.consume(Token::Id) {
-        if let Ok(lbrace) = context.lexer.consume(Token::LBrace) {
-            let ty = TypeReference {
-                name,
-                generic_parameters: Vec::new(),
-            };
-
-            let lbrace = lbrace.start();
-            let mut initializers = Vec::new();
-            while context.lexer.peek() != Some(Token::RBrace) {
-                initializers.push(Initializer::parse(context)?);
-
-                if context.lexer.peek() == Some(Token::RBrace) {
-                    break;
+    if context.lexer.try_match(Token::Id).is_ok() {
+        match context.lexer.peek_slice().chars().next() {
+            Some(c) if c.is_lowercase() => {
+                let var: Expression = VariableReference::parse(context)?.into();
+                if context.lexer.try_match(Token::Dot).is_err() {
+                    return Ok(var);
+                } else {
+                    return Ok(MemberReference::parse_with_base(context, Box::new(var))?.into());
                 }
-
-                context.lexer.consume(Token::Comma)?;
             }
-            let rbrace = context.lexer.consume(Token::RBrace)?.start();
-
-            return Ok(Constructor {
-                ty,
-                lbrace,
-                initializers,
-                rbrace,
-            }
-            .into());
-        } else {
-            let var = VariableReference { name };
-            if context.lexer.peek() != Some(Token::Dot) {
-                return Ok(var.into());
-            } else {
-                let mut base = Box::new(Expression::from(var));
-                while context.lexer.consume(Token::Dot).is_ok() {
-                    let name = context.lexer.consume(Token::Id)?;
-                    base = Box::new(MemberReference { base, name }.into());
+            Some(c) if c.is_uppercase() => {
+                let ty = TypeReference::parse(context)?;
+                if context.lexer.try_match(Token::LBrace).is_err() {
+                    return Ok(ty.into());
                 }
-                return Ok(*base);
+                return Ok(Constructor::parse_with_ty(context, ty)?.into());
             }
+            _ => {}
         }
     }
 

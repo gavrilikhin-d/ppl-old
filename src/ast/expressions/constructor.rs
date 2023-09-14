@@ -72,7 +72,16 @@ impl Parse for Constructor {
 
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
         let ty = TypeReference::parse(context)?;
+        Self::parse_with_ty(context, ty)
+    }
+}
 
+impl Constructor {
+    /// Parse the rest of constructor if you already parsed type reference
+    pub(crate) fn parse_with_ty(
+        context: &mut Context<impl Lexer>,
+        ty: TypeReference,
+    ) -> Result<Self, <Self as Parse>::Err> {
         let lbrace = context.lexer.consume(Token::LBrace)?.start();
         let mut initializers = Vec::new();
         while context.lexer.peek() != Some(Token::RBrace) {

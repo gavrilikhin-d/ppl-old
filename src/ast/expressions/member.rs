@@ -1,7 +1,7 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{error::ParseError, Context, Lexer, Parse, Ranged, StringWithOffset};
+use crate::syntax::{error::ParseError, Context, Lexer, Parse, Ranged, StringWithOffset, Token};
 
 use super::{parse_atomic_expression, Expression};
 
@@ -12,6 +12,20 @@ pub struct MemberReference {
     pub base: Box<Expression>,
     /// Referenced member name
     pub name: StringWithOffset,
+}
+
+impl MemberReference {
+    /// Parse the rest of member references, if you have base
+    pub(crate) fn parse_with_base(
+        context: &mut Context<impl Lexer>,
+        mut base: Box<Expression>,
+    ) -> Result<Self, <Self as Parse>::Err> {
+        while context.lexer.consume(Token::Dot).is_ok() {
+            let name = context.lexer.consume(Token::Id)?;
+            base = Box::new(MemberReference { base, name }.into());
+        }
+        return Ok((*base).try_into().unwrap());
+    }
 }
 
 impl Parse for MemberReference {
