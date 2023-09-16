@@ -1,5 +1,6 @@
 use std::{cell::RefCell, io::Write};
 
+use log::debug;
 use logos::{Logos, Span};
 
 use crate::syntax::error::{InvalidToken, LexerError, MissingToken, UnexpectedToken};
@@ -332,6 +333,7 @@ impl<'source> Iterator for FullSourceLexer<'source> {
         }
         self.span = self.lexer.get_mut().span();
         self.token = self.peeked.take();
+        debug!(target: "tokens", "{:?} ({:?})", self.slice(), self.token);
         self.token()
     }
 }
@@ -557,6 +559,7 @@ impl Iterator for InteractiveLexer {
         if matches!(self.token, None | Some(Token::Newline)) {
             self.indentation = 0;
         }
+        debug!(target: "tokens", "{:?} ({:?})", self.slice(), self.token);
         self.token()
     }
 }
