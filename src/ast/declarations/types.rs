@@ -73,7 +73,7 @@ impl Parse for TypeDeclaration {
             loop {
                 generic_parameters.push(context.lexer.consume(Token::Id)?);
 
-                if context.lexer.consume(Token::Greater).is_ok() {
+                if context.lexer.consume_greater().is_ok() {
                     break;
                 }
 

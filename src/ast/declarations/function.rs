@@ -94,7 +94,7 @@ impl Parse for FunctionNamePart {
 
                 let parameter = Parameter::parse(context)?;
 
-                let greater = context.lexer.consume(Token::Greater)?.start();
+                let greater = context.lexer.consume_greater()?.start();
 
                 Ok(FunctionNamePart::Parameter {
                     less,
