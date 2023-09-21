@@ -2,13 +2,13 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use crate::ast::Statement;
-use crate::syntax::{StartsHere, Context};
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
+use crate::syntax::{Context, StartsHere};
 
 /// AST for infinite loop
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct Loop {
-	/// Body of loop
+    /// Body of loop
     pub body: Vec<Statement>,
 }
 

@@ -119,8 +119,8 @@ impl PartialEq<&str> for StringWithOffset {
 }
 
 impl StringWithOffset {
-	/// Convert this to [`&str`]
-	pub fn as_str(&self) -> &str {
-		&self.value
-	}
+    /// Convert this to [`&str`]
+    pub fn as_str(&self) -> &str {
+        &self.value
+    }
 }

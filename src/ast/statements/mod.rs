@@ -21,8 +21,8 @@ use ast_derive::AST;
 
 use crate::ast::{Declaration, Expression};
 use crate::syntax::error::MissingStatement;
-use crate::syntax::{StartsHere, Context};
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
+use crate::syntax::{Context, StartsHere};
 
 use derive_more::From;
 
@@ -34,11 +34,11 @@ pub enum Statement {
     Declaration(Declaration),
     Expression(Expression),
     Assignment(Assignment),
-	Return(Return),
-	If(If),
-	Loop(Loop),
-	While(While),
-	Use(Use),
+    Return(Return),
+    If(If),
+    Loop(Loop),
+    While(While),
+    Use(Use),
 }
 
 impl StartsHere for Statement {
@@ -48,11 +48,11 @@ impl StartsHere for Statement {
             || Declaration::starts_here(context)
             || Expression::starts_here(context)
             || Assignment::starts_here(context)
-			|| Return::starts_here(context)
-			|| If::starts_here(context)
-			|| Loop::starts_here(context)
-			|| While::starts_here(context)
-			|| Use::starts_here(context)
+            || Return::starts_here(context)
+            || If::starts_here(context)
+            || Loop::starts_here(context)
+            || While::starts_here(context)
+            || Use::starts_here(context)
     }
 }
 
@@ -74,36 +74,30 @@ impl Parse for Statement {
             context.lexer.skip_spaces();
         }
 
-
-
         let mut res: Statement = if Declaration::starts_here(context) {
-			Declaration::parse(context)?.into()
-		}
-		else if Expression::starts_here(context) {
-			let target = Expression::parse(context)?;
+            Declaration::parse(context)?.into()
+        } else if Expression::starts_here(context) {
+            let target = Expression::parse(context)?;
 
-			if context.lexer.consume(Token::Assign).is_err() {
-				target.into()
-			} else {
-				Assignment {
-					target,
-					value: Expression::parse(context)?,
-				}
-				.into()
-			}
-		}
-		else {
-			match context.lexer.peek() {
-				Some(Token::Return) => Return::parse(context)?.into(),
-				Some(Token::If) => If::parse(context)?.into(),
-				Some(Token::Loop) => Loop::parse(context)?.into(),
-				Some(Token::While) => While::parse(context)?.into(),
-				Some(Token::Use) => Use::parse(context)?.into(),
-				t => unreachable!(
-					"Unexpected token {:#?} at start of statement", t
-				),
-			}
-		};
+            if context.lexer.consume(Token::Assign).is_err() {
+                target.into()
+            } else {
+                Assignment {
+                    target,
+                    value: Expression::parse(context)?,
+                }
+                .into()
+            }
+        } else {
+            match context.lexer.peek() {
+                Some(Token::Return) => Return::parse(context)?.into(),
+                Some(Token::If) => If::parse(context)?.into(),
+                Some(Token::Loop) => Loop::parse(context)?.into(),
+                Some(Token::While) => While::parse(context)?.into(),
+                Some(Token::Use) => Use::parse(context)?.into(),
+                t => unreachable!("Unexpected token {:#?} at start of statement", t),
+            }
+        };
 
         if !annotations.is_empty() {
             if let Statement::Declaration(Declaration::Function(ref mut decl)) = res {
@@ -113,16 +107,15 @@ impl Parse for Statement {
             }
         }
 
-		if matches!(
-				res,
-				Statement::Assignment(_) |
-				Statement::Expression(_) |
-				Statement::Return(_) |
-				Statement::Use(_)
-			)
-		{
-			context.consume_eol()?;
-		}
+        if matches!(
+            res,
+            Statement::Assignment(_)
+                | Statement::Expression(_)
+                | Statement::Return(_)
+                | Statement::Use(_)
+        ) {
+            context.consume_eol()?;
+        }
 
         Ok(res)
     }

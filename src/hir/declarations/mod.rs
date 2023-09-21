@@ -22,7 +22,7 @@ pub enum Declaration {
     Variable(Arc<VariableDeclaration>),
     Type(Arc<TypeDeclaration>),
     Function(Function),
-	Trait(Arc<TraitDeclaration>),
+    Trait(Arc<TraitDeclaration>),
 }
 
 impl Named for Declaration {
@@ -31,7 +31,7 @@ impl Named for Declaration {
             Declaration::Variable(decl) => decl.name(),
             Declaration::Type(decl) => decl.name(),
             Declaration::Function(decl) => decl.name(),
-			Declaration::Trait(decl) => decl.name(),
+            Declaration::Trait(decl) => decl.name(),
         }
     }
 }

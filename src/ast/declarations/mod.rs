@@ -15,7 +15,7 @@ use ast_derive::AST;
 
 use crate::syntax::{
     error::{MissingDeclaration, ParseError},
-    Lexer, Parse, StartsHere, Token, Context,
+    Context, Lexer, Parse, StartsHere, Token,
 };
 
 use derive_more::From;
@@ -26,7 +26,7 @@ pub enum Declaration {
     Variable(VariableDeclaration),
     Type(TypeDeclaration),
     Function(FunctionDeclaration),
-	Trait(TraitDeclaration),
+    Trait(TraitDeclaration),
 }
 
 impl StartsHere for Declaration {
@@ -35,7 +35,7 @@ impl StartsHere for Declaration {
         VariableDeclaration::starts_here(context)
             || TypeDeclaration::starts_here(context)
             || FunctionDeclaration::starts_here(context)
-			|| TraitDeclaration::starts_here(context)
+            || TraitDeclaration::starts_here(context)
     }
 }
 
@@ -55,7 +55,7 @@ impl Parse for Declaration {
             Token::Type => TypeDeclaration::parse(context)?.into(),
             Token::Let => VariableDeclaration::parse(context)?.into(),
             Token::Fn => FunctionDeclaration::parse(context)?.into(),
-			Token::Trait => TraitDeclaration::parse(context)?.into(),
+            Token::Trait => TraitDeclaration::parse(context)?.into(),
             _ => unreachable!("unexpected token in start of declaration"),
         })
     }

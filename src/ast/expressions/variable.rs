@@ -1,7 +1,9 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, StringWithOffset, Token, Context};
+use crate::syntax::{
+    error::ParseError, Context, Lexer, Parse, Ranged, StartsHere, StringWithOffset, Token,
+};
 
 /// AST for variable reference
 #[derive(Debug, PartialEq, Eq, AST, Clone)]

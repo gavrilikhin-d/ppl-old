@@ -2,8 +2,11 @@ extern crate ast_derive;
 
 use ast_derive::AST;
 
-use super::{Expression, parse_prefix_expression};
-use crate::syntax::{error::ParseError, Lexer, Parse, Ranged, StartsHere, Token, StringWithOffset, Context, OperatorKind};
+use super::{parse_prefix_expression, Expression};
+use crate::syntax::{
+    error::ParseError, Context, Lexer, OperatorKind, Parse, Ranged, StartsHere, StringWithOffset,
+    Token,
+};
 
 /// Kind of unary operator
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -45,19 +48,15 @@ impl Parse for UnaryOperation {
     type Err = ParseError;
 
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-		let operator = context.lexer.consume(
-			Token::Operator(OperatorKind::Prefix)
-		);
-		let expr = parse_prefix_expression(context)?;
+        let operator = context.lexer.consume(Token::Operator(OperatorKind::Prefix));
+        let expr = parse_prefix_expression(context)?;
 
-		if !matches!(expr, Expression::UnaryOperation(_)) {
-			// TODO: more specific error
-			return Err(
-				operator.unwrap_err().into()
-			)
-		}
+        if !matches!(expr, Expression::UnaryOperation(_)) {
+            // TODO: more specific error
+            return Err(operator.unwrap_err().into());
+        }
 
-		Ok(expr.try_into().unwrap())
+        Ok(expr.try_into().unwrap())
     }
 }
 

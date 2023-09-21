@@ -4,7 +4,7 @@ use ast_derive::AST;
 use crate::ast::Expression;
 use crate::mutability::{Mutability, Mutable};
 use crate::syntax::error::{MissingVariableName, ParseError};
-use crate::syntax::{Lexer, Parse, StartsHere, StringWithOffset, Token, Context};
+use crate::syntax::{Context, Lexer, Parse, StartsHere, StringWithOffset, Token};
 
 /// Declaration of the variable
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -40,7 +40,7 @@ impl Parse for VariableDeclaration {
 
         let mutable = context.lexer.consume(Token::Mut).is_ok();
 
-		let name = context.lexer.consume(Token::Id).or_else(|_| {
+        let name = context.lexer.consume(Token::Id).or_else(|_| {
             Err(MissingVariableName {
                 at: context.lexer.span().end.into(),
             })
@@ -48,9 +48,9 @@ impl Parse for VariableDeclaration {
 
         context.lexer.consume(Token::Assign)?;
 
-		let initializer = Expression::parse(context)?;
+        let initializer = Expression::parse(context)?;
 
-		context.consume_eol()?;
+        context.consume_eol()?;
 
         Ok(VariableDeclaration {
             name,

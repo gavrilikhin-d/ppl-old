@@ -2,8 +2,8 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use crate::ast::Expression;
-use crate::syntax::{StartsHere, Context};
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
+use crate::syntax::{Context, StartsHere};
 
 /// AST for assignment
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -32,7 +32,7 @@ impl Parse for Assignment {
 
         let value = Expression::parse(context)?;
 
-		context.consume_eol()?;
+        context.consume_eol()?;
 
         Ok(Assignment { target, value })
     }

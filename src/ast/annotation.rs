@@ -2,7 +2,9 @@ extern crate ast_derive;
 
 use ast_derive::AST;
 
-use crate::syntax::{error::ParseError, Lexer, Parse, StartsHere, StringWithOffset, Token, Context};
+use crate::syntax::{
+    error::ParseError, Context, Lexer, Parse, StartsHere, StringWithOffset, Token,
+};
 
 use super::Expression;
 

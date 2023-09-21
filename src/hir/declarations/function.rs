@@ -3,11 +3,10 @@ use std::sync::Arc;
 
 use derive_more::From;
 
-use crate::hir::{Statement, Type, Typed, FunctionType};
+use crate::hir::{FunctionType, Statement, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::StringWithOffset;
-
 
 /// Declaration of a function parameter
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -19,10 +18,10 @@ pub struct Parameter {
 }
 
 impl Parameter {
-	/// Is this a generic parameter?
-	pub fn is_generic(&self) -> bool {
-		self.ty.is_generic()
-	}
+    /// Is this a generic parameter?
+    pub fn is_generic(&self) -> bool {
+        self.ty.is_generic()
+    }
 }
 
 impl Named for Parameter {
@@ -40,9 +39,9 @@ impl Typed for Parameter {
 }
 
 impl Mutable for Parameter {
-	fn is_immutable(&self) -> bool {
-		true
-	}
+    fn is_immutable(&self) -> bool {
+        true
+    }
 }
 
 /// Part of a function name
@@ -71,7 +70,7 @@ pub struct FunctionDeclaration {
     /// Type of returned value
     pub return_type: Type,
 
-	/// Mangled name to use instead of default
+    /// Mangled name to use instead of default
     pub(crate) mangled_name: Option<String>,
     /// Cached format for name of function
     name_format: String,
@@ -80,20 +79,20 @@ pub struct FunctionDeclaration {
 }
 
 impl FunctionDeclaration {
-	/// Create a new builder for a function declaration
-	pub fn build() -> FunctionDeclarationBuilder {
-		FunctionDeclarationBuilder::new()
-	}
+    /// Create a new builder for a function declaration
+    pub fn build() -> FunctionDeclarationBuilder {
+        FunctionDeclarationBuilder::new()
+    }
 
-	/// Is this a generic function?
-	pub fn is_generic(&self) -> bool {
-		self.parameters().any(|p| p.is_generic())
-	}
+    /// Is this a generic function?
+    pub fn is_generic(&self) -> bool {
+        self.parameters().any(|p| p.is_generic())
+    }
 
-	/// Get name parts of function
-	pub fn name_parts(&self) -> &[FunctionNamePart] {
-		&self.name_parts
-	}
+    /// Get name parts of function
+    pub fn name_parts(&self) -> &[FunctionNamePart] {
+        &self.name_parts
+    }
 
     /// Format for the function's name
     ///
@@ -133,17 +132,17 @@ impl Named for FunctionDeclaration {
 impl Typed for FunctionDeclaration {
     fn ty(&self) -> Type {
         FunctionType::build()
-			.with_parameters(
-				self.name_parts
-					.iter()
-					.filter_map(|part| match part {
-						FunctionNamePart::Parameter(p) => Some(p.ty()),
-						_ => None,
-					})
-					.collect()
-			)
-			.with_return_type(self.return_type.clone())
-			.into()
+            .with_parameters(
+                self.name_parts
+                    .iter()
+                    .filter_map(|part| match part {
+                        FunctionNamePart::Parameter(p) => Some(p.ty()),
+                        _ => None,
+                    })
+                    .collect(),
+            )
+            .with_return_type(self.return_type.clone())
+            .into()
     }
 }
 
@@ -193,7 +192,7 @@ impl FunctionDeclarationBuilder {
 
     /// Build function's name
     fn build_name(&self) -> String {
-		Function::build_name(&self.name_parts)
+        Function::build_name(&self.name_parts)
     }
 
     /// Set the return type of the function and return the declaration
@@ -213,25 +212,25 @@ impl FunctionDeclarationBuilder {
 /// Declaration of a type
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct FunctionDefinition {
-	/// Declaration of function
+    /// Declaration of function
     pub declaration: Arc<FunctionDeclaration>,
-	/// Body of function
+    /// Body of function
     pub body: Vec<Statement>,
 }
 
 impl FunctionDefinition {
-	/// Is this a generic function?
-	pub fn is_generic(&self) -> bool {
-		self.declaration.is_generic()
-	}
+    /// Is this a generic function?
+    pub fn is_generic(&self) -> bool {
+        self.declaration.is_generic()
+    }
 
-	/// Get name parts of function
-	pub fn name_parts(&self) -> &[FunctionNamePart] {
-		&self.declaration.name_parts
-	}
+    /// Get name parts of function
+    pub fn name_parts(&self) -> &[FunctionNamePart] {
+        &self.declaration.name_parts
+    }
 
-	/// Get name format of function
-	pub fn name_format(&self) -> &str {
+    /// Get name format of function
+    pub fn name_format(&self) -> &str {
         self.declaration.name_format()
     }
 
@@ -245,34 +244,34 @@ impl FunctionDefinition {
         self.declaration.mangled_name()
     }
 
-	/// Get return type of function
-	pub fn return_type(&self) -> Type {
-		self.declaration.return_type.clone()
-	}
+    /// Get return type of function
+    pub fn return_type(&self) -> Type {
+        self.declaration.return_type.clone()
+    }
 }
 
 impl Typed for FunctionDefinition {
-	fn ty(&self) -> Type {
-		self.declaration.ty()
-	}
+    fn ty(&self) -> Type {
+        self.declaration.ty()
+    }
 }
 
 impl Named for FunctionDefinition {
-	fn name(&self) -> &str {
-		self.declaration.name()
-	}
+    fn name(&self) -> &str {
+        self.declaration.name()
+    }
 }
 
 /// Function definition or declaration
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum Function {
-	Declaration(Arc<FunctionDeclaration>),
-	Definition(Arc<FunctionDefinition>),
+    Declaration(Arc<FunctionDeclaration>),
+    Definition(Arc<FunctionDefinition>),
 }
 
 impl Function {
-	/// Build function name from name parts
-	pub fn build_name(name_parts: &[FunctionNamePart]) -> String {
+    /// Build function name from name parts
+    pub fn build_name(name_parts: &[FunctionNamePart]) -> String {
         let mut name = String::new();
         for (i, part) in name_parts.iter().enumerate() {
             if i > 0 {
@@ -285,74 +284,73 @@ impl Function {
             }
         }
         name
-	}
+    }
 
-	/// Is this a generic function?
-	pub fn is_generic(&self) -> bool {
-		self.declaration().is_generic()
-	}
+    /// Is this a generic function?
+    pub fn is_generic(&self) -> bool {
+        self.declaration().is_generic()
+    }
 
-	/// Get name parts of function
-	pub fn name_parts(&self) -> &[FunctionNamePart] {
-		match self {
-			Function::Declaration(declaration) => declaration.name_parts(),
-			Function::Definition(definition) => definition.name_parts(),
-		}
-	}
-
-	/// Get name format of function
-	pub fn name_format(&self) -> &str {
+    /// Get name parts of function
+    pub fn name_parts(&self) -> &[FunctionNamePart] {
         match self {
-			Function::Declaration(declaration) => declaration.name_format(),
-			Function::Definition(definition) => definition.name_format(),
-		}
+            Function::Declaration(declaration) => declaration.name_parts(),
+            Function::Definition(definition) => definition.name_parts(),
+        }
+    }
+
+    /// Get name format of function
+    pub fn name_format(&self) -> &str {
+        match self {
+            Function::Declaration(declaration) => declaration.name_format(),
+            Function::Definition(definition) => definition.name_format(),
+        }
     }
 
     /// Get iterator over function's parameters
     pub fn parameters(&self) -> impl Iterator<Item = Arc<Parameter>> + '_ {
-		match self {
-			Function::Declaration(declaration) => declaration.parameters(),
-			Function::Definition(definition)
-				=> definition.declaration.parameters(),
-		}
+        match self {
+            Function::Declaration(declaration) => declaration.parameters(),
+            Function::Definition(definition) => definition.declaration.parameters(),
+        }
     }
 
     /// Get mangled name of function
     pub fn mangled_name(&self) -> &str {
-		match self {
-			Function::Declaration(declaration) => declaration.mangled_name(),
-			Function::Definition(definition) => definition.mangled_name(),
-		}
+        match self {
+            Function::Declaration(declaration) => declaration.mangled_name(),
+            Function::Definition(definition) => definition.mangled_name(),
+        }
     }
 
-	/// Get return type of function
-	pub fn return_type(&self) -> Type {
-		self.declaration().return_type.clone()
-	}
+    /// Get return type of function
+    pub fn return_type(&self) -> Type {
+        self.declaration().return_type.clone()
+    }
 
-	/// Get declaration of function
-	pub fn declaration(&self) -> Arc<FunctionDeclaration> {
-		match self {
-			Function::Declaration(declaration) => declaration.clone(),
-			Function::Definition(definition) => definition.declaration.clone(),
-		}
-	}
+    /// Get declaration of function
+    pub fn declaration(&self) -> Arc<FunctionDeclaration> {
+        match self {
+            Function::Declaration(declaration) => declaration.clone(),
+            Function::Definition(definition) => definition.declaration.clone(),
+        }
+    }
 }
 
 impl Typed for Function {
-	fn ty(&self) -> Type {
-		match self {
-			Function::Declaration(declaration) => declaration.ty(),
-			Function::Definition(definition) => definition.ty(),
-		}
-	}
+    fn ty(&self) -> Type {
+        match self {
+            Function::Declaration(declaration) => declaration.ty(),
+            Function::Definition(definition) => definition.ty(),
+        }
+    }
 }
 
 impl Named for Function {
-	fn name(&self) -> &str {
-		match self {
-			Function::Declaration(declaration) => declaration.name(),
-			Function::Definition(definition) => definition.name(),
-		}
-	}
+    fn name(&self) -> &str {
+        match self {
+            Function::Declaration(declaration) => declaration.name(),
+            Function::Definition(definition) => definition.name(),
+        }
+    }
 }

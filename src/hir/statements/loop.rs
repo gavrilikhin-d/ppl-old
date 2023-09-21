@@ -4,5 +4,5 @@ use crate::hir::Statement;
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Loop {
     /// Body of a loop
-    pub body: Vec<Statement>
+    pub body: Vec<Statement>,
 }

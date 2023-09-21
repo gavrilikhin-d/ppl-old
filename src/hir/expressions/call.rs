@@ -1,4 +1,4 @@
-use crate::hir::{Expression, Type, Typed, Function};
+use crate::hir::{Expression, Function, Type, Typed};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 use std::ops::Range;
@@ -6,8 +6,8 @@ use std::ops::Range;
 /// Kind of function call
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum CallKind {
-	Operation,
-	Call
+    Operation,
+    Call,
 }
 
 /// AST for function call
@@ -17,8 +17,8 @@ pub struct Call {
     pub range: Range<usize>,
     /// Called function
     pub function: Function,
-	/// Generic version of called function
-	pub generic: Option<Function>,
+    /// Generic version of called function
+    pub generic: Option<Function>,
     /// Arguments to the function call
     pub args: Vec<Expression>,
 }
