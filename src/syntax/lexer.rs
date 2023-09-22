@@ -508,7 +508,7 @@ impl<F: Fn() -> String> InteractiveLexer<F> {
     /// Implementation of peek without requesting new line
     fn peek_impl(&self, lexer: &mut logos::Lexer<'_, Token>) -> Option<Token> {
         let mut peeked = lexer.lex();
-        if self.token == Some(Token::Newline) {
+        if matches!(self.token, None | Some(Token::Newline)) {
             while peeked == Some(Token::Newline) {
                 peeked = lexer.lex();
             }
@@ -661,11 +661,24 @@ mod tests {
 
     #[test]
     fn correct_peek_after_skipping_newlines() {
-        let mut lexer = InteractiveLexer::new(|| "\n\nx".into());
+        let mut lexer = InteractiveLexer::new(|| "a\n\nx".into());
+
+        assert_eq!(lexer.next(), Some(super::Token::Id));
+        assert_eq!(lexer.slice(), "a");
+        assert_eq!(lexer.span(), 0..1);
 
         assert_eq!(lexer.next(), Some(super::Token::Newline));
         assert_eq!(lexer.slice(), "\n");
-        assert_eq!(lexer.span(), 0..1);
+        assert_eq!(lexer.span(), 1..2);
+
+        assert_eq!(lexer.peek(), Some(super::Token::Id));
+        assert_eq!(lexer.peek_slice(), "x");
+        assert_eq!(lexer.peek_span(), 3..4);
+    }
+
+    #[test]
+    fn skip_first_newlines() {
+        let lexer = InteractiveLexer::new(|| "\n\nx".into());
 
         assert_eq!(lexer.peek(), Some(super::Token::Id));
         assert_eq!(lexer.peek_slice(), "x");
