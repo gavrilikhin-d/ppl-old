@@ -31,11 +31,12 @@
 * [x] Merge `evaluate` and `execute` functions
 * [x] Generic members
 * [x] Check errors emitted by compiler
+* [x] Fix problems with interactive lexer
 ---
 ### Current task
-* [ ] Fix problems with interactive lexer
 * [ ] Allow generics types usage
 ---
+* [ ] Check errors in repl too
 * [ ] Add more checks for compiler
 * [ ] Add constrains to generics
 * [ ] Make statements to return `None` type for convenience

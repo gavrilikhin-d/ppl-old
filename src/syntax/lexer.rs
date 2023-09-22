@@ -506,8 +506,7 @@ impl<F: Fn() -> String> InteractiveLexer<F> {
     }
 
     /// Implementation of peek without requesting new line
-    fn peek_impl(&self) -> Option<Token> {
-        let mut lexer = self.lexer();
+    fn peek_impl(&self, lexer: &mut logos::Lexer<'_, Token>) -> Option<Token> {
         let mut peeked = lexer.lex();
         if self.token == Some(Token::Newline) {
             while peeked == Some(Token::Newline) {
@@ -532,12 +531,8 @@ impl<F: Fn() -> String> Iterator for InteractiveLexer<F> {
     fn next(&mut self) -> Option<Token> {
         self.maybe_request_line();
         let mut lexer = self.lexer();
-        let mut peeked = lexer.lex();
-        if self.token == Some(Token::Newline) {
-            while peeked == Some(Token::Newline) {
-                peeked = lexer.lex();
-            }
-        }
+        let peeked = self.peek_impl(&mut lexer);
+
         self.span = lexer.span();
         self.token = peeked;
         if matches!(self.token, None | Some(Token::Newline)) {
@@ -561,10 +556,13 @@ impl<F: Fn() -> String> Lexer for InteractiveLexer<F> {
 
     /// Peek next token
     fn peek(&self) -> Option<Token> {
-        let mut peeked = self.peek_impl();
+        let mut lexer = self.lexer();
+        let mut peeked = self.peek_impl(&mut lexer);
         if peeked.is_none() {
             self.request_line();
-            peeked = self.peek_impl();
+
+            let mut lexer = self.lexer();
+            peeked = self.peek_impl(&mut lexer);
         }
         peeked
     }
@@ -583,7 +581,7 @@ impl<F: Fn() -> String> Lexer for InteractiveLexer<F> {
     fn peek_span(&self) -> Span {
         self.maybe_request_line();
         let mut lexer = self.lexer();
-        lexer.next();
+        self.peek_impl(&mut lexer);
         lexer.span()
     }
 
@@ -601,7 +599,7 @@ impl<F: Fn() -> String> Lexer for InteractiveLexer<F> {
     fn peek_slice(&self) -> &str {
         self.maybe_request_line();
         let mut lexer = self.lexer();
-        lexer.next();
+        self.peek_impl(&mut lexer);
         lexer.slice()
     }
 
