@@ -573,9 +573,9 @@ impl<F: Fn() -> String> Lexer for InteractiveLexer<F> {
     ///
     /// # Example
     /// ```
-    /// use ppl::syntax::{Token, Lexer, FullSourceLexer};
+    /// use ppl::syntax::{Token, Lexer, InteractiveLexer};
     ///
-    /// let mut lexer = FullSourceLexer::new("42");
+    /// let mut lexer = InteractiveLexer::new(|| "42".into());
     /// assert_eq!(lexer.span(), 0..0);
     /// assert_eq!(lexer.peek_span(), 0..2);
     /// assert_eq!(lexer.span(), 0..0);
@@ -591,9 +591,9 @@ impl<F: Fn() -> String> Lexer for InteractiveLexer<F> {
     ///
     /// # Example
     /// ```
-    /// use ppl::syntax::{Token, Lexer, FullSourceLexer};
+    /// use ppl::syntax::{Token, Lexer, InteractiveLexer};
     ///
-    /// let mut lexer = FullSourceLexer::new("42");
+    /// let mut lexer = InteractiveLexer::new(|| "42".into());
     /// assert_eq!(lexer.span(), 0..0);
     /// assert_eq!(lexer.peek_slice(), "42");
     /// assert_eq!(lexer.span(), 0..0);
@@ -609,9 +609,9 @@ impl<F: Fn() -> String> Lexer for InteractiveLexer<F> {
     ///
     /// # Example
     /// ```
-    /// use ppl::syntax::{Token, Lexer, FullSourceLexer};
+    /// use ppl::syntax::{Token, Lexer, InteractiveLexer};
     ///
-    /// let mut lexer = FullSourceLexer::new("42");
+    /// let mut lexer = InteractiveLexer::new(|| "42".into());
     /// assert_eq!(lexer.span(), 0..0);
     /// assert_eq!(lexer.next(), Some(Token::Integer));
     /// assert_eq!(lexer.span(), 0..2);
@@ -624,9 +624,9 @@ impl<F: Fn() -> String> Lexer for InteractiveLexer<F> {
     ///
     /// # Example
     /// ```
-    /// use ppl::syntax::{Token, Lexer, FullSourceLexer};
+    /// use ppl::syntax::{Token, Lexer, InteractiveLexer};
     ///
-    /// let mut lexer = FullSourceLexer::new("42");
+    /// let mut lexer = InteractiveLexer::new(|| "42".into());
     /// assert_eq!(lexer.slice(), "");
     /// assert_eq!(lexer.next(), Some(Token::Integer));
     /// assert_eq!(lexer.slice(), "42");
