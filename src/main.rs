@@ -99,11 +99,24 @@ fn repl() {
 
     let prompt = Cell::new(Some(">>> "));
     let get_line = || -> String {
-        print!("{}", prompt.take().unwrap_or("... "));
-        std::io::stdout().lock().flush().unwrap();
-        let mut line = String::new();
-        std::io::stdin().read_line(&mut line).unwrap();
-        line
+        let mut content = String::new();
+        loop {
+            let is_first_line = prompt.get().is_some();
+
+            print!("{}", prompt.take().unwrap_or("... "));
+            std::io::stdout().lock().flush().unwrap();
+
+            let mut line = String::new();
+            std::io::stdin().read_line(&mut line).unwrap();
+
+            content.push_str(&line);
+            if is_first_line && line.trim().is_empty() {
+                prompt.set(Some(">>> "));
+                continue;
+            }
+
+            return content;
+        }
     };
 
     let mut parse_context = ppl::syntax::Context::new(InteractiveLexer::new(get_line));
