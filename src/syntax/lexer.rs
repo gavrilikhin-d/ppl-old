@@ -1,4 +1,4 @@
-use std::{cell::RefCell, io::Write};
+use std::cell::RefCell;
 
 use log::debug;
 use logos::{Logos, Span};
@@ -461,11 +461,9 @@ impl Lexer for FullSourceLexer<'_> {
 }
 
 /// Lexer for reading from interactive stream (stdin)
-pub struct InteractiveLexer {
-    /// Prompt to display before reading next line
-    pub prompt: String,
-    /// Used to override next prompt
-    next_prompt: RefCell<Option<String>>,
+pub struct InteractiveLexer<F: Fn() -> String> {
+    /// Function to request next line
+    pub get_line: F,
     /// Current source code of lexer
     source: RefCell<String>,
     /// Span of current token
@@ -476,12 +474,11 @@ pub struct InteractiveLexer {
     indentation: usize,
 }
 
-impl InteractiveLexer {
-    /// Create new interactive lexer
-    pub fn new() -> Self {
+impl<F: Fn() -> String> InteractiveLexer<F> {
+    /// Create new lexer with custom function to request next line
+    pub fn new(get_line: F) -> Self {
         Self {
-            prompt: "... ".to_string(),
-            next_prompt: None.into(),
+            get_line,
             source: String::new().into(),
             span: 0..0,
             token: None,
@@ -498,15 +495,7 @@ impl InteractiveLexer {
 
     /// Request next line
     fn request_line(&self) {
-        if let Some(prompt) = self.next_prompt.take() {
-            print!("{}", prompt);
-        } else {
-            print!("{}", self.prompt);
-        }
-        std::io::stdout().flush().unwrap();
-        let mut line = String::new();
-        std::io::stdin().read_line(&mut line).unwrap();
-        self.source.borrow_mut().push_str(&line);
+        self.source.borrow_mut().push_str(&(self.get_line)());
     }
 
     /// Request next line if lexer is at the end of source code
@@ -528,11 +517,6 @@ impl InteractiveLexer {
         peeked
     }
 
-    /// Override next prompt
-    pub fn override_next_prompt(&mut self, prompt: &str) {
-        self.next_prompt = Some(prompt.to_string()).into()
-    }
-
     /// Force lexer to go to the end of input
     pub fn go_to_end(&mut self) {
         let end = self.source().len();
@@ -541,7 +525,7 @@ impl InteractiveLexer {
     }
 }
 
-impl Iterator for InteractiveLexer {
+impl<F: Fn() -> String> Iterator for InteractiveLexer<F> {
     type Item = Token;
 
     /// Lex next token
@@ -564,7 +548,7 @@ impl Iterator for InteractiveLexer {
     }
 }
 
-impl Lexer for InteractiveLexer {
+impl<F: Fn() -> String> Lexer for InteractiveLexer<F> {
     /// Get source code of lexer
     fn source(&self) -> &str {
         unsafe { &*self.source.as_ptr() }
@@ -668,5 +652,25 @@ impl Lexer for InteractiveLexer {
 
     fn set_start_position(&mut self, position: usize) {
         self.span.end = position;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::syntax::Lexer;
+
+    use super::InteractiveLexer;
+
+    #[test]
+    fn correct_peek_after_skipping_newlines() {
+        let mut lexer = InteractiveLexer::new(|| "\n\nx".into());
+
+        assert_eq!(lexer.next(), Some(super::Token::Newline));
+        assert_eq!(lexer.slice(), "\n");
+        assert_eq!(lexer.span(), 0..1);
+
+        assert_eq!(lexer.peek(), Some(super::Token::Id));
+        assert_eq!(lexer.peek_slice(), "x");
+        assert_eq!(lexer.peek_span(), 2..3);
     }
 }

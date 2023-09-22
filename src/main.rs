@@ -1,5 +1,8 @@
 #![feature(anonymous_lifetime_in_impl_trait)]
 
+use std::cell::Cell;
+use std::io::Write;
+
 use clap::Parser;
 use log::debug;
 use ppl::ast::*;
@@ -94,10 +97,17 @@ fn repl() {
     let llvm = inkwell::context::Context::create();
     let mut compiler = Compiler::new(&llvm);
 
-    let mut parse_context = ppl::syntax::Context::new(InteractiveLexer::new());
-    loop {
-        parse_context.lexer.override_next_prompt(">>> ");
+    let prompt = Cell::new(Some(">>> "));
+    let get_line = || -> String {
+        print!("{}", prompt.take().unwrap_or("... "));
+        std::io::stdout().lock().flush().unwrap();
+        let mut line = String::new();
+        std::io::stdin().read_line(&mut line).unwrap();
+        line
+    };
 
+    let mut parse_context = ppl::syntax::Context::new(InteractiveLexer::new(get_line));
+    loop {
         if let Err(err) =
             process_single_statement(&mut parse_context, &mut ast_context, &mut compiler)
         {
@@ -110,6 +120,8 @@ fn repl() {
             );
             parse_context.lexer.go_to_end();
         }
+
+        prompt.set(Some(">>> "));
     }
 }
 
