@@ -1,5 +1,6 @@
 use crate::hir::Module;
 use crate::ir::HIRModuleLowering;
+use log::debug;
 use miette::miette;
 
 use super::commands::compile::OutputType;
@@ -33,6 +34,8 @@ impl Execute for Compile {
         let module = Module::from_file_with_builtin(&self.file, self.no_core)?;
         let llvm = inkwell::context::Context::create();
         let ir = module.lower_to_ir(&llvm);
+        debug!(target: "ir", "{}", ir.to_string());
+
         let output_type = self.output_type.unwrap_or_default();
         let output_file = self
             .output_dir

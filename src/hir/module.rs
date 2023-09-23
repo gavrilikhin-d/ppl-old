@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use derive_more::From;
+use log::debug;
 
 use crate::ast;
 use crate::hir::{Statement, TypeDeclaration, VariableDeclaration};
@@ -93,6 +94,7 @@ impl Module {
                 content.clone(),
             ))
         })?;
+        debug!(target: "ast", "{:#?}", ast);
 
         let mut module = Module::new(
             path.file_stem().unwrap().to_str().unwrap(),
@@ -105,6 +107,7 @@ impl Module {
             miette::Report::from(e)
                 .with_source_code(miette::NamedSource::new(path.to_string_lossy(), content))
         })?;
+        debug!(target: "hir", "{:#?}", context.module);
 
         Ok(context.module)
     }

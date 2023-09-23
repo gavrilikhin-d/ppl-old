@@ -34,8 +34,9 @@
 * [x] Fix problems with interactive lexer
 ---
 ### Current task
-* [ ] Allow generics types usage
+* [ ] Generate libraries and executables
 ---
+* [ ] Allow generics types usage
 * [ ] Check errors in repl too
 * [ ] Add more checks for compiler
 * [ ] Add constrains to generics
