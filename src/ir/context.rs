@@ -166,11 +166,14 @@ impl Drop for FunctionContext<'_, '_> {
             .get_insert_block()
             .and_then(|b| b.get_terminator());
 
-        if terminator.is_some() {
-            return;
+        if terminator.is_none() {
+            self.builder.build_return(None);
         }
 
-        self.builder.build_return(None);
+        assert!(
+            self.function.verify(true),
+            "Should never produce invalid functions"
+        );
     }
 }
 

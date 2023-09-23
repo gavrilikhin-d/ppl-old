@@ -664,12 +664,6 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
 
                 let mut context = FunctionContext::new(context, function);
                 self.lower_local_to_ir(&mut context);
-
-                context.builder.build_return(None);
-
-                if !function.verify(true) {
-                    panic!("Should never produce invalid functions")
-                }
             }
 
             Statement::Expression(expr) => {
@@ -684,12 +678,6 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
                 let value = expr.lower_to_ir(&mut context);
                 if let Some(value) = value {
                     context.builder.build_return(Some(&value));
-                } else {
-                    context.builder.build_return(None);
-                }
-
-                if !function.verify(true) {
-                    panic!("Should never produce invalid functions")
                 }
             }
             Statement::Return(_) => unreachable!("Return statement is not allowed in global scope"),
