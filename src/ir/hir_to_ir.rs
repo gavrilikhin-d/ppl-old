@@ -875,9 +875,39 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         module.set_source_file_name(&self.filename);
 
         let mut context = ModuleContext::new(module);
-
-        for statement in &self.statements {
+        for statement in self
+            .statements
+            .iter()
+            .filter(|s| matches!(s, Statement::Declaration(_)))
+        {
             statement.lower_global_to_ir(&mut context);
+        }
+
+        let main =
+            context
+                .module
+                .add_function("main", context.types().none().fn_type(&[], false), None);
+        let mut fn_context = FunctionContext::new(&mut context, main);
+
+        for statement in self
+            .statements
+            .iter()
+            .filter(|s| !matches!(s, Statement::Declaration(_)))
+        {
+            statement.lower_local_to_ir(&mut fn_context);
+        }
+
+        let main_is_empty = fn_context
+            .builder
+            .get_insert_block()
+            .map(|b| b.get_last_instruction())
+            .flatten()
+            .is_none();
+
+        drop(fn_context);
+
+        if main_is_empty {
+            unsafe { main.delete() };
         }
 
         context

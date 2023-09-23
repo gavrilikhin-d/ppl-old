@@ -22,20 +22,11 @@
 * Metaprogramming
 * Documentation
 
-* [x] Fix segmentation fault
-* [x] Fix loading of pointers to pointers and wrong printing of integers
-* [x] Fix infinite loop on wrong input
-* [x] Save ir to file (compile file till IR and save it)
-* [x] Show errors location when parsing whole module
-* [x] Load builtin module from ir file
-* [x] Merge `evaluate` and `execute` functions
-* [x] Generic members
-* [x] Check errors emitted by compiler
-* [x] Fix problems with interactive lexer
 ---
 ### Current task
 * [ ] Generate libraries and executables
 ---
+* [ ] Make `print <:String>` print without newline
 * [ ] Allow generics types usage
 * [ ] Check errors in repl too
 * [ ] Add more checks for compiler
@@ -46,3 +37,4 @@
 * [ ] Add `HashMap` type
 * [ ] Provide runtime as dylib
 * [ ] Multiple errors support instead of exiting on first error
+* [ ] Fix memory leak due to pointers to builtin types
