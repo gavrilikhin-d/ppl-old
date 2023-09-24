@@ -38,3 +38,4 @@
 * [ ] Provide runtime as dylib
 * [ ] Multiple errors support instead of exiting on first error
 * [ ] Fix memory leak due to pointers to builtin types
+* [ ] Add testing CI
