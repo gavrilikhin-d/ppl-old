@@ -33,7 +33,7 @@ fn compile_builtin_module() -> Result<(), Error> {
             "compile",
             "src/runtime/ppl.ppl",
             "--emit",
-            "bytecode",
+            "dynamic-library",
             "--output-dir",
             "src/runtime",
             "--no-core",

@@ -1,3 +1,6 @@
+use std::fs;
+use std::path::Path;
+
 use crate::hir::Module;
 use crate::ir::HIRModuleLowering;
 use log::debug;
@@ -47,18 +50,48 @@ impl Execute for Compile {
             .output_dir
             .join(self.file.file_stem().unwrap())
             .with_extension(output_type.extension());
-        match output_type {
-            OutputType::Bytecode => {
-                ir.write_bitcode_to_path(&output_file);
-            }
-            OutputType::IR => {
-                std::fs::write(&output_file, ir.to_string())
-                    .map_err(|e| miette!("{output_file:?}: {e}"))?;
-            }
-            _ => {
-                todo!("Output type {:?} not implemented", output_type)
-            }
+
+        if output_type == OutputType::IR {
+            fs::write(&output_file, ir.to_string()).map_err(|e| miette!("{output_file:?}: {e}"))?;
+            return Ok(());
         }
+
+        let bitcode = output_file.with_extension("bc");
+        ir.write_bitcode_to_path(&bitcode);
+        if output_type == OutputType::Bitcode {
+            return Ok(());
+        }
+        let bitcode = bitcode.to_str().unwrap();
+
+        let mut clang = std::process::Command::new("clang");
+        let runtime_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/runtime/target/debug");
+        let runtime = runtime_path.to_str().unwrap();
+
+        match output_type {
+            OutputType::IR => unreachable!("IR is already written"),
+            OutputType::Bitcode => unreachable!("IR is already written"),
+
+            OutputType::Object => clang.arg("-c"),
+            OutputType::Assembler => clang.arg("-S"),
+            OutputType::StaticLibrary => {
+                clang
+                    .args(&["-c", "-fPIC"])
+                    .args(&["-L", runtime, "-lruntime"])
+            }
+            OutputType::DynamicLibrary => {
+                clang
+                    .args(&["-c", "-fPIC", "-shared"])
+                    .args(&["-L", runtime, "-lruntime"])
+            }
+            OutputType::Executable => clang.args(&["-L", runtime, "-lruntime"]),
+        }
+        .arg(bitcode)
+        .args(&["-o", output_file.to_str().unwrap()])
+        .status()
+        .map_err(|e| miette!("{output_file:?}: {e}"))?;
+
+        fs::remove_file(&bitcode).unwrap();
+
         Ok(())
     }
 }

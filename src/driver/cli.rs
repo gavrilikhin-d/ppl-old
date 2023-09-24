@@ -50,7 +50,7 @@ pub mod commands {
         #[derive(Debug, PartialEq, Eq, Clone, Copy, ValueEnum)]
         pub enum OutputType {
             IR,
-            Bytecode,
+            Bitcode,
             Object,
             Assembler,
             Executable,
@@ -63,7 +63,7 @@ pub mod commands {
             pub fn extension(&self) -> &'static str {
                 match self {
                     Self::IR => "ll",
-                    Self::Bytecode => "bc",
+                    Self::Bitcode => "bc",
                     Self::Object => "o",
                     Self::Assembler => "s",
                     Self::Executable => {
@@ -99,7 +99,7 @@ pub mod commands {
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 match s {
                     "ir" | ".ll" => Ok(Self::IR),
-                    "bytecode" | ".bc" => Ok(Self::Bytecode),
+                    "bitcode" | ".bc" => Ok(Self::Bitcode),
                     "object" | ".o" => Ok(Self::Object),
                     "assembler" | ".s" => Ok(Self::Assembler),
                     "executable" | "exe" | "bin" | ".out" => Ok(Self::Executable),
