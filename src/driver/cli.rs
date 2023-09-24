@@ -33,7 +33,7 @@ pub mod commands {
         #[arg(long, value_name = "dir", default_value = ".")]
         pub output_dir: PathBuf,
         /// Output type of compilation
-        #[arg(long = "emit", value_name = "output type", default_value = "bytecode")]
+        #[arg(long = "emit", value_name = "output type")]
         pub output_type: Option<OutputType>,
         /// Compile without core library.
         /// Used for compiling core library itself.
@@ -51,6 +51,11 @@ pub mod commands {
         pub enum OutputType {
             IR,
             Bytecode,
+            Object,
+            Assembler,
+            Executable,
+            StaticLibrary,
+            DynamicLibrary,
         }
 
         impl OutputType {
@@ -59,6 +64,31 @@ pub mod commands {
                 match self {
                     Self::IR => "ll",
                     Self::Bytecode => "bc",
+                    Self::Object => "o",
+                    Self::Assembler => "s",
+                    Self::Executable => {
+                        if cfg!(target_os = "windows") {
+                            "exe"
+                        } else {
+                            "out"
+                        }
+                    }
+                    Self::StaticLibrary => {
+                        if cfg!(target_os = "windows") {
+                            "lib"
+                        } else {
+                            "a"
+                        }
+                    }
+                    Self::DynamicLibrary => {
+                        if cfg!(target_os = "windows") {
+                            "dll"
+                        } else if cfg!(target_os = "macos") {
+                            "dylib"
+                        } else {
+                            "so"
+                        }
+                    }
                 }
             }
         }
@@ -68,16 +98,15 @@ pub mod commands {
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 match s {
-                    "ir" => Ok(Self::IR),
-                    "bytecode" => Ok(Self::Bytecode),
+                    "ir" | ".ll" => Ok(Self::IR),
+                    "bytecode" | ".bc" => Ok(Self::Bytecode),
+                    "object" | ".o" => Ok(Self::Object),
+                    "assembler" | ".s" => Ok(Self::Assembler),
+                    "executable" | "exe" | "bin" | ".out" => Ok(Self::Executable),
+                    "library" | "lib" | "static-library" | ".a" | ".lib" => Ok(Self::StaticLibrary),
+                    "dynamic-library" | "dll" | "dylib" | ".so" => Ok(Self::DynamicLibrary),
                     _ => Err(()),
                 }
-            }
-        }
-
-        impl Default for OutputType {
-            fn default() -> Self {
-                Self::Bytecode
             }
         }
     }

@@ -36,7 +36,13 @@ impl Execute for Compile {
         let ir = module.lower_to_ir(&llvm);
         debug!(target: "ir", "{}", ir.to_string());
 
-        let output_type = self.output_type.unwrap_or_default();
+        let output_type = self.output_type.unwrap_or_else(|| {
+            if ir.get_function("main").is_some() {
+                OutputType::Executable
+            } else {
+                OutputType::DynamicLibrary
+            }
+        });
         let output_file = self
             .output_dir
             .join(self.file.file_stem().unwrap())
@@ -48,6 +54,9 @@ impl Execute for Compile {
             OutputType::IR => {
                 std::fs::write(&output_file, ir.to_string())
                     .map_err(|e| miette!("{output_file:?}: {e}"))?;
+            }
+            _ => {
+                todo!("Output type {:?} not implemented", output_type)
             }
         }
         Ok(())

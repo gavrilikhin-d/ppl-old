@@ -32,6 +32,8 @@ fn compile_builtin_module() -> Result<(), Error> {
         .args(&[
             "compile",
             "src/runtime/ppl.ppl",
+            "--emit",
+            "bytecode",
             "--output-dir",
             "src/runtime",
             "--no-core",
