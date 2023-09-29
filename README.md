@@ -27,6 +27,8 @@
 ### Current task
 * [ ] More functions to stdlib
 ---
+* [ ] Default implementations inside traits
+* [ ] Fix formatter error when `candidate is not viable`
 * [ ] Multiple output types
 * [ ] Generate temporary files in tmp dir
 * [ ] Make `print <:String>` print without newline

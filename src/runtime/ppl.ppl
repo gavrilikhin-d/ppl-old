@@ -55,12 +55,6 @@ fn <:Integer> == <:Integer> -> Bool
 @mangle_as("integer_less_integer")
 fn <:Integer> < <:Integer> -> Bool
 
-fn <x: Integer> > <y: Integer> => y < x
-
-fn <x: Integer> <= <y: Integer> => not (x > y)
-
-fn <x: Integer> >= <y: Integer> => not (x < y)
-
 fn + <x: Integer> => x
 
 @mangle_as("minus_integer")
@@ -114,7 +108,7 @@ fn print <x: AsString> => print (x as String)
 //---------------------------------
 
 //=================================
-//                Eq
+//             Eq
 //=================================
 /// Trait for things that may be compared for equality
 trait Eq:
@@ -124,4 +118,16 @@ trait Eq:
 // TODO: should be defined inside `Eq`
 /// Check for inequality
 fn <x: Eq> != <y: Eq> => not (x == y)
+//---------------------------------
+
+//=================================
+//              Ord
+//=================================
+/// Trait for things that may be ordered
+trait Ord:
+	fn <:Self> < <:Self> -> Bool
+
+fn <x: Ord> > <y: Ord> => y < x
+fn <x: Ord> <= <y: Ord> => not (x > y)
+fn <x: Ord> >= <y: Ord> => not (x < y)
 //---------------------------------
