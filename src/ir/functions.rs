@@ -84,6 +84,11 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
     // LLVM IR for "<:Integer> * <:Integer> -> Integer" builtin function
     add_builtin_function!(integer_star_integer: (integer, integer) -> integer);
 
+    // LLVM IR for "<:Integer> / <:Integer> -> Integer" builtin function
+    add_builtin_function!(
+        integer_slash_integer: (integer, integer) -> rational
+    );
+
     // LLVM IR for "<:Integer> == <:Integer> -> Bool" builtin function
     add_builtin_function!(integer_eq_integer: (integer, integer) -> bool);
 

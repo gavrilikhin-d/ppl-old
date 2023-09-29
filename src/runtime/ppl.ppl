@@ -68,6 +68,10 @@ fn <x: Integer> - <y: Integer> => x + -y
 @mangle_as("integer_star_integer")
 fn <:Integer> * <:Integer> -> Integer
 
+// TODO: return error on division by zero
+@mangle_as("integer_slash_integer")
+fn <:Integer> / <:Integer> -> Rational
+
 /// Convert `Integer` to `String`
 @mangle_as("integer_as_string")
 fn <:Integer> as String -> String

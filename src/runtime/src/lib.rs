@@ -124,6 +124,21 @@ pub extern "C" fn integer_star_integer(x: *const Integer, y: *const Integer) -> 
     Box::into_raw(boxed)
 }
 
+/// Divide 2 integers
+///
+/// Runtime for builtin ppl's function:
+/// ```ppl
+/// fn <:Integer> / <:Integer> -> Rational
+/// ```
+#[no_mangle]
+pub extern "C" fn integer_slash_integer(x: *const Integer, y: *const Integer) -> *mut Rational {
+    debug_assert!(!x.is_null());
+    debug_assert!(!y.is_null());
+
+    let boxed = Box::new(Rational::from(unsafe { &*x }) / unsafe { &*y });
+    Box::into_raw(boxed)
+}
+
 /// Compare 2 integers for equality
 ///
 /// Runtime for builtin ppl's function:
