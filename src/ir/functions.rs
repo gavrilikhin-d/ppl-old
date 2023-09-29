@@ -39,7 +39,7 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
         self.module.add_function(name, ty, None)
     }
 
-    /// LLVM IR for constructor of [`Integer`](Type::Integer) type from i64
+    // LLVM IR for constructor of [`Integer`](Type::Integer) type from i64
     add_builtin_function!(integer_from_i64: (i64) -> integer);
 
     // LLVM IR for constructor of [`Integer`](Type::Integer) type from C string
@@ -50,40 +50,7 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
 
     // LLVM IR for constructor of [`String`](Type::String) type from C string
     // and its length
-    add_builtin_function!(string_from_c_string_and_length: (c_string, u64) -> string);
-
-    // LLVM IR for "<:Integer> as String -> String" builtin function
-    add_builtin_function!(integer_as_string: (integer) -> string);
-
-    // LLVM IR for "<:Rational> as String -> String" builtin function
-    add_builtin_function!(rational_as_string: (rational) -> string);
-
-    // LLVM IR for "print <str: String> -> None" builtin function
-    add_builtin_function!(print_string: (string) -> none);
-
-    // LLVM IR for "- <:Integer> -> Integer" builtin function
-    add_builtin_function!(minus_integer: (integer) -> integer);
-
-    // LLVM IR for "<:Integer> + <:Integer> -> Integer" builtin function
-    add_builtin_function!(integer_plus_integer: (integer, integer) -> integer);
-
-    // LLVM IR for "<:Integer> * <:Integer> -> Integer" builtin function
-    add_builtin_function!(integer_star_integer: (integer, integer) -> integer);
-
-    // LLVM IR for "<:Integer> / <:Integer> -> Integer" builtin function
     add_builtin_function!(
-        integer_slash_integer: (integer, integer) -> rational
+        string_from_c_string_and_length: (c_string, u64) -> string
     );
-
-    // LLVM IR for "<:Integer> == <:Integer> -> Bool" builtin function
-    add_builtin_function!(integer_eq_integer: (integer, integer) -> bool);
-
-    // LLVM IR for "<:Integer> < <:Integer> -> Bool" builtin function
-    add_builtin_function!(integer_less_integer: (integer, integer) -> bool);
-
-    // LLVM IR for "<:Rational> == <:Rational> -> Bool" builtin function
-    add_builtin_function!(rational_eq_rational: (rational, rational) -> bool);
-
-    // LLVM IR for "<:Rational> < <:Rational> -> Bool" builtin function
-    add_builtin_function!(rational_less_rational: (rational, rational) -> bool);
 }
