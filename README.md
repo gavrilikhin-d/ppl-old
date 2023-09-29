@@ -45,3 +45,5 @@
 * [ ] Fix memory leak due to pointers to builtin types
 * [ ] Add testing CI
 * [ ] Explicit traits implementation
+* [ ] Functions as values
+* [ ] Add type unions `A | B`, `A & B`
