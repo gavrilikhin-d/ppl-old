@@ -9,15 +9,15 @@ pub struct Functions<'llvm, 'm> {
 
 // Macro to add builtin function
 macro_rules! add_builtin_function {
-	($name:ident : ( $($args:ident),* ) -> $ret:ident ) => {
-		pub fn $name(&self) -> FunctionValue<'llvm> {
-			let types = Types::new(self.module.get_context());
-			self.get_or_add_function(
-				stringify!($name),
-				types.$ret().fn_type(&[$(types.$args().into()),*], false),
-			)
-		}
-	};
+    ($name:ident : ( $($args:ident),* ) -> $ret:ident ) => {
+        pub fn $name(&self) -> FunctionValue<'llvm> {
+            let types = Types::new(self.module.get_context());
+            self.get_or_add_function(
+                stringify!($name),
+                types.$ret().fn_type(&[$(types.$args().into()),*], false),
+            )
+        }
+    };
 }
 
 impl<'llvm, 'm> Functions<'llvm, 'm> {
@@ -40,13 +40,7 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
     }
 
     /// LLVM IR for constructor of [`Integer`](Type::Integer) type from i64
-    pub fn integer_from_i64(&self) -> FunctionValue<'llvm> {
-        let types = Types::new(self.module.get_context());
-        self.get_or_add_function(
-            "integer_from_i64",
-            types.integer().fn_type(&[types.i(64).into()], false),
-        )
-    }
+    add_builtin_function!(integer_from_i64: (i64) -> integer);
 
     // LLVM IR for constructor of [`Integer`](Type::Integer) type from C string
     add_builtin_function!(integer_from_c_string: (c_string) -> integer);
@@ -54,17 +48,9 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
     // LLVM IR for constructor of `Rational` type from C string
     add_builtin_function!(rational_from_c_string: (c_string) -> rational);
 
-    /// LLVM IR for constructor of [`String`](Type::String) type from C string
-    /// and its length
-    pub fn string_from_c_string_and_length(&self) -> FunctionValue<'llvm> {
-        let types = Types::new(self.module.get_context());
-        self.get_or_add_function(
-            "string_from_c_string_and_length",
-            types
-                .string()
-                .fn_type(&[types.c_string().into(), types.u(64).into()], false),
-        )
-    }
+    // LLVM IR for constructor of [`String`](Type::String) type from C string
+    // and its length
+    add_builtin_function!(string_from_c_string_and_length: (c_string, u64) -> string);
 
     // LLVM IR for "<:Integer> as String -> String" builtin function
     add_builtin_function!(integer_as_string: (integer) -> string);

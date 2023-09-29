@@ -31,9 +31,19 @@ impl<'llvm> Types<'llvm> {
         self.llvm.custom_width_int_type(bits)
     }
 
+    /// LLVM 64-bit int type
+    pub fn i64(&self) -> IntType<'llvm> {
+        self.i(64)
+    }
+
     /// LLVM unsigned int type
     pub fn u(&self, bits: u32) -> IntType<'llvm> {
         self.i(bits)
+    }
+
+    /// LLVM 64-bit unsigned int type
+    pub fn u64(&self) -> IntType<'llvm> {
+        self.u(64)
     }
 
     /// Get LLVM opaque struct type or create it if it doesn't exist
