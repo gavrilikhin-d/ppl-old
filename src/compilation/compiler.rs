@@ -47,6 +47,7 @@ impl<'llvm> Compiler<'llvm> {
         add_global_mapping!(rational_from_c_string);
         add_global_mapping!(string_from_c_string_and_length);
         add_global_mapping!(integer_as_string);
+        add_global_mapping!(rational_as_string);
         add_global_mapping!(print_string);
         add_global_mapping!(minus_integer);
         add_global_mapping!(integer_plus_integer);

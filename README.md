@@ -22,10 +22,13 @@
 * Metaprogramming
 * Documentation
 
+* [X] Generate libraries and executables
 ---
 ### Current task
-* [ ] Generate libraries and executables
+* [ ] More functions to stdlib
 ---
+* [ ] Multiple output types
+* [ ] Generate temporary files in tmp dir
 * [ ] Make `print <:String>` print without newline
 * [ ] Allow generics types usage
 * [ ] Check errors in repl too

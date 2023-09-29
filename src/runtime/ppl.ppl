@@ -85,6 +85,10 @@ fn <:Integer> as String -> String
 //            Rational
 //=================================
 type Rational
+
+/// Convert `Rational` to `String`
+@mangle_as("rational_as_string")
+fn <:Rational> as String -> String
 //---------------------------------
 
 //=================================

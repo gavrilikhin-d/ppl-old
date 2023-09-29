@@ -10,6 +10,8 @@ pub extern "C" fn integer_from_i64(value: i64) -> *mut Integer {
 /// Construct [`Integer`](ppl::semantics::Type::Integer) from a C string
 #[no_mangle]
 pub extern "C" fn integer_from_c_string(str: *const i8) -> *mut Integer {
+    debug_assert!(!str.is_null());
+
     let c_str = unsafe { core::ffi::CStr::from_ptr(str) };
     let str = c_str.to_str().unwrap();
     let boxed = Box::new(str.parse::<Integer>().unwrap());
@@ -19,6 +21,8 @@ pub extern "C" fn integer_from_c_string(str: *const i8) -> *mut Integer {
 /// Construct [`Rational`](ppl::semantics::Type::Rational) from a C string
 #[no_mangle]
 pub extern "C" fn rational_from_c_string(str: *const i8) -> *mut Rational {
+    debug_assert!(!str.is_null());
+
     let c_str = unsafe { core::ffi::CStr::from_ptr(str) };
     let str = c_str.to_str().unwrap();
     let boxed = Box::new(str.parse::<Rational>().unwrap());
@@ -43,9 +47,8 @@ pub extern "C" fn string_from_c_string_and_length(str: *const i8, _len: u64) -> 
 /// ```
 #[no_mangle]
 pub extern "C" fn print_string(str: *const String) {
-    if str.is_null() {
-        panic!("null pointer passed to print_string");
-    }
+    debug_assert!(!str.is_null());
+
     println!("{}", unsafe { &*str });
 }
 
@@ -57,10 +60,23 @@ pub extern "C" fn print_string(str: *const String) {
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_as_string(i: *const Integer) -> *mut String {
-    if i.is_null() {
-        panic!("null pointer passed to integer_as_string");
-    }
+    debug_assert!(!i.is_null());
+
     let boxed = Box::new(unsafe { &*i }.to_string());
+    Box::into_raw(boxed)
+}
+
+/// Converts `Rational` to `String`
+///
+/// Runtime for builtin ppl's function:
+/// ```ppl
+/// fn <:Rational> as String -> String
+/// ```
+#[no_mangle]
+pub extern "C" fn rational_as_string(r: *const Rational) -> *mut String {
+    debug_assert!(!r.is_null());
+
+    let boxed = Box::new(unsafe { &*r }.to_string());
     Box::into_raw(boxed)
 }
 
@@ -72,9 +88,8 @@ pub extern "C" fn integer_as_string(i: *const Integer) -> *mut String {
 /// ```
 #[no_mangle]
 pub extern "C" fn minus_integer(i: *const Integer) -> *mut Integer {
-    if i.is_null() {
-        panic!("null pointer passed to integer_as_string");
-    }
+    debug_assert!(!i.is_null());
+
     let boxed = Box::new(-unsafe { &*i }.clone());
     Box::into_raw(boxed)
 }
@@ -87,9 +102,9 @@ pub extern "C" fn minus_integer(i: *const Integer) -> *mut Integer {
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_plus_integer(x: *const Integer, y: *const Integer) -> *mut Integer {
-    if x.is_null() || y.is_null() {
-        panic!("null pointer passed to integer_as_string");
-    }
+    debug_assert!(!x.is_null());
+    debug_assert!(!y.is_null());
+
     let boxed = Box::new(Integer::from(unsafe { &*x } + unsafe { &*y }));
     Box::into_raw(boxed)
 }
@@ -102,9 +117,9 @@ pub extern "C" fn integer_plus_integer(x: *const Integer, y: *const Integer) -> 
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_star_integer(x: *const Integer, y: *const Integer) -> *mut Integer {
-    if x.is_null() || y.is_null() {
-        panic!("null pointer passed to integer_as_string");
-    }
+    debug_assert!(!x.is_null());
+    debug_assert!(!y.is_null());
+
     let boxed = Box::new(Integer::from(unsafe { &*x } * unsafe { &*y }));
     Box::into_raw(boxed)
 }
@@ -117,9 +132,9 @@ pub extern "C" fn integer_star_integer(x: *const Integer, y: *const Integer) -> 
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_eq_integer(x: *const Integer, y: *const Integer) -> bool {
-    if x.is_null() || y.is_null() {
-        panic!("null pointer passed to integer_as_string");
-    }
+    debug_assert!(!x.is_null());
+    debug_assert!(!y.is_null());
+
     unsafe { *x == *y }
 }
 
@@ -131,9 +146,9 @@ pub extern "C" fn integer_eq_integer(x: *const Integer, y: *const Integer) -> bo
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_less_integer(x: *const Integer, y: *const Integer) -> bool {
-    if x.is_null() || y.is_null() {
-        panic!("null pointer passed to integer_as_string");
-    }
+    debug_assert!(!x.is_null());
+    debug_assert!(!y.is_null());
+
     unsafe { *x < *y }
 }
 

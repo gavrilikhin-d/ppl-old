@@ -69,6 +69,9 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
     // LLVM IR for "<:Integer> as String -> String" builtin function
     add_builtin_function!(integer_as_string: (integer) -> string);
 
+    // LLVM IR for "<:Rational> as String -> String" builtin function
+    add_builtin_function!(rational_as_string: (rational) -> string);
+
     // LLVM IR for "print <str: String> -> None" builtin function
     add_builtin_function!(print_string: (string) -> none);
 
