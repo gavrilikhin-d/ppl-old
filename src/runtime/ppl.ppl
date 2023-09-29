@@ -52,8 +52,6 @@ type Integer
 @mangle_as("integer_eq_integer")
 fn <:Integer> == <:Integer> -> Bool
 
-fn <x: Integer> != <y: Integer> => not (x == y)
-
 @mangle_as("integer_less_integer")
 fn <:Integer> < <:Integer> -> Bool
 
@@ -102,11 +100,28 @@ type String
 /// Prints string to stdout with newline
 @mangle_as("print_string")
 fn print <:String>
+//---------------------------------
 
+//=================================
+//            AsString
+//=================================
 /// Trait for things that may be interpreted as string
 trait AsString:
 	fn <:Self> as String -> String
 
 /// Print anything that may be interpreted as String
 fn print <x: AsString> => print (x as String)
+//---------------------------------
+
+//=================================
+//                Eq
+//=================================
+/// Trait for things that may be compared for equality
+trait Eq:
+	fn <:Self> == <:Self> -> Bool
+
+// TODO: must have same type
+// TODO: should be defined inside `Eq`
+/// Check for inequality
+fn <x: Eq> != <y: Eq> => not (x == y)
 //---------------------------------
