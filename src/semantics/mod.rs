@@ -7,4 +7,7 @@ pub use context::*;
 mod monomorphized;
 pub use monomorphized::*;
 
+mod declare;
+pub use declare::*;
+
 pub mod error;

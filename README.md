@@ -24,11 +24,11 @@
 
 * [X] Generate libraries and executables
 * [X] Provide runtime as dylib
+* [X] Default implementations inside traits
 ---
 ### Current task
 * [ ] More functions to stdlib
 ---
-* [ ] Default implementations inside traits
 * [ ] Fix formatter error when `candidate is not viable`
 * [ ] Multiple output types
 * [ ] Generate temporary files in tmp dir

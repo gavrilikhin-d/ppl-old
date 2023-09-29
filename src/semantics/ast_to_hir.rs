@@ -2,15 +2,12 @@ use core::panic;
 use std::sync::Arc;
 
 use crate::from_decimal::FromDecimal;
-use crate::hir::{self, FunctionDefinition, FunctionNamePart, GenericType, Type, Typed};
+use crate::hir::{self, FunctionNamePart, GenericType, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
 
-use super::{
-    error::*, Context, FunctionContext, ModuleContext, MonomorphizedWithArgs, TraitContext,
-    TypeContext,
-};
+use super::{error::*, Context, Declare, ModuleContext, MonomorphizedWithArgs, TypeContext};
 use crate::ast::{self, CallNamePart, FnKind, If};
 
 /// Lower AST inside some context
@@ -584,118 +581,6 @@ impl ASTLoweringWithinContext for ast::Annotation {
     }
 }
 
-/// Trait to predeclare function in module
-trait Declare {
-    /// Declare function in module
-    fn declare(&self, context: &mut impl Context) -> Result<Arc<hir::FunctionDeclaration>, Error>;
-}
-
-impl Declare for ast::FunctionDeclaration {
-    fn declare(&self, context: &mut impl Context) -> Result<Arc<hir::FunctionDeclaration>, Error> {
-        let mut name_parts: Vec<hir::FunctionNamePart> = Vec::new();
-        for part in &self.name_parts {
-            match part {
-                ast::FunctionNamePart::Text(t) => name_parts.push(t.clone().into()),
-                ast::FunctionNamePart::Parameter { parameter, .. } => {
-                    name_parts.push(parameter.lower_to_hir_within_context(context)?.into())
-                }
-            }
-        }
-
-        let return_type = match &self.return_type {
-            Some(ty) => ty.lower_to_hir_within_context(context)?.referenced_type,
-            None => context.builtin().types().none(),
-        };
-
-        let annotations = self
-            .annotations
-            .iter()
-            .map(|a| a.lower_to_hir_within_context(context))
-            .collect::<Result<Vec<_>, _>>()?;
-        let mangled_name = annotations.iter().find_map(|a| match a {
-            hir::Annotation::MangleAs(name) => Some(name.clone()),
-        });
-
-        let f = Arc::new(
-            hir::FunctionDeclaration::build()
-                .with_name(name_parts.clone())
-                .with_mangled_name(mangled_name.clone())
-                .with_return_type(return_type.clone()),
-        );
-
-        context.add_function(f.clone().into());
-
-        Ok(f)
-    }
-}
-
-trait Define {
-    /// Define function in module
-    fn define(
-        &self,
-        declaration: Arc<hir::FunctionDeclaration>,
-        context: &mut impl Context,
-    ) -> Result<hir::Function, Error>;
-}
-
-impl Define for ast::FunctionDeclaration {
-    fn define(
-        &self,
-        declaration: Arc<hir::FunctionDeclaration>,
-        context: &mut impl Context,
-    ) -> Result<hir::Function, Error> {
-        if self.body.is_empty() {
-            return Ok(declaration.into());
-        }
-
-        let mut f_context = FunctionContext {
-            function: declaration.clone(),
-            parent: context,
-        };
-
-        let mut body = Vec::new();
-        for stmt in &self.body {
-            body.push(stmt.lower_to_hir_within_context(&mut f_context)?);
-        }
-
-        if self.implicit_return {
-            let return_type = f_context.function.return_type.clone();
-            let expr: hir::Expression = body.pop().unwrap().try_into().unwrap();
-            if self.return_type.is_none() {
-                // One reference is held by module
-                // Another reference is held by declaration itself
-                // Last reference is inside context
-                if Arc::strong_count(&declaration) > 3 {
-                    return Err(CantDeduceReturnType {
-                        at: self.name_parts.range().into(),
-                    }
-                    .into());
-                } else {
-                    unsafe {
-                        (*Arc::as_ptr(&declaration).cast_mut()).return_type = expr.ty().clone();
-                    }
-                }
-            } else {
-                if expr.ty() != return_type {
-                    return Err(ReturnTypeMismatch {
-                        expected: return_type.clone(),
-                        got: expr.ty(),
-                        got_span: expr.range().into(),
-                    }
-                    .into());
-                }
-            }
-            body = vec![hir::Return { value: Some(expr) }.into()];
-        }
-
-        let f = Arc::new(FunctionDefinition { declaration, body });
-
-        context.add_function(f.clone().into());
-
-        Ok(f.into())
-    }
-}
-
 impl ASTLoweringWithinContext for ast::FunctionDeclaration {
     type HIR = hir::Function;
 
@@ -710,34 +595,7 @@ impl ASTLoweringWithinContext for ast::TraitDeclaration {
 
     /// Lower [`ast::TraitDeclaration`] to [`hir::TraitDeclaration`] within lowering context
     fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
-        let mut error = None;
-        let tr = Arc::new_cyclic(|trait_weak| {
-            let mut context = TraitContext {
-                tr: hir::TraitDeclaration {
-                    name: self.name.clone(),
-                    functions: vec![],
-                },
-                trait_weak: trait_weak.clone(),
-                parent: context,
-            };
-
-            for f in &self.functions {
-                error = f.lower_to_hir_within_context(&mut context).err();
-                if error.is_some() {
-                    break;
-                }
-            }
-
-            context.tr
-        });
-
-        if let Some(error) = error {
-            return Err(error);
-        }
-
-        context.add_trait(tr.clone());
-
-        Ok(tr)
+        self.define(self.declare(context)?, context)
     }
 }
 
@@ -947,11 +805,14 @@ impl ASTLoweringWithinModule for ast::Module {
 
         // Add types then
         for stmt in &self.statements {
-            if let ast::Statement::Declaration(
-                ast::Declaration::Type(_) | ast::Declaration::Trait(_),
-            ) = stmt
-            {
-                stmt.lower_to_hir_within_context(context)?;
+            match stmt {
+                ast::Statement::Declaration(ast::Declaration::Type(_)) => {
+                    stmt.lower_to_hir_within_context(context)?;
+                }
+                ast::Statement::Declaration(ast::Declaration::Trait(tr)) => {
+                    tr.declare(context)?;
+                }
+                _ => {}
             }
         }
 
@@ -964,16 +825,15 @@ impl ASTLoweringWithinModule for ast::Module {
 
         // Add rest of statements
         for stmt in &self.statements {
-            if !matches!(
+            if matches!(
                 stmt,
-                ast::Statement::Use(_)
-                    | ast::Statement::Declaration(
-                        ast::Declaration::Type(_) | ast::Declaration::Trait(_)
-                    )
+                ast::Statement::Use(_) | ast::Statement::Declaration(ast::Declaration::Type(_))
             ) {
-                let stmt = stmt.lower_to_hir_within_context(context)?;
-                context.module.statements.push(stmt);
+                continue;
             }
+
+            let stmt = stmt.lower_to_hir_within_context(context)?;
+            context.module.statements.push(stmt);
         }
 
         Ok(())
