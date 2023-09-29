@@ -55,6 +55,7 @@ impl<'llvm> Compiler<'llvm> {
         add_global_mapping!(integer_eq_integer);
         add_global_mapping!(integer_less_integer);
         add_global_mapping!(rational_eq_rational);
+        add_global_mapping!(rational_less_rational);
 
         Self {
             llvm,

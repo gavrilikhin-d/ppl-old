@@ -81,6 +81,9 @@ type Rational
 @mangle_as("rational_eq_rational")
 fn <:Rational> == <:Rational> -> Bool
 
+@mangle_as("rational_less_rational")
+fn <:Rational> < <:Rational> -> Bool
+
 /// Convert `Rational` to `String`
 @mangle_as("rational_as_string")
 fn <:Rational> as String -> String

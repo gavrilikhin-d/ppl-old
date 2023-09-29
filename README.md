@@ -23,6 +23,7 @@
 * Documentation
 
 * [X] Generate libraries and executables
+* [X] Provide runtime as dylib
 ---
 ### Current task
 * [ ] More functions to stdlib
@@ -37,10 +38,10 @@
 * [ ] Add more checks for compiler
 * [ ] Add constrains to generics
 * [ ] Make statements to return `None` type for convenience
-* [ ] Make `if to be an expression?
+* [ ] Make `if` to be an expression?
 * [ ] Add `Array` type
 * [ ] Add `HashMap` type
-* [ ] Provide runtime as dylib
 * [ ] Multiple errors support instead of exiting on first error
 * [ ] Fix memory leak due to pointers to builtin types
 * [ ] Add testing CI
+* [ ] Explicit traits implementation

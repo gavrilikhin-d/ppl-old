@@ -166,4 +166,18 @@ pub extern "C" fn integer_less_integer(x: *const Integer, y: *const Integer) -> 
     unsafe { *x < *y }
 }
 
+/// Is one rational less than another?
+///
+/// Runtime for builtin ppl's function:
+/// ```ppl
+/// fn <:Rational> < <:Rational> -> Bool
+/// ```
+#[no_mangle]
+pub extern "C" fn rational_less_rational(x: *const Rational, y: *const Rational) -> bool {
+    debug_assert!(!x.is_null());
+    debug_assert!(!y.is_null());
+
+    unsafe { *x < *y }
+}
+
 // IMPORTANT: don't forget to update global mapping after adding new function!!!
