@@ -1,6 +1,5 @@
-// IMPORTANT: when adding new special type,
+// IMPORTANT: when adding new special type or function,
 // don't forget to threat it as special in TypeDeclaration and hir_to_ir.rs
-// IMPORTANT: add mapping for new functions with @mangle_as
 // IMPORTANT: add precedence for new binary operators
 
 //=================================
