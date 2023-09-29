@@ -5,7 +5,7 @@ use thiserror::Error;
 
 use derive_more::From;
 
-use crate::hir::{CallKind, Type};
+use crate::{ast::FnKind, hir::Type};
 
 /// Diagnostic for undefined variables
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
@@ -149,7 +149,7 @@ impl Diagnostic for CandidateNotViable {
 #[derive(Error, Debug, Clone, PartialEq)]
 pub struct NoFunction {
     /// Kind of function call, that failed to bind to function
-    pub kind: CallKind,
+    pub kind: FnKind,
 
     /// Expected name of function
     pub name: String,
@@ -167,8 +167,8 @@ pub struct NoFunction {
 impl Display for NoFunction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.kind {
-            CallKind::Call => write!(f, "no function \"{}\"", self.name),
-            CallKind::Operation => write!(f, "no operator \"{}\"", self.name),
+            FnKind::Function => write!(f, "no function \"{}\"", self.name),
+            FnKind::Operator => write!(f, "no operator \"{}\"", self.name),
         }
     }
 }
@@ -188,7 +188,7 @@ impl Diagnostic for NoFunction {
             )))
         } else {
             let mut labels = Vec::new();
-            if self.kind == CallKind::Operation {
+            if self.kind == FnKind::Operator {
                 labels.push(miette::LabeledSpan::new_with_span(
                     Some("for this operator".to_string()),
                     self.at,

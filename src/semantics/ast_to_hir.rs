@@ -2,7 +2,7 @@ use core::panic;
 use std::sync::Arc;
 
 use crate::from_decimal::FromDecimal;
-use crate::hir::{self, CallKind, FunctionDefinition, FunctionNamePart, GenericType, Type, Typed};
+use crate::hir::{self, FunctionDefinition, FunctionNamePart, GenericType, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
@@ -11,7 +11,7 @@ use super::{
     error::*, Context, FunctionContext, ModuleContext, MonomorphizedWithArgs, TraitContext,
     TypeContext,
 };
-use crate::ast::{self, CallNamePart, If};
+use crate::ast::{self, CallNamePart, FnKind, If};
 
 /// Lower AST inside some context
 pub trait ASTLoweringWithinContext {
@@ -99,65 +99,6 @@ impl ASTLoweringWithinContext for ast::VariableReference {
         Ok(hir::VariableReference {
             span: self.name.range().into(),
             variable: var.unwrap(),
-        })
-    }
-}
-
-impl ASTLoweringWithinContext for ast::UnaryOperation {
-    type HIR = hir::Call;
-
-    /// Lower [`ast::UnaryOperation`] to [`hir::Call`] within lowering context.
-    ///
-    /// **Note**: Unary operator is actually a call to function.
-    fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
-        let args = vec![self.operand.lower_to_hir_within_context(context)?];
-
-        let f = context.get_function(
-            self.operator.range(),
-            self.name_format().as_str(),
-            &args,
-            CallKind::Operation,
-        )?;
-
-        let function = f.monomorphized(context, args.iter().map(|arg| arg.ty()));
-        let generic = if f.is_generic() { Some(f) } else { None };
-
-        Ok(hir::Call {
-            function,
-            generic,
-            range: self.range().into(),
-            args,
-        })
-    }
-}
-
-impl ASTLoweringWithinContext for ast::BinaryOperation {
-    type HIR = hir::Call;
-
-    /// Lower [`ast::BinaryOperation`] to [`hir::Call`] within lowering context.
-    ///
-    /// **Note**: Binary operation is actually a call to function.
-    fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
-        let args = vec![
-            self.left.lower_to_hir_within_context(context)?,
-            self.right.lower_to_hir_within_context(context)?,
-        ];
-
-        let f = context.get_function(
-            self.operator.range(),
-            self.name_format().as_str(),
-            &args,
-            CallKind::Operation,
-        )?;
-
-        let function = f.monomorphized(context, args.iter().map(|arg| arg.ty()));
-        let generic = if f.is_generic() { Some(f) } else { None };
-
-        Ok(hir::Call {
-            function,
-            generic,
-            range: self.range().into(),
-            args,
         })
     }
 }
@@ -313,12 +254,21 @@ impl ASTLoweringWithinContext for ast::Call {
         for arg in &arguments {
             name = name.replacen("<>", format!("<:{}>", arg.0).as_str(), 1);
         }
+
+        let at = if self.kind == FnKind::Function {
+            self.range()
+        } else if matches!(self.name_parts[0], CallNamePart::Text(_)) {
+            self.name_parts[0].range()
+        } else {
+            self.name_parts[1].range()
+        };
+
         Err(NoFunction {
-            kind: CallKind::Call,
+            kind: self.kind,
             name,
             arguments,
             candidates: candidates_not_viable,
-            at: self.range().into(),
+            at: at.into(),
         }
         .into())
     }
@@ -501,10 +451,8 @@ impl ASTLoweringWithinContext for ast::Expression {
             ast::Expression::VariableReference(var) => {
                 var.lower_to_hir_within_context(context)?.into()
             }
-            ast::Expression::UnaryOperation(op) => op.lower_to_hir_within_context(context)?.into(),
             ast::Expression::Call(call) => call.lower_to_hir_within_context(context)?.into(),
             ast::Expression::Tuple(t) => t.lower_to_hir_within_context(context)?.into(),
-            ast::Expression::BinaryOperation(op) => op.lower_to_hir_within_context(context)?.into(),
             ast::Expression::TypeReference(t) => t.lower_to_hir_within_context(context)?.into(),
             ast::Expression::MemberReference(m) => m.lower_to_hir_within_context(context)?.into(),
             ast::Expression::Constructor(c) => c.lower_to_hir_within_context(context)?.into(),

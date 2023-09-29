@@ -3,13 +3,6 @@ use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 use std::ops::Range;
 
-/// Kind of function call
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub enum CallKind {
-    Operation,
-    Call,
-}
-
 /// AST for function call
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Call {

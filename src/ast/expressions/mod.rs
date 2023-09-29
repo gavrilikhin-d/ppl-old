@@ -7,12 +7,6 @@ pub use literal::*;
 mod variable;
 pub use variable::*;
 
-mod unary;
-pub use unary::*;
-
-mod binary;
-pub use binary::*;
-
 mod tuple;
 pub use tuple::*;
 
@@ -40,8 +34,6 @@ use derive_more::{From, TryInto};
 pub enum Expression {
     Literal(Literal),
     VariableReference(VariableReference),
-    UnaryOperation(UnaryOperation),
-    BinaryOperation(BinaryOperation),
     Call(Call),
     Tuple(Tuple),
     TypeReference(TypeReference),
@@ -54,8 +46,11 @@ impl StartsHere for Expression {
     fn starts_here(context: &mut Context<impl Lexer>) -> bool {
         Literal::starts_here(context)
             || VariableReference::starts_here(context)
-            || UnaryOperation::starts_here(context)
             || Tuple::starts_here(context)
+            || matches!(
+                context.lexer.peek(),
+                Some(Token::Operator(_) | Token::Less | Token::Greater)
+            )
     }
 }
 
@@ -107,10 +102,9 @@ fn parse_postfix_expression(context: &mut Context<impl Lexer>) -> Result<Express
             .lexer
             .consume(Token::Operator(OperatorKind::Postfix))
         {
-            UnaryOperation {
-                operand: Box::new(operand),
-                operator,
-                kind: UnaryOperatorKind::Postfix,
+            Call {
+                kind: FnKind::Operator,
+                name_parts: vec![operand.into(), operator.into()],
             }
             .into()
         } else {
@@ -125,10 +119,9 @@ fn parse_prefix_expression(context: &mut Context<impl Lexer>) -> Result<Expressi
     let operand = parse_postfix_expression(context)?;
 
     Ok(if let Ok(operator) = operator {
-        UnaryOperation {
-            operand: Box::new(operand),
-            operator,
-            kind: UnaryOperatorKind::Prefix,
+        Call {
+            kind: FnKind::Operator,
+            name_parts: vec![operator.into(), operand.into()],
         }
         .into()
     } else {
@@ -162,10 +155,9 @@ fn parse_binary_rhs(
             }
         }
 
-        left = BinaryOperation {
-            left: Box::new(left),
-            operator: op,
-            right: Box::new(right),
+        left = Call {
+            kind: FnKind::Operator,
+            name_parts: vec![left.into(), op.into(), right.into()],
         }
         .into();
     }
@@ -211,8 +203,6 @@ impl Ranged for Expression {
         match self {
             Expression::Literal(l) => l.range(),
             Expression::VariableReference(var) => var.range(),
-            Expression::UnaryOperation(op) => op.range(),
-            Expression::BinaryOperation(op) => op.range(),
             Expression::Call(call) => call.range(),
             Expression::Tuple(tuple) => tuple.range(),
             Expression::TypeReference(ty_ref) => ty_ref.range(),

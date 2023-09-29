@@ -41,9 +41,20 @@ impl Parse for CallNamePart {
     }
 }
 
+/// Kind of function to call
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum FnKind {
+    /// Function
+    Function,
+    /// Operator
+    Operator,
+}
+
 /// AST for function call
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct Call {
+    /// Kind of function to call
+    pub kind: FnKind,
     /// Name parts of function call
     pub name_parts: Vec<CallNamePart>,
 }
@@ -98,6 +109,9 @@ impl Parse for Call {
 
         debug_assert!(name_parts.len() > 0);
 
-        Ok(Call { name_parts })
+        Ok(Call {
+            kind: FnKind::Function,
+            name_parts,
+        })
     }
 }

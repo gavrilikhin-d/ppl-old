@@ -1,21 +1,17 @@
 use std::{
     collections::HashMap,
-    ops::Range,
     sync::{Arc, Weak},
 };
 
 use crate::{
     ast::CallNamePart,
     hir::{
-        CallKind, Expression, Function, FunctionDeclaration, FunctionNamePart, GenericType, Module,
-        Name, ParameterOrVariable, SelfType, TraitDeclaration, Type, TypeDeclaration, Typed,
+        Expression, Function, FunctionDeclaration, FunctionNamePart, GenericType, Module, Name,
+        ParameterOrVariable, SelfType, TraitDeclaration, Type, TypeDeclaration, Typed,
         VariableDeclaration,
     },
     named::Named,
-    syntax::Ranged,
 };
-
-use super::error::{ArgumentTypeMismatch, CandidateNotViable, Error, NoFunction};
 
 /// Trait for various AST lowering contexts
 pub trait Context {
@@ -109,58 +105,6 @@ pub trait Context {
 
     /// Get all functions with same name format
     fn functions_with_format(&self, format: &str) -> HashMap<Name, Function>;
-
-    /// Recursively find function with same name format and arguments
-    fn get_function(
-        &self,
-        range: Range<usize>,
-        format: &str,
-        args: &[Expression],
-        kind: CallKind,
-    ) -> Result<Function, Error> {
-        let functions = self.functions_with_format(format);
-        // TODO: Add functions from traits
-        let mut name = format.to_string();
-        for arg in args {
-            name = name.replacen("<>", format!("<:{}>", arg.ty()).as_str(), 1);
-        }
-        let arguments = args
-            .iter()
-            .map(|arg| (arg.ty(), arg.range().into()))
-            .collect::<Vec<_>>();
-
-        let f = functions.get(name.as_str());
-        if f.is_none() {
-            let mut candidates: Vec<CandidateNotViable> = Vec::new();
-            for candidate in functions.values() {
-                for (param, arg) in candidate.parameters().zip(args) {
-                    if param.ty() != arg.ty() {
-                        candidates.push(CandidateNotViable {
-                            reason: ArgumentTypeMismatch {
-                                expected: param.ty(),
-                                expected_span: param.name.range().into(),
-                                got: arg.ty(),
-                                got_span: arg.range().into(),
-                            }
-                            .into(),
-                        });
-                        break;
-                    }
-                }
-            }
-
-            return Err(NoFunction {
-                kind,
-                name,
-                at: range.into(),
-                arguments,
-                candidates,
-            }
-            .into());
-        }
-
-        Ok(f.unwrap().clone())
-    }
 
     /// Find concrete function for trait function
     fn find_implementation(&self, trait_fn: &Function, self_type: &Type) -> Option<Function> {
