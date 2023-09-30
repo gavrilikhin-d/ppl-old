@@ -25,7 +25,8 @@
 * [X] Generate libraries and executables
 * [X] Provide runtime as dylib
 * [X] Default implementations inside traits
-* [x] Make `print <:String>` print without newline
+* [X] Make `print <:String>` print without newline
+* [X] Add testing CI
 ---
 ### Current task
 * [ ] More functions to stdlib
@@ -43,7 +44,6 @@
 * [ ] Add `HashMap` type
 * [ ] Multiple errors support instead of exiting on first error
 * [ ] Fix memory leak due to pointers to builtin types
-* [ ] Add testing CI
 * [ ] Explicit traits implementation
 * [ ] Functions as values
 * [ ] Add type unions `A | B`, `A & B`
