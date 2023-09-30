@@ -48,3 +48,4 @@
 * [ ] Functions as values
 * [ ] Add type unions `A | B`, `A & B`
 * [ ] Multifile compilation and imports
+* [ ] Add all `c` types

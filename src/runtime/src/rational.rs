@@ -25,6 +25,65 @@ pub extern "C" fn rational_as_string(r: *const Rational) -> *mut String {
     Box::into_raw(boxed)
 }
 
+/// Negates rational
+///
+/// Runtime for builtin ppl's function:
+/// ```ppl
+/// fn - <:Rational> -> Rational
+/// ```
+#[no_mangle]
+pub extern "C" fn minus_rational(r: *const Rational) -> *mut Rational {
+    debug_assert!(!r.is_null());
+
+    let boxed = Box::new(-unsafe { &*r }.clone());
+    Box::into_raw(boxed)
+}
+
+/// Add 2 rationals
+///
+/// Runtime for builtin ppl's function:
+/// ```ppl
+/// fn <:Rational> + <:Rational> -> Rational
+/// ```
+#[no_mangle]
+pub extern "C" fn rational_plus_rational(x: *const Rational, y: *const Rational) -> *mut Rational {
+    debug_assert!(!x.is_null());
+    debug_assert!(!y.is_null());
+
+    let boxed = Box::new(Rational::from(unsafe { &*x } + unsafe { &*y }));
+    Box::into_raw(boxed)
+}
+
+/// Multiply 2 rationals
+///
+/// Runtime for builtin ppl's function:
+/// ```ppl
+/// fn <:Rational> * <:Rational> -> Rational
+/// ```
+#[no_mangle]
+pub extern "C" fn rational_star_rational(x: *const Rational, y: *const Rational) -> *mut Rational {
+    debug_assert!(!x.is_null());
+    debug_assert!(!y.is_null());
+
+    let boxed = Box::new(Rational::from(unsafe { &*x } * unsafe { &*y }));
+    Box::into_raw(boxed)
+}
+
+/// Divide 2 rationals
+///
+/// Runtime for builtin ppl's function:
+/// ```ppl
+/// fn <:Rational> / <:Rational> -> Rational
+/// ```
+#[no_mangle]
+pub extern "C" fn rational_slash_rational(x: *const Rational, y: *const Rational) -> *mut Rational {
+    debug_assert!(!x.is_null());
+    debug_assert!(!y.is_null());
+
+    let boxed = Box::new(Rational::from(unsafe { &*x } / unsafe { &*y }));
+    Box::into_raw(boxed)
+}
+
 /// Compare 2 rationals for equality
 ///
 /// Runtime for builtin ppl's function:
