@@ -425,6 +425,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Literal {
                     .unwrap()
             }
             Literal::String { value, .. } => {
+                let value = unescaper::unescape(&value).unwrap_or_else(|_| value.clone());
                 let str = context.builder.build_global_string_ptr(&value, "");
                 context
                     .builder

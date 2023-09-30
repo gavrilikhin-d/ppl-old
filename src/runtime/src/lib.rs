@@ -49,7 +49,7 @@ pub extern "C" fn string_from_c_string_and_length(str: *const i8, _len: u64) -> 
 pub extern "C" fn print_string(str: *const String) {
     debug_assert!(!str.is_null());
 
-    println!("{}", unsafe { &*str });
+    print!("{}", unsafe { &*str });
 }
 
 /// Converts `Integer` to `String`
@@ -194,5 +194,3 @@ pub extern "C" fn rational_less_rational(x: *const Rational, y: *const Rational)
 
     unsafe { *x < *y }
 }
-
-// IMPORTANT: don't forget to update global mapping after adding new function!!!

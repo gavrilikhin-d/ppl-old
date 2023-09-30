@@ -25,6 +25,7 @@
 * [X] Generate libraries and executables
 * [X] Provide runtime as dylib
 * [X] Default implementations inside traits
+* [x] Make `print <:String>` print without newline
 ---
 ### Current task
 * [ ] More functions to stdlib
@@ -32,7 +33,6 @@
 * [ ] Fix formatter error when `candidate is not viable`
 * [ ] Multiple output types
 * [ ] Generate temporary files in tmp dir
-* [ ] Make `print <:String>` print without newline
 * [ ] Allow generics types usage
 * [ ] Check errors in repl too
 * [ ] Add more checks for compiler

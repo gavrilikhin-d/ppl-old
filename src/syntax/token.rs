@@ -105,7 +105,7 @@ pub enum Token {
     FatArrow,
 
     /// String literal
-    #[regex("\"[^\n\"]*\"")]
+    #[regex(r#""(?:[^"\\]|\\.)*""#)]
     String,
 
     /// '@' token

@@ -597,6 +597,7 @@ dependencies = [
  "rug",
  "runtime",
  "thiserror",
+ "unescaper",
 ]
 
 [[package]]
@@ -839,6 +840,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.29",
+]
+
+[[package]]
+name = "unescaper"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a96a44ae11e25afb520af4534fd7b0bd8cd613e35a78def813b8cf41631fa3c8"
+dependencies = [
+ "thiserror",
 ]
 
 [[package]]
