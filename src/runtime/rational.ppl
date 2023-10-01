@@ -1,0 +1,31 @@
+use bool.Bool
+use string.String
+
+type Rational
+
+@mangle_as("rational_eq_rational")
+fn <:Rational> == <:Rational> -> Bool
+
+@mangle_as("rational_less_rational")
+fn <:Rational> < <:Rational> -> Bool
+
+fn + <x: Rational> => x
+
+@mangle_as("minus_rational")
+fn - <:Rational> -> Rational
+
+@mangle_as("rational_plus_rational")
+fn <:Rational> + <:Rational> -> Rational
+
+fn <x: Rational> - <y: Rational> => x + -y
+
+@mangle_as("rational_star_rational")
+fn <:Rational> * <:Rational> -> Rational
+
+// TODO: return error on division by zero
+@mangle_as("rational_slash_rational")
+fn <:Rational> / <:Rational> -> Rational
+
+/// Convert `Rational` to `String`
+@mangle_as("rational_as_string")
+fn <:Rational> as String -> String

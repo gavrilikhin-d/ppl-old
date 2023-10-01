@@ -1,0 +1,27 @@
+use string.String
+
+type Bool
+
+/// Negate boolean value
+fn not <x:Bool> -> Bool:
+	if x:
+		return false
+	return true
+
+/// Logic-and function
+fn <x: Bool> and <y: Bool> -> Bool:
+	if x:
+		return y
+	return false
+
+/// Logic-or function
+fn <x: Bool> or <y: Bool> -> Bool:
+	if x:
+		return true
+	return y
+
+/// Convert `Bool` to `String`
+fn <x: Bool> as String -> String:
+	if x:
+		return "true"
+	return "false"

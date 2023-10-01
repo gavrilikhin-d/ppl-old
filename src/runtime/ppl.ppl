@@ -2,133 +2,31 @@
 // don't forget to threat it as special in TypeDeclaration and hir_to_ir.rs
 // IMPORTANT: add precedence for new binary operators
 
-use `none`.None
-use string.String
-use string.`print <:String>`
-use string.`<:None> as String`
-
-//=================================
-//              Bool
-//=================================
-type Bool
-
-/// Negate boolean value
-fn not <x:Bool> -> Bool:
-	if x:
-		return false
-	return true
-
-/// Logic-and function
-fn <x: Bool> and <y: Bool> -> Bool:
-	if x:
-		return y
-	return false
-
-/// Logic-or function
-fn <x: Bool> or <y: Bool> -> Bool:
-	if x:
-		return true
-	return y
-
-/// Convert `Bool` to `String`
-fn <x: Bool> as String -> String:
-	if x:
-		return "true"
-	return "false"
-//---------------------------------
+use `none`.*
+use bool.*
+use integer.*
+use rational.*
+use string.*
 
 
-//=================================
-//            Integer
-//=================================
-type Integer
 
-@mangle_as("integer_eq_integer")
-fn <:Integer> == <:Integer> -> Bool
-
-@mangle_as("integer_less_integer")
-fn <:Integer> < <:Integer> -> Bool
-
-fn + <x: Integer> => x
-
-@mangle_as("minus_integer")
-fn - <:Integer> -> Integer
-
-@mangle_as("integer_plus_integer")
-fn <:Integer> + <:Integer> -> Integer
-
-fn <x: Integer> - <y: Integer> => x + -y
-
-@mangle_as("integer_star_integer")
-fn <:Integer> * <:Integer> -> Integer
-
-// TODO: return error on division by zero
-@mangle_as("integer_slash_integer")
-fn <:Integer> / <:Integer> -> Rational
-
-/// Convert `Integer` to `String`
-@mangle_as("integer_as_string")
-fn <:Integer> as String -> String
-//---------------------------------
-
-//=================================
-//            Rational
-//=================================
-type Rational
-
-@mangle_as("rational_eq_rational")
-fn <:Rational> == <:Rational> -> Bool
-
-@mangle_as("rational_less_rational")
-fn <:Rational> < <:Rational> -> Bool
-
-fn + <x: Rational> => x
-
-@mangle_as("minus_rational")
-fn - <:Rational> -> Rational
-
-@mangle_as("rational_plus_rational")
-fn <:Rational> + <:Rational> -> Rational
-
-fn <x: Rational> - <y: Rational> => x + -y
-
-@mangle_as("rational_star_rational")
-fn <:Rational> * <:Rational> -> Rational
-
-// TODO: return error on division by zero
-@mangle_as("rational_slash_rational")
-fn <:Rational> / <:Rational> -> Rational
-
-/// Convert `Rational` to `String`
-@mangle_as("rational_as_string")
-fn <:Rational> as String -> String
-//---------------------------------
-
-//=================================
-//            AsString
-//=================================
 /// Trait for things that may be interpreted as string
 trait AsString:
 	fn <:Self> as String -> String
 
 /// Print anything that may be interpreted as String
 fn print <x: AsString> => print (x as String)
-//---------------------------------
 
-//=================================
-//             Eq
-//=================================
+
+
 /// Trait for things that may be compared for equality
 trait Eq:
 	fn <:Self> == <:Self> -> Bool
 
 	fn <x: Self> != <y: Self> => not (x == y)
 
-//---------------------------------
 
-//=================================
-//              Ord
-//=================================
+
 /// Trait for things that may be ordered
 trait Ord:
 	fn <:Self> < <:Self> -> Bool
@@ -136,5 +34,3 @@ trait Ord:
 	fn <x: Self> >  <y: Self> => y < x
 	fn <x: Self> <= <y: Self> => not (x > y)
 	fn <x: Self> >= <y: Self> => not (x < y)
-
-//---------------------------------
