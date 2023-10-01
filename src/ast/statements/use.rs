@@ -44,6 +44,12 @@ impl Parse for Use {
             if context.lexer.consume(Token::Dot).is_err() {
                 break;
             }
+
+            if context.lexer.peek_slice() == "*" {
+                context.lexer.next();
+                path.push(context.lexer.string_with_offset());
+                break;
+            }
         }
 
         Ok(Use { offset, path })

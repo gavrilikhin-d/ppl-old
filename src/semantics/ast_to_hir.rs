@@ -763,6 +763,16 @@ impl ASTLoweringWithinContext for ast::Use {
 
         let name = self.path.last().unwrap().as_str();
 
+        if name == "*" {
+            context.module_mut().variables.extend(module.variables);
+            context.module_mut().types.extend(module.types);
+            context.module_mut().functions.extend(module.functions);
+            return Ok(hir::Use {
+                path: self.path.clone(),
+                imported_item: hir::ImportedItem::All,
+            });
+        }
+
         let imported_item: hir::ImportedItem = if let Some(var) = module.variables.get(name) {
             context
                 .module_mut()
