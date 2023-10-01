@@ -29,8 +29,9 @@
 * [X] Add testing CI
 ---
 ### Current task
-* [ ] Fix formatter error when `candidate is not viable`
+* [ ] Context that keep tracks of all modules
 ---
+* [ ] Fix formatter error when `candidate is not viable`
 * [ ] More functions to stdlib
 * [ ] Multiple output types
 * [ ] Generate temporary files in tmp dir
