@@ -29,9 +29,9 @@
 * [X] Add testing CI
 ---
 ### Current task
-* [ ] More functions to stdlib
----
 * [ ] Fix formatter error when `candidate is not viable`
+---
+* [ ] More functions to stdlib
 * [ ] Multiple output types
 * [ ] Generate temporary files in tmp dir
 * [ ] Allow generics types usage
