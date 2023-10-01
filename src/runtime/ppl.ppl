@@ -5,6 +5,7 @@
 use `none`.None
 use string.String
 use string.`print <:String>`
+use string.`<:None> as String`
 
 //=================================
 //              Bool
