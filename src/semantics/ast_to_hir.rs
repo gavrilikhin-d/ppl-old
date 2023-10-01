@@ -758,10 +758,8 @@ impl ASTLoweringWithinContext for ast::Use {
             panic!("Currently only module.declaration_name usage is supported");
         }
 
-        let filename = format!("{}.ppl", self.path.first().unwrap().as_str());
-
-        // TODO: cache processed module
-        let module = hir::Module::from_file(std::path::Path::new(&filename)).unwrap();
+        let module_name = self.path.first().unwrap().as_str();
+        let module = context.resolve_module(module_name).unwrap();
 
         let name = self.path.last().unwrap().as_str();
 

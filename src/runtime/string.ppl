@@ -1,0 +1,10 @@
+use `none`.None
+
+type String
+
+/// Prints string to stdout with newline
+@mangle_as("print_string")
+fn print <:String>
+
+/// Convert `None` to `String`
+fn <:None> as String => "none"

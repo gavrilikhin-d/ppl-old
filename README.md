@@ -29,8 +29,9 @@
 * [X] Add testing CI
 ---
 ### Current task
-* [ ] Fix formatter error when `candidate is not viable`
+* [ ] Multifile compilation and imports
 ---
+* [ ] Fix formatter error when `candidate is not viable`
 * [ ] More functions to stdlib
 * [ ] Multiple output types
 * [ ] Generate temporary files in tmp dir
@@ -47,5 +48,4 @@
 * [ ] Explicit traits implementation
 * [ ] Functions as values
 * [ ] Add type unions `A | B`, `A & B`
-* [ ] Multifile compilation and imports
 * [ ] Add all `c` types

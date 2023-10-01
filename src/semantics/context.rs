@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    path::Path,
     sync::{Arc, Weak},
 };
 
@@ -129,6 +130,14 @@ pub trait Context {
             })
             .cloned()
     }
+
+    /// Resolve module by name.
+    ///
+    /// # Algorithm
+    /// In the directory of current module
+    /// 1. Look for `{name}.ppl`
+    /// 2. Look for `{name}/mod.ppl`
+    fn resolve_module(&mut self, name: &str) -> miette::Result<Module>;
 }
 
 /// Helper struct to get builtin things
@@ -155,7 +164,12 @@ pub struct BuiltinTypes<'m> {
 impl BuiltinTypes<'_> {
     /// Get builtin type by name
     fn get_type(&self, name: &str) -> Type {
-        self.module.types.get(name).unwrap().clone().into()
+        self.module
+            .types
+            .get(name)
+            .expect(format!("Bultin types should have {name}").as_str())
+            .clone()
+            .into()
     }
 
     /// Get builtin "None" type
@@ -305,6 +319,26 @@ impl Context for ModuleContext {
         }
         funcs
     }
+
+    /// Resolve module by name.
+    ///
+    /// # Algorithm
+    /// In the directory of current module
+    /// 1. Look for `{name}.ppl`
+    /// 2. Look for `{name}/mod.ppl`
+    fn resolve_module(&mut self, name: &str) -> miette::Result<Module> {
+        let dir = Path::new(&self.module.filename)
+            .parent()
+            .unwrap_or(Path::new(""));
+
+        // TODO: caching
+        // TODO: better errors
+        let mut path = dir.join(format!("{}.ppl", name));
+        if !path.exists() {
+            path = dir.join(name).join("mod.ppl");
+        }
+        Module::from_file_with_builtin(&path, self.module.is_builtin)
+    }
 }
 
 /// Context for lowering body of function
@@ -372,6 +406,10 @@ impl Context for FunctionContext<'_> {
 
     fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
         self.parent.functions_with_format(format)
+    }
+
+    fn resolve_module(&mut self, name: &str) -> miette::Result<Module> {
+        self.parent.resolve_module(name)
     }
 }
 
@@ -455,6 +493,10 @@ impl Context for TraitContext<'_> {
     fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
         self.parent.functions_with_format(format)
     }
+
+    fn resolve_module(&mut self, name: &str) -> miette::Result<Module> {
+        self.parent.resolve_module(name)
+    }
 }
 
 /// Context for lowering body of types
@@ -521,5 +563,9 @@ impl Context for TypeContext<'_> {
 
     fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
         self.parent.functions_with_format(format)
+    }
+
+    fn resolve_module(&mut self, name: &str) -> miette::Result<Module> {
+        self.parent.resolve_module(name)
     }
 }

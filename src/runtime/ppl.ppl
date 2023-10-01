@@ -2,15 +2,9 @@
 // don't forget to threat it as special in TypeDeclaration and hir_to_ir.rs
 // IMPORTANT: add precedence for new binary operators
 
-//=================================
-//              None
-//=================================
-type None
-
-/// Convert `None` to `String`
-fn <:None> as String => "none"
-//---------------------------------
-
+use `none`.None
+use string.String
+use string.`print <:String>`
 
 //=================================
 //              Bool
@@ -107,16 +101,6 @@ fn <:Rational> / <:Rational> -> Rational
 /// Convert `Rational` to `String`
 @mangle_as("rational_as_string")
 fn <:Rational> as String -> String
-//---------------------------------
-
-//=================================
-//            String
-//=================================
-type String
-
-/// Prints string to stdout with newline
-@mangle_as("print_string")
-fn print <:String>
 //---------------------------------
 
 //=================================
