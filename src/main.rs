@@ -8,6 +8,7 @@ use clap::Parser;
 use inkwell::OptimizationLevel;
 use log::debug;
 use ppl::ast::*;
+use ppl::compilation::Compiler;
 use ppl::driver::{self, Execute};
 use ppl::hir::{self, Type, Typed};
 use ppl::ir;
@@ -92,8 +93,10 @@ fn process_single_statement<'llvm>(
 
 /// Read-Evaluate-Print Loop
 fn repl() {
+    let mut compiler = Compiler::new();
     let mut ast_context = ModuleContext {
         module: hir::Module::new("repl", ""),
+        compiler: &mut compiler,
     };
 
     let llvm = inkwell::context::Context::create();

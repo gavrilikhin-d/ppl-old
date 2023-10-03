@@ -1,6 +1,11 @@
-use std::{collections::HashMap, path::PathBuf, sync::Arc};
+use std::{collections::HashMap, fs, path::PathBuf, sync::Arc};
 
-use crate::hir::Module;
+use crate::{
+    ast,
+    hir::Module,
+    semantics::{ASTLoweringWithinModule, ModuleContext},
+};
+use log::debug;
 use miette::miette;
 
 /// Struct that compiles and caches modules
@@ -60,17 +65,40 @@ impl Compiler {
             return Ok(module.clone());
         }
 
-        let path = vec![
+        let variants = vec![
             self.root.join(format!("{name}.ppl")),
             self.root.join(name).join("mod.ppl"),
-        ]
-        .iter()
-        .filter(|p| p.exists())
-        .next()
-        .cloned()
-        .ok_or_else(|| miette!("Module {name} not found"))?;
+        ];
 
-        let module = Arc::new(Module::from_file_with_builtin(&path, self.is_builtin)?);
+        let path = variants
+            .iter()
+            .filter(|p| p.exists())
+            .next()
+            .cloned()
+            .ok_or_else(|| miette!("Module `{name}` not found. Tried {:#?}", variants))?;
+
+        let ast = ast::Module::from_file(&path)?;
+        debug!(target: "ast", "{:#?}", ast);
+
+        let mut module = Module::new(
+            path.file_stem().unwrap().to_str().unwrap(),
+            path.to_str().unwrap(),
+        );
+        module.is_builtin = self.is_builtin;
+
+        let content = fs::read_to_string(&path).map_err(|e| miette!("{path:?}: {e}"))?;
+
+        let mut context = ModuleContext {
+            module,
+            compiler: self,
+        };
+        ast.lower_to_hir_within_context(&mut context).map_err(|e| {
+            miette::Report::from(e)
+                .with_source_code(miette::NamedSource::new(path.to_string_lossy(), content))
+        })?;
+        debug!(target: "hir", "{:#?}", context.module);
+
+        let module = Arc::new(context.module);
         self.modules.insert(name.to_string(), module.clone());
         Ok(module)
     }

@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use crate::hir::Module;
+use crate::compilation::Compiler;
 use crate::ir::HIRModuleLowering;
 use log::debug;
 use miette::miette;
@@ -34,7 +34,13 @@ impl Execute for Compile {
 
     /// Compile single ppl file
     fn execute(&self) -> Self::Output {
-        let module = Module::from_file_with_builtin(&self.file, self.no_core)?;
+        let mut compiler = Compiler::new().at(self.file.parent().unwrap());
+        println!("{}", compiler.root.to_str().unwrap());
+        compiler.is_builtin = self.no_core;
+
+        let name = self.file.file_stem().map(|n| n.to_str()).flatten().unwrap();
+        let module = compiler.get_module(name)?;
+
         let llvm = inkwell::context::Context::create();
         let ir = module.lower_to_ir(&llvm);
         debug!(target: "ir", "{}", ir.to_string());

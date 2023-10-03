@@ -5,6 +5,7 @@ use std::{
 
 use crate::{
     ast::CallNamePart,
+    compilation::Compiler,
     hir::{
         Expression, Function, FunctionDeclaration, FunctionNamePart, GenericType, Module, Name,
         ParameterOrVariable, SelfType, TraitDeclaration, Type, TypeDeclaration, Typed,
@@ -15,6 +16,9 @@ use crate::{
 
 /// Trait for various AST lowering contexts
 pub trait Context {
+    /// Get compiler
+    fn compiler(&mut self) -> &mut Compiler;
+
     /// Get current module this context is for
     fn module(&self) -> &Module;
 
@@ -139,6 +143,11 @@ pub trait ChildContext {
     /// Get parent context
     fn parent_mut(&mut self) -> &mut dyn Context;
 
+    /// Get compiler
+    fn compiler(&mut self) -> &mut Compiler {
+        self.parent_mut().compiler()
+    }
+
     /// Get current module this context is for
     fn module(&self) -> &Module {
         self.parent().module()
@@ -206,6 +215,10 @@ pub trait ChildContext {
 }
 
 impl<CC: ChildContext> Context for CC {
+    fn compiler(&mut self) -> &mut Compiler {
+        (self as &mut CC).compiler()
+    }
+
     /// Get current module this context is for
     fn module(&self) -> &Module {
         (self as &CC).module()
@@ -313,20 +326,27 @@ impl BuiltinTypes<'_> {
 }
 
 /// Context for lowering content of module
-pub struct ModuleContext {
+pub struct ModuleContext<'c> {
     /// Module, which is being lowered
     pub module: Module,
+    /// Compiler for modules
+    pub compiler: &'c mut Compiler,
 }
 
-impl Default for ModuleContext {
-    fn default() -> Self {
+impl<'c> ModuleContext<'c> {
+    pub fn new(compiler: &'c mut Compiler) -> Self {
         Self {
             module: Module::default(),
+            compiler,
         }
     }
 }
 
-impl Context for ModuleContext {
+impl Context for ModuleContext<'_> {
+    fn compiler(&mut self) -> &mut Compiler {
+        self.compiler
+    }
+
     fn module(&self) -> &Module {
         &self.module
     }
