@@ -293,36 +293,23 @@ pub struct BuiltinTypes<'m> {
     module: &'m Module,
 }
 
+/// Helper macro to add builtin types
+macro_rules! builtin_types {
+    ($($name: ident),*) => {
+        $(pub fn $name(&self) -> Type {
+            let name = stringify!($name);
+            self.get_type(&format!("{}{}", name[0..1].to_uppercase(), &name[1..]))
+        })*
+    };
+}
+
 impl BuiltinTypes<'_> {
     /// Get builtin type by name
     fn get_type(&self, name: &str) -> Type {
         self.module.types.get(name).unwrap().clone().into()
     }
 
-    /// Get builtin "None" type
-    pub fn none(&self) -> Type {
-        self.get_type("None")
-    }
-
-    /// Get builtin "Bool" type
-    pub fn bool(&self) -> Type {
-        self.get_type("Bool")
-    }
-
-    /// Get builtin "Integer" type
-    pub fn integer(&self) -> Type {
-        self.get_type("Integer")
-    }
-
-    /// Get builtin "Rational" type
-    pub fn rational(&self) -> Type {
-        self.get_type("Rational")
-    }
-
-    /// Get builtin "String" type
-    pub fn string(&self) -> Type {
-        self.get_type("String")
-    }
+    builtin_types!(none, bool, integer, rational, string);
 }
 
 /// Context for lowering content of module
