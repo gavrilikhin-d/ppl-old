@@ -2,8 +2,10 @@
 
 use std::cell::Cell;
 use std::io::Write;
+use std::path::Path;
 
 use clap::Parser;
+use inkwell::OptimizationLevel;
 use log::debug;
 use ppl::ast::*;
 use ppl::compilation::Compiler;
@@ -21,7 +23,8 @@ extern crate runtime;
 fn process_single_statement<'llvm>(
     parse_context: &mut ppl::syntax::Context<impl Lexer>,
     ast_lowering_context: &mut ModuleContext,
-    compiler: &mut Compiler<'llvm>,
+    llvm: &inkwell::context::Context,
+    engine: &mut inkwell::execution_engine::ExecutionEngine<'llvm>,
 ) -> miette::Result<()> {
     let ast = Statement::parse(parse_context)?;
     debug!(target: "ast", "{:#?}", ast);
@@ -29,7 +32,7 @@ fn process_single_statement<'llvm>(
     let hir = ast.lower_to_hir_within_context(ast_lowering_context)?;
     debug!(target: "hir", "{:#?}", hir);
 
-    let module = compiler.llvm.create_module("main");
+    let module = llvm.create_module("main");
     let mut context = ir::ModuleContext::new(module);
     hir.lower_global_to_ir(&mut context);
 
@@ -39,16 +42,16 @@ fn process_single_statement<'llvm>(
 
     module.verify().unwrap();
 
-    compiler.engine.add_module(module).unwrap();
+    engine.add_module(module).unwrap();
 
     if let Some(f) = module.get_function("initialize") {
         unsafe {
-            compiler.engine.run_function(f, &[]);
+            engine.run_function(f, &[]);
         }
     }
 
     if let Some(f) = module.get_function("execute") {
-        let result = unsafe { compiler.engine.run_function(f, &[]) };
+        let result = unsafe { engine.run_function(f, &[]) };
         if let hir::Statement::Expression(expr) = hir {
             match expr.ty() {
                 Type::Class(c) => {
@@ -90,12 +93,28 @@ fn process_single_statement<'llvm>(
 
 /// Read-Evaluate-Print Loop
 fn repl() {
+    let mut compiler = Compiler::new();
     let mut ast_context = ModuleContext {
         module: hir::Module::new("repl", ""),
+        compiler: &mut compiler,
     };
 
     let llvm = inkwell::context::Context::create();
-    let mut compiler = Compiler::new(&llvm);
+    /* TODO: settings (Optimization, etc) */
+    let mut engine = llvm
+        .create_module("")
+        .create_jit_execution_engine(OptimizationLevel::None)
+        .unwrap();
+
+    // TODO: env var for runtime path
+    let runtime_folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/runtime");
+    let lib_path = runtime_folder
+        .join("target/debug/libruntime.dylib")
+        .to_str()
+        .unwrap()
+        .to_string();
+    let error = inkwell::support::load_library_permanently(&lib_path);
+    assert!(!error, "Failed to load runtime library at: {}", &lib_path);
 
     let prompt = Cell::new(Some(">>> "));
     let get_line = || -> String {
@@ -122,7 +141,7 @@ fn repl() {
     let mut parse_context = ppl::syntax::Context::new(InteractiveLexer::new(get_line));
     loop {
         if let Err(err) =
-            process_single_statement(&mut parse_context, &mut ast_context, &mut compiler)
+            process_single_statement(&mut parse_context, &mut ast_context, &llvm, &mut engine)
         {
             println!(
                 "{:?}",

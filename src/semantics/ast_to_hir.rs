@@ -1,6 +1,7 @@
 use core::panic;
 use std::sync::Arc;
 
+use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{self, FunctionNamePart, GenericType, Type, Typed};
 use crate::mutability::Mutable;
@@ -758,10 +759,8 @@ impl ASTLoweringWithinContext for ast::Use {
             panic!("Currently only module.declaration_name usage is supported");
         }
 
-        let filename = format!("{}.ppl", self.path.first().unwrap().as_str());
-
-        // TODO: cache processed module
-        let module = hir::Module::from_file(std::path::Path::new(&filename)).unwrap();
+        let module_name = self.path.first().unwrap().as_str();
+        let module = context.compiler().get_module(module_name).unwrap();
 
         let name = self.path.last().unwrap().as_str();
 
@@ -853,7 +852,8 @@ impl<T: ASTLoweringWithinContext> ASTLowering for T {
 
     /// Lower AST to HIR
     fn lower_to_hir(&self) -> Result<Self::HIR, Error> {
-        let mut context = ModuleContext::default();
+        let mut compiler = Compiler::new();
+        let mut context = ModuleContext::new(&mut compiler);
         self.lower_to_hir_within_context(&mut context)
     }
 }
@@ -862,7 +862,8 @@ impl ASTLowering for ast::Module {
     type HIR = hir::Module;
 
     fn lower_to_hir(&self) -> Result<Self::HIR, Error> {
-        let mut context = ModuleContext::default();
+        let mut compiler = Compiler::new();
+        let mut context = ModuleContext::new(&mut compiler);
         self.lower_to_hir_within_context(&mut context)?;
         Ok(context.module)
     }

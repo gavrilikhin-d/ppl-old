@@ -2,13 +2,10 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use derive_more::From;
-use log::debug;
 
-use crate::ast;
+use crate::compilation::Compiler;
 use crate::hir::{Statement, TypeDeclaration, VariableDeclaration};
 use crate::named::Named;
-use crate::semantics::{ASTLoweringWithinModule, ModuleContext};
-use miette::miette;
 use std::sync::{Arc, LazyLock};
 
 use super::{Function, FunctionDefinition, TraitDeclaration, Type};
@@ -84,60 +81,13 @@ impl Module {
         }
     }
 
-    /// Create module from file with providing builtin module
-    pub(crate) fn from_file_with_builtin(path: &Path, is_builtin: bool) -> miette::Result<Self> {
-        let content = std::fs::read_to_string(path).map_err(|e| miette!("{path:?}: {e}"))?;
-
-        let ast = content.parse::<ast::Module>().map_err(|e| {
-            miette::Report::from(e).with_source_code(miette::NamedSource::new(
-                path.to_string_lossy(),
-                content.clone(),
-            ))
-        })?;
-        debug!(target: "ast", "{:#?}", ast);
-
-        let mut module = Module::new(
-            path.file_stem().unwrap().to_str().unwrap(),
-            path.to_str().unwrap(),
-        );
-        module.is_builtin = is_builtin;
-
-        let mut context = ModuleContext { module };
-        ast.lower_to_hir_within_context(&mut context).map_err(|e| {
-            miette::Report::from(e)
-                .with_source_code(miette::NamedSource::new(path.to_string_lossy(), content))
-        })?;
-        debug!(target: "hir", "{:#?}", context.module);
-
-        Ok(context.module)
-    }
-
-    /// Create module from file
-    pub fn from_file(path: &Path) -> miette::Result<Self> {
-        Module::from_file_with_builtin(path, false)
-    }
-
-    /// Create builtin module
-    fn create_builtin_from_file(path: &Path) -> miette::Result<Self> {
-        Module::from_file_with_builtin(path, true)
-    }
-
     /// Create builtin module
     pub(crate) fn create_builtin() -> Self {
-        let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime/ppl.ppl"));
+        let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime"));
 
-        let module = Self::create_builtin_from_file(path);
-        if let Err(err) = module {
-            panic!(
-                "Error in builtin module: {:?}",
-                err.with_source_code(miette::NamedSource::new(
-                    path.file_name().unwrap().to_str().unwrap(),
-                    std::fs::read_to_string(path).unwrap()
-                ))
-            );
-        }
+        let module = Compiler::for_builtin().at(path).get_module("ppl").unwrap();
 
-        module.unwrap()
+        Arc::into_inner(module).unwrap()
     }
 
     /// Get builtin module

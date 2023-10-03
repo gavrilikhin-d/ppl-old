@@ -5,6 +5,7 @@ use std::{
 
 use crate::{
     ast::CallNamePart,
+    compilation::Compiler,
     hir::{
         Expression, Function, FunctionDeclaration, FunctionNamePart, GenericType, Module, Name,
         ParameterOrVariable, SelfType, TraitDeclaration, Type, TypeDeclaration, Typed,
@@ -15,6 +16,9 @@ use crate::{
 
 /// Trait for various AST lowering contexts
 pub trait Context {
+    /// Get compiler
+    fn compiler(&mut self) -> &mut Compiler;
+
     /// Get current module this context is for
     fn module(&self) -> &Module;
 
@@ -131,6 +135,156 @@ pub trait Context {
     }
 }
 
+/// Context that is a child of another context
+pub trait ChildContext {
+    /// Get parent context
+    fn parent(&self) -> &dyn Context;
+
+    /// Get parent context
+    fn parent_mut(&mut self) -> &mut dyn Context;
+
+    /// Get compiler
+    fn compiler(&mut self) -> &mut Compiler {
+        self.parent_mut().compiler()
+    }
+
+    /// Get current module this context is for
+    fn module(&self) -> &Module {
+        self.parent().module()
+    }
+
+    /// Get current module this context is for
+    fn module_mut(&mut self) -> &mut Module {
+        self.parent_mut().module_mut()
+    }
+
+    /// Get module context of builtin module
+    fn builtin(&self) -> BuiltinContext {
+        self.parent().builtin()
+    }
+
+    /// Get current function
+    fn function(&self) -> Option<Arc<FunctionDeclaration>> {
+        self.parent().function()
+    }
+
+    /// Find type by name
+    fn find_type(&self, name: &str) -> Option<Type> {
+        self.parent().find_type(name)
+    }
+
+    /// Find variable by name
+    fn find_variable(&self, name: &str) -> Option<ParameterOrVariable> {
+        self.parent().find_variable(name)
+    }
+
+    /// Add type to context
+    fn add_type(&mut self, ty: Arc<TypeDeclaration>) {
+        self.parent_mut().add_type(ty)
+    }
+
+    /// Add trait to context
+    fn add_trait(&mut self, tr: Arc<TraitDeclaration>) {
+        self.parent_mut().add_trait(tr)
+    }
+
+    /// Add function to context
+    fn add_function(&mut self, f: Function) {
+        self.parent_mut().add_function(f)
+    }
+
+    /// Add variable to context
+    fn add_variable(&mut self, v: Arc<VariableDeclaration>) {
+        self.parent_mut().add_variable(v)
+    }
+
+    /// Get all visible functions
+    fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
+        self.parent().functions_with_n_name_parts(n)
+    }
+
+    /// Get function with same name
+    fn function_with_name(&self, name: &str) -> Option<Function> {
+        self.parent().function_with_name(name)
+    }
+
+    /// Get all functions with same name format
+    fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
+        self.parent().functions_with_format(format)
+    }
+}
+
+impl<CC: ChildContext> Context for CC {
+    fn compiler(&mut self) -> &mut Compiler {
+        (self as &mut CC).compiler()
+    }
+
+    /// Get current module this context is for
+    fn module(&self) -> &Module {
+        (self as &CC).module()
+    }
+
+    /// Get current module this context is for
+    fn module_mut(&mut self) -> &mut Module {
+        (self as &mut CC).module_mut()
+    }
+
+    /// Get module context of builtin module
+    fn builtin(&self) -> BuiltinContext {
+        (self as &CC).builtin()
+    }
+
+    /// Get current function
+    fn function(&self) -> Option<Arc<FunctionDeclaration>> {
+        (self as &CC).function()
+    }
+
+    /// Find type by name
+    fn find_type(&self, name: &str) -> Option<Type> {
+        (self as &CC).find_type(name)
+    }
+
+    /// Find variable by name
+    fn find_variable(&self, name: &str) -> Option<ParameterOrVariable> {
+        (self as &CC).find_variable(name)
+    }
+
+    /// Add type to context
+    fn add_type(&mut self, ty: Arc<TypeDeclaration>) {
+        (self as &mut CC).add_type(ty)
+    }
+
+    /// Add trait to context
+    fn add_trait(&mut self, tr: Arc<TraitDeclaration>) {
+        (self as &mut CC).add_trait(tr)
+    }
+
+    /// Add function to context
+    fn add_function(&mut self, f: Function) {
+        (self as &mut CC).add_function(f)
+    }
+
+    /// Add variable to context
+    fn add_variable(&mut self, v: Arc<VariableDeclaration>) {
+        (self as &mut CC).add_variable(v)
+    }
+
+    /// Get all visible functions
+    fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
+        (self as &CC).functions_with_n_name_parts(n)
+    }
+
+    /// Get function with same name
+    fn function_with_name(&self, name: &str) -> Option<Function> {
+        (self as &CC).function_with_name(name)
+    }
+
+    /// Get all functions with same name format
+    fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
+        (self as &CC).functions_with_format(format)
+    }
+}
+
 /// Helper struct to get builtin things
 pub struct BuiltinContext<'m> {
     /// Builtin module
@@ -152,53 +306,47 @@ pub struct BuiltinTypes<'m> {
     module: &'m Module,
 }
 
+/// Helper macro to add builtin types
+macro_rules! builtin_types {
+    ($($name: ident),*) => {
+        $(pub fn $name(&self) -> Type {
+            let name = stringify!($name);
+            self.get_type(&format!("{}{}", name[0..1].to_uppercase(), &name[1..]))
+        })*
+    };
+}
+
 impl BuiltinTypes<'_> {
     /// Get builtin type by name
     fn get_type(&self, name: &str) -> Type {
         self.module.types.get(name).unwrap().clone().into()
     }
 
-    /// Get builtin "None" type
-    pub fn none(&self) -> Type {
-        self.get_type("None")
-    }
-
-    /// Get builtin "Bool" type
-    pub fn bool(&self) -> Type {
-        self.get_type("Bool")
-    }
-
-    /// Get builtin "Integer" type
-    pub fn integer(&self) -> Type {
-        self.get_type("Integer")
-    }
-
-    /// Get builtin "Rational" type
-    pub fn rational(&self) -> Type {
-        self.get_type("Rational")
-    }
-
-    /// Get builtin "String" type
-    pub fn string(&self) -> Type {
-        self.get_type("String")
-    }
+    builtin_types!(none, bool, integer, rational, string);
 }
 
 /// Context for lowering content of module
-pub struct ModuleContext {
+pub struct ModuleContext<'c> {
     /// Module, which is being lowered
     pub module: Module,
+    /// Compiler for modules
+    pub compiler: &'c mut Compiler,
 }
 
-impl Default for ModuleContext {
-    fn default() -> Self {
+impl<'c> ModuleContext<'c> {
+    pub fn new(compiler: &'c mut Compiler) -> Self {
         Self {
             module: Module::default(),
+            compiler,
         }
     }
 }
 
-impl Context for ModuleContext {
+impl Context for ModuleContext<'_> {
+    fn compiler(&mut self) -> &mut Compiler {
+        self.compiler
+    }
+
     fn module(&self) -> &Module {
         &self.module
     }
@@ -316,25 +464,17 @@ pub struct FunctionContext<'p> {
     pub parent: &'p mut dyn Context,
 }
 
-impl Context for FunctionContext<'_> {
-    fn module(&self) -> &Module {
-        &self.parent.module()
+impl ChildContext for FunctionContext<'_> {
+    fn parent(&self) -> &dyn Context {
+        self.parent
     }
 
-    fn module_mut(&mut self) -> &mut Module {
-        self.parent.module_mut()
-    }
-
-    fn builtin(&self) -> BuiltinContext {
-        self.parent.builtin()
+    fn parent_mut(&mut self) -> &mut dyn Context {
+        self.parent
     }
 
     fn function(&self) -> Option<Arc<FunctionDeclaration>> {
         Some(self.function.clone())
-    }
-
-    fn find_type(&self, name: &str) -> Option<Type> {
-        self.parent.find_type(name)
     }
 
     fn find_variable(&self, name: &str) -> Option<ParameterOrVariable> {
@@ -361,18 +501,6 @@ impl Context for FunctionContext<'_> {
     fn add_variable(&mut self, _v: Arc<VariableDeclaration>) {
         todo!("local variables")
     }
-
-    fn function_with_name(&self, name: &str) -> Option<Function> {
-        self.parent.function_with_name(name)
-    }
-
-    fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
-        self.parent.functions_with_n_name_parts(n)
-    }
-
-    fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
-        self.parent.functions_with_format(format)
-    }
 }
 
 /// Context for lowering body of trait
@@ -387,21 +515,13 @@ pub struct TraitContext<'p> {
     pub parent: &'p mut dyn Context,
 }
 
-impl Context for TraitContext<'_> {
-    fn module(&self) -> &Module {
-        &self.parent.module()
+impl ChildContext for TraitContext<'_> {
+    fn parent(&self) -> &dyn Context {
+        self.parent
     }
 
-    fn module_mut(&mut self) -> &mut Module {
-        self.parent.module_mut()
-    }
-
-    fn builtin(&self) -> BuiltinContext {
-        self.parent.builtin()
-    }
-
-    fn function(&self) -> Option<Arc<FunctionDeclaration>> {
-        self.parent.function()
+    fn parent_mut(&mut self) -> &mut dyn Context {
+        self.parent
     }
 
     fn find_type(&self, name: &str) -> Option<Type> {
@@ -414,10 +534,6 @@ impl Context for TraitContext<'_> {
             );
         }
         self.parent.find_type(name)
-    }
-
-    fn find_variable(&self, name: &str) -> Option<ParameterOrVariable> {
-        self.parent.find_variable(name)
     }
 
     fn add_type(&mut self, _ty: Arc<TypeDeclaration>) {
@@ -436,10 +552,6 @@ impl Context for TraitContext<'_> {
         todo!("variables in traits")
     }
 
-    fn function_with_name(&self, name: &str) -> Option<Function> {
-        self.parent.function_with_name(name)
-    }
-
     fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
         let mut functions = self.parent.functions_with_n_name_parts(n);
         functions.extend(
@@ -450,10 +562,6 @@ impl Context for TraitContext<'_> {
                 .cloned(),
         );
         functions
-    }
-
-    fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
-        self.parent.functions_with_format(format)
     }
 }
 
@@ -466,21 +574,13 @@ pub struct TypeContext<'p> {
     pub parent: &'p mut dyn Context,
 }
 
-impl Context for TypeContext<'_> {
-    fn module(&self) -> &Module {
-        &self.parent.module()
+impl ChildContext for TypeContext<'_> {
+    fn parent(&self) -> &dyn Context {
+        self.parent
     }
 
-    fn module_mut(&mut self) -> &mut Module {
-        self.parent.module_mut()
-    }
-
-    fn builtin(&self) -> BuiltinContext {
-        self.parent.builtin()
-    }
-
-    fn function(&self) -> Option<Arc<FunctionDeclaration>> {
-        self.parent.function()
+    fn parent_mut(&mut self) -> &mut dyn Context {
+        self.parent
     }
 
     fn find_type(&self, name: &str) -> Option<Type> {
@@ -489,10 +589,6 @@ impl Context for TypeContext<'_> {
             .find(|p| p.name == name)
             .map(|p| Type::Generic(p.clone()))
             .or_else(|| self.parent.find_type(name))
-    }
-
-    fn find_variable(&self, name: &str) -> Option<ParameterOrVariable> {
-        self.parent.find_variable(name)
     }
 
     fn add_type(&mut self, _ty: Arc<TypeDeclaration>) {
@@ -509,17 +605,5 @@ impl Context for TypeContext<'_> {
 
     fn add_variable(&mut self, _v: Arc<VariableDeclaration>) {
         unreachable!("variables inside types")
-    }
-
-    fn function_with_name(&self, name: &str) -> Option<Function> {
-        self.parent.function_with_name(name)
-    }
-
-    fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
-        self.parent.functions_with_n_name_parts(n)
-    }
-
-    fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
-        self.parent.functions_with_format(format)
     }
 }
