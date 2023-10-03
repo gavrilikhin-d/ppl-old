@@ -1,3 +1,7 @@
+use std::{fs, path::Path};
+
+use miette::miette;
+
 use super::Statement;
 
 extern crate ast_derive;
@@ -26,5 +30,18 @@ impl Parse for Module {
         }
 
         Ok(Module { statements })
+    }
+}
+
+impl Module {
+    /// Parse module from file
+    pub fn from_file(path: &Path) -> miette::Result<Self> {
+        let source = fs::read_to_string(path).map_err(|e| miette!("{path:?}: {e}"))?;
+        source.parse().map_err(|e| {
+            miette::Report::from(e).with_source_code(miette::NamedSource::new(
+                path.to_string_lossy(),
+                source.clone(),
+            ))
+        })
     }
 }

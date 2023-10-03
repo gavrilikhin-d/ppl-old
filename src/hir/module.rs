@@ -86,14 +86,7 @@ impl Module {
 
     /// Create module from file with providing builtin module
     pub(crate) fn from_file_with_builtin(path: &Path, is_builtin: bool) -> miette::Result<Self> {
-        let content = std::fs::read_to_string(path).map_err(|e| miette!("{path:?}: {e}"))?;
-
-        let ast = content.parse::<ast::Module>().map_err(|e| {
-            miette::Report::from(e).with_source_code(miette::NamedSource::new(
-                path.to_string_lossy(),
-                content.clone(),
-            ))
-        })?;
+        let ast = ast::Module::from_file(path)?;
         debug!(target: "ast", "{:#?}", ast);
 
         let mut module = Module::new(
@@ -101,6 +94,8 @@ impl Module {
             path.to_str().unwrap(),
         );
         module.is_builtin = is_builtin;
+
+        let content = std::fs::read_to_string(path).map_err(|e| miette!("{path:?}: {e}"))?;
 
         let mut context = ModuleContext { module };
         ast.lower_to_hir_within_context(&mut context).map_err(|e| {
