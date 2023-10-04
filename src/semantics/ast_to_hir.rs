@@ -1,4 +1,6 @@
 use core::panic;
+use std::fs;
+use std::path::Path;
 use std::sync::Arc;
 
 use crate::compilation::Compiler;
@@ -198,6 +200,17 @@ impl ASTLoweringWithinContext for ast::Call {
 
         let mut candidates_not_viable = Vec::new();
         for f in candidates {
+            let source_code = context
+                .compiler()
+                .modules
+                .values()
+                .find(|m| {
+                    m.iter_functions()
+                        .find(|function| function.name() == f.name())
+                        .is_some()
+                })
+                .map(|m| fs::read_to_string(Path::new(&m.filename)).ok())
+                .flatten();
             let mut args = Vec::new();
             let mut failed = false;
             for (i, f_part) in f.name_parts().iter().enumerate() {
