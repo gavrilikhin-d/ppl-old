@@ -1,14 +1,14 @@
 Error: semantics::type_mismatch
 
-  × expected Integer type, got String
+  × expected `Integer` type, got `String`
    ╭─[wrong_initializer_type.ppl:1:1]
  1 │ type Point:
  2 │     x: Integer
    ·     ┬
-   ·     ╰── this has Integer type
+   ·     ╰── this has `Integer` type
  3 │ 
  4 │ Point { x: "" }
    ·            ─┬
-   ·             ╰── this has String type
+   ·             ╰── this has `String` type
    ╰────
 

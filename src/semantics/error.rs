@@ -9,7 +9,7 @@ use crate::{ast::FnKind, hir::Type};
 
 /// Diagnostic for undefined variables
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("variable '{name}' is not defined")]
+#[error("variable `{name}` is not defined")]
 #[diagnostic(code(semantics::undefined_variable))]
 pub struct UndefinedVariable {
     /// Name of undefined variable
@@ -22,7 +22,7 @@ pub struct UndefinedVariable {
 
 /// Diagnostic for unknown type
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("unknown type '{name}'")]
+#[error("unknown type `{name}`")]
 #[diagnostic(code(semantics::unknown_type))]
 pub struct UnknownType {
     /// Name of unknown type
@@ -35,7 +35,7 @@ pub struct UnknownType {
 
 /// Diagnostic for unknown annotations
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("unknown annotation '@{name}'")]
+#[error("unknown annotation `@{name}`")]
 #[diagnostic(code(semantics::unknown_annotation))]
 pub struct UnknownAnnotation {
     /// Name of unknown annotation
@@ -58,7 +58,7 @@ pub struct AssignmentToImmutable {
 
 /// Diagnostic for not convertible types
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("expected {expected} type, got {got}")]
+#[error("expected `{expected}` type, got `{got}`")]
 #[diagnostic(code(semantics::type_mismatch))]
 pub struct TypeMismatch {
     /// Expected type
@@ -67,17 +67,17 @@ pub struct TypeMismatch {
     pub got: Type,
 
     /// Span of `from` type
-    #[label("this has {expected} type")]
+    #[label("this has `{expected}` type")]
     pub expected_span: SourceSpan,
 
     /// Span of `to` type
-    #[label("this has {got} type")]
+    #[label("this has `{got}` type")]
     pub got_span: SourceSpan,
 }
 
 /// Diagnostic for mismatched parameter-argument types
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("parameter {expected} type, got {got}")]
+#[error("parameter has `{expected}` type, got `{got}`")]
 #[diagnostic(code(semantics::argument_type_mismatch))]
 pub struct ArgumentTypeMismatch {
     /// Expected type
@@ -86,30 +86,30 @@ pub struct ArgumentTypeMismatch {
     pub got: Type,
 
     /// Span of `from` type
-    #[label("parameter has {expected} type")]
+    #[label("parameter has `{expected}` type")]
     pub expected_span: SourceSpan,
 
     /// Span of `to` type
-    #[label("argument has {got} type")]
+    #[label("argument has `{got}` type")]
     pub got_span: SourceSpan,
 }
 
 /// Diagnostic for mismatched condition type
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("condition must have \"Bool\" type, got \"{got}\"")]
+#[error("condition must have `Bool` type, got `{got}`")]
 #[diagnostic(code(semantics::condition_type_mismatch))]
 pub struct ConditionTypeMismatch {
     /// Real type
     pub got: Type,
 
     /// Span of got type
-    #[label("this expression has {got} type")]
+    #[label("this expression has `{got}` type")]
     pub at: SourceSpan,
 }
 
 /// Diagnostic for unresolved unary operator
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("no unary operator '{name}'")]
+#[error("no unary operator `{name}`")]
 #[diagnostic(code(semantics::no_unary_operator))]
 pub struct NoUnaryOperator {
     /// Expected name of unary operator
@@ -129,7 +129,7 @@ pub struct NoUnaryOperator {
 
 /// Diagnostic for unresolved function call
 #[derive(Error, Debug, Clone, PartialEq)]
-#[error("candidate is not viable")]
+#[error("candidate is not viable: {reason}")]
 pub struct CandidateNotViable {
     /// Expected name of function
     pub reason: Error,
@@ -167,8 +167,8 @@ pub struct NoFunction {
 impl Display for NoFunction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.kind {
-            FnKind::Function => write!(f, "no function \"{}\"", self.name),
-            FnKind::Operator => write!(f, "no operator \"{}\"", self.name),
+            FnKind::Function => write!(f, "no function `{}`", self.name),
+            FnKind::Operator => write!(f, "no operator `{}`", self.name),
         }
     }
 }
@@ -226,7 +226,7 @@ pub struct ReturnOutsideFunction {
 
 /// Diagnostic for missing return value
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("missing return value with \"{ty}\" type")]
+#[error("missing return value with `{ty}` type")]
 #[diagnostic(code(semantics::missing_return_value))]
 pub struct MissingReturnValue {
     /// Type of return value
@@ -238,13 +238,13 @@ pub struct MissingReturnValue {
 
 /// Diagnostic for mismatch of return type
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("return type mismatch: got \"{got}\", expected \"{expected}\"")]
+#[error("return type mismatch: got `{got}`, expected `{expected}`")]
 #[diagnostic(code(semantics::return_type_mismatch))]
 pub struct ReturnTypeMismatch {
     /// Type of return value
     pub got: Type,
     /// Span of returned value
-    #[label("this has \"{got}\" type")]
+    #[label("this has `{got}` type")]
     pub got_span: SourceSpan,
 
     /// Expected type of return value
@@ -263,17 +263,17 @@ pub struct CantDeduceReturnType {
 
 /// Diagnostic for missing members
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("no member \"{name}\" in \"{ty}\"")]
+#[error("no member `{name}` in `{ty}`")]
 #[diagnostic(code(semantics::no_member))]
 pub struct NoMember {
     /// Type of base expression
     pub ty: Type,
     /// Span of base expression
-    #[label("this has \"{ty}\" type")]
+    #[label("this has `{ty}` type")]
     pub base_span: SourceSpan,
 
     /// Span of function
-    #[label("no member \"{name}\" in \"{ty}\"")]
+    #[label("no member `{name}` in `{ty}`")]
     pub at: SourceSpan,
     /// Name of member
     pub name: String,
@@ -337,7 +337,7 @@ impl<D: Display> Display for DisplayVec<D> {
             "[{}]",
             self.0
                 .iter()
-                .map(|p| format!("{}", p))
+                .map(|p| format!("`{}`", p))
                 .collect::<Vec<_>>()
                 .join(", ")
         )
