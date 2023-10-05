@@ -200,10 +200,20 @@ impl ASTLoweringWithinContext for ast::Call {
 
         let mut candidates_not_viable = Vec::new();
         for f in candidates {
-            let source_code = context
+            let builtin = context.is_for_builtin_module();
+            // FIXME: compiler should have builtin module too
+            let mut modules = context
                 .compiler()
                 .modules
                 .values()
+                .map(|m| m.as_ref())
+                .collect::<Vec<_>>();
+            if !builtin {
+                modules.push(hir::Module::builtin());
+            }
+
+            let source_code = modules
+                .iter()
                 .find(|m| {
                     m.iter_functions()
                         .find(|function| function.name() == f.name())
@@ -211,6 +221,7 @@ impl ASTLoweringWithinContext for ast::Call {
                 })
                 .map(|m| fs::read_to_string(Path::new(&m.filename)).ok())
                 .flatten();
+
             let mut args = Vec::new();
             let mut failed = false;
             for (i, f_part) in f.name_parts().iter().enumerate() {
@@ -227,6 +238,7 @@ impl ASTLoweringWithinContext for ast::Call {
                                     got_span: arg.range().into(),
                                 }
                                 .into(),
+                                source_code,
                             });
                             failed = true;
                             break;

@@ -133,6 +133,9 @@ pub struct NoUnaryOperator {
 pub struct CandidateNotViable {
     /// Expected name of function
     pub reason: Error,
+    // TODO: don't store whole file
+    /// Source code of the module, this function belongs to
+    pub source_code: Option<String>,
 }
 
 impl Diagnostic for CandidateNotViable {
@@ -142,6 +145,10 @@ impl Diagnostic for CandidateNotViable {
 
     fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
         self.reason.labels()
+    }
+
+    fn source_code(&self) -> Option<&dyn miette::SourceCode> {
+        self.source_code.as_ref().map(|s| s as _)
     }
 }
 
