@@ -3,6 +3,8 @@ use std::fs;
 use std::path::Path;
 use std::sync::Arc;
 
+use miette::NamedSource;
+
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{self, FunctionNamePart, GenericType, Type, Typed};
@@ -231,14 +233,19 @@ impl ASTLoweringWithinContext for ast::Call {
                         let arg = args_cache[i].as_ref().unwrap();
                         if !arg.ty().convertible_to(p.ty()).within(context) {
                             candidates_not_viable.push(CandidateNotViable {
-                                reason: ArgumentTypeMismatch {
-                                    expected: p.ty(),
-                                    expected_span: p.name.range().into(),
-                                    got: arg.ty(),
-                                    got_span: arg.range().into(),
+                                reason: TypeMismatch {
+                                    expected: TypeWithSpan {
+                                        ty: p.ty(),
+                                        at: p.name.range().into(),
+                                        source_code,
+                                    },
+                                    got: TypeWithSpan {
+                                        ty: arg.ty(),
+                                        at: arg.range().into(),
+                                        source_code: None,
+                                    },
                                 }
                                 .into(),
-                                source_code,
                             });
                             failed = true;
                             break;
@@ -386,10 +393,17 @@ impl ASTLoweringWithinContext for ast::Constructor {
             {
                 if !value.ty().convertible_to(member.ty()).within(context) {
                     return Err(TypeMismatch {
-                        expected: member.ty(),
-                        expected_span: member.name.range().into(),
-                        got: value.ty(),
-                        got_span: value.range().into(),
+                        expected: TypeWithSpan {
+                            ty: member.ty(),
+                            at: member.name.range().into(),
+                            // FIXME: find in which file type was declared
+                            source_code: None,
+                        },
+                        got: TypeWithSpan {
+                            ty: value.ty(),
+                            at: value.range().into(),
+                            source_code: None,
+                        },
                     }
                     .into());
                 }
@@ -655,11 +669,18 @@ impl ASTLoweringWithinContext for ast::Assignment {
         let value = self.value.lower_to_hir_within_context(context)?;
         if target.ty() != value.ty() {
             return Err(TypeMismatch {
-                got: value.ty(),
-                got_span: self.value.range().into(),
+                got: TypeWithSpan {
+                    ty: value.ty(),
+                    at: self.value.range().into(),
+                    source_code: None,
+                },
 
-                expected: target.ty(),
-                expected_span: self.target.range().into(),
+                expected: TypeWithSpan {
+                    ty: target.ty(),
+                    at: self.target.range().into(),
+                    // FIXME: find where variable was declared
+                    source_code: None,
+                },
             }
             .into());
         }
