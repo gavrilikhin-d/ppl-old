@@ -79,8 +79,9 @@ pub trait Lexer: Iterator<Item = Token> {
     /// 	)
     /// );
     /// ```
-    fn try_match(&self, token: Token) -> Result<(), LexerError> {
-        self.try_match_one_of(&[token]).map(|_| ())
+    fn try_match(&self, token: Token) -> Result<StringWithOffset, LexerError> {
+        self.try_match_one_of(&[token])
+            .map(|_| self.string_with_offset())
     }
 
     /// Try match next token with one of specified types
