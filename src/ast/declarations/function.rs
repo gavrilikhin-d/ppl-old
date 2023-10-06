@@ -110,6 +110,8 @@ impl Parse for FunctionNamePart {
 /// Any PPL declaration
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct FunctionDeclaration {
+    /// Generic parameters of a function
+    pub generic_parameters: Vec<StringWithOffset>,
     /// Name parts of function
     pub name_parts: Vec<FunctionNamePart>,
     /// Return type of function
@@ -136,7 +138,18 @@ impl Parse for FunctionDeclaration {
 
     /// Parse function declaration using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        context.lexer.consume(Token::Fn)?;
+        let fn_token = context.lexer.consume(Token::Fn)?;
+
+        let mut generic_parameters = Vec::new();
+        if context
+            .lexer
+            .try_match(Token::Less)
+            .is_ok_and(|t| t.start() == fn_token.end())
+        {
+            context.lexer.consume(Token::Less).unwrap();
+            generic_parameters = context.parse_comma_separated(|ctx| ctx.lexer.consume(Token::Id));
+            context.lexer.consume_greater()?;
+        }
 
         let mut name_parts = Vec::new();
 
@@ -174,6 +187,7 @@ impl Parse for FunctionDeclaration {
         }
 
         Ok(FunctionDeclaration {
+            generic_parameters,
             name_parts,
             return_type,
             body,
@@ -183,71 +197,122 @@ impl Parse for FunctionDeclaration {
     }
 }
 
-#[test]
-fn test_function_declaration() {
-    let func = "fn distance from <a: Point> to <b: Point> -> Distance"
-        .parse::<FunctionDeclaration>()
-        .unwrap();
-    assert_eq!(
-        func,
-        FunctionDeclaration {
-            name_parts: vec![
-                StringWithOffset::from("distance").at(3).into(),
-                StringWithOffset::from("from").at(12).into(),
-                FunctionNamePart::Parameter {
-                    less: 17,
+#[cfg(test)]
+mod tests {
+    use crate::{
+        ast::{
+            Expression, FunctionDeclaration, FunctionNamePart, Parameter, Statement, TypeReference,
+            VariableReference,
+        },
+        syntax::StringWithOffset,
+    };
+
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn function_declaration() {
+        let func = "fn distance from <a: Point> to <b: Point> -> Distance"
+            .parse::<FunctionDeclaration>()
+            .unwrap();
+        assert_eq!(
+            func,
+            FunctionDeclaration {
+                generic_parameters: vec![],
+                name_parts: vec![
+                    StringWithOffset::from("distance").at(3).into(),
+                    StringWithOffset::from("from").at(12).into(),
+                    FunctionNamePart::Parameter {
+                        less: 17,
+                        parameter: Parameter {
+                            name: StringWithOffset::from("a").at(18).into(),
+                            ty: TypeReference {
+                                name: StringWithOffset::from("Point").at(21).into(),
+                                generic_parameters: Vec::new(),
+                            },
+                        },
+                        greater: 26,
+                    },
+                    StringWithOffset::from("to").at(28).into(),
+                    FunctionNamePart::Parameter {
+                        less: 31,
+                        parameter: Parameter {
+                            name: StringWithOffset::from("b").at(32).into(),
+                            ty: TypeReference {
+                                name: StringWithOffset::from("Point").at(35).into(),
+                                generic_parameters: Vec::new(),
+                            },
+                        },
+                        greater: 40,
+                    },
+                ],
+                return_type: Some(TypeReference {
+                    name: StringWithOffset::from("Distance").at(45).into(),
+                    generic_parameters: Vec::new(),
+                }),
+                annotations: vec![],
+                body: vec![],
+                implicit_return: false,
+            }
+        );
+    }
+
+    #[test]
+    fn function_with_single_line_body() {
+        use crate::ast::Literal;
+
+        let func = "fn test => 1".parse::<FunctionDeclaration>().unwrap();
+        assert_eq!(
+            func,
+            FunctionDeclaration {
+                generic_parameters: vec![],
+                name_parts: vec![StringWithOffset::from("test").at(3).into(),],
+                return_type: None,
+                annotations: vec![],
+                body: vec![Statement::Expression(
+                    Literal::Integer {
+                        value: "1".into(),
+                        offset: 11,
+                    }
+                    .into()
+                ),],
+                implicit_return: true
+            }
+        );
+    }
+
+    #[test]
+    fn generic_parameters() {
+        let func = "fn<T> <x: T> -> T => x"
+            .parse::<FunctionDeclaration>()
+            .unwrap();
+        assert_eq!(
+            func,
+            FunctionDeclaration {
+                generic_parameters: vec![StringWithOffset::from("T").at(3).into(),],
+                name_parts: vec![FunctionNamePart::Parameter {
+                    less: 6,
                     parameter: Parameter {
-                        name: StringWithOffset::from("a").at(18).into(),
+                        name: StringWithOffset::from("x").at(7).into(),
                         ty: TypeReference {
-                            name: StringWithOffset::from("Point").at(21).into(),
+                            name: StringWithOffset::from("T").at(10).into(),
                             generic_parameters: Vec::new(),
                         },
                     },
-                    greater: 26,
-                },
-                StringWithOffset::from("to").at(28).into(),
-                FunctionNamePart::Parameter {
-                    less: 31,
-                    parameter: Parameter {
-                        name: StringWithOffset::from("b").at(32).into(),
-                        ty: TypeReference {
-                            name: StringWithOffset::from("Point").at(35).into(),
-                            generic_parameters: Vec::new(),
-                        },
-                    },
-                    greater: 40,
-                },
-            ],
-            return_type: Some(TypeReference {
-                name: StringWithOffset::from("Distance").at(45).into(),
-                generic_parameters: Vec::new(),
-            }),
-            annotations: vec![],
-            body: vec![],
-            implicit_return: false,
-        }
-    );
-}
-
-#[test]
-fn test_function_with_single_line_body() {
-    use crate::ast::Literal;
-
-    let func = "fn test => 1".parse::<FunctionDeclaration>().unwrap();
-    assert_eq!(
-        func,
-        FunctionDeclaration {
-            name_parts: vec![StringWithOffset::from("test").at(3).into(),],
-            return_type: None,
-            annotations: vec![],
-            body: vec![Statement::Expression(
-                Literal::Integer {
-                    value: "1".into(),
-                    offset: 11,
-                }
-                .into()
-            ),],
-            implicit_return: true
-        }
-    );
+                    greater: 11,
+                },],
+                return_type: Some(TypeReference {
+                    name: StringWithOffset::from("T").at(16).into(),
+                    generic_parameters: Vec::new(),
+                }),
+                annotations: vec![],
+                body: vec![Statement::Expression(
+                    VariableReference {
+                        name: StringWithOffset::from("x").at(21).into(),
+                    }
+                    .into()
+                ),],
+                implicit_return: true
+            }
+        );
+    }
 }
