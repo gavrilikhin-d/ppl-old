@@ -1,7 +1,7 @@
 Error: semantics::multiple_initialization
 
   × field `x` initialized multiple times
-   ╭─[multiple_initialization.ppl:3:1]
+   ╭─[multiple_initialization.ppl:4:9]
  3 │ 
  4 │ Point { x: 1, x: 2 }
    ·         ──┬─  ──┬─

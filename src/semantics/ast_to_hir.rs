@@ -1,5 +1,9 @@
 use core::panic;
+use std::fs;
+use std::path::Path;
 use std::sync::Arc;
+
+use miette::NamedSource;
 
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
@@ -198,6 +202,28 @@ impl ASTLoweringWithinContext for ast::Call {
 
         let mut candidates_not_viable = Vec::new();
         for f in candidates {
+            let builtin = context.is_for_builtin_module();
+            // FIXME: compiler should have builtin module too
+            let mut modules = context
+                .compiler()
+                .modules
+                .values()
+                .map(|m| m.as_ref())
+                .collect::<Vec<_>>();
+            if !builtin {
+                modules.push(hir::Module::builtin());
+            }
+
+            let source_code = modules
+                .iter()
+                .find(|m| {
+                    m.iter_functions()
+                        .find(|function| function.name() == f.name())
+                        .is_some()
+                })
+                .map(|m| fs::read_to_string(Path::new(&m.filename)).ok())
+                .flatten();
+
             let mut args = Vec::new();
             let mut failed = false;
             for (i, f_part) in f.name_parts().iter().enumerate() {
@@ -207,11 +233,17 @@ impl ASTLoweringWithinContext for ast::Call {
                         let arg = args_cache[i].as_ref().unwrap();
                         if !arg.ty().convertible_to(p.ty()).within(context) {
                             candidates_not_viable.push(CandidateNotViable {
-                                reason: ArgumentTypeMismatch {
-                                    expected: p.ty(),
-                                    expected_span: p.name.range().into(),
-                                    got: arg.ty(),
-                                    got_span: arg.range().into(),
+                                reason: TypeMismatch {
+                                    expected: TypeWithSpan {
+                                        ty: p.ty(),
+                                        at: p.name.range().into(),
+                                        source_code,
+                                    },
+                                    got: TypeWithSpan {
+                                        ty: arg.ty(),
+                                        at: arg.range().into(),
+                                        source_code: None,
+                                    },
                                 }
                                 .into(),
                             });
@@ -361,10 +393,17 @@ impl ASTLoweringWithinContext for ast::Constructor {
             {
                 if !value.ty().convertible_to(member.ty()).within(context) {
                     return Err(TypeMismatch {
-                        expected: member.ty(),
-                        expected_span: member.name.range().into(),
-                        got: value.ty(),
-                        got_span: value.range().into(),
+                        expected: TypeWithSpan {
+                            ty: member.ty(),
+                            at: member.name.range().into(),
+                            // FIXME: find in which file type was declared
+                            source_code: None,
+                        },
+                        got: TypeWithSpan {
+                            ty: value.ty(),
+                            at: value.range().into(),
+                            source_code: None,
+                        },
                     }
                     .into());
                 }
@@ -630,11 +669,18 @@ impl ASTLoweringWithinContext for ast::Assignment {
         let value = self.value.lower_to_hir_within_context(context)?;
         if target.ty() != value.ty() {
             return Err(TypeMismatch {
-                got: value.ty(),
-                got_span: self.value.range().into(),
+                got: TypeWithSpan {
+                    ty: value.ty(),
+                    at: self.value.range().into(),
+                    source_code: None,
+                },
 
-                expected: target.ty(),
-                expected_span: self.target.range().into(),
+                expected: TypeWithSpan {
+                    ty: target.ty(),
+                    at: self.target.range().into(),
+                    // FIXME: find where variable was declared
+                    source_code: None,
+                },
             }
             .into());
         }
@@ -873,6 +919,7 @@ impl ASTLowering for ast::Module {
 mod tests {
     use crate::test_compiler_error;
 
+    test_compiler_error!(candidate_not_viable);
     test_compiler_error!(missing_fields);
     test_compiler_error!(multiple_initialization);
     test_compiler_error!(wrong_initializer_type);

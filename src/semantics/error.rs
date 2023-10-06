@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use miette::{Diagnostic, SourceSpan};
+use miette::{Diagnostic, NamedSource, SourceSpan};
 use thiserror::Error;
 
 use derive_more::From;
@@ -56,42 +56,47 @@ pub struct AssignmentToImmutable {
     pub at: SourceSpan,
 }
 
-/// Diagnostic for not convertible types
+/// Show type in diagnostic
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("expected `{expected}` type, got `{got}`")]
-#[diagnostic(code(semantics::type_mismatch))]
-pub struct TypeMismatch {
-    /// Expected type
-    pub expected: Type,
-    /// Real type
-    pub got: Type,
+#[error("{ty}")]
+pub struct TypeWithSpan {
+    /// Type to show
+    pub ty: Type,
 
-    /// Span of `from` type
-    #[label("this has `{expected}` type")]
-    pub expected_span: SourceSpan,
+    /// Span of expected type
+    #[label("this has `{ty}` type")]
+    pub at: SourceSpan,
 
-    /// Span of `to` type
-    #[label("this has `{got}` type")]
-    pub got_span: SourceSpan,
+    // TODO: change to `Option<SourceFile>`
+    /// Source code of the module, this type is located at
+    #[source_code]
+    pub source_code: Option<String>,
 }
 
-/// Diagnostic for mismatched parameter-argument types
-#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
-#[error("parameter has `{expected}` type, got `{got}`")]
-#[diagnostic(code(semantics::argument_type_mismatch))]
-pub struct ArgumentTypeMismatch {
+/// Diagnostic for not convertible types
+#[derive(Error, Debug, Clone, PartialEq)]
+#[error("expected `{expected}` type, got `{got}`")]
+pub struct TypeMismatch {
     /// Expected type
-    pub expected: Type,
+    pub expected: TypeWithSpan,
     /// Real type
-    pub got: Type,
+    pub got: TypeWithSpan,
+}
 
-    /// Span of `from` type
-    #[label("parameter has `{expected}` type")]
-    pub expected_span: SourceSpan,
+impl Diagnostic for TypeMismatch {
+    fn code<'a>(&'a self) -> Option<Box<dyn Display + 'a>> {
+        Some(Box::new("semantics::type_mismatch"))
+    }
 
-    /// Span of `to` type
-    #[label("argument has `{got}` type")]
-    pub got_span: SourceSpan,
+    fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {
+        Some(Box::new(
+            vec![
+                &self.expected as &dyn Diagnostic,
+                &self.got as &dyn Diagnostic,
+            ]
+            .into_iter(),
+        ))
+    }
 }
 
 /// Diagnostic for mismatched condition type
@@ -142,6 +147,22 @@ impl Diagnostic for CandidateNotViable {
 
     fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
         self.reason.labels()
+    }
+
+    fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {
+        self.reason.related()
+    }
+
+    fn source_code(&self) -> Option<&dyn miette::SourceCode> {
+        self.reason.source_code()
+    }
+
+    fn help<'a>(&'a self) -> Option<Box<dyn Display + 'a>> {
+        self.reason.help()
+    }
+
+    fn url<'a>(&'a self) -> Option<Box<dyn Display + 'a>> {
+        self.reason.url()
     }
 }
 
@@ -363,7 +384,6 @@ error_enum!(
     UndefinedVariable,
     AssignmentToImmutable,
     TypeMismatch,
-    ArgumentTypeMismatch,
     ConditionTypeMismatch,
     UnknownType,
     UnknownAnnotation,

@@ -27,9 +27,11 @@
 * [X] Default implementations inside traits
 * [X] Make `print <:String>` print without newline
 * [X] Add testing CI
+* [x] Fix formatter error when `candidate is not viable`
 ---
 ### Current task
-* [ ] Fix formatter error when `candidate is not viable`
+* [ ] Remove unnecessary information from errors
+* [ ] Add `SourceFile` as source code for errors
 ---
 * [ ] More functions to stdlib
 * [ ] Multiple output types

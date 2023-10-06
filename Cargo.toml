@@ -9,7 +9,9 @@ edition = "2021"
 logos = "0.13.0"
 rug = "1.22.0"
 ast_derive = { path = "src/ast_derive" }
-miette = { version = "5.10.0", features = ["fancy"] }
+miette = { version = "5.10.0", git = "https://github.com/gavrilikhin-d/miette", branch = "optional_source", features = [
+    "fancy",
+] }
 thiserror = "1.0.48"
 derive_more = "0.99.17"
 runtime = { path = "src/runtime" }
