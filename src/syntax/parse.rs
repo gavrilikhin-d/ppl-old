@@ -46,6 +46,32 @@ impl<Lexer: super::Lexer> Context<Lexer> {
         }
         Ok(stmts)
     }
+
+    /// Parse items separated by separator
+    pub fn parse_separated<T, E>(
+        &mut self,
+        parse: impl Fn(&mut Self) -> Result<T, E>,
+        separator: Token,
+    ) -> Vec<T> {
+        let mut items = Vec::new();
+        while let Ok(item) = parse(self) {
+            items.push(item);
+
+            if self.lexer.consume(separator.clone()).is_err() {
+                break;
+            }
+        }
+
+        items
+    }
+
+    /// Parse items separated by comma
+    pub fn parse_comma_separated<T, E>(
+        &mut self,
+        parse: impl Fn(&mut Self) -> Result<T, E>,
+    ) -> Vec<T> {
+        self.parse_separated(parse, Token::Comma)
+    }
 }
 
 impl<'l, Lexer: super::Lexer> Context<Lexer> {
