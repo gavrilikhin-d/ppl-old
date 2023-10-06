@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use miette::{Diagnostic, NamedSource, SourceSpan};
+use miette::{Diagnostic, SourceSpan};
 use thiserror::Error;
 
 use derive_more::From;

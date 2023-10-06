@@ -3,8 +3,6 @@ use std::fs;
 use std::path::Path;
 use std::sync::Arc;
 
-use miette::NamedSource;
-
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{self, FunctionNamePart, GenericType, Type, Typed};
