@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    hir::{GenericType, Type, Typed},
+    hir::{Generic, Type, Typed},
     named::Named,
     syntax::StringWithOffset,
 };
@@ -13,6 +13,13 @@ pub struct Member {
     pub name: StringWithOffset,
     /// Member's type
     pub ty: Type,
+}
+
+impl Generic for Member {
+    /// Is this a generic member?
+    fn is_generic(&self) -> bool {
+        self.ty.is_generic()
+    }
 }
 
 impl Named for Member {
@@ -35,7 +42,7 @@ pub struct TypeDeclaration {
     /// Type's name
     pub name: StringWithOffset,
     /// Generic parameters of type
-    pub generic_parameters: Vec<GenericType>,
+    pub generic_parameters: Vec<Type>,
     /// Is this type from builtin module?
     pub is_builtin: bool,
     /// Members of type
@@ -82,13 +89,13 @@ impl TypeDeclaration {
     pub fn is_opaque(&self) -> bool {
         self.members.is_empty()
     }
+}
 
+impl Generic for TypeDeclaration {
     /// Is this a generic type?
-    ///
-    /// Note: even if [`generic_parameters`](Self::generic_parameters)
-    /// aren't empty, type may be non-generic, if all members are non-generic
-    pub fn is_generic(&self) -> bool {
-        !self.generic_parameters.is_empty() && self.members.iter().any(|m| m.ty().is_generic())
+    fn is_generic(&self) -> bool {
+        self.generic_parameters.iter().any(|p| p.is_generic())
+            || self.members.iter().any(|m| m.is_generic())
     }
 }
 
@@ -103,7 +110,7 @@ impl Named for TypeDeclaration {
 mod tests {
     use super::*;
     use crate::ast;
-    use crate::hir::{Member, Type};
+    use crate::hir::{GenericType, Member, Type};
     use crate::semantics::ASTLowering;
     use pretty_assertions::assert_eq;
 
@@ -140,7 +147,8 @@ mod tests {
                 name: StringWithOffset::from("Point").at(5),
                 generic_parameters: vec![GenericType {
                     name: StringWithOffset::from("U").at(11),
-                }],
+                }
+                .into()],
                 is_builtin: false,
                 members: vec![Arc::new(Member {
                     name: StringWithOffset::from("x").at(16),

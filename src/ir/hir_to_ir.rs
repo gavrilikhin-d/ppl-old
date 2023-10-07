@@ -51,6 +51,10 @@ impl<'llvm> HIRTypesLowering<'llvm> for Type {
     fn lower_to_ir(&self, context: &impl Context<'llvm>) -> Self::IR {
         match self {
             Type::Class(ty) => ty.lower_to_ir(context).into(),
+            Type::Specialized(ty) if ty.is_partially_specialized() => {
+                unreachable!("Partially specialized type must not be lowered to IR")
+            }
+            Type::Specialized(ty) => ty.specialized.lower_to_ir(context).into(),
             Type::SelfType(_) => unreachable!("Self must not be lowered to IR"),
             Type::Trait(_) => unreachable!("Trait must not be lowered to IR"),
             Type::Generic(_) => unreachable!("Generic must not be lowered to IR"),

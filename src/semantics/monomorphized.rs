@@ -3,8 +3,8 @@ use std::{collections::HashMap, sync::Arc};
 use crate::{
     hir::{
         Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
-        FunctionDefinition, FunctionNamePart, If, Loop, Parameter, Return, Statement, Type, Typed,
-        VariableReference, While,
+        FunctionDefinition, FunctionNamePart, Generic, If, Loop, Parameter, Return, Statement,
+        Type, Typed, VariableReference, While,
     },
     named::Named,
     semantics::{ConvertibleTo, FunctionContext},

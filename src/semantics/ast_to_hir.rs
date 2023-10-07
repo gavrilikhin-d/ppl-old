@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
-use crate::hir::{self, FunctionNamePart, GenericType, Type, Typed};
+use crate::hir::{self, FunctionNamePart, Generic, GenericType, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
@@ -540,11 +540,11 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
     /// Lower [`ast::TypeDeclaration`] to [`hir::TypeDeclaration`] within lowering context
     fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
         // TODO: check for collisions, etc
-        let generic_parameters: Vec<_> = self
+        let generic_parameters: Vec<Type> = self
             .generic_parameters
             .iter()
             .cloned()
-            .map(|name| GenericType { name })
+            .map(|name| GenericType { name }.into())
             .collect();
 
         let is_builtin = context.is_for_builtin_module();

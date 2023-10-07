@@ -5,7 +5,7 @@ use std::{
 
 use crate::{mutability::Mutable, named::Named, syntax::StringWithOffset};
 
-use super::{Member, Module, TraitDeclaration, TypeDeclaration};
+use super::{Generic, Member, Module, Specialized, TraitDeclaration, TypeDeclaration};
 use derive_more::{From, TryInto};
 use enum_dispatch::enum_dispatch;
 
@@ -113,6 +113,15 @@ impl Named for GenericType {
     }
 }
 
+/// Specialized type
+pub type SpecializedType = Specialized<Type>;
+
+impl Named for SpecializedType {
+    fn name(&self) -> &str {
+        self.specialized.name()
+    }
+}
+
 /// Type of values
 #[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Type {
@@ -122,14 +131,23 @@ pub enum Type {
     Trait(Arc<TraitDeclaration>),
     /// Self type and trait it represents
     SelfType(SelfType),
-    // TODO: add `Resolved` and `Unresolved` generic types instead
     /// Type for generic parameters
     Generic(GenericType),
+    /// Specialized type
+    Specialized(Box<SpecializedType>),
     /// Function type
     Function(FunctionType),
 }
 
 impl Type {
+    /// Return most specialized subtype
+    pub fn specialized(&self) -> Type {
+        match self {
+            Type::Specialized(s) => s.specialized.specialized(),
+            _ => self.clone(),
+        }
+    }
+
     /// Get members of type
     pub fn members(&self) -> &[Arc<Member>] {
         match self {
@@ -143,17 +161,6 @@ impl Type {
         match self {
             Type::SelfType(_) => ty,
             _ => self,
-        }
-    }
-
-    /// Is this a generic type?
-    pub fn is_generic(&self) -> bool {
-        match self {
-            Type::SelfType(_) | Type::Trait(_) | Type::Generic(_) => true,
-            Type::Class(c) => c.members.iter().any(|m| m.ty().is_generic()),
-            Type::Function(f) => {
-                f.parameters.iter().any(|p| p.is_generic()) || f.return_type.is_generic()
-            }
         }
     }
 
@@ -223,6 +230,19 @@ impl Type {
     }
 }
 
+impl Generic for Type {
+    fn is_generic(&self) -> bool {
+        match self {
+            Type::SelfType(_) | Type::Trait(_) | Type::Generic(_) => true,
+            Type::Specialized(s) => s.specialized.is_generic(),
+            Type::Class(c) => c.members.iter().any(|m| m.ty().is_generic()),
+            Type::Function(f) => {
+                f.parameters.iter().any(|p| p.is_generic()) || f.return_type.is_generic()
+            }
+        }
+    }
+}
+
 impl Display for Type {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.name())
@@ -237,6 +257,7 @@ impl Named for Type {
             Type::SelfType(s) => s.name(),
             Type::Function(f) => f.name(),
             Type::Generic(g) => g.name(),
+            Type::Specialized(s) => s.name(),
         }
     }
 }

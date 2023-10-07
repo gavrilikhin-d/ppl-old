@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use derive_more::{From, TryInto};
 
-use crate::hir::{FunctionType, GenericType, Statement, Type, Typed};
+use crate::hir::{FunctionType, Generic, Statement, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::StringWithOffset;
@@ -17,9 +17,9 @@ pub struct Parameter {
     pub ty: Type,
 }
 
-impl Parameter {
+impl Generic for Parameter {
     /// Is this a generic parameter?
-    pub fn is_generic(&self) -> bool {
+    fn is_generic(&self) -> bool {
         self.ty.is_generic()
     }
 }
@@ -72,7 +72,7 @@ impl From<Parameter> for FunctionNamePart {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct FunctionDeclaration {
     /// Generic parameters of a function
-    pub generic_parameters: Vec<GenericType>,
+    pub generic_types: Vec<Type>,
     /// Type's name
     pub name_parts: Vec<FunctionNamePart>,
     /// Type of returned value
@@ -90,11 +90,6 @@ impl FunctionDeclaration {
     /// Create a new builder for a function declaration
     pub fn build() -> FunctionDeclarationBuilder {
         FunctionDeclarationBuilder::new()
-    }
-
-    /// Is this a generic function?
-    pub fn is_generic(&self) -> bool {
-        self.parameters().any(|p| p.is_generic()) || self.return_type.is_generic()
     }
 
     /// Get name parts of function
@@ -130,6 +125,12 @@ impl FunctionDeclaration {
     }
 }
 
+impl Generic for FunctionDeclaration {
+    fn is_generic(&self) -> bool {
+        self.parameters().any(|p| p.is_generic()) || self.return_type.is_generic()
+    }
+}
+
 impl Named for FunctionDeclaration {
     /// Get name of function
     fn name(&self) -> &str {
@@ -157,7 +158,7 @@ impl Typed for FunctionDeclaration {
 /// Builder for a function declaration
 pub struct FunctionDeclarationBuilder {
     /// Generic parameters of a function
-    generic_parameters: Vec<GenericType>,
+    generic_types: Vec<Type>,
     /// Type's name
     name_parts: Vec<FunctionNamePart>,
     /// Mangled name of function
@@ -168,15 +169,15 @@ impl FunctionDeclarationBuilder {
     /// Create a new builder for a function declaration
     pub fn new() -> Self {
         FunctionDeclarationBuilder {
-            generic_parameters: Vec::new(),
+            generic_types: Vec::new(),
             name_parts: Vec::new(),
             mangled_name: None,
         }
     }
 
     /// Set generic parameters of a function
-    pub fn with_generic_parameters(mut self, generic_parameters: Vec<GenericType>) -> Self {
-        self.generic_parameters = generic_parameters;
+    pub fn with_generic_types(mut self, generic_types: Vec<Type>) -> Self {
+        self.generic_types = generic_types;
         self
     }
 
@@ -217,7 +218,7 @@ impl FunctionDeclarationBuilder {
         let name_format = self.build_name_format();
         let name = self.build_name();
         FunctionDeclaration {
-            generic_parameters: self.generic_parameters,
+            generic_types: self.generic_types,
             name_parts: self.name_parts,
             return_type,
             name_format,
@@ -237,11 +238,6 @@ pub struct FunctionDefinition {
 }
 
 impl FunctionDefinition {
-    /// Is this a generic function?
-    pub fn is_generic(&self) -> bool {
-        self.declaration.is_generic()
-    }
-
     /// Get name parts of function
     pub fn name_parts(&self) -> &[FunctionNamePart] {
         &self.declaration.name_parts
@@ -265,6 +261,12 @@ impl FunctionDefinition {
     /// Get return type of function
     pub fn return_type(&self) -> Type {
         self.declaration.return_type.clone()
+    }
+}
+
+impl Generic for FunctionDefinition {
+    fn is_generic(&self) -> bool {
+        self.declaration.is_generic()
     }
 }
 
@@ -302,11 +304,6 @@ impl Function {
             }
         }
         name
-    }
-
-    /// Is this a generic function?
-    pub fn is_generic(&self) -> bool {
-        self.declaration().is_generic()
     }
 
     /// Get name parts of function
@@ -352,6 +349,12 @@ impl Function {
             Function::Declaration(declaration) => declaration.clone(),
             Function::Definition(definition) => definition.declaration.clone(),
         }
+    }
+}
+
+impl Generic for Function {
+    fn is_generic(&self) -> bool {
+        self.declaration().is_generic()
     }
 }
 
@@ -409,7 +412,7 @@ mod tests {
         assert_eq!(
             *hir.declaration,
             FunctionDeclarationBuilder::new()
-                .with_generic_parameters(vec![ty.clone()])
+                .with_generic_types(vec![ty.clone().into()])
                 .with_name(vec![param.clone().into()])
                 .with_return_type(ty.into())
         );

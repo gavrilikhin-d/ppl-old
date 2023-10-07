@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     ast,
-    hir::{self, FunctionDefinition, GenericType, Typed},
+    hir::{self, FunctionDefinition, GenericType, Type, Typed},
     syntax::Ranged,
 };
 
@@ -33,11 +33,11 @@ impl Declare for ast::FunctionDeclaration {
 
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
         // TODO: check for collision
-        let generic_parameters: Vec<_> = self
+        let generic_parameters: Vec<Type> = self
             .generic_parameters
             .iter()
             .cloned()
-            .map(|name| GenericType { name })
+            .map(|name| GenericType { name }.into())
             .collect();
 
         let mut generic_context = GenericContext {
@@ -78,7 +78,7 @@ impl Declare for ast::FunctionDeclaration {
 
         let f = Arc::new(
             hir::FunctionDeclaration::build()
-                .with_generic_parameters(generic_parameters)
+                .with_generic_types(generic_parameters)
                 .with_name(name_parts)
                 .with_mangled_name(mangled_name)
                 .with_return_type(return_type),
