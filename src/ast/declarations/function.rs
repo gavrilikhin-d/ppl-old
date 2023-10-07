@@ -201,7 +201,7 @@ impl Parse for FunctionDeclaration {
 mod tests {
     use crate::{
         ast::{
-            Expression, FunctionDeclaration, FunctionNamePart, Parameter, Statement, TypeReference,
+            FunctionDeclaration, FunctionNamePart, Parameter, Statement, TypeReference,
             VariableReference,
         },
         syntax::StringWithOffset,
