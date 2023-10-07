@@ -94,7 +94,7 @@ impl FunctionDeclaration {
 
     /// Is this a generic function?
     pub fn is_generic(&self) -> bool {
-        self.parameters().any(|p| p.is_generic())
+        self.parameters().any(|p| p.is_generic()) || self.return_type.is_generic()
     }
 
     /// Get name parts of function
