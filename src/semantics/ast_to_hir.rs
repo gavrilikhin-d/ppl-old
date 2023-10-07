@@ -10,7 +10,7 @@ use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
 
-use super::{error::*, Context, Declare, ModuleContext, MonomorphizedWithArgs, TypeContext};
+use super::{error::*, Context, Declare, GenericContext, ModuleContext, MonomorphizedWithArgs};
 use crate::ast::{self, CallNamePart, FnKind, If};
 
 /// Lower AST inside some context
@@ -538,6 +538,7 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
 
     /// Lower [`ast::TypeDeclaration`] to [`hir::TypeDeclaration`] within lowering context
     fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
+        // TODO: check for collisions, etc
         let generic_parameters: Vec<_> = self
             .generic_parameters
             .iter()
@@ -546,7 +547,7 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
             .collect();
 
         let is_builtin = context.is_for_builtin_module();
-        let mut ty_context = TypeContext {
+        let mut generic_context = GenericContext {
             parent: context,
             generic_parameters: generic_parameters.clone(),
         };
@@ -559,7 +560,7 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
             members: self
                 .members
                 .iter()
-                .map(|m| m.lower_to_hir_within_context(&mut ty_context))
+                .map(|m| m.lower_to_hir_within_context(&mut generic_context))
                 .try_collect()?,
         });
 
