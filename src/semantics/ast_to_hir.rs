@@ -414,6 +414,7 @@ impl ASTLoweringWithinContext for ast::Constructor {
                     .into());
                 }
 
+                // TODO: move to monomorphize
                 if member.ty.is_generic() {
                     members[index] = Arc::new(hir::Member {
                         name: member.name.clone(),
