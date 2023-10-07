@@ -1,9 +1,9 @@
 use std::fmt::Display;
 use std::sync::Arc;
 
-use derive_more::From;
+use derive_more::{From, TryInto};
 
-use crate::hir::{FunctionType, Statement, Type, Typed};
+use crate::hir::{FunctionType, GenericType, Statement, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::StringWithOffset;
@@ -62,9 +62,17 @@ impl Display for FunctionNamePart {
     }
 }
 
+impl From<Parameter> for FunctionNamePart {
+    fn from(parameter: Parameter) -> Self {
+        FunctionNamePart::Parameter(parameter.into())
+    }
+}
+
 /// Declaration of a type
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct FunctionDeclaration {
+    /// Generic parameters of a function
+    pub generic_parameters: Vec<GenericType>,
     /// Type's name
     pub name_parts: Vec<FunctionNamePart>,
     /// Type of returned value
@@ -148,6 +156,8 @@ impl Typed for FunctionDeclaration {
 
 /// Builder for a function declaration
 pub struct FunctionDeclarationBuilder {
+    /// Generic parameters of a function
+    generic_parameters: Vec<GenericType>,
     /// Type's name
     name_parts: Vec<FunctionNamePart>,
     /// Mangled name of function
@@ -158,9 +168,16 @@ impl FunctionDeclarationBuilder {
     /// Create a new builder for a function declaration
     pub fn new() -> Self {
         FunctionDeclarationBuilder {
+            generic_parameters: Vec::new(),
             name_parts: Vec::new(),
             mangled_name: None,
         }
+    }
+
+    /// Set generic parameters of a function
+    pub fn with_generic_parameters(mut self, generic_parameters: Vec<GenericType>) -> Self {
+        self.generic_parameters = generic_parameters;
+        self
     }
 
     /// Set name parts of the function
@@ -200,6 +217,7 @@ impl FunctionDeclarationBuilder {
         let name_format = self.build_name_format();
         let name = self.build_name();
         FunctionDeclaration {
+            generic_parameters: self.generic_parameters,
             name_parts: self.name_parts,
             return_type,
             name_format,
@@ -263,7 +281,7 @@ impl Named for FunctionDefinition {
 }
 
 /// Function definition or declaration
-#[derive(Debug, PartialEq, Eq, Clone, From)]
+#[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Function {
     Declaration(Arc<FunctionDeclaration>),
     Definition(Arc<FunctionDefinition>),
@@ -352,5 +370,60 @@ impl Named for Function {
             Function::Declaration(declaration) => declaration.name(),
             Function::Definition(definition) => definition.name(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{assert_matches::assert_matches, sync::Arc};
+
+    use crate::{
+        ast,
+        hir::{
+            Function, FunctionDeclarationBuilder, FunctionDefinition, GenericType, Parameter,
+            Return, Statement, VariableReference,
+        },
+        semantics::ASTLowering,
+        syntax::StringWithOffset,
+    };
+
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn generic_parameters() {
+        let ast = "fn<T> <x: T> -> T => x"
+            .parse::<ast::FunctionDeclaration>()
+            .unwrap();
+        let hir = ast.lower_to_hir().unwrap();
+        assert_matches!(hir, Function::Definition(_));
+
+        let hir: Arc<FunctionDefinition> = hir.try_into().unwrap();
+
+        let ty = GenericType {
+            name: StringWithOffset::from("T").at(3),
+        };
+        let param = Parameter {
+            name: StringWithOffset::from("x").at(7),
+            ty: ty.clone().into(),
+        };
+        assert_eq!(
+            *hir.declaration,
+            FunctionDeclarationBuilder::new()
+                .with_generic_parameters(vec![ty.clone()])
+                .with_name(vec![param.clone().into()])
+                .with_return_type(ty.into())
+        );
+        assert_eq!(
+            hir.body[0],
+            Statement::Return(Return {
+                value: Some(
+                    VariableReference {
+                        span: 21..22,
+                        variable: param.into()
+                    }
+                    .into()
+                )
+            })
+        )
     }
 }

@@ -2,13 +2,13 @@ use std::sync::Arc;
 
 use crate::{
     ast,
-    hir::{self, FunctionDefinition, Typed},
+    hir::{self, FunctionDefinition, GenericType, Typed},
     syntax::Ranged,
 };
 
 use super::{
     error::{CantDeduceReturnType, Error, ReturnTypeMismatch},
-    ASTLoweringWithinContext, Context, FunctionContext, TraitContext,
+    ASTLoweringWithinContext, Context, FunctionContext, GenericContext, TraitContext,
 };
 
 /// Trait to pre-declare something
@@ -32,20 +32,40 @@ impl Declare for ast::FunctionDeclaration {
     type Definition = hir::Function;
 
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
+        // TODO: check for collision
+        let generic_parameters: Vec<_> = self
+            .generic_parameters
+            .iter()
+            .cloned()
+            .map(|name| GenericType { name })
+            .collect();
+
+        let mut generic_context = GenericContext {
+            parent: context,
+            generic_parameters: generic_parameters.clone(),
+        };
+
         let mut name_parts: Vec<hir::FunctionNamePart> = Vec::new();
         for part in &self.name_parts {
             match part {
                 ast::FunctionNamePart::Text(t) => name_parts.push(t.clone().into()),
-                ast::FunctionNamePart::Parameter { parameter, .. } => {
-                    name_parts.push(parameter.lower_to_hir_within_context(context)?.into())
-                }
+                ast::FunctionNamePart::Parameter { parameter, .. } => name_parts.push(
+                    parameter
+                        .lower_to_hir_within_context(&mut generic_context)?
+                        .into(),
+                ),
             }
         }
 
         let return_type = match &self.return_type {
-            Some(ty) => ty.lower_to_hir_within_context(context)?.referenced_type,
-            None => context.builtin().types().none(),
+            Some(ty) => {
+                ty.lower_to_hir_within_context(&mut generic_context)?
+                    .referenced_type
+            }
+            None => generic_context.builtin().types().none(),
         };
+
+        drop(generic_context);
 
         let annotations = self
             .annotations
@@ -58,9 +78,10 @@ impl Declare for ast::FunctionDeclaration {
 
         let f = Arc::new(
             hir::FunctionDeclaration::build()
-                .with_name(name_parts.clone())
-                .with_mangled_name(mangled_name.clone())
-                .with_return_type(return_type.clone()),
+                .with_generic_parameters(generic_parameters)
+                .with_name(name_parts)
+                .with_mangled_name(mangled_name)
+                .with_return_type(return_type),
         );
 
         context.add_function(f.clone().into());
