@@ -123,7 +123,7 @@ pub enum Type {
     /// Self type and trait it represents
     SelfType(SelfType),
     // TODO: add `Resolved` and `Unresolved` generic types instead
-    /// Type for class' generic parameter
+    /// Type for generic parameters
     Generic(GenericType),
     /// Function type
     Function(FunctionType),
