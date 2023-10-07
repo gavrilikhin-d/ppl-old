@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use crate::{
     hir::{
@@ -7,7 +7,7 @@ use crate::{
         VariableReference, While,
     },
     named::Named,
-    semantics::FunctionContext,
+    semantics::{ConvertibleTo, FunctionContext},
 };
 
 use super::Context;
@@ -157,6 +157,8 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
             return self.clone();
         }
 
+        let mut generics_map: HashMap<String, Type> = HashMap::new();
+
         let mut arg = args.into_iter();
         let name_parts = self
             .name_parts()
@@ -167,8 +169,17 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
                     name: param.name.clone(),
                     ty: {
                         let arg_ty = arg.next().unwrap().clone();
+                        debug_assert!(arg_ty.convertible_to(param.ty()).within(context));
                         match param.ty() {
                             Type::Trait(_) | Type::SelfType(_) => arg_ty,
+                            Type::Generic(g) => {
+                                if let Some(ty) = generics_map.get(g.name()) {
+                                    ty.clone()
+                                } else {
+                                    generics_map.insert(g.name.to_string(), arg_ty.clone());
+                                    arg_ty
+                                }
+                            }
                             _ => param.ty(),
                         }
                     },
@@ -188,7 +199,12 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
                         .map(|f| f.declaration().mangled_name.clone())
                         .flatten(),
                 )
-                .with_return_type(self.return_type.clone()),
+                .with_return_type(
+                    generics_map
+                        .get(self.return_type.name())
+                        .cloned()
+                        .unwrap_or(self.return_type.clone()),
+                ),
         )
     }
 }
