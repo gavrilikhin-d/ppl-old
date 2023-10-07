@@ -104,7 +104,7 @@ impl ASTLoweringWithinContext for ast::VariableReference {
 }
 
 /// Trait to check if one type is convertible to another within context
-trait ConvertibleTo {
+pub trait ConvertibleTo {
     /// Is this type convertible to another?
     fn convertible_to(&self, ty: hir::Type) -> ConvertibleToCheck;
 }
@@ -119,7 +119,7 @@ impl ConvertibleTo for hir::Type {
 }
 
 /// Helper struct to perform check within context
-struct ConvertibleToCheck {
+pub struct ConvertibleToCheck {
     from: Type,
     to: Type,
 }
@@ -140,7 +140,7 @@ impl ConvertibleToCheck {
 }
 
 /// Trait to check if type implements trait
-trait Implements {
+pub trait Implements {
     /// Does this class implement given trait?
     fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck;
 }
@@ -155,7 +155,7 @@ impl Implements for Arc<hir::TypeDeclaration> {
 }
 
 /// Helper struct to do check within context
-struct ImplementsCheck {
+pub struct ImplementsCheck {
     ty: Type,
     tr: Arc<hir::TraitDeclaration>,
 }
