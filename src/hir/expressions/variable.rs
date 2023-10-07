@@ -13,6 +13,18 @@ pub enum ParameterOrVariable {
     Parameter(Arc<Parameter>),
 }
 
+impl From<Parameter> for ParameterOrVariable {
+    fn from(parameter: Parameter) -> Self {
+        Self::Parameter(Arc::new(parameter))
+    }
+}
+
+impl From<VariableDeclaration> for ParameterOrVariable {
+    fn from(variable: VariableDeclaration) -> Self {
+        Self::Variable(Arc::new(variable))
+    }
+}
+
 impl Named for ParameterOrVariable {
     fn name(&self) -> &str {
         match self {
