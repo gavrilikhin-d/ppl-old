@@ -5,7 +5,7 @@ use std::{
 
 use crate::{mutability::Mutable, named::Named, syntax::StringWithOffset};
 
-use super::{Generic, Member, Module, Specialized, TraitDeclaration, TypeDeclaration};
+use super::{Generic, Member, Module, Specialize, Specialized, TraitDeclaration, TypeDeclaration};
 use derive_more::{From, TryInto};
 use enum_dispatch::enum_dispatch;
 
@@ -139,6 +139,12 @@ pub enum Type {
     Function(FunctionType),
 }
 
+impl From<SpecializedType> for Type {
+    fn from(specialized: SpecializedType) -> Self {
+        Self::Specialized(Box::new(specialized))
+    }
+}
+
 impl Type {
     /// Return most specialized subtype
     pub fn specialized(&self) -> Type {
@@ -240,6 +246,18 @@ impl Generic for Type {
                 f.parameters.iter().any(|p| p.is_generic()) || f.return_type.is_generic()
             }
         }
+    }
+}
+
+impl Specialize<Type> for Type {
+    fn specialize_with(self, specialized: Type) -> Self {
+        debug_assert!(self.is_generic());
+
+        SpecializedType {
+            generic: self,
+            specialized,
+        }
+        .into()
     }
 }
 

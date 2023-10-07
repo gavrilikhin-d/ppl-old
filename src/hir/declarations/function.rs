@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use derive_more::{From, TryInto};
 
-use crate::hir::{FunctionType, Generic, Statement, Type, Typed};
+use crate::hir::{FunctionType, Generic, Specialize, Statement, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::StringWithOffset;
@@ -21,6 +21,14 @@ impl Generic for Parameter {
     /// Is this a generic parameter?
     fn is_generic(&self) -> bool {
         self.ty.is_generic()
+    }
+}
+
+impl Specialize<Type> for Parameter {
+    /// Specialize generic parameter
+    fn specialize_with(mut self, specialized: Type) -> Self {
+        self.ty = self.ty.specialize_with(specialized);
+        self
     }
 }
 
@@ -383,8 +391,8 @@ mod tests {
     use crate::{
         ast,
         hir::{
-            Function, FunctionDeclarationBuilder, FunctionDefinition, GenericType, Parameter,
-            Return, Statement, VariableReference,
+            Function, FunctionDeclaration, FunctionDefinition, GenericType, Parameter, Return,
+            Statement, VariableReference,
         },
         semantics::ASTLowering,
         syntax::StringWithOffset,
@@ -411,7 +419,7 @@ mod tests {
         };
         assert_eq!(
             *hir.declaration,
-            FunctionDeclarationBuilder::new()
+            FunctionDeclaration::build()
                 .with_generic_types(vec![ty.clone().into()])
                 .with_name(vec![param.clone().into()])
                 .with_return_type(ty.into())

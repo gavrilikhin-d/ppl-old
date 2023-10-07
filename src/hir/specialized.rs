@@ -21,3 +21,9 @@ impl<G: Generic> Generic for Specialized<G> {
         self.specialized.is_generic()
     }
 }
+
+/// Trait to specialize generic items
+pub trait Specialize<S> {
+    /// Specialize generic item
+    fn specialize_with(self, specialized: S) -> Self;
+}

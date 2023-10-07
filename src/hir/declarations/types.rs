@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    hir::{Generic, Type, Typed},
+    hir::{Generic, Specialize, Type, Typed},
     named::Named,
     syntax::StringWithOffset,
 };
@@ -19,6 +19,13 @@ impl Generic for Member {
     /// Is this a generic member?
     fn is_generic(&self) -> bool {
         self.ty.is_generic()
+    }
+}
+
+impl Specialize<Type> for Member {
+    fn specialize_with(mut self, ty: Type) -> Self {
+        self.ty = self.ty.specialize_with(ty);
+        self
     }
 }
 

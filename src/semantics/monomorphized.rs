@@ -3,7 +3,7 @@ use std::{collections::HashMap, sync::Arc};
 use crate::{
     hir::{
         Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
-        FunctionDefinition, FunctionNamePart, Generic, If, Loop, Parameter, Return, Statement,
+        FunctionDefinition, FunctionNamePart, Generic, If, Loop, Return, Specialize, Statement,
         Type, Typed, VariableReference, While,
     },
     named::Named,
@@ -165,26 +165,20 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
             .iter()
             .map(|part| match part {
                 FunctionNamePart::Text(text) => text.clone().into(),
-                FunctionNamePart::Parameter(param) => Arc::new(Parameter {
-                    name: param.name.clone(),
-                    ty: {
-                        let arg_ty = arg.next().unwrap().clone();
-                        debug_assert!(arg_ty.convertible_to(param.ty()).within(context));
-                        match param.ty() {
-                            Type::Trait(_) | Type::SelfType(_) => arg_ty,
-                            Type::Generic(g) => {
-                                if let Some(ty) = generics_map.get(g.name()) {
-                                    ty.clone()
-                                } else {
-                                    generics_map.insert(g.name.to_string(), arg_ty.clone());
-                                    arg_ty
-                                }
-                            }
-                            _ => param.ty(),
-                        }
-                    },
-                })
-                .into(),
+                FunctionNamePart::Parameter(param) => {
+                    let arg_ty = arg.next().unwrap().clone();
+                    debug_assert!(arg_ty.convertible_to(param.ty()).within(context));
+                    if !param.is_generic() {
+                        return param.clone().into();
+                    }
+
+                    let param_ty = param.ty();
+                    let param = param.as_ref().clone().specialize_with(arg_ty);
+                    if let Type::Generic(g) = param_ty {
+                        generics_map.insert(g.name().to_string(), param.ty());
+                    }
+                    param.into()
+                }
             })
             .collect::<Vec<_>>();
 

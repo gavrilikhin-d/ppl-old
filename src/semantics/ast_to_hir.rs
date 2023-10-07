@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
-use crate::hir::{self, FunctionNamePart, Generic, GenericType, Type, Typed};
+use crate::hir::{self, FunctionNamePart, Generic, GenericType, Specialize, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
@@ -414,12 +414,9 @@ impl ASTLoweringWithinContext for ast::Constructor {
                     .into());
                 }
 
-                // TODO: move to monomorphize
-                if member.ty.is_generic() {
-                    members[index] = Arc::new(hir::Member {
-                        name: member.name.clone(),
-                        ty: value.ty().clone(),
-                    });
+                if member.is_generic() {
+                    members[index] =
+                        Arc::new((*members[index]).clone().specialize_with(value.ty()));
                 }
 
                 initializers.push(hir::Initializer {
