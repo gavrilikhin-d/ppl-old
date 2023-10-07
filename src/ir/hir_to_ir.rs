@@ -94,7 +94,9 @@ impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Declaration {
                 var.lower_local_to_ir(context);
             }
             Declaration::Type(ty) => {
-                ty.lower_to_ir(context);
+                if !ty.is_generic() {
+                    ty.lower_to_ir(context);
+                }
             }
             Declaration::Function(f) => {
                 if !f.is_generic() {
