@@ -3,6 +3,7 @@
 #![feature(let_chains)]
 #![feature(associated_type_defaults)]
 #![feature(lazy_cell)]
+#![feature(assert_matches)]
 
 pub mod mutability;
 pub mod named;
