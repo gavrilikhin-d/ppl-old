@@ -132,7 +132,7 @@ impl Monomorphized for VariableReference {
     fn monomorphized(&self, context: &mut impl Context) -> Self {
         VariableReference {
             span: self.span.clone(),
-            variable: context.find_variable(self.variable.name()).unwrap(),
+            variable: context.find_variable(&self.variable.name()).unwrap(),
         }
     }
 }
@@ -195,7 +195,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
                 )
                 .with_return_type(
                     generics_map
-                        .get(self.return_type.name())
+                        .get(&self.return_type.name().to_string())
                         .cloned()
                         .unwrap_or(self.return_type.clone()),
                 ),
@@ -231,7 +231,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDefinition> {
             body,
         });
 
-        if context.function_with_name(f.name()).is_none() {
+        if context.function_with_name(&f.name()).is_none() {
             context.add_function(f.clone().into());
         }
 

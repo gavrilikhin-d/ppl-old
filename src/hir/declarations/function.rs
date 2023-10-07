@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::fmt::Display;
 use std::sync::Arc;
 
@@ -34,8 +35,8 @@ impl Specialize<Type> for Parameter {
 
 impl Named for Parameter {
     /// Get name of parameter
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
     }
 }
 
@@ -128,8 +129,11 @@ impl FunctionDeclaration {
     }
 
     /// Get mangled name of function
-    pub fn mangled_name(&self) -> &str {
-        self.mangled_name.as_deref().unwrap_or(self.name())
+    pub fn mangled_name(&self) -> Cow<'_, str> {
+        self.mangled_name
+            .as_deref()
+            .map(|n| n.into())
+            .unwrap_or(self.name())
     }
 }
 
@@ -141,8 +145,8 @@ impl Generic for FunctionDeclaration {
 
 impl Named for FunctionDeclaration {
     /// Get name of function
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
     }
 }
 
@@ -262,7 +266,7 @@ impl FunctionDefinition {
     }
 
     /// Get mangled name of function
-    pub fn mangled_name(&self) -> &str {
+    pub fn mangled_name(&self) -> Cow<'_, str> {
         self.declaration.mangled_name()
     }
 
@@ -285,7 +289,7 @@ impl Typed for FunctionDefinition {
 }
 
 impl Named for FunctionDefinition {
-    fn name(&self) -> &str {
+    fn name(&self) -> Cow<'_, str> {
         self.declaration.name()
     }
 }
@@ -339,7 +343,7 @@ impl Function {
     }
 
     /// Get mangled name of function
-    pub fn mangled_name(&self) -> &str {
+    pub fn mangled_name(&self) -> Cow<'_, str> {
         match self {
             Function::Declaration(declaration) => declaration.mangled_name(),
             Function::Definition(definition) => definition.mangled_name(),
@@ -376,7 +380,7 @@ impl Typed for Function {
 }
 
 impl Named for Function {
-    fn name(&self) -> &str {
+    fn name(&self) -> Cow<'_, str> {
         match self {
             Function::Declaration(declaration) => declaration.name(),
             Function::Definition(definition) => definition.name(),

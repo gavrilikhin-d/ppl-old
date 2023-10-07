@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 use crate::{
     hir::{Generic, Specialize, Type, Typed},
@@ -31,8 +31,8 @@ impl Specialize<Type> for Member {
 
 impl Named for Member {
     /// Get name of member
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
     }
 }
 
@@ -108,8 +108,8 @@ impl Generic for TypeDeclaration {
 
 impl Named for TypeDeclaration {
     /// Get name of type
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
     }
 }
 

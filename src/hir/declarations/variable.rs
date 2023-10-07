@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::hir::{Expression, Type, Typed};
 use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
@@ -17,8 +19,8 @@ pub struct VariableDeclaration {
 
 impl Named for VariableDeclaration {
     /// Get name of variable
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
     }
 }
 

@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     fmt::Display,
     sync::{Arc, Weak},
 };
@@ -30,8 +31,8 @@ impl FunctionType {
 }
 
 impl Named for FunctionType {
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
     }
 }
 
@@ -73,7 +74,7 @@ impl FunctionTypeBuilder {
             if i != 0 {
                 name.push_str(", ");
             }
-            name.push_str(parameter.name());
+            name.push_str(&parameter.name());
         }
         name.push_str(&format!(") -> {}", return_type.name()));
         name
@@ -95,8 +96,8 @@ impl PartialEq for SelfType {
 impl Eq for SelfType {}
 
 impl Named for SelfType {
-    fn name(&self) -> &str {
-        "Self"
+    fn name(&self) -> Cow<'_, str> {
+        "Self".into()
     }
 }
 
@@ -108,8 +109,8 @@ pub struct GenericType {
 }
 
 impl Named for GenericType {
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
     }
 }
 
@@ -117,7 +118,7 @@ impl Named for GenericType {
 pub type SpecializedType = Specialized<Type>;
 
 impl Named for SpecializedType {
-    fn name(&self) -> &str {
+    fn name(&self) -> Cow<'_, str> {
         self.specialized.name()
     }
 }
@@ -268,7 +269,7 @@ impl Display for Type {
 }
 
 impl Named for Type {
-    fn name(&self) -> &str {
+    fn name(&self) -> Cow<'_, str> {
         match self {
             Type::Class(class) => class.name(),
             Type::Trait(tr) => tr.name(),

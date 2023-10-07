@@ -217,11 +217,11 @@ impl<'llvm> HIRTypesLowering<'llvm> for TypeDeclaration {
             return context.types().opaque(&self.name).into();
         }
 
-        if let Some(ty) = context.llvm().get_struct_type(self.name()) {
+        if let Some(ty) = context.llvm().get_struct_type(&self.name()) {
             return ty.into();
         }
 
-        let ty = context.llvm().opaque_struct_type(self.name());
+        let ty = context.llvm().opaque_struct_type(&self.name());
         ty.set_body(
             self.members
                 .iter()
@@ -251,7 +251,7 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionDeclaration {
             }
             _ => unreachable!("FunctionDeclaration::ty() returned non-function type"),
         };
-        context.module.add_function(self.mangled_name(), ty, None)
+        context.module.add_function(&self.mangled_name(), ty, None)
     }
 }
 
@@ -319,7 +319,7 @@ impl<'llvm> EmitBody<'llvm> for FunctionDefinition {
     fn emit_body(&self, context: &mut ModuleContext<'llvm>) {
         let f = context
             .functions()
-            .get(self.mangled_name())
+            .get(&self.mangled_name())
             .expect("Function was not declared before emitting body");
         if !self.body.is_empty() {
             let mut f_context = FunctionContext::new(context, f);
@@ -486,7 +486,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
     fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         let function = context
             .functions()
-            .get(self.function.mangled_name())
+            .get(&self.function.mangled_name())
             .unwrap_or_else(|| {
                 if self.generic.is_none() {
                     self.function
@@ -567,7 +567,7 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for MemberReference 
                         .unwrap(),
                     base,
                     self.index as u32,
-                    self.member.name(),
+                    &self.member.name(),
                 )
                 .unwrap()
                 .into(),
@@ -878,7 +878,7 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         &self,
         llvm: &'llvm inkwell::context::Context,
     ) -> inkwell::module::Module<'llvm> {
-        let module = llvm.create_module(self.name());
+        let module = llvm.create_module(&self.name());
         module.set_source_file_name(&self.filename);
 
         let mut context = ModuleContext::new(module);

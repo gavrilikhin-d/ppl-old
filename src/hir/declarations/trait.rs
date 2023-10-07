@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{named::Named, syntax::StringWithOffset};
 
 use super::Function;
@@ -21,7 +23,7 @@ impl TraitDeclaration {
 }
 
 impl Named for TraitDeclaration {
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
     }
 }

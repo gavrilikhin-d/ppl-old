@@ -4,6 +4,7 @@ use crate::hir::{Parameter, Type, Typed, VariableDeclaration};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
+use std::borrow::Cow;
 use std::sync::Arc;
 
 /// Parameter or variable declaration
@@ -26,7 +27,7 @@ impl From<VariableDeclaration> for ParameterOrVariable {
 }
 
 impl Named for ParameterOrVariable {
-    fn name(&self) -> &str {
+    fn name(&self) -> Cow<'_, str> {
         match self {
             ParameterOrVariable::Variable(variable) => variable.name(),
             ParameterOrVariable::Parameter(parameter) => parameter.name(),
