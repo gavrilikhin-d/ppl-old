@@ -1,4 +1,4 @@
-use crate::hir::{Type, Typed};
+use crate::hir::{Generic, Specialize, Type, Typed};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 
@@ -9,6 +9,19 @@ pub struct TypeReference {
     pub span: std::ops::Range<usize>,
     /// Referenced type
     pub referenced_type: Type,
+}
+
+impl Generic for TypeReference {
+    fn is_generic(&self) -> bool {
+        self.referenced_type.is_generic()
+    }
+}
+
+impl Specialize<Type> for TypeReference {
+    fn specialize_with(mut self, specialized: Type) -> Self {
+        self.referenced_type = self.referenced_type.specialize_with(specialized);
+        self
+    }
 }
 
 impl Mutable for TypeReference {

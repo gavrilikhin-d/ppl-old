@@ -26,6 +26,7 @@ impl<G: Generic> Generic for Specialized<G> {
 
 /// Trait to specialize generic items
 pub trait Specialize<S> {
+    // TODO: change to &mut self
     /// Specialize generic item
     fn specialize_with(self, specialized: S) -> Self;
 }
