@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use super::Generic;
 
 /// Specialized item
@@ -26,4 +28,10 @@ impl<G: Generic> Generic for Specialized<G> {
 pub trait Specialize<S> {
     /// Specialize generic item
     fn specialize_with(self, specialized: S) -> Self;
+}
+
+impl<S, T: Specialize<S> + Clone> Specialize<S> for Arc<T> {
+    fn specialize_with(self, specialized: S) -> Self {
+        Arc::new((*self).clone().specialize_with(specialized))
+    }
 }
