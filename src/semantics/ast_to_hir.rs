@@ -1,4 +1,6 @@
 use core::panic;
+use std::borrow::Cow;
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use std::sync::Arc;
@@ -374,6 +376,8 @@ impl ASTLoweringWithinContext for ast::Constructor {
 
         let mut members = ty.referenced_type.members().to_vec();
 
+        let mut generics_map: HashMap<Cow<'_, str>, Type> = HashMap::new();
+
         let mut initializers = Vec::<hir::Initializer>::new();
         for init in &self.initializers {
             let name = init.name.clone().unwrap_or_else(|| match &init.value {
@@ -415,8 +419,10 @@ impl ASTLoweringWithinContext for ast::Constructor {
                 }
 
                 if member.is_generic() {
-                    members[index] =
-                        Arc::new((*members[index]).clone().specialize_with(value.ty()));
+                    // TODO: check for constraints and repeats
+                    let member_ty = member.ty();
+                    members[index] = members[index].clone().specialize_with(value.ty());
+                    generics_map.insert(member_ty.name().to_string().into(), members[index].ty());
                 }
 
                 initializers.push(hir::Initializer {
@@ -460,8 +466,15 @@ impl ASTLoweringWithinContext for ast::Constructor {
             .into());
         }
 
+        let generic_parameters: Vec<_> = generic_ty
+            .generic_parameters
+            .iter()
+            .map(|g| generics_map.get(&g.name()).unwrap_or(g))
+            .cloned()
+            .collect();
         ty.referenced_type = Arc::new(hir::TypeDeclaration {
             members,
+            generic_parameters,
             ..(*generic_ty).clone()
         })
         .into();
