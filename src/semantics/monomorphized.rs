@@ -184,8 +184,19 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
 
         let name = Function::build_name(&name_parts);
 
+        let generic_types: Vec<Type> = self
+            .generic_types
+            .iter()
+            .map(|g| {
+                generics_map
+                    .get(&g.name().to_string())
+                    .cloned()
+                    .unwrap_or(g.clone())
+            })
+            .collect();
         Arc::new(
             FunctionDeclaration::build()
+                .with_generic_types(generic_types)
                 .with_name(name_parts)
                 .with_mangled_name(
                     context
