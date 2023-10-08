@@ -109,6 +109,18 @@ impl Generic for TypeDeclaration {
 impl Named for TypeDeclaration {
     /// Get name of type
     fn name(&self) -> Cow<'_, str> {
+        if self.generic_parameters.iter().any(|p| !p.is_generic()) {
+            return format!(
+                "{}<{}>",
+                self.name.as_str(),
+                self.generic_parameters
+                    .iter()
+                    .map(|p| p.name().to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+            .into();
+        }
         self.name.as_str().into()
     }
 }
