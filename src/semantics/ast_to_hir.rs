@@ -7,7 +7,9 @@ use std::sync::Arc;
 
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
-use crate::hir::{self, FunctionNamePart, Generic, GenericType, Specialize, Type, Typed};
+use crate::hir::{
+    self, FunctionNamePart, Generic, GenericType, Specialize, SpecializeClass, Type, Typed,
+};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
@@ -136,6 +138,7 @@ impl ConvertibleToCheck {
             (Type::Class(c), Type::Trait(tr)) => c.implements(tr.clone()).within(context),
             // TODO: check for constraints
             (_, Type::Generic(_)) => true,
+            (Type::Specialized(from), to) => from.generic == *to,
             _ => self.from == self.to,
         }
     }
@@ -373,6 +376,12 @@ impl ASTLoweringWithinContext for ast::Constructor {
     /// Lower [`ast::Constructor`] to [`hir::Constructor`] within lowering context
     fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
         let mut ty = self.ty.lower_to_hir_within_context(context)?;
+        let generic_ty: Arc<hir::TypeDeclaration> = ty
+            .referenced_type
+            .clone()
+            .try_into()
+            // TODO: error
+            .expect("constructors only meant for classes");
 
         let mut members = ty.referenced_type.members().to_vec();
 
@@ -442,12 +451,6 @@ impl ASTLoweringWithinContext for ast::Constructor {
             }
         }
 
-        let generic_ty: Arc<hir::TypeDeclaration> = ty
-            .referenced_type
-            .clone()
-            .try_into()
-            .expect("constructors only meant for classes");
-
         if initializers.len() != generic_ty.members.len() {
             assert!(
                 initializers.len() < generic_ty.members.len(),
@@ -466,19 +469,22 @@ impl ASTLoweringWithinContext for ast::Constructor {
             .into());
         }
 
-        let generic_parameters: Vec<_> = generic_ty
-            .generic_parameters
-            .iter()
-            .map(|g| generics_map.get(&g.name()).unwrap_or(g))
-            .cloned()
-            .collect();
-        ty.referenced_type = Arc::new(hir::TypeDeclaration {
-            members,
-            generic_parameters,
-            ..(*generic_ty).clone()
-        })
-        .into();
-
+        if generic_ty.is_generic() {
+            let generic_parameters: Vec<_> = generic_ty
+                .generic_parameters
+                .iter()
+                .map(|g| generics_map.get(&g.name()).unwrap_or(g))
+                .cloned()
+                .collect();
+            ty = ty.specialize_with(
+                generic_ty
+                    .specialize_with(SpecializeClass {
+                        generic_parameters,
+                        members,
+                    })
+                    .into(),
+            );
+        }
         Ok(hir::Constructor {
             ty,
             initializers,
