@@ -31,6 +31,7 @@
 ---
 ### Current task
 * [ ] Generic functions
+* [ ] Specialize types of expressions inside generic functions
 ---
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors

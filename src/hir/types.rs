@@ -6,7 +6,10 @@ use std::{
 
 use crate::{mutability::Mutable, named::Named, syntax::StringWithOffset};
 
-use super::{Generic, Member, Module, Specialize, Specialized, TraitDeclaration, TypeDeclaration};
+use super::{
+    Generic, GenericName, Member, Module, Specialize, Specialized, TraitDeclaration,
+    TypeDeclaration,
+};
 use derive_more::{From, TryInto};
 use enum_dispatch::enum_dispatch;
 
@@ -250,6 +253,15 @@ impl Generic for Type {
     }
 }
 
+impl GenericName for Type {
+    fn generic_name(&self) -> Cow<'_, str> {
+        match self {
+            Type::Class(c) => c.generic_name(),
+            _ => self.name(),
+        }
+    }
+}
+
 impl Specialize<Type> for Type {
     fn specialize_with(self, specialized: Type) -> Self {
         debug_assert!(self.is_generic());
@@ -264,7 +276,7 @@ impl Specialize<Type> for Type {
 
 impl Display for Type {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.name())
+        write!(f, "{}", self.generic_name())
     }
 }
 

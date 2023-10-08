@@ -1,7 +1,7 @@
 use std::{borrow::Cow, sync::Arc};
 
 use crate::{
-    hir::{Generic, Specialize, Type, Typed},
+    hir::{Generic, GenericName, Specialize, Type, Typed},
     named::Named,
     syntax::StringWithOffset,
 };
@@ -106,6 +106,25 @@ impl Generic for TypeDeclaration {
     }
 }
 
+impl GenericName for TypeDeclaration {
+    fn generic_name(&self) -> Cow<'_, str> {
+        if self.generic_parameters.is_empty() {
+            return self.name();
+        }
+
+        format!(
+            "{}<{}>",
+            self.name.as_str(),
+            self.generic_parameters
+                .iter()
+                .map(|p| p.generic_name())
+                .collect::<Vec<_>>()
+                .join(", ")
+        )
+        .into()
+    }
+}
+
 /// Arguments to specialize class
 pub struct SpecializeClass {
     /// Specialized generics
@@ -125,18 +144,6 @@ impl Specialize<SpecializeClass> for TypeDeclaration {
 impl Named for TypeDeclaration {
     /// Get name of type
     fn name(&self) -> Cow<'_, str> {
-        if self.generic_parameters.iter().any(|p| !p.is_generic()) {
-            return format!(
-                "{}<{}>",
-                self.name.as_str(),
-                self.generic_parameters
-                    .iter()
-                    .map(|p| p.name().to_string())
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            )
-            .into();
-        }
         self.name.as_str().into()
     }
 }
