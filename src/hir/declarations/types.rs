@@ -106,6 +106,22 @@ impl Generic for TypeDeclaration {
     }
 }
 
+/// Arguments to specialize class
+pub struct SpecializeClass {
+    /// Specialized generics
+    pub generic_parameters: Vec<Type>,
+    /// Specialized members
+    pub members: Vec<Arc<Member>>,
+}
+
+impl Specialize<SpecializeClass> for TypeDeclaration {
+    fn specialize_with(mut self, specialized: SpecializeClass) -> Self {
+        self.generic_parameters = specialized.generic_parameters;
+        self.members = specialized.members;
+        self
+    }
+}
+
 impl Named for TypeDeclaration {
     /// Get name of type
     fn name(&self) -> Cow<'_, str> {
