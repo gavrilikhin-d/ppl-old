@@ -32,6 +32,7 @@
 ### Current task
 * [ ] Generic functions
 ---
+* [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors
 * [ ] Add `SourceFile` as source code for errors
 * [ ] More functions to stdlib
