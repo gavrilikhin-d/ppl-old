@@ -10,7 +10,7 @@ use super::{
     Generic, GenericName, Member, Module, Specialize, Specialized, TraitDeclaration,
     TypeDeclaration,
 };
-use derive_more::{From, TryInto};
+use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
 
 use super::Expression;
@@ -36,6 +36,12 @@ impl FunctionType {
 impl Named for FunctionType {
     fn name(&self) -> Cow<'_, str> {
         self.name.as_str().into()
+    }
+}
+
+impl Display for FunctionType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name())
     }
 }
 
@@ -77,9 +83,9 @@ impl FunctionTypeBuilder {
             if i != 0 {
                 name.push_str(", ");
             }
-            name.push_str(&parameter.name());
+            name.push_str(&parameter.generic_name());
         }
-        name.push_str(&format!(") -> {}", return_type.name()));
+        name.push_str(&format!(") -> {}", return_type.generic_name()));
         name
     }
 }
@@ -104,6 +110,12 @@ impl Named for SelfType {
     }
 }
 
+impl Display for SelfType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name())
+    }
+}
+
 /// Type of a generic parameter
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GenericType {
@@ -114,6 +126,12 @@ pub struct GenericType {
 impl Named for GenericType {
     fn name(&self) -> Cow<'_, str> {
         self.name.as_str().into()
+    }
+}
+
+impl Display for GenericType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name())
     }
 }
 
@@ -132,8 +150,18 @@ impl GenericName for SpecializedType {
     }
 }
 
+impl Display for SpecializedType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Type::Class(_) = self.generic {
+            write!(f, "{}", self.specialized)
+        } else {
+            write!(f, "{} => {}", self.generic, self.specialized)
+        }
+    }
+}
+
 /// Type of values
-#[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
+#[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Type {
     /// User defined type
     Class(Arc<TypeDeclaration>),
@@ -278,12 +306,6 @@ impl Specialize<Type> for Type {
             specialized,
         }
         .into()
-    }
-}
-
-impl Display for Type {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.generic_name())
     }
 }
 

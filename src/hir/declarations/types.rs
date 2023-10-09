@@ -1,4 +1,4 @@
-use std::{borrow::Cow, sync::Arc};
+use std::{borrow::Cow, fmt::Display, sync::Arc};
 
 use crate::{
     hir::{Generic, GenericName, Specialize, Type, Typed},
@@ -122,6 +122,12 @@ impl GenericName for TypeDeclaration {
                 .join(", ")
         )
         .into()
+    }
+}
+
+impl Display for TypeDeclaration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.generic_name())
     }
 }
 

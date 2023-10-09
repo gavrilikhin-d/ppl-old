@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt::Display};
 
 use crate::{named::Named, syntax::StringWithOffset};
 
@@ -25,5 +25,11 @@ impl TraitDeclaration {
 impl Named for TraitDeclaration {
     fn name(&self) -> Cow<'_, str> {
         self.name.as_str().into()
+    }
+}
+
+impl Display for TraitDeclaration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name())
     }
 }
