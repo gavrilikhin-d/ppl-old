@@ -133,6 +133,16 @@ pub struct SpecializeClass {
     pub members: Vec<Arc<Member>>,
 }
 
+impl SpecializeClass {
+    /// Specialize class without members
+    pub fn without_members(generic_parameters: Vec<Type>) -> Self {
+        Self {
+            generic_parameters,
+            members: vec![],
+        }
+    }
+}
+
 impl Specialize<SpecializeClass> for TypeDeclaration {
     fn specialize_with(mut self, specialized: SpecializeClass) -> Self {
         self.generic_parameters = specialized.generic_parameters;
