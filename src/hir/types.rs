@@ -184,6 +184,29 @@ impl From<SpecializedType> for Type {
 }
 
 impl Type {
+    /// Get diff in specializations
+    /// that needed to make `self` type to match `target` type.
+    ///
+    /// # Note
+    /// This function ignores the fact that types may be non-generic
+    pub fn diff(&self, target: Type) -> Vec<Type> {
+        let from = self.specialized();
+        let to = target.specialized();
+        if from == to {
+            return vec![];
+        }
+
+        match (&from, &to) {
+            (Type::Class(from), Type::Class(to)) if from.name == to.name => from
+                .generic_parameters
+                .iter()
+                .zip(to.generic_parameters.iter())
+                .flat_map(|(t1, t2)| t1.diff(t2.clone()))
+                .collect(),
+            _ => vec![from.specialize_with(to)],
+        }
+    }
+
     /// Return most specialized subtype
     pub fn specialized(&self) -> Type {
         match self {
@@ -393,5 +416,62 @@ mod tests {
             u.specialize_with(by),
         ]));
         assert_str_eq!(t1.generic_name(), "A<X, B<Y>>");
+    }
+
+    #[test]
+    fn diff() {
+        let a = type_decl("type A<T, U>");
+        let b = type_decl("type B<T>");
+        let c = type_decl("type C");
+
+        let x: Type = GenericType { name: "X".into() }.into();
+        let y: Type = GenericType { name: "Y".into() }.into();
+
+        let t: Type = GenericType {
+            name: StringWithOffset::from("T").at(7),
+        }
+        .into();
+        let u: Type = GenericType {
+            name: StringWithOffset::from("U").at(10),
+        }
+        .into();
+
+        let by: Type = b
+            .clone()
+            .specialize_with(SpecializeClass::without_members(vec![t
+                .clone()
+                .specialize_with(y.clone())]))
+            .into();
+        println!("{}", by.generic_name());
+
+        // A<X, B<Y>>
+        let t1: Type = a
+            .clone()
+            .specialize_with(SpecializeClass::without_members(vec![
+                t.clone().specialize_with(x.clone()),
+                u.clone().specialize_with(by.clone()),
+            ]))
+            .into();
+        println!("{}", t1.generic_name());
+
+        // B<C>
+        let bc: Type = b
+            .specialize_with(SpecializeClass::without_members(vec![t
+                .clone()
+                .specialize_with(c.clone().into())]))
+            .into();
+        // A<B<C>, B<C>>
+        let t2: Type = a
+            .specialize_with(SpecializeClass::without_members(vec![
+                t.specialize_with(bc.clone()),
+                u.specialize_with(bc.clone()),
+            ]))
+            .into();
+        let diff = t1.diff(t2);
+        diff.iter().for_each(|s| println!("{s}"));
+        assert_eq!(
+            diff,
+            vec![x.specialize_with(bc), y.specialize_with(c.into())]
+        );
     }
 }
