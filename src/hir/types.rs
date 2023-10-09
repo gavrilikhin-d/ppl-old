@@ -126,6 +126,12 @@ impl Named for SpecializedType {
     }
 }
 
+impl GenericName for SpecializedType {
+    fn generic_name(&self) -> Cow<'_, str> {
+        self.specialized.generic_name()
+    }
+}
+
 /// Type of values
 #[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Type {
@@ -257,6 +263,7 @@ impl GenericName for Type {
     fn generic_name(&self) -> Cow<'_, str> {
         match self {
             Type::Class(c) => c.generic_name(),
+            Type::Specialized(s) => s.generic_name(),
             _ => self.name(),
         }
     }
@@ -304,4 +311,65 @@ impl Mutable for Type {
 pub trait Typed {
     /// Get type of value
     fn ty(&self) -> Type;
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use pretty_assertions::{assert_eq, assert_str_eq};
+
+    use crate::{
+        ast,
+        hir::{GenericName, GenericType, Specialize, SpecializeClass, Type, TypeDeclaration},
+        semantics::ASTLowering,
+        syntax::StringWithOffset,
+    };
+
+    /// Get type declaration from source
+    fn type_decl(source: &str) -> Arc<TypeDeclaration> {
+        source
+            .parse::<ast::TypeDeclaration>()
+            .unwrap()
+            .lower_to_hir()
+            .unwrap()
+    }
+
+    #[test]
+    fn generic_name() {
+        let a = type_decl("type A<T, U>");
+        assert_str_eq!(a.generic_name(), "A<T, U>");
+
+        let b = type_decl("type B<T>");
+        assert_str_eq!(b.generic_name(), "B<T>");
+
+        let t: Type = GenericType {
+            name: StringWithOffset::from("T").at(7),
+        }
+        .into();
+        let u: Type = GenericType {
+            name: StringWithOffset::from("U").at(10),
+        }
+        .into();
+
+        let x: Type = type_decl("type X").into();
+        assert_str_eq!(x.generic_name(), "X");
+        let y: Type = type_decl("type Y").into();
+        assert_str_eq!(y.generic_name(), "Y");
+
+        // B<Y>
+        let by: Type = b
+            .specialize_with(SpecializeClass::without_members(vec![t
+                .clone()
+                .specialize_with(y)]))
+            .into();
+        assert_str_eq!(by.generic_name(), "B<Y>");
+
+        // A<X, B<Y>>
+        let t1 = a.specialize_with(SpecializeClass::without_members(vec![
+            t.specialize_with(x),
+            u.specialize_with(by),
+        ]));
+        assert_str_eq!(t1.generic_name(), "A<X, B<Y>>");
+    }
 }
