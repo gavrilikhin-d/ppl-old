@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{borrow::Cow, collections::HashMap, sync::Arc};
 
 use crate::{
     hir::{
@@ -157,7 +157,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
             return self.clone();
         }
 
-        let mut generics_map: HashMap<String, Type> = HashMap::new();
+        let mut generics_map: HashMap<Cow<'_, str>, Type> = HashMap::new();
 
         let mut arg = args.into_iter();
         let name_parts = self
@@ -173,10 +173,14 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
                     }
 
                     let param_ty = param.ty();
-                    let param = param.as_ref().clone().specialize_with(arg_ty);
-                    if let Type::Generic(g) = param_ty {
-                        generics_map.insert(g.name().to_string(), param.ty());
+                    let param = param.as_ref().clone().specialize_with(arg_ty.clone());
+
+                    let diff = param_ty.diff(arg_ty);
+                    for ty in diff.into_iter() {
+                        let name = (&ty).generic.name().to_string();
+                        generics_map.insert(name.into(), ty.specialized.into());
                     }
+
                     param.into()
                 }
             })
@@ -187,12 +191,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
         let generic_types: Vec<Type> = self
             .generic_types
             .iter()
-            .map(|g| {
-                generics_map
-                    .get(&g.name().to_string())
-                    .cloned()
-                    .unwrap_or(g.clone())
-            })
+            .map(|g| generics_map.get(&g.name()).cloned().unwrap_or(g.clone()))
             .collect();
         Arc::new(
             FunctionDeclaration::build()
@@ -206,7 +205,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
                 )
                 .with_return_type(
                     generics_map
-                        .get(&self.return_type.name().to_string())
+                        .get(&self.return_type.name())
                         .cloned()
                         .unwrap_or(self.return_type.clone()),
                 ),
