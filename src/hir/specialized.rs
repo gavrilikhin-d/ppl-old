@@ -25,14 +25,18 @@ impl<G: Generic> Generic for Specialized<G> {
 }
 
 /// Trait to specialize generic items
-pub trait Specialize<S> {
+pub trait Specialize<S>: Sized {
+    type Specialized = Self;
+
     // TODO: change to &mut self
     /// Specialize generic item
-    fn specialize_with(self, specialized: S) -> Self;
+    fn specialize_with(self, specialized: S) -> Self::Specialized;
 }
 
-impl<S, T: Specialize<S> + Clone> Specialize<S> for Arc<T> {
-    fn specialize_with(self, specialized: S) -> Self {
+impl<S, T, U: Specialize<S, Specialized = T> + Clone> Specialize<S> for Arc<U> {
+    type Specialized = Arc<T>;
+
+    fn specialize_with(self, specialized: S) -> Self::Specialized {
         Arc::new((*self).clone().specialize_with(specialized))
     }
 }

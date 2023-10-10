@@ -24,7 +24,7 @@ impl Generic for Member {
 
 impl Specialize<Type> for Member {
     fn specialize_with(mut self, ty: Type) -> Self {
-        self.ty = self.ty.specialize_with(ty);
+        self.ty = self.ty.specialize_with(ty).into();
         self
     }
 }

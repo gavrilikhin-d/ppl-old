@@ -28,7 +28,7 @@ impl Generic for Parameter {
 impl Specialize<Type> for Parameter {
     /// Specialize generic parameter
     fn specialize_with(mut self, specialized: Type) -> Self {
-        self.ty = self.ty.specialize_with(specialized);
+        self.ty = self.ty.specialize_with(specialized).into();
         self
     }
 }

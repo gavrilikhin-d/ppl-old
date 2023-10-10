@@ -19,7 +19,7 @@ impl Generic for TypeReference {
 
 impl Specialize<Type> for TypeReference {
     fn specialize_with(mut self, specialized: Type) -> Self {
-        self.referenced_type = self.referenced_type.specialize_with(specialized);
+        self.referenced_type = self.referenced_type.specialize_with(specialized).into();
         self
     }
 }
