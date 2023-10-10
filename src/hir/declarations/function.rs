@@ -167,6 +167,31 @@ impl Typed for FunctionDeclaration {
     }
 }
 
+impl Display for FunctionDeclaration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let generics = if self.generic_types.is_empty() {
+            String::new()
+        } else {
+            format!(
+                "<{}>",
+                self.generic_types
+                    .iter()
+                    .map(|g| g.generic_name())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        };
+        let name_parts = self
+            .name_parts
+            .iter()
+            .map(|p| p.to_string())
+            .collect::<Vec<_>>()
+            .join(" ");
+        let return_type = self.return_type.generic_name();
+        write!(f, "fn{generics} {name_parts} -> {return_type}")
+    }
+}
+
 /// Builder for a function declaration
 pub struct FunctionDeclarationBuilder {
     /// Generic parameters of a function
