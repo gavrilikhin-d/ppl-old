@@ -178,7 +178,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
                     let diff = param_ty.diff(arg_ty);
                     for ty in diff.into_iter() {
                         let name = (&ty).generic.name().to_string();
-                        generics_map.insert(name.into(), ty.specialized.into());
+                        generics_map.insert(name.into(), ty.into());
                     }
 
                     param.into()
@@ -236,10 +236,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDefinition> {
             .map(|stmt| stmt.monomorphized(&mut context))
             .collect();
 
-        let f = Arc::new(FunctionDefinition {
-            declaration: declaration.clone(),
-            body,
-        });
+        let f = Arc::new(FunctionDefinition { declaration, body });
 
         if context.function_with_name(&f.name()).is_none() {
             context.add_function(f.clone().into());
