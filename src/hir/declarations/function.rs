@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use derive_more::{From, TryInto};
 
-use crate::hir::{FunctionType, Generic, Specialize, Statement, Type, Typed};
+use crate::hir::{FunctionType, Generic, GenericName, Specialize, Statement, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::StringWithOffset;
@@ -312,7 +312,9 @@ impl Function {
 
             match part {
                 FunctionNamePart::Text(text) => name.push_str(&text),
-                FunctionNamePart::Parameter(p) => name.push_str(format!("<:{}>", p.ty()).as_str()),
+                FunctionNamePart::Parameter(p) => {
+                    name.push_str(format!("<:{}>", p.ty().generic_name()).as_str())
+                }
             }
         }
         name
