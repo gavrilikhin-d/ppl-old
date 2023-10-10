@@ -152,11 +152,7 @@ impl GenericName for SpecializedType {
 
 impl Display for SpecializedType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if let Type::Class(_) = self.generic {
-            write!(f, "{}", self.specialized)
-        } else {
-            write!(f, "{} => {}", self.generic, self.specialized)
-        }
+        write!(f, "{}", self.specialized)
     }
 }
 
