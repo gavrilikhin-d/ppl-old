@@ -627,7 +627,8 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
                     "",
                 ));
             }
-            _ => unimplemented!("Load reference of type {:?}", self.ty()),
+            ty if ty.is_generic() => unreachable!("Loading reference of generic type `{ty}`"),
+            ty => unimplemented!("Load reference of type `{ty}`"),
         };
     }
 }
