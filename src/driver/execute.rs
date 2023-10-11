@@ -5,6 +5,7 @@ use crate::compilation::Compiler;
 use crate::ir::HIRModuleLowering;
 use log::debug;
 use miette::miette;
+use tempdir::TempDir;
 
 use super::commands::compile::OutputType;
 use super::commands::Compile;
@@ -62,9 +63,15 @@ impl Execute for Compile {
             return Ok(());
         }
 
-        let bitcode = output_file.with_extension("bc");
+        let temp_dir = TempDir::new("ppl").unwrap();
+
+        let bitcode = temp_dir
+            .path()
+            .join(self.file.file_stem().unwrap())
+            .with_extension("bc");
         ir.write_bitcode_to_path(&bitcode);
         if output_type == OutputType::Bitcode {
+            std::fs::copy(bitcode, output_file.with_extension("bc")).unwrap();
             return Ok(());
         }
         let bitcode = bitcode.to_str().unwrap();
