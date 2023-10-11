@@ -215,6 +215,7 @@ impl Type {
     pub fn members(&self) -> &[Arc<Member>] {
         match self {
             Type::Class(c) => c.members(),
+            Type::Specialized(s) => &s.specialized.members(),
             _ => &[],
         }
     }
