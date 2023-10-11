@@ -30,7 +30,7 @@ impl SourceFile {
     /// Wrap path to source file
     pub fn with_path(path: impl Into<PathBuf>) -> io::Result<Self> {
         let path = path.into();
-        let name = path.to_string_lossy().to_string();
+        let name = path.file_name().unwrap().to_string_lossy().to_string();
         let source = fs::read_to_string(&path)?;
         Ok(Self {
             path,
