@@ -87,7 +87,7 @@ pub trait Lexer: Iterator<Item = Token> {
     /// use ppl::syntax::{Token, Lexer, FullSourceLexer, error::*};
     ///
     /// let mut lexer = FullSourceLexer::new("42");
-    /// assert_eq!(lexer.try_match(Token::Integer), Ok(()));
+    /// assert_eq!(lexer.try_match(Token::Integer), Ok("42".into()));
     ///
     /// let mut lexer = FullSourceLexer::new("42");
     /// assert_eq!(
