@@ -3,8 +3,8 @@ use std::{borrow::Cow, collections::HashMap, sync::Arc};
 use crate::{
     hir::{
         Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
-        FunctionDefinition, FunctionNamePart, Generic, If, Loop, Return, Specialize, Statement,
-        Type, Typed, VariableReference, While,
+        FunctionDefinition, FunctionNamePart, Generic, If, Loop, MemberReference, Return,
+        Specialize, Statement, Type, Typed, VariableReference, While,
     },
     named::Named,
     semantics::{ConvertibleTo, FunctionContext},
@@ -101,8 +101,7 @@ impl Monomorphized for Expression {
             Expression::VariableReference(var) => var.monomorphized(context).into(),
             Expression::TypeReference(_) => todo!(),
             Expression::Literal(_) => self.clone(),
-            // TODO: generic members reference
-            Expression::MemberReference(_) => self.clone(),
+            Expression::MemberReference(m) => m.monomorphized(context).into(),
             Expression::Constructor(c) => c.monomorphized(context).into(),
         }
     }
@@ -255,6 +254,23 @@ impl MonomorphizedWithArgs for Function {
         match self {
             Function::Declaration(d) => d.monomorphized(context, args).into(),
             Function::Definition(d) => d.monomorphized(context, args).into(),
+        }
+    }
+}
+
+impl Monomorphized for MemberReference {
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        if !self.is_generic() {
+            return self.clone();
+        }
+
+        let base = Box::new(self.base.monomorphized(context));
+        let member = base.ty().members()[self.index].clone();
+
+        MemberReference {
+            base,
+            member,
+            ..(self.clone())
         }
     }
 }
