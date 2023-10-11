@@ -1,5 +1,5 @@
 use std::borrow::Cow;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use derive_more::From;
@@ -54,13 +54,13 @@ pub struct Module {
     pub is_builtin: bool,
 
     /// Variables, visible in this module
-    pub variables: HashMap<Name, Arc<VariableDeclaration>>,
+    pub variables: BTreeMap<Name, Arc<VariableDeclaration>>,
 
     /// Types, visible in this module
-    pub types: HashMap<Name, ClassOrTrait>,
+    pub types: BTreeMap<Name, ClassOrTrait>,
 
     /// Functions, visible in this module
-    pub functions: HashMap<Format, HashMap<Name, Function>>,
+    pub functions: BTreeMap<Format, BTreeMap<Name, Function>>,
 
     /// Statements in this module
     pub statements: Vec<Statement>,
@@ -75,9 +75,9 @@ impl Module {
             name: name.to_string(),
             filename: filename.to_string(),
             is_builtin: false,
-            variables: HashMap::new(),
-            types: HashMap::new(),
-            functions: HashMap::new(),
+            variables: BTreeMap::new(),
+            types: BTreeMap::new(),
+            functions: BTreeMap::new(),
             statements: vec![],
         }
     }
@@ -108,7 +108,7 @@ impl Module {
         let set = self
             .functions
             .entry(function.name_format().to_string())
-            .or_insert_with(HashMap::new);
+            .or_insert_with(BTreeMap::new);
         set.insert(function.name().to_string(), function.into());
     }
 

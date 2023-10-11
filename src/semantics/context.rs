@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     sync::{Arc, Weak},
 };
 
@@ -108,7 +108,7 @@ pub trait Context {
     fn function_with_name(&self, name: &str) -> Option<Function>;
 
     /// Get all functions with same name format
-    fn functions_with_format(&self, format: &str) -> HashMap<Name, Function>;
+    fn functions_with_format(&self, format: &str) -> BTreeMap<Name, Function>;
 
     /// Find concrete function for trait function
     fn find_implementation(&self, trait_fn: &Function, self_type: &Type) -> Option<Function> {
@@ -209,7 +209,7 @@ pub trait ChildContext {
     }
 
     /// Get all functions with same name format
-    fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
+    fn functions_with_format(&self, format: &str) -> BTreeMap<Name, Function> {
         self.parent().functions_with_format(format)
     }
 }
@@ -280,7 +280,7 @@ impl<CC: ChildContext> Context for CC {
     }
 
     /// Get all functions with same name format
-    fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
+    fn functions_with_format(&self, format: &str) -> BTreeMap<Name, Function> {
         (self as &CC).functions_with_format(format)
     }
 }
@@ -435,7 +435,7 @@ impl Context for ModuleContext<'_> {
         functions
     }
 
-    fn functions_with_format(&self, format: &str) -> HashMap<Name, Function> {
+    fn functions_with_format(&self, format: &str) -> BTreeMap<Name, Function> {
         let mut funcs = self
             .module
             .functions

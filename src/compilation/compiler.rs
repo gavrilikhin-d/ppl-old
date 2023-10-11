@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs, path::PathBuf, sync::Arc};
+use std::{collections::BTreeMap, fs, path::PathBuf, sync::Arc};
 
 use crate::{
     ast,
@@ -11,7 +11,7 @@ use miette::miette;
 /// Struct that compiles and caches modules
 pub struct Compiler {
     /// Cache of compiled modules
-    pub modules: HashMap<String, Arc<Module>>,
+    pub modules: BTreeMap<String, Arc<Module>>,
     /// Is this a compiler for builtin modules?
     pub is_builtin: bool,
     /// Root directory of the compiler
@@ -22,7 +22,7 @@ impl Compiler {
     /// Create new compiler with empty cache
     pub fn new() -> Self {
         Self {
-            modules: HashMap::new(),
+            modules: BTreeMap::new(),
             is_builtin: false,
             root: "".into(),
         }
@@ -31,7 +31,7 @@ impl Compiler {
     /// Create new compiler for builtin modules
     pub fn for_builtin() -> Self {
         Self {
-            modules: HashMap::new(),
+            modules: BTreeMap::new(),
             is_builtin: true,
             root: "".into(),
         }

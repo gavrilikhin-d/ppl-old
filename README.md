@@ -13,9 +13,9 @@
 * Mixfix operators
 * Big integers
 * Generics (traits)
+* Rationals by default
 
 ## To-do
-* Rationals by default
 * Algebraic effects
 * Types arithmetics
 * Pattern matching
@@ -28,18 +28,19 @@
 * [X] Make `print <:String>` print without newline
 * [X] Add testing CI
 * [x] Fix formatter error when `candidate is not viable`
+* [x] Generic functions
+* [x] Specialize types of expressions inside generic functions
+* [x] Generate temporary files in tmp dir
+* [x] Allow generics types usage
 ---
 ### Current task
-* [ ] Generic functions
-* [ ] Specialize types of expressions inside generic functions
+* [ ] Fix UB in errors printing order due to hash maps
 ---
+* [ ] Add `SourceFile` as source code for errors
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors
-* [ ] Add `SourceFile` as source code for errors
 * [ ] More functions to stdlib
 * [ ] Multiple output types
-* [ ] Generate temporary files in tmp dir
-* [ ] Allow generics types usage
 * [ ] Check errors in repl too
 * [ ] Add more checks for compiler
 * [ ] Add constrains to generics
@@ -54,3 +55,6 @@
 * [ ] Add type unions `A | B`, `A & B`
 * [ ] Multifile compilation and imports
 * [ ] Add all `c` types
+
+## Important Implementation Details
+* Use `BTreeMap` instead of `HashMap` to guarantee order of errors

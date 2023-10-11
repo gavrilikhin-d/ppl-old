@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap, sync::Arc};
+use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
 
 use crate::{
     hir::{
@@ -156,7 +156,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
             return self.clone();
         }
 
-        let mut generics_map: HashMap<Cow<'_, str>, Type> = HashMap::new();
+        let mut generics_map: BTreeMap<Cow<'_, str>, Type> = BTreeMap::new();
 
         let mut arg = args.into_iter();
         let name_parts = self
