@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::hir::{Expression, Type, Typed};
+use crate::hir::{Expression, Generic, Type, Typed};
 use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
 use crate::syntax::StringWithOffset;
@@ -35,5 +35,11 @@ impl Typed for VariableDeclaration {
     /// Get type of variable
     fn ty(&self) -> Type {
         self.initializer.ty()
+    }
+}
+
+impl Generic for VariableDeclaration {
+    fn is_generic(&self) -> bool {
+        self.initializer.is_generic()
     }
 }

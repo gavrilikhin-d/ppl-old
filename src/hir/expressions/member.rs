@@ -1,4 +1,4 @@
-use crate::hir::{Member, Type, Typed};
+use crate::hir::{Generic, Member, Type, Typed};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 use std::sync::Arc;
@@ -39,5 +39,11 @@ impl Typed for MemberReference {
     /// Get type of variable reference
     fn ty(&self) -> Type {
         self.member.ty()
+    }
+}
+
+impl Generic for MemberReference {
+    fn is_generic(&self) -> bool {
+        self.base.is_generic() || self.member.is_generic()
     }
 }

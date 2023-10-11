@@ -19,6 +19,8 @@ pub use constructor::*;
 
 use crate::{mutability::Mutable, syntax::Ranged};
 
+use super::Generic;
+
 /// Any PPL expression
 #[enum_dispatch(Ranged, Mutable, Typed)]
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -40,5 +42,18 @@ impl Expression {
                 | Expression::MemberReference(_)
                 | Expression::TypeReference(_)
         )
+    }
+}
+
+impl Generic for Expression {
+    fn is_generic(&self) -> bool {
+        match self {
+            Expression::Literal(_) => false,
+            Expression::VariableReference(v) => v.is_generic(),
+            Expression::Call(c) => c.is_generic(),
+            Expression::TypeReference(t) => t.is_generic(),
+            Expression::MemberReference(m) => m.is_generic(),
+            Expression::Constructor(c) => c.is_generic(),
+        }
     }
 }

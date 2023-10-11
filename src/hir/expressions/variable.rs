@@ -1,6 +1,6 @@
 use derive_more::From;
 
-use crate::hir::{Parameter, Type, Typed, VariableDeclaration};
+use crate::hir::{Generic, Parameter, Type, Typed, VariableDeclaration};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
@@ -53,6 +53,15 @@ impl Mutable for ParameterOrVariable {
     }
 }
 
+impl Generic for ParameterOrVariable {
+    fn is_generic(&self) -> bool {
+        match self {
+            ParameterOrVariable::Variable(variable) => variable.is_generic(),
+            ParameterOrVariable::Parameter(parameter) => parameter.is_generic(),
+        }
+    }
+}
+
 /// AST for variable reference
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VariableReference {
@@ -80,5 +89,11 @@ impl Typed for VariableReference {
     /// Get type of variable reference
     fn ty(&self) -> Type {
         self.variable.ty()
+    }
+}
+
+impl Generic for VariableReference {
+    fn is_generic(&self) -> bool {
+        self.variable.is_generic()
     }
 }

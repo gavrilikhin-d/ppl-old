@@ -1,4 +1,4 @@
-use crate::hir::{Member, Type, Typed};
+use crate::hir::{Generic, Member, Type, Typed};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 use std::ops::Range;
@@ -25,6 +25,12 @@ impl Ranged for Initializer {
 
     fn end(&self) -> usize {
         self.value.end()
+    }
+}
+
+impl Generic for Initializer {
+    fn is_generic(&self) -> bool {
+        self.member.is_generic() || self.value.is_generic()
     }
 }
 
@@ -58,5 +64,11 @@ impl Typed for Constructor {
     /// Get type of variable reference
     fn ty(&self) -> Type {
         self.ty.referenced_type.clone()
+    }
+}
+
+impl Generic for Constructor {
+    fn is_generic(&self) -> bool {
+        self.ty.is_generic() || self.initializers.iter().any(|i| i.is_generic())
     }
 }
