@@ -1,8 +1,6 @@
 use core::panic;
 use std::borrow::Cow;
 use std::collections::BTreeMap;
-use std::fs;
-use std::path::Path;
 use std::sync::Arc;
 
 use crate::compilation::Compiler;
@@ -220,15 +218,14 @@ impl ASTLoweringWithinContext for ast::Call {
                 modules.push(hir::Module::builtin());
             }
 
-            let source_code = modules
+            let source_file = modules
                 .iter()
                 .find(|m| {
                     m.iter_functions()
                         .find(|function| function.name() == f.name())
                         .is_some()
                 })
-                .map(|m| fs::read_to_string(Path::new(&m.filename)).ok())
-                .flatten();
+                .map(|m| m.source_file());
 
             let mut args = Vec::new();
             let mut failed = false;
@@ -243,12 +240,12 @@ impl ASTLoweringWithinContext for ast::Call {
                                     expected: TypeWithSpan {
                                         ty: p.ty(),
                                         at: p.name.range().into(),
-                                        source_code,
+                                        source_file,
                                     },
                                     got: TypeWithSpan {
                                         ty: arg.ty(),
                                         at: arg.range().into(),
-                                        source_code: None,
+                                        source_file: None,
                                     },
                                 }
                                 .into(),
@@ -411,12 +408,12 @@ impl ASTLoweringWithinContext for ast::Constructor {
                             ty: member.ty(),
                             at: member.name.range().into(),
                             // FIXME: find in which file type was declared
-                            source_code: None,
+                            source_file: None,
                         },
                         got: TypeWithSpan {
                             ty: value.ty(),
                             at: value.range().into(),
-                            source_code: None,
+                            source_file: None,
                         },
                     }
                     .into());
@@ -691,14 +688,14 @@ impl ASTLoweringWithinContext for ast::Assignment {
                 got: TypeWithSpan {
                     ty: value.ty(),
                     at: self.value.range().into(),
-                    source_code: None,
+                    source_file: None,
                 },
 
                 expected: TypeWithSpan {
                     ty: target.ty(),
                     at: self.target.range().into(),
                     // FIXME: find where variable was declared
-                    source_code: None,
+                    source_file: None,
                 },
             }
             .into());
