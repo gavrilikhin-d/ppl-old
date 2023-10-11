@@ -55,3 +55,6 @@
 * [ ] Add type unions `A | B`, `A & B`
 * [ ] Multifile compilation and imports
 * [ ] Add all `c` types
+
+## Important Implementation Details
+* Use `BTreeMap` instead of `HashMap` to guarantee order of errors
