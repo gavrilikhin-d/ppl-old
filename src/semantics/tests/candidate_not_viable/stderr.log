@@ -12,7 +12,7 @@ Error: semantics::no_function
 Advice:   ☞ candidate is not viable: expected `Integer` type, got `Rational`
 
 Error:   × Integer
-    ╭─[63:5]
+    ╭─[ppl.ppl:63:5]
  62 │ @mangle_as("integer_plus_integer")
  63 │ fn <:Integer> + <:Integer> -> Integer
     ·     ▲
@@ -28,7 +28,7 @@ Error:   × Rational
 Advice:   ☞ candidate is not viable: expected `Rational` type, got `Integer`
 
 Error:   × Rational
-    ╭─[96:19]
+    ╭─[ppl.ppl:96:19]
  95 │ @mangle_as("rational_plus_rational")
  96 │ fn <:Rational> + <:Rational> -> Rational
     ·                   ▲

@@ -5,7 +5,7 @@ use thiserror::Error;
 
 use derive_more::From;
 
-use crate::{ast::FnKind, hir::Type};
+use crate::{ast::FnKind, hir::Type, SourceFile};
 
 /// Diagnostic for undefined variables
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
@@ -67,10 +67,9 @@ pub struct TypeWithSpan {
     #[label("this has `{ty}` type")]
     pub at: SourceSpan,
 
-    // TODO: change to `Option<SourceFile>`
     /// Source code of the module, this type is located at
     #[source_code]
-    pub source_code: Option<String>,
+    pub source_file: Option<SourceFile>,
 }
 
 /// Diagnostic for not convertible types

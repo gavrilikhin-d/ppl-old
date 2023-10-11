@@ -36,7 +36,6 @@ impl Execute for Compile {
     /// Compile single ppl file
     fn execute(&self) -> Self::Output {
         let mut compiler = Compiler::new().at(self.file.parent().unwrap());
-        println!("{}", compiler.root.to_str().unwrap());
         compiler.is_builtin = self.no_core;
 
         let name = self.file.file_stem().map(|n| n.to_str()).flatten().unwrap();

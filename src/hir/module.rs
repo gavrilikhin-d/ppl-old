@@ -7,6 +7,7 @@ use derive_more::From;
 use crate::compilation::Compiler;
 use crate::hir::{Statement, TypeDeclaration, VariableDeclaration};
 use crate::named::Named;
+use crate::SourceFile;
 use std::sync::{Arc, LazyLock};
 
 use super::{Function, FunctionDefinition, TraitDeclaration, Type};
@@ -44,12 +45,14 @@ pub type Name = String;
 /// Module with PPL code
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Module {
+    /* TODO: use [`SourceFile`] instead */
+    /****************************/
     /// Name of the module
     pub name: String,
 
     /// Filename of module
     pub filename: String,
-
+    /****************************/
     /// Is this a builtin module?
     pub is_builtin: bool,
 
@@ -80,6 +83,12 @@ impl Module {
             functions: BTreeMap::new(),
             statements: vec![],
         }
+    }
+
+    // FIXME: handle virtual files (like `stdin`)
+    /// Get source file for this module
+    pub fn source_file(&self) -> SourceFile {
+        SourceFile::with_path(&self.filename).unwrap()
     }
 
     /// Create builtin module
