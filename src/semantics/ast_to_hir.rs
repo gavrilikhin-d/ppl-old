@@ -936,11 +936,11 @@ impl ASTLowering for ast::Module {
 
 #[cfg(test)]
 mod tests {
-    use crate::test_compiler_error;
+    use crate::test_compilation_result;
 
-    test_compiler_error!(candidate_not_viable);
-    test_compiler_error!(generics);
-    test_compiler_error!(missing_fields);
-    test_compiler_error!(multiple_initialization);
-    test_compiler_error!(wrong_initializer_type);
+    test_compilation_result!(candidate_not_viable);
+    test_compilation_result!(generics);
+    test_compilation_result!(missing_fields);
+    test_compilation_result!(multiple_initialization);
+    test_compilation_result!(wrong_initializer_type);
 }
