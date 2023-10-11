@@ -70,7 +70,7 @@ impl Execute for Compile {
         let bitcode = bitcode.to_str().unwrap();
 
         let mut clang = std::process::Command::new("clang");
-        let runtime_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/runtime/target/debug");
+        let runtime_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/debug/deps");
         let runtime = runtime_path.to_str().unwrap();
 
         match output_type {
