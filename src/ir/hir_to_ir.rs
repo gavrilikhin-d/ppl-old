@@ -616,7 +616,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
         }
 
         let ptr = value.into_pointer_value();
-        match self.ty() {
+        match self.ty().specialized() {
             Type::Class(cl) => {
                 if cl.is_opaque() && !(cl.is_none() || cl.is_bool() || self.is_reference()) {
                     return Some(ptr.into());
