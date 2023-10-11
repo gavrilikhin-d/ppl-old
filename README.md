@@ -32,11 +32,11 @@
 * [x] Specialize types of expressions inside generic functions
 * [x] Generate temporary files in tmp dir
 * [x] Allow generics types usage
+* [x] Fix UB in errors printing order due to hash maps
+* [x] Add `SourceFile` as source code for errors
 ---
 ### Current task
-* [ ] Fix UB in errors printing order due to hash maps
 ---
-* [ ] Add `SourceFile` as source code for errors
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors
 * [ ] More functions to stdlib
