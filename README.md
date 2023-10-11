@@ -30,9 +30,12 @@
 * [x] Fix formatter error when `candidate is not viable`
 ---
 ### Current task
+* [ ] Generic functions
+* [ ] Specialize types of expressions inside generic functions
+---
+* [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors
 * [ ] Add `SourceFile` as source code for errors
----
 * [ ] More functions to stdlib
 * [ ] Multiple output types
 * [ ] Generate temporary files in tmp dir

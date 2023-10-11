@@ -1,4 +1,6 @@
-use crate::hir::{Expression, Type, Typed};
+use std::borrow::Cow;
+
+use crate::hir::{Expression, Generic, Type, Typed};
 use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
 use crate::syntax::StringWithOffset;
@@ -17,8 +19,8 @@ pub struct VariableDeclaration {
 
 impl Named for VariableDeclaration {
     /// Get name of variable
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
     }
 }
 
@@ -33,5 +35,11 @@ impl Typed for VariableDeclaration {
     /// Get type of variable
     fn ty(&self) -> Type {
         self.initializer.ty()
+    }
+}
+
+impl Generic for VariableDeclaration {
+    fn is_generic(&self) -> bool {
+        self.initializer.is_generic()
     }
 }

@@ -12,7 +12,7 @@ pub use r#trait::*;
 
 use derive_more::{From, TryInto};
 
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 use crate::named::Named;
 
@@ -26,7 +26,7 @@ pub enum Declaration {
 }
 
 impl Named for Declaration {
-    fn name(&self) -> &str {
+    fn name(&self) -> Cow<'_, str> {
         match self {
             Declaration::Variable(decl) => decl.name(),
             Declaration::Type(decl) => decl.name(),

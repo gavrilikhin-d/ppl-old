@@ -1,12 +1,16 @@
 use std::{
+    borrow::Cow,
     fmt::Display,
     sync::{Arc, Weak},
 };
 
 use crate::{mutability::Mutable, named::Named, syntax::StringWithOffset};
 
-use super::{Member, Module, TraitDeclaration, TypeDeclaration};
-use derive_more::{From, TryInto};
+use super::{
+    Generic, GenericName, Member, Module, Specialize, Specialized, TraitDeclaration,
+    TypeDeclaration,
+};
+use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
 
 use super::Expression;
@@ -30,8 +34,14 @@ impl FunctionType {
 }
 
 impl Named for FunctionType {
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
+    }
+}
+
+impl Display for FunctionType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name())
     }
 }
 
@@ -73,9 +83,9 @@ impl FunctionTypeBuilder {
             if i != 0 {
                 name.push_str(", ");
             }
-            name.push_str(parameter.name());
+            name.push_str(&parameter.generic_name());
         }
-        name.push_str(&format!(") -> {}", return_type.name()));
+        name.push_str(&format!(") -> {}", return_type.generic_name()));
         name
     }
 }
@@ -95,8 +105,14 @@ impl PartialEq for SelfType {
 impl Eq for SelfType {}
 
 impl Named for SelfType {
-    fn name(&self) -> &str {
-        "Self"
+    fn name(&self) -> Cow<'_, str> {
+        "Self".into()
+    }
+}
+
+impl Display for SelfType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name())
     }
 }
 
@@ -108,13 +124,40 @@ pub struct GenericType {
 }
 
 impl Named for GenericType {
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
+    }
+}
+
+impl Display for GenericType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name())
+    }
+}
+
+/// Specialized type
+pub type SpecializedType = Specialized<Type>;
+
+impl Named for SpecializedType {
+    fn name(&self) -> Cow<'_, str> {
+        self.specialized.name()
+    }
+}
+
+impl GenericName for SpecializedType {
+    fn generic_name(&self) -> Cow<'_, str> {
+        self.specialized.generic_name()
+    }
+}
+
+impl Display for SpecializedType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.specialized)
     }
 }
 
 /// Type of values
-#[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
+#[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Type {
     /// User defined type
     Class(Arc<TypeDeclaration>),
@@ -122,18 +165,57 @@ pub enum Type {
     Trait(Arc<TraitDeclaration>),
     /// Self type and trait it represents
     SelfType(SelfType),
-    // TODO: add `Resolved` and `Unresolved` generic types instead
-    /// Type for class' generic parameter
+    /// Type for generic parameters
     Generic(GenericType),
+    /// Specialized type
+    Specialized(Box<SpecializedType>),
     /// Function type
     Function(FunctionType),
 }
 
+impl From<SpecializedType> for Type {
+    fn from(specialized: SpecializedType) -> Self {
+        Self::Specialized(Box::new(specialized))
+    }
+}
+
 impl Type {
+    /// Get diff in specializations
+    /// that needed to make `self` type to match `target` type.
+    ///
+    /// # Note
+    /// This function ignores the fact that types may be non-generic
+    pub fn diff(&self, target: Type) -> Vec<SpecializedType> {
+        let from = self.specialized();
+        let to = target.specialized();
+        if from == to {
+            return vec![];
+        }
+
+        match (&from, &to) {
+            (Type::Class(from), Type::Class(to)) if from.name == to.name => from
+                .generic_parameters
+                .iter()
+                .zip(to.generic_parameters.iter())
+                .flat_map(|(t1, t2)| t1.diff(t2.clone()))
+                .collect(),
+            _ => vec![from.specialize_with(to).try_into().unwrap()],
+        }
+    }
+
+    /// Return most specialized subtype
+    pub fn specialized(&self) -> Type {
+        match self {
+            Type::Specialized(s) => s.specialized.specialized(),
+            _ => self.clone(),
+        }
+    }
+
     /// Get members of type
     pub fn members(&self) -> &[Arc<Member>] {
         match self {
             Type::Class(c) => c.members(),
+            Type::Specialized(s) => &s.specialized.members(),
             _ => &[],
         }
     }
@@ -143,17 +225,6 @@ impl Type {
         match self {
             Type::SelfType(_) => ty,
             _ => self,
-        }
-    }
-
-    /// Is this a generic type?
-    pub fn is_generic(&self) -> bool {
-        match self {
-            Type::SelfType(_) | Type::Trait(_) | Type::Generic(_) => true,
-            Type::Class(c) => c.members.iter().any(|m| m.ty().is_generic()),
-            Type::Function(f) => {
-                f.parameters.iter().any(|p| p.is_generic()) || f.return_type.is_generic()
-            }
         }
     }
 
@@ -223,20 +294,51 @@ impl Type {
     }
 }
 
-impl Display for Type {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.name())
+impl Generic for Type {
+    fn is_generic(&self) -> bool {
+        match self {
+            Type::SelfType(_) | Type::Trait(_) | Type::Generic(_) => true,
+            Type::Specialized(s) => s.specialized.is_generic(),
+            Type::Class(c) => c.members.iter().any(|m| m.ty().is_generic()),
+            Type::Function(f) => {
+                f.parameters.iter().any(|p| p.is_generic()) || f.return_type.is_generic()
+            }
+        }
+    }
+}
+
+impl GenericName for Type {
+    fn generic_name(&self) -> Cow<'_, str> {
+        match self {
+            Type::Class(c) => c.generic_name(),
+            Type::Specialized(s) => s.generic_name(),
+            _ => self.name(),
+        }
+    }
+}
+
+impl Specialize<Type> for Type {
+    type Specialized = SpecializedType;
+
+    fn specialize_with(self, specialized: Type) -> SpecializedType {
+        debug_assert!(self.is_generic());
+
+        SpecializedType {
+            generic: self,
+            specialized,
+        }
     }
 }
 
 impl Named for Type {
-    fn name(&self) -> &str {
+    fn name(&self) -> Cow<'_, str> {
         match self {
             Type::Class(class) => class.name(),
             Type::Trait(tr) => tr.name(),
             Type::SelfType(s) => s.name(),
             Type::Function(f) => f.name(),
             Type::Generic(g) => g.name(),
+            Type::Specialized(s) => s.name(),
         }
     }
 }
@@ -252,4 +354,125 @@ impl Mutable for Type {
 pub trait Typed {
     /// Get type of value
     fn ty(&self) -> Type;
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use pretty_assertions::{assert_eq, assert_str_eq};
+
+    use crate::{
+        ast,
+        hir::{GenericName, GenericType, Specialize, SpecializeClass, Type, TypeDeclaration},
+        semantics::ASTLowering,
+        syntax::StringWithOffset,
+    };
+
+    /// Get type declaration from source
+    fn type_decl(source: &str) -> Arc<TypeDeclaration> {
+        source
+            .parse::<ast::TypeDeclaration>()
+            .unwrap()
+            .lower_to_hir()
+            .unwrap()
+    }
+
+    #[test]
+    fn generic_name() {
+        let a = type_decl("type A<T, U>");
+        assert_str_eq!(a.generic_name(), "A<T, U>");
+
+        let b = type_decl("type B<T>");
+        assert_str_eq!(b.generic_name(), "B<T>");
+
+        let t: Type = GenericType {
+            name: StringWithOffset::from("T").at(7),
+        }
+        .into();
+        let u: Type = GenericType {
+            name: StringWithOffset::from("U").at(10),
+        }
+        .into();
+
+        let x: Type = type_decl("type X").into();
+        assert_str_eq!(x.generic_name(), "X");
+        let y: Type = type_decl("type Y").into();
+        assert_str_eq!(y.generic_name(), "Y");
+
+        // B<Y>
+        let by: Type = b
+            .specialize_with(SpecializeClass::without_members(vec![t
+                .clone()
+                .specialize_with(y)
+                .into()]))
+            .into();
+        assert_str_eq!(by.generic_name(), "B<Y>");
+
+        // A<X, B<Y>>
+        let t1 = a.specialize_with(SpecializeClass::without_members(vec![
+            t.specialize_with(x).into(),
+            u.specialize_with(by).into(),
+        ]));
+        assert_str_eq!(t1.generic_name(), "A<X, B<Y>>");
+    }
+
+    #[test]
+    fn diff() {
+        let a = type_decl("type A<T, U>");
+        let b = type_decl("type B<T>");
+        let c = type_decl("type C");
+
+        let x: Type = GenericType { name: "X".into() }.into();
+        let y: Type = GenericType { name: "Y".into() }.into();
+
+        let t: Type = GenericType {
+            name: StringWithOffset::from("T").at(7),
+        }
+        .into();
+        let u: Type = GenericType {
+            name: StringWithOffset::from("U").at(10),
+        }
+        .into();
+
+        let by: Type = b
+            .clone()
+            .specialize_with(SpecializeClass::without_members(vec![t
+                .clone()
+                .specialize_with(y.clone())
+                .into()]))
+            .into();
+        println!("{}", by.generic_name());
+
+        // A<X, B<Y>>
+        let t1: Type = a
+            .clone()
+            .specialize_with(SpecializeClass::without_members(vec![
+                t.clone().specialize_with(x.clone()).into(),
+                u.clone().specialize_with(by.clone()).into(),
+            ]))
+            .into();
+        println!("{}", t1.generic_name());
+
+        // B<C>
+        let bc: Type = b
+            .specialize_with(SpecializeClass::without_members(vec![t
+                .clone()
+                .specialize_with(c.clone().into())
+                .into()]))
+            .into();
+        // A<B<C>, B<C>>
+        let t2: Type = a
+            .specialize_with(SpecializeClass::without_members(vec![
+                t.specialize_with(bc.clone()).into(),
+                u.specialize_with(bc.clone()).into(),
+            ]))
+            .into();
+        let diff = t1.diff(t2);
+        diff.iter().for_each(|s| println!("{s}"));
+        assert_eq!(
+            diff,
+            vec![x.specialize_with(bc), y.specialize_with(c.into())]
+        );
+    }
 }

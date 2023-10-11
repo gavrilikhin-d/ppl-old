@@ -1,9 +1,10 @@
+use std::borrow::Cow;
 use std::fmt::Display;
 use std::sync::Arc;
 
-use derive_more::From;
+use derive_more::{From, TryInto};
 
-use crate::hir::{FunctionType, Statement, Type, Typed};
+use crate::hir::{FunctionType, Generic, GenericName, Specialize, Statement, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::StringWithOffset;
@@ -17,17 +18,25 @@ pub struct Parameter {
     pub ty: Type,
 }
 
-impl Parameter {
+impl Generic for Parameter {
     /// Is this a generic parameter?
-    pub fn is_generic(&self) -> bool {
+    fn is_generic(&self) -> bool {
         self.ty.is_generic()
+    }
+}
+
+impl Specialize<Type> for Parameter {
+    /// Specialize generic parameter
+    fn specialize_with(mut self, specialized: Type) -> Self {
+        self.ty = self.ty.specialize_with(specialized).into();
+        self
     }
 }
 
 impl Named for Parameter {
     /// Get name of parameter
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
     }
 }
 
@@ -62,9 +71,17 @@ impl Display for FunctionNamePart {
     }
 }
 
+impl From<Parameter> for FunctionNamePart {
+    fn from(parameter: Parameter) -> Self {
+        FunctionNamePart::Parameter(parameter.into())
+    }
+}
+
 /// Declaration of a type
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct FunctionDeclaration {
+    /// Generic parameters of a function
+    pub generic_types: Vec<Type>,
     /// Type's name
     pub name_parts: Vec<FunctionNamePart>,
     /// Type of returned value
@@ -82,11 +99,6 @@ impl FunctionDeclaration {
     /// Create a new builder for a function declaration
     pub fn build() -> FunctionDeclarationBuilder {
         FunctionDeclarationBuilder::new()
-    }
-
-    /// Is this a generic function?
-    pub fn is_generic(&self) -> bool {
-        self.parameters().any(|p| p.is_generic())
     }
 
     /// Get name parts of function
@@ -117,15 +129,24 @@ impl FunctionDeclaration {
     }
 
     /// Get mangled name of function
-    pub fn mangled_name(&self) -> &str {
-        self.mangled_name.as_deref().unwrap_or(self.name())
+    pub fn mangled_name(&self) -> Cow<'_, str> {
+        self.mangled_name
+            .as_deref()
+            .map(|n| n.into())
+            .unwrap_or(self.name())
+    }
+}
+
+impl Generic for FunctionDeclaration {
+    fn is_generic(&self) -> bool {
+        self.parameters().any(|p| p.is_generic()) || self.return_type.is_generic()
     }
 }
 
 impl Named for FunctionDeclaration {
     /// Get name of function
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
     }
 }
 
@@ -146,8 +167,35 @@ impl Typed for FunctionDeclaration {
     }
 }
 
+impl Display for FunctionDeclaration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let generics = if self.generic_types.is_empty() {
+            String::new()
+        } else {
+            format!(
+                "<{}>",
+                self.generic_types
+                    .iter()
+                    .map(|g| g.generic_name())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        };
+        let name_parts = self
+            .name_parts
+            .iter()
+            .map(|p| p.to_string())
+            .collect::<Vec<_>>()
+            .join(" ");
+        let return_type = self.return_type.generic_name();
+        write!(f, "fn{generics} {name_parts} -> {return_type}")
+    }
+}
+
 /// Builder for a function declaration
 pub struct FunctionDeclarationBuilder {
+    /// Generic parameters of a function
+    generic_types: Vec<Type>,
     /// Type's name
     name_parts: Vec<FunctionNamePart>,
     /// Mangled name of function
@@ -158,9 +206,16 @@ impl FunctionDeclarationBuilder {
     /// Create a new builder for a function declaration
     pub fn new() -> Self {
         FunctionDeclarationBuilder {
+            generic_types: Vec::new(),
             name_parts: Vec::new(),
             mangled_name: None,
         }
+    }
+
+    /// Set generic parameters of a function
+    pub fn with_generic_types(mut self, generic_types: Vec<Type>) -> Self {
+        self.generic_types = generic_types;
+        self
     }
 
     /// Set name parts of the function
@@ -200,6 +255,7 @@ impl FunctionDeclarationBuilder {
         let name_format = self.build_name_format();
         let name = self.build_name();
         FunctionDeclaration {
+            generic_types: self.generic_types,
             name_parts: self.name_parts,
             return_type,
             name_format,
@@ -219,11 +275,6 @@ pub struct FunctionDefinition {
 }
 
 impl FunctionDefinition {
-    /// Is this a generic function?
-    pub fn is_generic(&self) -> bool {
-        self.declaration.is_generic()
-    }
-
     /// Get name parts of function
     pub fn name_parts(&self) -> &[FunctionNamePart] {
         &self.declaration.name_parts
@@ -240,13 +291,19 @@ impl FunctionDefinition {
     }
 
     /// Get mangled name of function
-    pub fn mangled_name(&self) -> &str {
+    pub fn mangled_name(&self) -> Cow<'_, str> {
         self.declaration.mangled_name()
     }
 
     /// Get return type of function
     pub fn return_type(&self) -> Type {
         self.declaration.return_type.clone()
+    }
+}
+
+impl Generic for FunctionDefinition {
+    fn is_generic(&self) -> bool {
+        self.declaration.is_generic()
     }
 }
 
@@ -257,13 +314,13 @@ impl Typed for FunctionDefinition {
 }
 
 impl Named for FunctionDefinition {
-    fn name(&self) -> &str {
+    fn name(&self) -> Cow<'_, str> {
         self.declaration.name()
     }
 }
 
 /// Function definition or declaration
-#[derive(Debug, PartialEq, Eq, Clone, From)]
+#[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Function {
     Declaration(Arc<FunctionDeclaration>),
     Definition(Arc<FunctionDefinition>),
@@ -280,15 +337,12 @@ impl Function {
 
             match part {
                 FunctionNamePart::Text(text) => name.push_str(&text),
-                FunctionNamePart::Parameter(p) => name.push_str(format!("<:{}>", p.ty()).as_str()),
+                FunctionNamePart::Parameter(p) => {
+                    name.push_str(format!("<:{}>", p.ty().generic_name()).as_str())
+                }
             }
         }
         name
-    }
-
-    /// Is this a generic function?
-    pub fn is_generic(&self) -> bool {
-        self.declaration().is_generic()
     }
 
     /// Get name parts of function
@@ -316,7 +370,7 @@ impl Function {
     }
 
     /// Get mangled name of function
-    pub fn mangled_name(&self) -> &str {
+    pub fn mangled_name(&self) -> Cow<'_, str> {
         match self {
             Function::Declaration(declaration) => declaration.mangled_name(),
             Function::Definition(definition) => definition.mangled_name(),
@@ -337,6 +391,12 @@ impl Function {
     }
 }
 
+impl Generic for Function {
+    fn is_generic(&self) -> bool {
+        self.declaration().is_generic()
+    }
+}
+
 impl Typed for Function {
     fn ty(&self) -> Type {
         match self {
@@ -347,10 +407,65 @@ impl Typed for Function {
 }
 
 impl Named for Function {
-    fn name(&self) -> &str {
+    fn name(&self) -> Cow<'_, str> {
         match self {
             Function::Declaration(declaration) => declaration.name(),
             Function::Definition(definition) => definition.name(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{assert_matches::assert_matches, sync::Arc};
+
+    use crate::{
+        ast,
+        hir::{
+            Function, FunctionDeclaration, FunctionDefinition, GenericType, Parameter, Return,
+            Statement, VariableReference,
+        },
+        semantics::ASTLowering,
+        syntax::StringWithOffset,
+    };
+
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn generic_parameters() {
+        let ast = "fn<T> <x: T> -> T => x"
+            .parse::<ast::FunctionDeclaration>()
+            .unwrap();
+        let hir = ast.lower_to_hir().unwrap();
+        assert_matches!(hir, Function::Definition(_));
+
+        let hir: Arc<FunctionDefinition> = hir.try_into().unwrap();
+
+        let ty = GenericType {
+            name: StringWithOffset::from("T").at(3),
+        };
+        let param = Parameter {
+            name: StringWithOffset::from("x").at(7),
+            ty: ty.clone().into(),
+        };
+        assert_eq!(
+            *hir.declaration,
+            FunctionDeclaration::build()
+                .with_generic_types(vec![ty.clone().into()])
+                .with_name(vec![param.clone().into()])
+                .with_return_type(ty.into())
+        );
+        assert_eq!(
+            hir.body[0],
+            Statement::Return(Return {
+                value: Some(
+                    VariableReference {
+                        span: 21..22,
+                        variable: param.into()
+                    }
+                    .into()
+                )
+            })
+        )
     }
 }

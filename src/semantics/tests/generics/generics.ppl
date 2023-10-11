@@ -1,0 +1,12 @@
+type Point<T>:
+	x, y: T
+
+fn<T> x of <p: Point<T>> => p.x
+
+(x of Point { x: 0, y: 0 }) == 0
+
+fn<T> id <x: T> => x
+
+(id 1) == 1
+id "hello"
+id Point { x: 0, y: 0 }

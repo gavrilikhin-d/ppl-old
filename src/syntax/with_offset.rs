@@ -18,9 +18,9 @@ pub struct WithOffset<T> {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct StringWithOffset {
     /// Offset of the start of the string
-    offset: usize,
+    pub offset: usize,
     /// String value
-    value: String,
+    pub value: String,
 }
 
 impl StringWithOffset {

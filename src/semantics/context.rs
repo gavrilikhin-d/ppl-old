@@ -7,7 +7,7 @@ use crate::{
     ast::CallNamePart,
     compilation::Compiler,
     hir::{
-        Expression, Function, FunctionDeclaration, FunctionNamePart, GenericType, Module, Name,
+        Expression, Function, FunctionDeclaration, FunctionNamePart, Module, Name,
         ParameterOrVariable, SelfType, TraitDeclaration, Type, TypeDeclaration, Typed,
         VariableDeclaration,
     },
@@ -565,16 +565,16 @@ impl ChildContext for TraitContext<'_> {
     }
 }
 
-/// Context for lowering body of types
-pub struct TypeContext<'p> {
+/// Context for introducing generic parameters
+pub struct GenericContext<'p> {
     /// Types of generic parameters
-    pub generic_parameters: Vec<GenericType>,
+    pub generic_parameters: Vec<Type>,
 
     /// Parent context for this function
     pub parent: &'p mut dyn Context,
 }
 
-impl ChildContext for TypeContext<'_> {
+impl ChildContext for GenericContext<'_> {
     fn parent(&self) -> &dyn Context {
         self.parent
     }
@@ -586,24 +586,8 @@ impl ChildContext for TypeContext<'_> {
     fn find_type(&self, name: &str) -> Option<Type> {
         self.generic_parameters
             .iter()
-            .find(|p| p.name == name)
-            .map(|p| Type::Generic(p.clone()))
+            .find(|p| p.name() == name)
+            .cloned()
             .or_else(|| self.parent.find_type(name))
-    }
-
-    fn add_type(&mut self, _ty: Arc<TypeDeclaration>) {
-        todo!("types inside types")
-    }
-
-    fn add_trait(&mut self, _tr: Arc<TraitDeclaration>) {
-        todo!("traits inside types")
-    }
-
-    fn add_function(&mut self, _f: Function) {
-        unreachable!("functions inside types")
-    }
-
-    fn add_variable(&mut self, _v: Arc<VariableDeclaration>) {
-        unreachable!("variables inside types")
     }
 }

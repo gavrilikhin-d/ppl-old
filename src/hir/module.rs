@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -29,7 +30,7 @@ impl From<ClassOrTrait> for Type {
 }
 
 impl Named for ClassOrTrait {
-    fn name(&self) -> &str {
+    fn name(&self) -> Cow<'_, str> {
         match self {
             ClassOrTrait::Class(c) => c.name(),
             ClassOrTrait::Trait(t) => t.name(),
@@ -132,8 +133,8 @@ impl Module {
 }
 
 impl Named for Module {
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
     }
 }
 

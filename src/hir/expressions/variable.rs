@@ -1,9 +1,10 @@
 use derive_more::From;
 
-use crate::hir::{Parameter, Type, Typed, VariableDeclaration};
+use crate::hir::{Generic, Parameter, Type, Typed, VariableDeclaration};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
+use std::borrow::Cow;
 use std::sync::Arc;
 
 /// Parameter or variable declaration
@@ -13,8 +14,20 @@ pub enum ParameterOrVariable {
     Parameter(Arc<Parameter>),
 }
 
+impl From<Parameter> for ParameterOrVariable {
+    fn from(parameter: Parameter) -> Self {
+        Self::Parameter(Arc::new(parameter))
+    }
+}
+
+impl From<VariableDeclaration> for ParameterOrVariable {
+    fn from(variable: VariableDeclaration) -> Self {
+        Self::Variable(Arc::new(variable))
+    }
+}
+
 impl Named for ParameterOrVariable {
-    fn name(&self) -> &str {
+    fn name(&self) -> Cow<'_, str> {
         match self {
             ParameterOrVariable::Variable(variable) => variable.name(),
             ParameterOrVariable::Parameter(parameter) => parameter.name(),
@@ -36,6 +49,15 @@ impl Mutable for ParameterOrVariable {
         match self {
             ParameterOrVariable::Variable(variable) => variable.is_mutable(),
             ParameterOrVariable::Parameter(parameter) => parameter.is_mutable(),
+        }
+    }
+}
+
+impl Generic for ParameterOrVariable {
+    fn is_generic(&self) -> bool {
+        match self {
+            ParameterOrVariable::Variable(variable) => variable.is_generic(),
+            ParameterOrVariable::Parameter(parameter) => parameter.is_generic(),
         }
     }
 }
@@ -67,5 +89,11 @@ impl Typed for VariableReference {
     /// Get type of variable reference
     fn ty(&self) -> Type {
         self.variable.ty()
+    }
+}
+
+impl Generic for VariableReference {
+    fn is_generic(&self) -> bool {
+        self.variable.is_generic()
     }
 }

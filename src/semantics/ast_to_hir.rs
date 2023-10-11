@@ -1,18 +1,20 @@
 use core::panic;
+use std::borrow::Cow;
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use std::sync::Arc;
 
-use miette::NamedSource;
-
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
-use crate::hir::{self, FunctionNamePart, GenericType, Type, Typed};
+use crate::hir::{
+    self, FunctionNamePart, Generic, GenericType, Specialize, SpecializeClass, Type, Typed,
+};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
 
-use super::{error::*, Context, Declare, ModuleContext, MonomorphizedWithArgs, TypeContext};
+use super::{error::*, Context, Declare, GenericContext, ModuleContext, MonomorphizedWithArgs};
 use crate::ast::{self, CallNamePart, FnKind, If};
 
 /// Lower AST inside some context
@@ -106,7 +108,7 @@ impl ASTLoweringWithinContext for ast::VariableReference {
 }
 
 /// Trait to check if one type is convertible to another within context
-trait ConvertibleTo {
+pub trait ConvertibleTo {
     /// Is this type convertible to another?
     fn convertible_to(&self, ty: hir::Type) -> ConvertibleToCheck;
 }
@@ -121,7 +123,7 @@ impl ConvertibleTo for hir::Type {
 }
 
 /// Helper struct to perform check within context
-struct ConvertibleToCheck {
+pub struct ConvertibleToCheck {
     from: Type,
     to: Type,
 }
@@ -136,13 +138,17 @@ impl ConvertibleToCheck {
             (Type::Class(c), Type::Trait(tr)) => c.implements(tr.clone()).within(context),
             // TODO: check for constraints
             (_, Type::Generic(_)) => true,
+            (Type::Specialized(from), to) if to.is_generic() => from.generic == *to,
+            (Type::Specialized(from), to) => {
+                from.specialized.convertible_to(to.clone()).within(context)
+            }
             _ => self.from == self.to,
         }
     }
 }
 
 /// Trait to check if type implements trait
-trait Implements {
+pub trait Implements {
     /// Does this class implement given trait?
     fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck;
 }
@@ -157,7 +163,7 @@ impl Implements for Arc<hir::TypeDeclaration> {
 }
 
 /// Helper struct to do check within context
-struct ImplementsCheck {
+pub struct ImplementsCheck {
     ty: Type,
     tr: Arc<hir::TraitDeclaration>,
 }
@@ -373,8 +379,16 @@ impl ASTLoweringWithinContext for ast::Constructor {
     /// Lower [`ast::Constructor`] to [`hir::Constructor`] within lowering context
     fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
         let mut ty = self.ty.lower_to_hir_within_context(context)?;
+        let generic_ty: Arc<hir::TypeDeclaration> = ty
+            .referenced_type
+            .clone()
+            .try_into()
+            // TODO: error
+            .expect("constructors only meant for classes");
 
         let mut members = ty.referenced_type.members().to_vec();
+
+        let mut generics_map: HashMap<Cow<'_, str>, Type> = HashMap::new();
 
         let mut initializers = Vec::<hir::Initializer>::new();
         for init in &self.initializers {
@@ -416,11 +430,11 @@ impl ASTLoweringWithinContext for ast::Constructor {
                     .into());
                 }
 
-                if member.ty.is_generic() {
-                    members[index] = Arc::new(hir::Member {
-                        name: member.name.clone(),
-                        ty: value.ty().clone(),
-                    });
+                if member.is_generic() {
+                    // TODO: check for constraints and repeats
+                    let member_ty = member.ty();
+                    members[index] = members[index].clone().specialize_with(value.ty());
+                    generics_map.insert(member_ty.name().to_string().into(), members[index].ty());
                 }
 
                 initializers.push(hir::Initializer {
@@ -440,12 +454,6 @@ impl ASTLoweringWithinContext for ast::Constructor {
             }
         }
 
-        let generic_ty: Arc<hir::TypeDeclaration> = ty
-            .referenced_type
-            .clone()
-            .try_into()
-            .expect("constructors only meant for classes");
-
         if initializers.len() != generic_ty.members.len() {
             assert!(
                 initializers.len() < generic_ty.members.len(),
@@ -464,12 +472,22 @@ impl ASTLoweringWithinContext for ast::Constructor {
             .into());
         }
 
-        ty.referenced_type = Arc::new(hir::TypeDeclaration {
-            members,
-            ..(*generic_ty).clone()
-        })
-        .into();
-
+        if generic_ty.is_generic() {
+            let generic_parameters: Vec<_> = generic_ty
+                .generic_parameters
+                .iter()
+                .map(|g| generics_map.get(&g.name()).unwrap_or(g))
+                .cloned()
+                .collect();
+            ty = ty.specialize_with(
+                generic_ty
+                    .specialize_with(SpecializeClass {
+                        generic_parameters,
+                        members,
+                    })
+                    .into(),
+            );
+        }
         Ok(hir::Constructor {
             ty,
             initializers,
@@ -540,15 +558,16 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
 
     /// Lower [`ast::TypeDeclaration`] to [`hir::TypeDeclaration`] within lowering context
     fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
-        let generic_parameters: Vec<_> = self
+        // TODO: check for collisions, etc
+        let generic_parameters: Vec<Type> = self
             .generic_parameters
             .iter()
             .cloned()
-            .map(|name| GenericType { name })
+            .map(|name| GenericType { name }.into())
             .collect();
 
         let is_builtin = context.is_for_builtin_module();
-        let mut ty_context = TypeContext {
+        let mut generic_context = GenericContext {
             parent: context,
             generic_parameters: generic_parameters.clone(),
         };
@@ -561,7 +580,7 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
             members: self
                 .members
                 .iter()
-                .map(|m| m.lower_to_hir_within_context(&mut ty_context))
+                .map(|m| m.lower_to_hir_within_context(&mut generic_context))
                 .try_collect()?,
         });
 
@@ -920,6 +939,7 @@ mod tests {
     use crate::test_compiler_error;
 
     test_compiler_error!(candidate_not_viable);
+    test_compiler_error!(generics);
     test_compiler_error!(missing_fields);
     test_compiler_error!(multiple_initialization);
     test_compiler_error!(wrong_initializer_type);

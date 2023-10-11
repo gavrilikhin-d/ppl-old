@@ -51,6 +51,10 @@ impl<'llvm> HIRTypesLowering<'llvm> for Type {
     fn lower_to_ir(&self, context: &impl Context<'llvm>) -> Self::IR {
         match self {
             Type::Class(ty) => ty.lower_to_ir(context).into(),
+            Type::Specialized(ty) if ty.is_partially_specialized() => {
+                unreachable!("Partially specialized type must not be lowered to IR")
+            }
+            Type::Specialized(ty) => ty.specialized.lower_to_ir(context).into(),
             Type::SelfType(_) => unreachable!("Self must not be lowered to IR"),
             Type::Trait(_) => unreachable!("Trait must not be lowered to IR"),
             Type::Generic(_) => unreachable!("Generic must not be lowered to IR"),
@@ -94,7 +98,9 @@ impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Declaration {
                 var.lower_local_to_ir(context);
             }
             Declaration::Type(ty) => {
-                ty.lower_to_ir(context);
+                if !ty.is_generic() {
+                    ty.lower_to_ir(context);
+                }
             }
             Declaration::Function(f) => {
                 if !f.is_generic() {
@@ -211,11 +217,11 @@ impl<'llvm> HIRTypesLowering<'llvm> for TypeDeclaration {
             return context.types().opaque(&self.name).into();
         }
 
-        if let Some(ty) = context.llvm().get_struct_type(self.name()) {
+        if let Some(ty) = context.llvm().get_struct_type(&self.name()) {
             return ty.into();
         }
 
-        let ty = context.llvm().opaque_struct_type(self.name());
+        let ty = context.llvm().opaque_struct_type(&self.name());
         ty.set_body(
             self.members
                 .iter()
@@ -245,7 +251,7 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionDeclaration {
             }
             _ => unreachable!("FunctionDeclaration::ty() returned non-function type"),
         };
-        context.module.add_function(self.mangled_name(), ty, None)
+        context.module.add_function(&self.mangled_name(), ty, None)
     }
 }
 
@@ -313,7 +319,7 @@ impl<'llvm> EmitBody<'llvm> for FunctionDefinition {
     fn emit_body(&self, context: &mut ModuleContext<'llvm>) {
         let f = context
             .functions()
-            .get(self.mangled_name())
+            .get(&self.mangled_name())
             .expect("Function was not declared before emitting body");
         if !self.body.is_empty() {
             let mut f_context = FunctionContext::new(context, f);
@@ -480,7 +486,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
     fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         let function = context
             .functions()
-            .get(self.function.mangled_name())
+            .get(&self.function.mangled_name())
             .unwrap_or_else(|| {
                 if self.generic.is_none() {
                     self.function
@@ -561,7 +567,7 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for MemberReference 
                         .unwrap(),
                     base,
                     self.index as u32,
-                    self.member.name(),
+                    &self.member.name(),
                 )
                 .unwrap()
                 .into(),
@@ -610,7 +616,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
         }
 
         let ptr = value.into_pointer_value();
-        match self.ty() {
+        match self.ty().specialized() {
             Type::Class(cl) => {
                 if cl.is_opaque() && !(cl.is_none() || cl.is_bool() || self.is_reference()) {
                     return Some(ptr.into());
@@ -621,7 +627,8 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Expression {
                     "",
                 ));
             }
-            _ => unimplemented!("Load reference of type {:?}", self.ty()),
+            ty if ty.is_generic() => unreachable!("Loading reference of generic type `{ty}`"),
+            ty => unimplemented!("Load reference of type `{ty}`"),
         };
     }
 }
@@ -872,7 +879,7 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         &self,
         llvm: &'llvm inkwell::context::Context,
     ) -> inkwell::module::Module<'llvm> {
-        let module = llvm.create_module(self.name());
+        let module = llvm.create_module(&self.name());
         module.set_source_file_name(&self.filename);
 
         let mut context = ModuleContext::new(module);

@@ -120,15 +120,17 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
         variable: &ParameterOrVariable,
     ) -> Option<inkwell::values::PointerValue<'llvm>> {
         match variable {
-            ParameterOrVariable::Parameter(p) => self.parameters.get(p.name()).cloned(),
+            ParameterOrVariable::Parameter(p) => {
+                self.parameters.get(&p.name().to_string()).cloned()
+            }
             ParameterOrVariable::Variable(v) => {
-                if let Some(var) = self.variables.get(v.name()) {
+                if let Some(var) = self.variables.get(&v.name().to_string()) {
                     return Some(*var);
                 }
 
                 self.module_context
                     .module
-                    .get_global(v.name())
+                    .get_global(&v.name())
                     .map(|v| v.as_pointer_value())
             }
         }

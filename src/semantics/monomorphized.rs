@@ -1,13 +1,13 @@
-use std::sync::Arc;
+use std::{borrow::Cow, collections::HashMap, sync::Arc};
 
 use crate::{
     hir::{
         Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
-        FunctionDefinition, FunctionNamePart, If, Loop, Parameter, Return, Statement, Type, Typed,
-        VariableReference, While,
+        FunctionDefinition, FunctionNamePart, Generic, If, Loop, MemberReference, Return,
+        Specialize, Statement, Type, Typed, VariableReference, While,
     },
     named::Named,
-    semantics::FunctionContext,
+    semantics::{ConvertibleTo, FunctionContext},
 };
 
 use super::Context;
@@ -101,8 +101,7 @@ impl Monomorphized for Expression {
             Expression::VariableReference(var) => var.monomorphized(context).into(),
             Expression::TypeReference(_) => todo!(),
             Expression::Literal(_) => self.clone(),
-            // TODO: generic members reference
-            Expression::MemberReference(_) => self.clone(),
+            Expression::MemberReference(m) => m.monomorphized(context).into(),
             Expression::Constructor(c) => c.monomorphized(context).into(),
         }
     }
@@ -132,7 +131,7 @@ impl Monomorphized for VariableReference {
     fn monomorphized(&self, context: &mut impl Context) -> Self {
         VariableReference {
             span: self.span.clone(),
-            variable: context.find_variable(self.variable.name()).unwrap(),
+            variable: context.find_variable(&self.variable.name()).unwrap(),
         }
     }
 }
@@ -157,30 +156,45 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
             return self.clone();
         }
 
+        let mut generics_map: HashMap<Cow<'_, str>, Type> = HashMap::new();
+
         let mut arg = args.into_iter();
         let name_parts = self
             .name_parts()
             .iter()
             .map(|part| match part {
                 FunctionNamePart::Text(text) => text.clone().into(),
-                FunctionNamePart::Parameter(param) => Arc::new(Parameter {
-                    name: param.name.clone(),
-                    ty: {
-                        let arg_ty = arg.next().unwrap().clone();
-                        match param.ty() {
-                            Type::Trait(_) | Type::SelfType(_) => arg_ty,
-                            _ => param.ty(),
-                        }
-                    },
-                })
-                .into(),
+                FunctionNamePart::Parameter(param) => {
+                    let arg_ty = arg.next().unwrap().clone();
+                    debug_assert!(arg_ty.convertible_to(param.ty()).within(context));
+                    if !param.is_generic() {
+                        return param.clone().into();
+                    }
+
+                    let param_ty = param.ty();
+                    let param = param.as_ref().clone().specialize_with(arg_ty.clone());
+
+                    let diff = param_ty.diff(arg_ty);
+                    for ty in diff.into_iter() {
+                        let name = (&ty).generic.name().to_string();
+                        generics_map.insert(name.into(), ty.into());
+                    }
+
+                    param.into()
+                }
             })
             .collect::<Vec<_>>();
 
         let name = Function::build_name(&name_parts);
 
+        let generic_types: Vec<Type> = self
+            .generic_types
+            .iter()
+            .map(|g| generics_map.get(&g.name()).cloned().unwrap_or(g.clone()))
+            .collect();
         Arc::new(
             FunctionDeclaration::build()
+                .with_generic_types(generic_types)
                 .with_name(name_parts)
                 .with_mangled_name(
                     context
@@ -188,7 +202,12 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
                         .map(|f| f.declaration().mangled_name.clone())
                         .flatten(),
                 )
-                .with_return_type(self.return_type.clone()),
+                .with_return_type(
+                    generics_map
+                        .get(&self.return_type.name())
+                        .cloned()
+                        .unwrap_or(self.return_type.clone()),
+                ),
         )
     }
 }
@@ -216,12 +235,9 @@ impl MonomorphizedWithArgs for Arc<FunctionDefinition> {
             .map(|stmt| stmt.monomorphized(&mut context))
             .collect();
 
-        let f = Arc::new(FunctionDefinition {
-            declaration: declaration.clone(),
-            body,
-        });
+        let f = Arc::new(FunctionDefinition { declaration, body });
 
-        if context.function_with_name(f.name()).is_none() {
+        if context.function_with_name(&f.name()).is_none() {
             context.add_function(f.clone().into());
         }
 
@@ -238,6 +254,23 @@ impl MonomorphizedWithArgs for Function {
         match self {
             Function::Declaration(d) => d.monomorphized(context, args).into(),
             Function::Definition(d) => d.monomorphized(context, args).into(),
+        }
+    }
+}
+
+impl Monomorphized for MemberReference {
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        if !self.is_generic() {
+            return self.clone();
+        }
+
+        let base = Box::new(self.base.monomorphized(context));
+        let member = base.ty().members()[self.index].clone();
+
+        MemberReference {
+            base,
+            member,
+            ..(self.clone())
         }
     }
 }

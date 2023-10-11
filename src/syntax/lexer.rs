@@ -58,6 +58,28 @@ pub trait Lexer: Iterator<Item = Token> {
         StringWithOffset::from(self.slice()).at(self.span().start)
     }
 
+    /// Get string with offset of the next token
+    ///
+    /// # Example
+    /// ```
+    /// use ppl::syntax::{Token, Lexer, FullSourceLexer, StringWithOffset};
+    ///
+    /// let mut lexer = FullSourceLexer::new("42");
+    /// assert_eq!(lexer.peek(), Some(Token::Integer));
+    /// assert_eq!(
+    /// 	lexer.peek_string_with_offset(),
+    /// 	StringWithOffset::from("42").at(0)
+    /// );
+    /// lexer.next();
+    /// assert_eq!(
+    ///     lexer.peek_string_with_offset(),
+    ///     StringWithOffset::from("").at(2)
+    /// );
+    /// ```
+    fn peek_string_with_offset(&self) -> StringWithOffset {
+        StringWithOffset::from(self.peek_slice()).at(self.peek_span().start)
+    }
+
     /// Try match next token with given type
     ///
     /// # Example
@@ -79,8 +101,9 @@ pub trait Lexer: Iterator<Item = Token> {
     /// 	)
     /// );
     /// ```
-    fn try_match(&self, token: Token) -> Result<(), LexerError> {
-        self.try_match_one_of(&[token]).map(|_| ())
+    fn try_match(&self, token: Token) -> Result<StringWithOffset, LexerError> {
+        self.try_match_one_of(&[token])
+            .map(|_| self.peek_string_with_offset())
     }
 
     /// Try match next token with one of specified types

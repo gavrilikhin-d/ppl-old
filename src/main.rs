@@ -53,7 +53,8 @@ fn process_single_statement<'llvm>(
     if let Some(f) = module.get_function("execute") {
         let result = unsafe { engine.run_function(f, &[]) };
         if let hir::Statement::Expression(expr) = hir {
-            match expr.ty() {
+            let ty = expr.ty().specialized();
+            match ty {
                 Type::Class(c) => {
                     if !c.is_builtin() {
                         // TODO: implement proper printing for user-defined classes through `as String`
@@ -84,6 +85,7 @@ fn process_single_statement<'llvm>(
                     unreachable!("Self may not be returned as result of expression")
                 }
                 Type::Generic(_) => unreachable!("generic types may not be returned"),
+                Type::Specialized(_) => unreachable!("should be most specialized"),
             }
         }
     }

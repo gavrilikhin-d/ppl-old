@@ -93,6 +93,7 @@ impl Execute for Compile {
         }
         .arg(bitcode)
         .args(&["-o", output_file.to_str().unwrap()])
+        .arg("-Wno-override-module")
         .status()
         .map_err(|e| miette!("{output_file:?}: {e}"))?;
 

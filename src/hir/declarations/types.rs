@@ -1,7 +1,7 @@
-use std::sync::Arc;
+use std::{borrow::Cow, fmt::Display, sync::Arc};
 
 use crate::{
-    hir::{GenericType, Type, Typed},
+    hir::{Generic, GenericName, Specialize, Type, Typed},
     named::Named,
     syntax::StringWithOffset,
 };
@@ -15,10 +15,24 @@ pub struct Member {
     pub ty: Type,
 }
 
+impl Generic for Member {
+    /// Is this a generic member?
+    fn is_generic(&self) -> bool {
+        self.ty.is_generic()
+    }
+}
+
+impl Specialize<Type> for Member {
+    fn specialize_with(mut self, ty: Type) -> Self {
+        self.ty = self.ty.specialize_with(ty).into();
+        self
+    }
+}
+
 impl Named for Member {
     /// Get name of member
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
     }
 }
 
@@ -35,7 +49,7 @@ pub struct TypeDeclaration {
     /// Type's name
     pub name: StringWithOffset,
     /// Generic parameters of type
-    pub generic_parameters: Vec<GenericType>,
+    pub generic_parameters: Vec<Type>,
     /// Is this type from builtin module?
     pub is_builtin: bool,
     /// Members of type
@@ -82,20 +96,71 @@ impl TypeDeclaration {
     pub fn is_opaque(&self) -> bool {
         self.members.is_empty()
     }
+}
 
+impl Generic for TypeDeclaration {
     /// Is this a generic type?
-    ///
-    /// Note: even if [`generic_parameters`](Self::generic_parameters)
-    /// aren't empty, type may be non-generic, if all members are non-generic
-    pub fn is_generic(&self) -> bool {
-        !self.generic_parameters.is_empty() && self.members.iter().any(|m| m.ty().is_generic())
+    fn is_generic(&self) -> bool {
+        self.generic_parameters.iter().any(|p| p.is_generic())
+            || self.members.iter().any(|m| m.is_generic())
+    }
+}
+
+impl GenericName for TypeDeclaration {
+    fn generic_name(&self) -> Cow<'_, str> {
+        if self.generic_parameters.is_empty() {
+            return self.name();
+        }
+
+        format!(
+            "{}<{}>",
+            self.name.as_str(),
+            self.generic_parameters
+                .iter()
+                .map(|p| p.generic_name())
+                .collect::<Vec<_>>()
+                .join(", ")
+        )
+        .into()
+    }
+}
+
+impl Display for TypeDeclaration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.generic_name())
+    }
+}
+
+/// Arguments to specialize class
+pub struct SpecializeClass {
+    /// Specialized generics
+    pub generic_parameters: Vec<Type>,
+    /// Specialized members
+    pub members: Vec<Arc<Member>>,
+}
+
+impl SpecializeClass {
+    /// Specialize class without members
+    pub fn without_members(generic_parameters: Vec<Type>) -> Self {
+        Self {
+            generic_parameters,
+            members: vec![],
+        }
+    }
+}
+
+impl Specialize<SpecializeClass> for TypeDeclaration {
+    fn specialize_with(mut self, specialized: SpecializeClass) -> Self {
+        self.generic_parameters = specialized.generic_parameters;
+        self.members = specialized.members;
+        self
     }
 }
 
 impl Named for TypeDeclaration {
     /// Get name of type
-    fn name(&self) -> &str {
-        &self.name
+    fn name(&self) -> Cow<'_, str> {
+        self.name.as_str().into()
     }
 }
 
@@ -103,7 +168,7 @@ impl Named for TypeDeclaration {
 mod tests {
     use super::*;
     use crate::ast;
-    use crate::hir::{Member, Type};
+    use crate::hir::{GenericType, Member, Type};
     use crate::semantics::ASTLowering;
     use pretty_assertions::assert_eq;
 
@@ -140,7 +205,8 @@ mod tests {
                 name: StringWithOffset::from("Point").at(5),
                 generic_parameters: vec![GenericType {
                     name: StringWithOffset::from("U").at(11),
-                }],
+                }
+                .into()],
                 is_builtin: false,
                 members: vec![Arc::new(Member {
                     name: StringWithOffset::from("x").at(16),
