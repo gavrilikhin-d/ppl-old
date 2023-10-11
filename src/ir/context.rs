@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use inkwell::basic_block::BasicBlock;
 
@@ -88,9 +88,9 @@ pub struct FunctionContext<'llvm, 'm> {
     /// Builder for current function
     pub builder: inkwell::builder::Builder<'llvm>,
     /// Parameters of this function
-    pub parameters: HashMap<String, inkwell::values::PointerValue<'llvm>>,
+    pub parameters: BTreeMap<String, inkwell::values::PointerValue<'llvm>>,
     /// Local variables
-    pub variables: HashMap<String, inkwell::values::PointerValue<'llvm>>,
+    pub variables: BTreeMap<String, inkwell::values::PointerValue<'llvm>>,
 }
 
 impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
@@ -109,8 +109,8 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
             module_context,
             function,
             builder,
-            parameters: HashMap::new(),
-            variables: HashMap::new(),
+            parameters: BTreeMap::new(),
+            variables: BTreeMap::new(),
         }
     }
 

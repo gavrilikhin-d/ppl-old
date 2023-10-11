@@ -1,6 +1,6 @@
 use core::panic;
 use std::borrow::Cow;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 use std::sync::Arc;
@@ -388,7 +388,7 @@ impl ASTLoweringWithinContext for ast::Constructor {
 
         let mut members = ty.referenced_type.members().to_vec();
 
-        let mut generics_map: HashMap<Cow<'_, str>, Type> = HashMap::new();
+        let mut generics_map: BTreeMap<Cow<'_, str>, Type> = BTreeMap::new();
 
         let mut initializers = Vec::<hir::Initializer>::new();
         for init in &self.initializers {
