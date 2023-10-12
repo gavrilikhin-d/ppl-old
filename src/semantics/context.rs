@@ -514,12 +514,11 @@ impl ChildContext for FunctionContext<'_> {
         Some(self.function.clone())
     }
 
-    fn find_variable(&self, name: &str) -> Option<ParameterOrVariable> {
+    fn find_variable_here(&self, name: &str) -> Option<ParameterOrVariable> {
         self.function
             .parameters()
             .find(|p| p.name() == name)
             .map(|p| p.into())
-            .or_else(|| self.parent.find_variable(name))
     }
 
     fn add_type(&mut self, _ty: Arc<TypeDeclaration>) {
@@ -561,16 +560,17 @@ impl ChildContext for TraitContext<'_> {
         self.parent
     }
 
-    fn find_type(&self, name: &str) -> Option<Type> {
-        if name == "Self" {
-            return Some(
-                SelfType {
-                    associated_trait: self.trait_weak.clone(),
-                }
-                .into(),
-            );
+    fn find_type_here(&self, name: &str) -> Option<Type> {
+        if name != "Self" {
+            return None;
         }
-        self.parent.find_type(name)
+
+        Some(
+            SelfType {
+                associated_trait: self.trait_weak.clone(),
+            }
+            .into(),
+        )
     }
 
     fn add_type(&mut self, _ty: Arc<TypeDeclaration>) {
@@ -589,16 +589,13 @@ impl ChildContext for TraitContext<'_> {
         todo!("variables in traits")
     }
 
-    fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
-        let mut functions = self.parent.functions_with_n_name_parts(n);
-        functions.extend(
-            self.tr
-                .functions
-                .iter()
-                .filter(move |f| f.name_parts().len() == n)
-                .cloned(),
-        );
-        functions
+    fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Function> {
+        self.tr
+            .functions
+            .iter()
+            .filter(move |f| f.name_parts().len() == n)
+            .cloned()
+            .collect()
     }
 }
 
@@ -620,11 +617,10 @@ impl ChildContext for GenericContext<'_> {
         self.parent
     }
 
-    fn find_type(&self, name: &str) -> Option<Type> {
+    fn find_type_here(&self, name: &str) -> Option<Type> {
         self.generic_parameters
             .iter()
             .find(|p| p.name() == name)
             .cloned()
-            .or_else(|| self.parent.find_type(name))
     }
 }
