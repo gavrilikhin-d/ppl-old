@@ -145,39 +145,39 @@ pub trait Context {
 /// Context that is a child of another context
 pub trait ChildContext {
     /// Get parent context
-    fn parent(&self) -> &dyn Context;
+    fn parent(&self) -> Option<&dyn Context>;
 
     /// Get parent context
-    fn parent_mut(&mut self) -> &mut dyn Context;
+    fn parent_mut(&mut self) -> Option<&mut dyn Context>;
 
     /// Get compiler
     fn compiler(&self) -> &Compiler {
-        self.parent().compiler()
+        self.parent().unwrap().compiler()
     }
 
     /// Get compiler
     fn compiler_mut(&mut self) -> &mut Compiler {
-        self.parent_mut().compiler_mut()
+        self.parent_mut().unwrap().compiler_mut()
     }
 
     /// Get current module this context is for
     fn module(&self) -> &Module {
-        self.parent().module()
+        self.parent().unwrap().module()
     }
 
     /// Get current module this context is for
     fn module_mut(&mut self) -> &mut Module {
-        self.parent_mut().module_mut()
+        self.parent_mut().unwrap().module_mut()
     }
 
     /// Get module context of builtin module
     fn builtin(&self) -> BuiltinContext {
-        self.parent().builtin()
+        self.parent().unwrap().builtin()
     }
 
     /// Get current function
     fn function(&self) -> Option<Arc<FunctionDeclaration>> {
-        self.parent().function()
+        self.parent().and_then(|p| p.function())
     }
 
     /// Find type by name without checking parent context
@@ -188,7 +188,7 @@ pub trait ChildContext {
     /// Find type by name
     fn find_type(&self, name: &str) -> Option<Type> {
         self.find_type_here(name)
-            .or_else(|| self.parent().find_type(name))
+            .or_else(|| self.parent().and_then(|p| p.find_type(name)))
     }
 
     /// Find variable by name without checking parent context
@@ -199,27 +199,27 @@ pub trait ChildContext {
     /// Find variable by name
     fn find_variable(&self, name: &str) -> Option<ParameterOrVariable> {
         self.find_variable_here(name)
-            .or_else(|| self.parent().find_variable(name))
+            .or_else(|| self.parent().and_then(|p| p.find_variable(name)))
     }
 
     /// Add type to context
     fn add_type(&mut self, ty: Arc<TypeDeclaration>) {
-        self.parent_mut().add_type(ty)
+        self.parent_mut().unwrap().add_type(ty)
     }
 
     /// Add trait to context
     fn add_trait(&mut self, tr: Arc<TraitDeclaration>) {
-        self.parent_mut().add_trait(tr)
+        self.parent_mut().unwrap().add_trait(tr)
     }
 
     /// Add function to context
     fn add_function(&mut self, f: Function) {
-        self.parent_mut().add_function(f)
+        self.parent_mut().unwrap().add_function(f)
     }
 
     /// Add variable to context
     fn add_variable(&mut self, v: Arc<VariableDeclaration>) {
-        self.parent_mut().add_variable(v)
+        self.parent_mut().unwrap().add_variable(v)
     }
 
     /// Get all visible functions without checking parent context
@@ -231,7 +231,11 @@ pub trait ChildContext {
     fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
         self.functions_with_n_name_parts_here(n)
             .into_iter()
-            .chain(self.parent().functions_with_n_name_parts(n))
+            .chain(
+                self.parent()
+                    .and_then(|p| Some(p.functions_with_n_name_parts(n)))
+                    .unwrap_or_default(),
+            )
             .collect()
     }
 
@@ -243,7 +247,7 @@ pub trait ChildContext {
     /// Get function with same name
     fn function_with_name(&self, name: &str) -> Option<Function> {
         self.function_with_name_here(name)
-            .or_else(|| self.parent().function_with_name(name))
+            .or_else(|| self.parent().and_then(|p| p.function_with_name(name)))
     }
 
     /// Get all functions with same name format
@@ -255,7 +259,12 @@ pub trait ChildContext {
     fn functions_with_format(&self, format: &str) -> BTreeMap<Name, Function> {
         self.functions_with_format_here(format)
             .into_iter()
-            .chain(self.parent().functions_with_format(format).into_iter())
+            .chain(
+                self.parent()
+                    .and_then(|p| Some(p.functions_with_format(format)))
+                    .unwrap_or_default()
+                    .into_iter(),
+            )
             .collect()
     }
 }
@@ -502,12 +511,12 @@ pub struct FunctionContext<'p> {
 }
 
 impl ChildContext for FunctionContext<'_> {
-    fn parent(&self) -> &dyn Context {
-        self.parent
+    fn parent(&self) -> Option<&dyn Context> {
+        Some(self.parent)
     }
 
-    fn parent_mut(&mut self) -> &mut dyn Context {
-        self.parent
+    fn parent_mut(&mut self) -> Option<&mut dyn Context> {
+        Some(self.parent)
     }
 
     fn function(&self) -> Option<Arc<FunctionDeclaration>> {
@@ -552,12 +561,12 @@ pub struct TraitContext<'p> {
 }
 
 impl ChildContext for TraitContext<'_> {
-    fn parent(&self) -> &dyn Context {
-        self.parent
+    fn parent(&self) -> Option<&dyn Context> {
+        Some(self.parent)
     }
 
-    fn parent_mut(&mut self) -> &mut dyn Context {
-        self.parent
+    fn parent_mut(&mut self) -> Option<&mut dyn Context> {
+        Some(self.parent)
     }
 
     fn find_type_here(&self, name: &str) -> Option<Type> {
@@ -609,12 +618,12 @@ pub struct GenericContext<'p> {
 }
 
 impl ChildContext for GenericContext<'_> {
-    fn parent(&self) -> &dyn Context {
-        self.parent
+    fn parent(&self) -> Option<&dyn Context> {
+        Some(self.parent)
     }
 
-    fn parent_mut(&mut self) -> &mut dyn Context {
-        self.parent
+    fn parent_mut(&mut self) -> Option<&mut dyn Context> {
+        Some(self.parent)
     }
 
     fn find_type_here(&self, name: &str) -> Option<Type> {
