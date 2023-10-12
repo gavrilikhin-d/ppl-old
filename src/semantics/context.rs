@@ -16,139 +16,15 @@ use crate::{
 
 /// Trait for various AST lowering contexts
 pub trait Context {
-    /// Get compiler
-    fn compiler(&self) -> &Compiler;
-
-    /// Get compiler
-    fn compiler_mut(&mut self) -> &mut Compiler;
-
-    /// Get current module this context is for
-    fn module(&self) -> &Module;
-
-    /// Get current module this context is for
-    fn module_mut(&mut self) -> &mut Module;
-
-    /// Is this a context for builtin module?
-    fn is_for_builtin_module(&self) -> bool {
-        self.module().is_builtin
-    }
-
-    /// Get module context of builtin module
-    fn builtin(&self) -> BuiltinContext {
-        let module = self.compiler().builtin_module().unwrap_or(self.module());
-        debug_assert!(module.is_builtin);
-        BuiltinContext { module }
-    }
-
-    /// Get current function
-    fn function(&self) -> Option<Arc<FunctionDeclaration>>;
-
-    /// Find type by name
-    fn find_type(&self, name: &str) -> Option<Type>;
-
-    /// Find variable by name
-    fn find_variable(&self, name: &str) -> Option<ParameterOrVariable>;
-
-    /// Add type to context
-    fn add_type(&mut self, ty: Arc<TypeDeclaration>);
-
-    /// Add trait to context
-    fn add_trait(&mut self, tr: Arc<TraitDeclaration>);
-
-    /// Add function to context
-    fn add_function(&mut self, f: Function);
-
-    /// Add variable to context
-    fn add_variable(&mut self, v: Arc<VariableDeclaration>);
-
-    /// Get all visible functions
-    fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function>;
-
-    /// Get candidates for function call
-    fn candidates(
-        &self,
-        name_parts: &[CallNamePart],
-        args_cache: &[Option<Expression>],
-    ) -> Vec<Function> {
-        let mut functions = self.functions_with_n_name_parts(name_parts.len());
-        // Add functions from traits
-        functions.extend(
-            args_cache
-                .iter()
-                .filter_map(|a| a.as_ref())
-                .filter_map(|a| {
-                    if let Type::Trait(tr) = a.ty() {
-                        return Some(tr);
-                    } else {
-                        None
-                    }
-                })
-                .flat_map(|tr| {
-                    tr.functions_with_n_name_parts(name_parts.len())
-                        .cloned()
-                        .collect::<Vec<_>>()
-                }),
-        );
-
-        // Filter functions by name parts
-        functions
-            .iter()
-            .filter(|f| {
-                f.name_parts().iter().zip(name_parts).enumerate().all(
-                    |(i, (f_part, c_part))| match (f_part, c_part) {
-                        (FunctionNamePart::Text(text1), CallNamePart::Text(text2)) => {
-                            text1.as_str() == text2.as_str()
-                        }
-                        (FunctionNamePart::Parameter(_), CallNamePart::Argument(_)) => true,
-                        (FunctionNamePart::Parameter(_), CallNamePart::Text(_)) => {
-                            args_cache[i].is_some()
-                        }
-                        _ => false,
-                    },
-                )
-            })
-            .cloned()
-            .collect()
-    }
-
-    /// Get function with same name
-    fn function_with_name(&self, name: &str) -> Option<Function>;
-
-    /// Get all functions with same name format
-    fn functions_with_format(&self, format: &str) -> BTreeMap<Name, Function>;
-
-    /// Find concrete function for trait function
-    fn find_implementation(&self, trait_fn: &Function, self_type: &Type) -> Option<Function> {
-        let funcs = self.functions_with_n_name_parts(trait_fn.name_parts().len());
-        funcs
-            .iter()
-            .find(|f| {
-                trait_fn
-                    .name_parts()
-                    .iter()
-                    .zip(f.name_parts())
-                    .all(|(a, b)| match (a, b) {
-                        (FunctionNamePart::Text(a), FunctionNamePart::Text(b)) => {
-                            a.as_str() == b.as_str()
-                        }
-                        (FunctionNamePart::Parameter(a), FunctionNamePart::Parameter(b)) => {
-                            a.ty().map_self(self_type) == &b.ty()
-                        }
-                        _ => false,
-                    })
-                    && trait_fn.return_type().map_self(self_type) == &f.return_type()
-            })
-            .cloned()
-    }
-}
-
-/// Context that is a child of another context
-pub trait ChildContext {
     /// Get parent context
-    fn parent(&self) -> Option<&dyn Context>;
+    fn parent(&self) -> Option<&dyn Context> {
+        None
+    }
 
     /// Get parent context
-    fn parent_mut(&mut self) -> Option<&mut dyn Context>;
+    fn parent_mut(&mut self) -> Option<&mut dyn Context> {
+        None
+    }
 
     /// Get compiler
     fn compiler(&self) -> &Compiler {
@@ -168,11 +44,6 @@ pub trait ChildContext {
     /// Get current module this context is for
     fn module_mut(&mut self) -> &mut Module {
         self.parent_mut().unwrap().module_mut()
-    }
-
-    /// Get module context of builtin module
-    fn builtin(&self) -> BuiltinContext {
-        self.parent().unwrap().builtin()
     }
 
     /// Get current function
@@ -267,75 +138,88 @@ pub trait ChildContext {
             )
             .collect()
     }
-}
 
-impl<CC: ChildContext> Context for CC {
-    fn compiler(&self) -> &Compiler {
-        (self as &CC).compiler()
+    /// Is this a context for builtin module?
+    fn is_for_builtin_module(&self) -> bool {
+        self.module().is_builtin
     }
 
-    fn compiler_mut(&mut self) -> &mut Compiler {
-        (self as &mut CC).compiler_mut()
+    /// Get module context of builtin module
+    fn builtin(&self) -> BuiltinContext {
+        let module = self.compiler().builtin_module().unwrap_or(self.module());
+        debug_assert!(module.is_builtin);
+        BuiltinContext { module }
     }
 
-    /// Get current module this context is for
-    fn module(&self) -> &Module {
-        (self as &CC).module()
+    /// Get candidates for function call
+    fn candidates(
+        &self,
+        name_parts: &[CallNamePart],
+        args_cache: &[Option<Expression>],
+    ) -> Vec<Function> {
+        let mut functions = self.functions_with_n_name_parts(name_parts.len());
+        // Add functions from traits
+        functions.extend(
+            args_cache
+                .iter()
+                .filter_map(|a| a.as_ref())
+                .filter_map(|a| {
+                    if let Type::Trait(tr) = a.ty() {
+                        return Some(tr);
+                    } else {
+                        None
+                    }
+                })
+                .flat_map(|tr| {
+                    tr.functions_with_n_name_parts(name_parts.len())
+                        .cloned()
+                        .collect::<Vec<_>>()
+                }),
+        );
+
+        // Filter functions by name parts
+        functions
+            .iter()
+            .filter(|f| {
+                f.name_parts().iter().zip(name_parts).enumerate().all(
+                    |(i, (f_part, c_part))| match (f_part, c_part) {
+                        (FunctionNamePart::Text(text1), CallNamePart::Text(text2)) => {
+                            text1.as_str() == text2.as_str()
+                        }
+                        (FunctionNamePart::Parameter(_), CallNamePart::Argument(_)) => true,
+                        (FunctionNamePart::Parameter(_), CallNamePart::Text(_)) => {
+                            args_cache[i].is_some()
+                        }
+                        _ => false,
+                    },
+                )
+            })
+            .cloned()
+            .collect()
     }
 
-    /// Get current module this context is for
-    fn module_mut(&mut self) -> &mut Module {
-        (self as &mut CC).module_mut()
-    }
-
-    /// Get current function
-    fn function(&self) -> Option<Arc<FunctionDeclaration>> {
-        (self as &CC).function()
-    }
-
-    /// Find type by name
-    fn find_type(&self, name: &str) -> Option<Type> {
-        (self as &CC).find_type(name)
-    }
-
-    /// Find variable by name
-    fn find_variable(&self, name: &str) -> Option<ParameterOrVariable> {
-        (self as &CC).find_variable(name)
-    }
-
-    /// Add type to context
-    fn add_type(&mut self, ty: Arc<TypeDeclaration>) {
-        (self as &mut CC).add_type(ty)
-    }
-
-    /// Add trait to context
-    fn add_trait(&mut self, tr: Arc<TraitDeclaration>) {
-        (self as &mut CC).add_trait(tr)
-    }
-
-    /// Add function to context
-    fn add_function(&mut self, f: Function) {
-        (self as &mut CC).add_function(f)
-    }
-
-    /// Add variable to context
-    fn add_variable(&mut self, v: Arc<VariableDeclaration>) {
-        (self as &mut CC).add_variable(v)
-    }
-
-    /// Get all visible functions
-    fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
-        (self as &CC).functions_with_n_name_parts(n)
-    }
-
-    /// Get function with same name
-    fn function_with_name(&self, name: &str) -> Option<Function> {
-        (self as &CC).function_with_name(name)
-    }
-
-    /// Get all functions with same name format
-    fn functions_with_format(&self, format: &str) -> BTreeMap<Name, Function> {
-        (self as &CC).functions_with_format(format)
+    /// Find concrete function for trait function
+    fn find_implementation(&self, trait_fn: &Function, self_type: &Type) -> Option<Function> {
+        let funcs = self.functions_with_n_name_parts(trait_fn.name_parts().len());
+        funcs
+            .iter()
+            .find(|f| {
+                trait_fn
+                    .name_parts()
+                    .iter()
+                    .zip(f.name_parts())
+                    .all(|(a, b)| match (a, b) {
+                        (FunctionNamePart::Text(a), FunctionNamePart::Text(b)) => {
+                            a.as_str() == b.as_str()
+                        }
+                        (FunctionNamePart::Parameter(a), FunctionNamePart::Parameter(b)) => {
+                            a.ty().map_self(self_type) == &b.ty()
+                        }
+                        _ => false,
+                    })
+                    && trait_fn.return_type().map_self(self_type) == &f.return_type()
+            })
+            .cloned()
     }
 }
 
@@ -510,7 +394,7 @@ pub struct FunctionContext<'p> {
     pub parent: &'p mut dyn Context,
 }
 
-impl ChildContext for FunctionContext<'_> {
+impl Context for FunctionContext<'_> {
     fn parent(&self) -> Option<&dyn Context> {
         Some(self.parent)
     }
@@ -560,7 +444,7 @@ pub struct TraitContext<'p> {
     pub parent: &'p mut dyn Context,
 }
 
-impl ChildContext for TraitContext<'_> {
+impl Context for TraitContext<'_> {
     fn parent(&self) -> Option<&dyn Context> {
         Some(self.parent)
     }
@@ -617,7 +501,7 @@ pub struct GenericContext<'p> {
     pub parent: &'p mut dyn Context,
 }
 
-impl ChildContext for GenericContext<'_> {
+impl Context for GenericContext<'_> {
     fn parent(&self) -> Option<&dyn Context> {
         Some(self.parent)
     }
