@@ -168,8 +168,9 @@ impl Named for TypeDeclaration {
 mod tests {
     use super::*;
     use crate::ast;
+    use crate::compilation::Compiler;
     use crate::hir::{GenericType, Member, Type};
-    use crate::semantics::ASTLowering;
+    use crate::semantics::{ASTLowering, ASTLoweringWithinContext, ModuleContext};
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -221,11 +222,22 @@ mod tests {
 
     #[test]
     fn test_type_with_body() {
+        let mut compiler = Compiler::new();
+        let mut context = ModuleContext::new(&mut compiler);
         let type_decl = include_str!("../../../examples/point.ppl")
             .parse::<ast::TypeDeclaration>()
             .unwrap()
-            .lower_to_hir()
+            .lower_to_hir_within_context(&mut context)
             .unwrap();
+
+        let integer: Type = compiler
+            .builtin_module()
+            .unwrap()
+            .types
+            .get("Integer")
+            .cloned()
+            .unwrap()
+            .into();
 
         assert_eq!(
             *type_decl,
@@ -236,11 +248,11 @@ mod tests {
                 members: vec![
                     Arc::new(Member {
                         name: StringWithOffset::from("x").at(13),
-                        ty: Type::integer(),
+                        ty: integer.clone(),
                     }),
                     Arc::new(Member {
                         name: StringWithOffset::from("y").at(16),
-                        ty: Type::integer(),
+                        ty: integer,
                     }),
                 ],
             }
