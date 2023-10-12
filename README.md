@@ -36,6 +36,7 @@
 * [x] Add `SourceFile` as source code for errors
 ---
 ### Current task
+* [] Simplify builtin module compilation
 ---
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors

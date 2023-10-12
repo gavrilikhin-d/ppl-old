@@ -209,7 +209,7 @@ impl ASTLoweringWithinContext for ast::Call {
             let builtin = context.is_for_builtin_module();
             // FIXME: compiler should have builtin module too
             let mut modules = context
-                .compiler()
+                .compiler_mut()
                 .modules
                 .values()
                 .map(|m| m.as_ref())
@@ -822,7 +822,7 @@ impl ASTLoweringWithinContext for ast::Use {
         }
 
         let module_name = self.path.first().unwrap().as_str();
-        let module = context.compiler().get_module(module_name).unwrap();
+        let module = context.compiler_mut().get_module(module_name).unwrap();
 
         let name = self.path.last().unwrap().as_str();
 

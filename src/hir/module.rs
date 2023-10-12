@@ -53,6 +53,7 @@ pub struct Module {
     /// Filename of module
     pub filename: String,
     /****************************/
+    // TODO: remove this and treat first module in the context as builtin
     /// Is this a builtin module?
     pub is_builtin: bool,
 
@@ -95,7 +96,10 @@ impl Module {
     pub(crate) fn create_builtin() -> Self {
         let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime"));
 
-        let module = Compiler::for_builtin().at(path).get_module("ppl").unwrap();
+        let module = Compiler::without_builtin()
+            .at(path)
+            .get_module("ppl")
+            .unwrap();
 
         Arc::into_inner(module).unwrap()
     }

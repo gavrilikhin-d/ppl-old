@@ -17,7 +17,10 @@ use crate::{
 /// Trait for various AST lowering contexts
 pub trait Context {
     /// Get compiler
-    fn compiler(&mut self) -> &mut Compiler;
+    fn compiler(&self) -> &Compiler;
+
+    /// Get compiler
+    fn compiler_mut(&mut self) -> &mut Compiler;
 
     /// Get current module this context is for
     fn module(&self) -> &Module;
@@ -31,7 +34,11 @@ pub trait Context {
     }
 
     /// Get module context of builtin module
-    fn builtin(&self) -> BuiltinContext;
+    fn builtin(&self) -> BuiltinContext {
+        let module = self.compiler().builtin_module().unwrap_or(self.module());
+        debug_assert!(module.is_builtin);
+        BuiltinContext { module }
+    }
 
     /// Get current function
     fn function(&self) -> Option<Arc<FunctionDeclaration>>;
@@ -144,8 +151,13 @@ pub trait ChildContext {
     fn parent_mut(&mut self) -> &mut dyn Context;
 
     /// Get compiler
-    fn compiler(&mut self) -> &mut Compiler {
-        self.parent_mut().compiler()
+    fn compiler(&self) -> &Compiler {
+        self.parent().compiler()
+    }
+
+    /// Get compiler
+    fn compiler_mut(&mut self) -> &mut Compiler {
+        self.parent_mut().compiler_mut()
     }
 
     /// Get current module this context is for
@@ -215,8 +227,12 @@ pub trait ChildContext {
 }
 
 impl<CC: ChildContext> Context for CC {
-    fn compiler(&mut self) -> &mut Compiler {
-        (self as &mut CC).compiler()
+    fn compiler(&self) -> &Compiler {
+        (self as &CC).compiler()
+    }
+
+    fn compiler_mut(&mut self) -> &mut Compiler {
+        (self as &mut CC).compiler_mut()
     }
 
     /// Get current module this context is for
@@ -227,11 +243,6 @@ impl<CC: ChildContext> Context for CC {
     /// Get current module this context is for
     fn module_mut(&mut self) -> &mut Module {
         (self as &mut CC).module_mut()
-    }
-
-    /// Get module context of builtin module
-    fn builtin(&self) -> BuiltinContext {
-        (self as &CC).builtin()
     }
 
     /// Get current function
@@ -343,7 +354,11 @@ impl<'c> ModuleContext<'c> {
 }
 
 impl Context for ModuleContext<'_> {
-    fn compiler(&mut self) -> &mut Compiler {
+    fn compiler(&self) -> &Compiler {
+        self.compiler
+    }
+
+    fn compiler_mut(&mut self) -> &mut Compiler {
         self.compiler
     }
 
@@ -353,18 +368,6 @@ impl Context for ModuleContext<'_> {
 
     fn module_mut(&mut self) -> &mut Module {
         &mut self.module
-    }
-
-    fn builtin(&self) -> BuiltinContext {
-        if self.module.is_builtin {
-            BuiltinContext {
-                module: &self.module,
-            }
-        } else {
-            BuiltinContext {
-                module: Module::builtin(),
-            }
-        }
     }
 
     fn function(&self) -> Option<Arc<FunctionDeclaration>> {
