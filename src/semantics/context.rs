@@ -180,14 +180,26 @@ pub trait ChildContext {
         self.parent().function()
     }
 
+    /// Find type by name without checking parent context
+    fn find_type_here(&self, _name: &str) -> Option<Type> {
+        None
+    }
+
     /// Find type by name
     fn find_type(&self, name: &str) -> Option<Type> {
-        self.parent().find_type(name)
+        self.find_type_here(name)
+            .or_else(|| self.parent().find_type(name))
+    }
+
+    /// Find variable by name without checking parent context
+    fn find_variable_here(&self, _name: &str) -> Option<ParameterOrVariable> {
+        None
     }
 
     /// Find variable by name
     fn find_variable(&self, name: &str) -> Option<ParameterOrVariable> {
-        self.parent().find_variable(name)
+        self.find_variable_here(name)
+            .or_else(|| self.parent().find_variable(name))
     }
 
     /// Add type to context
@@ -210,19 +222,41 @@ pub trait ChildContext {
         self.parent_mut().add_variable(v)
     }
 
+    /// Get all visible functions without checking parent context
+    fn functions_with_n_name_parts_here(&self, _n: usize) -> Vec<Function> {
+        vec![]
+    }
+
     /// Get all visible functions
     fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
-        self.parent().functions_with_n_name_parts(n)
+        self.functions_with_n_name_parts_here(n)
+            .into_iter()
+            .chain(self.parent().functions_with_n_name_parts(n))
+            .collect()
+    }
+
+    /// Get function with same name without checking parent context
+    fn function_with_name_here(&self, _name: &str) -> Option<Function> {
+        None
     }
 
     /// Get function with same name
     fn function_with_name(&self, name: &str) -> Option<Function> {
-        self.parent().function_with_name(name)
+        self.function_with_name_here(name)
+            .or_else(|| self.parent().function_with_name(name))
+    }
+
+    /// Get all functions with same name format
+    fn functions_with_format_here(&self, _format: &str) -> BTreeMap<Name, Function> {
+        BTreeMap::new()
     }
 
     /// Get all functions with same name format
     fn functions_with_format(&self, format: &str) -> BTreeMap<Name, Function> {
-        self.parent().functions_with_format(format)
+        self.functions_with_format_here(format)
+            .into_iter()
+            .chain(self.parent().functions_with_format(format).into_iter())
+            .collect()
     }
 }
 
