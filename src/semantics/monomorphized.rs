@@ -10,7 +10,7 @@ use crate::{
     semantics::{ConvertibleTo, FunctionContext},
 };
 
-use super::Context;
+use super::{AddDeclaration, Context, FindDeclaration};
 
 /// Trait to get monomorphized version of statements
 pub trait Monomorphized {

@@ -7,8 +7,7 @@ use std::{
 use crate::{mutability::Mutable, named::Named, syntax::StringWithOffset};
 
 use super::{
-    Generic, GenericName, Member, Module, Specialize, Specialized, TraitDeclaration,
-    TypeDeclaration,
+    Generic, GenericName, Member, Specialize, Specialized, TraitDeclaration, TypeDeclaration,
 };
 use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
@@ -266,31 +265,6 @@ impl Type {
             Type::Class(c) => c.is_string(),
             _ => false,
         }
-    }
-
-    /// Get builtin type by name
-    fn get_builtin(name: &str) -> Type {
-        Module::builtin().types.get(name).unwrap().clone().into()
-    }
-
-    /// Get builtin "None" type
-    pub fn none() -> Type {
-        Type::get_builtin("None")
-    }
-
-    /// Get builtin "Bool" type
-    pub fn bool() -> Type {
-        Type::get_builtin("Bool")
-    }
-
-    /// Get builtin "Integer" type
-    pub fn integer() -> Type {
-        Type::get_builtin("Integer")
-    }
-
-    /// Get builtin "String" type
-    pub fn string() -> Type {
-        Type::get_builtin("String")
     }
 }
 

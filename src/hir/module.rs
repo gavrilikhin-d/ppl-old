@@ -1,14 +1,12 @@
 use std::borrow::Cow;
 use std::collections::BTreeMap;
-use std::path::Path;
 
 use derive_more::From;
 
-use crate::compilation::Compiler;
 use crate::hir::{Statement, TypeDeclaration, VariableDeclaration};
 use crate::named::Named;
 use crate::SourceFile;
-use std::sync::{Arc, LazyLock};
+use std::sync::Arc;
 
 use super::{Function, FunctionDefinition, TraitDeclaration, Type};
 
@@ -53,6 +51,7 @@ pub struct Module {
     /// Filename of module
     pub filename: String,
     /****************************/
+    // TODO: remove this and treat first module in the context as builtin
     /// Is this a builtin module?
     pub is_builtin: bool,
 
@@ -68,8 +67,6 @@ pub struct Module {
     /// Statements in this module
     pub statements: Vec<Statement>,
 }
-
-static BUILTIN: LazyLock<Module> = LazyLock::new(|| Module::create_builtin());
 
 impl Module {
     /// Create an empty module
@@ -89,27 +86,6 @@ impl Module {
     /// Get source file for this module
     pub fn source_file(&self) -> SourceFile {
         SourceFile::with_path(&self.filename).unwrap()
-    }
-
-    /// Create builtin module
-    pub(crate) fn create_builtin() -> Self {
-        let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime"));
-
-        let module = Compiler::for_builtin().at(path).get_module("ppl").unwrap();
-
-        Arc::into_inner(module).unwrap()
-    }
-
-    /// Get builtin module
-    ///
-    /// # Example
-    /// ```
-    /// use ppl::hir::Module;
-    ///
-    /// let module = Module::builtin();
-    /// ```
-    pub fn builtin() -> &'static Self {
-        &BUILTIN
     }
 
     /// Insert function to module

@@ -1,4 +1,9 @@
-use std::{collections::BTreeMap, fs, path::PathBuf, sync::Arc};
+use std::{
+    collections::BTreeMap,
+    fs,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 use crate::{
     ast,
@@ -12,8 +17,6 @@ use miette::miette;
 pub struct Compiler {
     /// Cache of compiled modules
     pub modules: BTreeMap<String, Arc<Module>>,
-    /// Is this a compiler for builtin modules?
-    pub is_builtin: bool,
     /// Root directory of the compiler
     pub root: PathBuf,
 }
@@ -21,20 +24,32 @@ pub struct Compiler {
 impl Compiler {
     /// Create new compiler with empty cache
     pub fn new() -> Self {
+        let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime"));
+
+        let mut compiler = Compiler::without_builtin().at(path);
+
+        compiler.get_module("ppl").unwrap();
+
+        compiler.at("")
+    }
+
+    /// Create new compiler without builtin module.
+    /// The first module to be added will be interpreted as builtin
+    pub fn without_builtin() -> Self {
         Self {
             modules: BTreeMap::new(),
-            is_builtin: false,
             root: "".into(),
         }
     }
 
-    /// Create new compiler for builtin modules
-    pub fn for_builtin() -> Self {
-        Self {
-            modules: BTreeMap::new(),
-            is_builtin: true,
-            root: "".into(),
-        }
+    /// Get builtin module, if present.
+    ///
+    /// Builtin module is the first module compiled
+    pub fn builtin_module(&self) -> Option<&Module> {
+        self.modules.first_key_value().map(|(_, m)| {
+            debug_assert!(m.is_builtin);
+            m.as_ref()
+        })
     }
 
     /// Return compiler with root directory set to `root`
@@ -84,7 +99,7 @@ impl Compiler {
             path.file_stem().unwrap().to_str().unwrap(),
             path.to_str().unwrap(),
         );
-        module.is_builtin = self.is_builtin;
+        module.is_builtin = self.modules.is_empty();
 
         let content = fs::read_to_string(&path).map_err(|e| miette!("{path:?}: {e}"))?;
 

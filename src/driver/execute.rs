@@ -35,8 +35,12 @@ impl Execute for Compile {
 
     /// Compile single ppl file
     fn execute(&self) -> Self::Output {
-        let mut compiler = Compiler::new().at(self.file.parent().unwrap());
-        compiler.is_builtin = self.no_core;
+        let mut compiler = if self.no_core {
+            Compiler::without_builtin()
+        } else {
+            Compiler::new()
+        }
+        .at(self.file.parent().unwrap());
 
         let name = self.file.file_stem().map(|n| n.to_str()).flatten().unwrap();
         let module = compiler.get_module(name)?;

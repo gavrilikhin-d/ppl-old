@@ -34,9 +34,12 @@
 * [x] Allow generics types usage
 * [x] Fix UB in errors printing order due to hash maps
 * [x] Add `SourceFile` as source code for errors
+* [x] Simplify builtin module compilation
 ---
 ### Current task
+* [ ] Print exactly decimals in decimal form
 ---
+* [ ] Add `@builtin`
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors
 * [ ] More functions to stdlib
