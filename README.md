@@ -38,6 +38,7 @@
 ### Current task
 * [] Simplify builtin module compilation
 ---
+* [ ] Print exactly decimals in decimal form
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors
 * [ ] More functions to stdlib
