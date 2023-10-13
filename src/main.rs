@@ -109,9 +109,10 @@ fn repl() {
         .unwrap();
 
     // TODO: env var for runtime path
-    let runtime_folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/runtime");
-    let lib_path = runtime_folder
-        .join("target/debug/libruntime.dylib")
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let lib_path = manifest_dir
+        .join("target/debug/deps")
+        .join("libruntime.dylib")
         .to_str()
         .unwrap()
         .to_string();
