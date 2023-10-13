@@ -1,4 +1,9 @@
-use std::{collections::BTreeMap, fs, path::PathBuf, sync::Arc};
+use std::{
+    collections::BTreeMap,
+    fs,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 use crate::{
     ast,
@@ -19,11 +24,13 @@ pub struct Compiler {
 impl Compiler {
     /// Create new compiler with empty cache
     pub fn new() -> Self {
-        let module = Arc::new(Module::builtin().clone());
-        Self {
-            modules: [(module.name.clone(), module)].into(),
-            root: "".into(),
-        }
+        let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime"));
+
+        let mut compiler = Compiler::without_builtin().at(path);
+
+        compiler.get_module("ppl").unwrap();
+
+        compiler.at("")
     }
 
     /// Create new compiler without builtin module.
