@@ -41,6 +41,7 @@
 ### Current task
 ---
 * [ ] Add `assert` and `panic`
+* [ ] Fix bus error
 * [ ] Print exactly decimals in decimal form
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors
