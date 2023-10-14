@@ -526,7 +526,10 @@ impl ASTLoweringWithinContext for ast::Expression {
             }
             ast::Expression::Call(call) => call.lower_to_hir_within_context(context)?.into(),
             ast::Expression::Tuple(t) => t.lower_to_hir_within_context(context)?.into(),
-            ast::Expression::TypeReference(t) => t.lower_to_hir_within_context(context)?.into(),
+            ast::Expression::TypeReference(t) => t
+                .lower_to_hir_within_context(context)?
+                .replace_with_type_info(context)
+                .into(),
             ast::Expression::MemberReference(m) => m.lower_to_hir_within_context(context)?.into(),
             ast::Expression::Constructor(c) => c.lower_to_hir_within_context(context)?.into(),
         })
