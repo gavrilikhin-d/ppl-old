@@ -36,9 +36,9 @@
 * [x] Add `SourceFile` as source code for errors
 * [x] Simplify builtin module compilation
 * [x] Add `@builtin`
+* [x] Types as values
 ---
 ### Current task
-* [ ] Types as values
 ---
 * [ ] Add `assert` and `panic`
 * [ ] Print exactly decimals in decimal form
