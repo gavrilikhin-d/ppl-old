@@ -1,0 +1,2 @@
+(size of None) == 0
+(size of Bool) == 1
