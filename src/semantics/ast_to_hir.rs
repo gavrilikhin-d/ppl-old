@@ -202,13 +202,14 @@ impl ASTLoweringWithinContext for ast::Call {
                         .builtin()
                         .types()
                         .type_of(ty.clone());
-                        let type_reference =                             hir::TypeReference {
-                            span: t.range().into(),
-                            referenced_type: ty.clone(),
-                            type_for_type: type_for_type.clone(),
-                        };
                         let constructor = hir::Constructor {
-                            ty: type_reference.into(),
+                            ty: hir::TypeReference {
+                                span: t.range().into(),
+                                referenced_type: type_for_type.clone().into(), type_for_type: context
+                                .builtin()
+                                .types()
+                                .type_of(type_for_type.clone())
+                            },
                             initializers: vec![
                                 hir::Initializer {
                                     span: 0..0,
