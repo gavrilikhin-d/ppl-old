@@ -218,3 +218,72 @@ impl Declare for ast::TraitDeclaration {
         Ok(tr)
     }
 }
+
+impl Declare for ast::TypeDeclaration {
+    type Declaration = Arc<hir::TypeDeclaration>;
+    type Definition = Arc<hir::TypeDeclaration>;
+
+    fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
+        let annotations = self
+            .annotations
+            .iter()
+            .map(|a| a.lower_to_hir_within_context(context))
+            .collect::<Result<Vec<_>, _>>()?;
+        let is_builtin = annotations
+            .iter()
+            .any(|a| matches!(a, hir::Annotation::Builtin));
+
+        // TODO: check for collisions, etc
+        let generic_parameters: Vec<Type> = self
+            .generic_parameters
+            .iter()
+            .cloned()
+            .map(|name| GenericType { name }.into())
+            .collect();
+
+        // TODO: recursive types
+        let ty = Arc::new(hir::TypeDeclaration {
+            name: self.name.clone(),
+            generic_parameters,
+            is_builtin,
+            members: vec![],
+        });
+
+        context.add_type(ty.clone());
+
+        Ok(ty)
+    }
+
+    fn define(
+        &self,
+        declaration: Self::Declaration,
+        context: &mut impl Context,
+    ) -> Result<Self::Definition, Error> {
+        let mut generic_context = GenericContext {
+            parent: context,
+            generic_parameters: declaration.generic_parameters.clone(),
+        };
+
+        // TODO: recursive types
+        let ty = Arc::new(hir::TypeDeclaration {
+            members: self
+                .members
+                .iter()
+                .map(|m| m.lower_to_hir_within_context(&mut generic_context))
+                .try_collect()?,
+            ..(*declaration).clone()
+        });
+
+        context.add_type(ty.clone());
+
+        Ok(ty)
+    }
+}
+
+impl<D: Declare> ASTLoweringWithinContext for D {
+    type HIR = D::Definition;
+
+    fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
+        self.define(self.declare(context)?, context)
+    }
+}

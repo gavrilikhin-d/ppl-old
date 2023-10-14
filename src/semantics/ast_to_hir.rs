@@ -590,51 +590,6 @@ impl ASTLoweringWithinContext for ast::VariableDeclaration {
     }
 }
 
-impl ASTLoweringWithinContext for ast::TypeDeclaration {
-    type HIR = Arc<hir::TypeDeclaration>;
-
-    /// Lower [`ast::TypeDeclaration`] to [`hir::TypeDeclaration`] within lowering context
-    fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
-        let annotations = self
-            .annotations
-            .iter()
-            .map(|a| a.lower_to_hir_within_context(context))
-            .collect::<Result<Vec<_>, _>>()?;
-        let is_builtin = annotations
-            .iter()
-            .any(|a| matches!(a, hir::Annotation::Builtin));
-
-        // TODO: check for collisions, etc
-        let generic_parameters: Vec<Type> = self
-            .generic_parameters
-            .iter()
-            .cloned()
-            .map(|name| GenericType { name }.into())
-            .collect();
-
-        let mut generic_context = GenericContext {
-            parent: context,
-            generic_parameters: generic_parameters.clone(),
-        };
-
-        // TODO: recursive types
-        let ty = Arc::new(hir::TypeDeclaration {
-            name: self.name.clone(),
-            generic_parameters,
-            is_builtin,
-            members: self
-                .members
-                .iter()
-                .map(|m| m.lower_to_hir_within_context(&mut generic_context))
-                .try_collect()?,
-        });
-
-        context.add_type(ty.clone());
-
-        Ok(ty)
-    }
-}
-
 impl ASTLoweringWithinContext for ast::Member {
     type HIR = Arc<hir::Member>;
 
@@ -687,24 +642,6 @@ impl ASTLoweringWithinContext for ast::Annotation {
             at: self.name.range().into(),
         }
         .into())
-    }
-}
-
-impl ASTLoweringWithinContext for ast::FunctionDeclaration {
-    type HIR = hir::Function;
-
-    /// Lower [`ast::FunctionDeclaration`] to [`hir::Function`] within lowering context
-    fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
-        self.define(self.declare(context)?, context)
-    }
-}
-
-impl ASTLoweringWithinContext for ast::TraitDeclaration {
-    type HIR = Arc<hir::TraitDeclaration>;
-
-    /// Lower [`ast::TraitDeclaration`] to [`hir::TraitDeclaration`] within lowering context
-    fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
-        self.define(self.declare(context)?, context)
     }
 }
 
@@ -920,8 +857,8 @@ impl ASTLoweringWithinModule for ast::Module {
         // Add types then
         for stmt in &self.statements {
             match stmt {
-                ast::Statement::Declaration(ast::Declaration::Type(_)) => {
-                    stmt.lower_to_hir_within_context(context)?;
+                ast::Statement::Declaration(ast::Declaration::Type(ty)) => {
+                    ty.declare(context)?;
                 }
                 ast::Statement::Declaration(ast::Declaration::Trait(tr)) => {
                     tr.declare(context)?;
@@ -938,14 +875,11 @@ impl ASTLoweringWithinModule for ast::Module {
         }
 
         // Add rest of statements
-        for stmt in &self.statements {
-            if matches!(
-                stmt,
-                ast::Statement::Use(_) | ast::Statement::Declaration(ast::Declaration::Type(_))
-            ) {
-                continue;
-            }
-
+        for stmt in self
+            .statements
+            .iter()
+            .filter(|s| !matches!(s, ast::Statement::Use(_)))
+        {
             let stmt = stmt.lower_to_hir_within_context(context)?;
             context.module.statements.push(stmt);
         }
