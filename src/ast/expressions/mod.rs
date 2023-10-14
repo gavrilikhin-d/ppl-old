@@ -71,12 +71,16 @@ fn parse_atomic_expression(context: &mut Context<impl Lexer>) -> Result<Expressi
                 let var: Expression = VariableReference::parse(context)?.into();
                 if context.lexer.try_match(Token::Dot).is_err() {
                     return Ok(var);
-                } else {
-                    return Ok(MemberReference::parse_with_base(context, Box::new(var))?.into());
                 }
+                return Ok(MemberReference::parse_with_base(context, Box::new(var))?.into());
             }
             Some(c) if c.is_uppercase() => {
                 let ty = TypeReference::parse(context)?;
+                if context.lexer.try_match(Token::Dot).is_ok() {
+                    return Ok(
+                        MemberReference::parse_with_base(context, Box::new(ty.into()))?.into(),
+                    );
+                }
                 if context.lexer.try_match(Token::LBrace).is_err() {
                     return Ok(ty.into());
                 }
