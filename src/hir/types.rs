@@ -272,6 +272,13 @@ impl Type {
             _ => false,
         }
     }
+
+    /// Convert this to class type
+    /// # Panics
+    /// Panics if this is not a class type
+    pub fn as_class(self) -> Arc<TypeDeclaration> {
+        self.try_into().unwrap()
+    }
 }
 
 impl Generic for Type {
