@@ -136,7 +136,7 @@ pub struct SpecializeClass {
     /// Specialized generics
     pub generic_parameters: Vec<Type>,
     /// Specialized members
-    pub members: Vec<Arc<Member>>,
+    pub members: Option<Vec<Arc<Member>>>,
 }
 
 impl SpecializeClass {
@@ -144,7 +144,7 @@ impl SpecializeClass {
     pub fn without_members(generic_parameters: Vec<Type>) -> Self {
         Self {
             generic_parameters,
-            members: vec![],
+            members: None,
         }
     }
 }
@@ -152,7 +152,9 @@ impl SpecializeClass {
 impl Specialize<SpecializeClass> for TypeDeclaration {
     fn specialize_with(mut self, specialized: SpecializeClass) -> Self {
         self.generic_parameters = specialized.generic_parameters;
-        self.members = specialized.members;
+        if let Some(members) = specialized.members {
+            self.members = members;
+        }
         self
     }
 }

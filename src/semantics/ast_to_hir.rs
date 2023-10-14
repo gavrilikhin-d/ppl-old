@@ -520,7 +520,7 @@ impl ASTLoweringWithinContext for ast::Constructor {
                 generic_ty
                     .specialize_with(SpecializeClass {
                         generic_parameters,
-                        members,
+                        members: Some(members),
                     })
                     .into(),
             );
