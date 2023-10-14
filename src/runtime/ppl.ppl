@@ -5,6 +5,7 @@
 //=================================
 //              None
 //=================================
+@builtin
 type None
 
 /// Convert `None` to `String`
@@ -15,6 +16,7 @@ fn <:None> as String => "none"
 //=================================
 //              Bool
 //=================================
+@builtin
 type Bool
 
 /// Negate boolean value
@@ -46,6 +48,7 @@ fn <x: Bool> as String -> String:
 //=================================
 //            Integer
 //=================================
+@builtin
 type Integer
 
 @mangle_as("integer_eq_integer")
@@ -79,6 +82,7 @@ fn <:Integer> as String -> String
 //=================================
 //            Rational
 //=================================
+@builtin
 type Rational
 
 @mangle_as("rational_eq_rational")
@@ -112,6 +116,7 @@ fn <:Rational> as String -> String
 //=================================
 //            String
 //=================================
+@builtin
 type String
 
 /// Prints string to stdout with newline
