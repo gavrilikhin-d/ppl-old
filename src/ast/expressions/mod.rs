@@ -46,6 +46,7 @@ impl StartsHere for Expression {
     fn starts_here(context: &mut Context<impl Lexer>) -> bool {
         Literal::starts_here(context)
             || VariableReference::starts_here(context)
+            || TypeReference::starts_here(context)
             || Tuple::starts_here(context)
             || matches!(
                 context.lexer.peek(),
