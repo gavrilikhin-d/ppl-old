@@ -2,7 +2,7 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use crate::{
-    ast::TypeReference,
+    ast::{Annotation, TypeReference},
     syntax::{error::ParseError, Context, Lexer, Parse, StartsHere, StringWithOffset, Token},
 };
 
@@ -44,6 +44,8 @@ pub fn parse_members(context: &mut Context<impl Lexer>) -> Result<Vec<Member>, P
 /// Declaration of type
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct TypeDeclaration {
+    /// Annotations for type
+    pub annotations: Vec<Annotation>,
     /// Name of type
     pub name: StringWithOffset,
     /// Generic parameters of type
@@ -93,6 +95,7 @@ impl Parse for TypeDeclaration {
         }
 
         Ok(TypeDeclaration {
+            annotations: vec![],
             name,
             generic_parameters,
             members,
@@ -111,6 +114,7 @@ mod tests {
         assert_eq!(
             type_decl,
             TypeDeclaration {
+                annotations: vec![],
                 name: StringWithOffset::from("x").at(5),
                 generic_parameters: vec![],
                 members: vec![],
@@ -124,6 +128,7 @@ mod tests {
         assert_eq!(
             type_decl,
             TypeDeclaration {
+                annotations: vec![],
                 name: StringWithOffset::from("Point").at(5),
                 generic_parameters: vec![StringWithOffset::from("U").at(11),],
                 members: vec![Member {
@@ -150,6 +155,7 @@ mod tests {
         assert_eq!(
             type_decl,
             TypeDeclaration {
+                annotations: vec![],
                 name: StringWithOffset::from("Point").at(5),
                 generic_parameters: vec![],
                 members: vec![
