@@ -35,11 +35,12 @@
 * [x] Fix UB in errors printing order due to hash maps
 * [x] Add `SourceFile` as source code for errors
 * [x] Simplify builtin module compilation
+* [x] Add `@builtin`
 ---
 ### Current task
-* [ ] Print exactly decimals in decimal form
+* [ ] Types as values
 ---
-* [ ] Add `@builtin`
+* [ ] Print exactly decimals in decimal form
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors
 * [ ] More functions to stdlib
