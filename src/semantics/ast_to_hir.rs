@@ -200,7 +200,11 @@ impl ASTLoweringWithinContext for ast::Call {
                         return Ok(Some(
                             hir::TypeReference {
                                 span: t.range().into(),
-                                referenced_type: ty,
+                                referenced_type: ty.clone(),
+                                type_for_type: context
+                                    .builtin()
+                                    .types()
+                                    .type_of(ty)
                             }
                             .into(),
                         ));
@@ -338,7 +342,8 @@ impl ASTLoweringWithinContext for ast::TypeReference {
         }
         Ok(hir::TypeReference {
             span: self.range().into(),
-            referenced_type: ty.unwrap(),
+            referenced_type: ty.clone().unwrap(),
+            type_for_type: context.builtin().types().type_of(ty.unwrap()),
         })
     }
 }
