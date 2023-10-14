@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::collections::BTreeMap;
 
 use derive_more::From;
+use miette::NamedSource;
 
 use crate::hir::{Statement, TypeDeclaration, VariableDeclaration};
 use crate::named::Named;
@@ -43,14 +44,9 @@ pub type Name = String;
 /// Module with PPL code
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Module {
-    /* TODO: use [`SourceFile`] instead */
-    /****************************/
-    /// Name of the module
-    pub name: String,
+    /// Source file for this module
+    pub source_file: SourceFile,
 
-    /// Filename of module
-    pub filename: String,
-    /****************************/
     /// Variables, visible in this module
     pub variables: BTreeMap<Name, Arc<VariableDeclaration>>,
 
@@ -66,10 +62,9 @@ pub struct Module {
 
 impl Module {
     /// Create an empty module
-    pub fn new(name: &str, filename: &str) -> Self {
+    pub fn new(source_file: SourceFile) -> Self {
         Self {
-            name: name.to_string(),
-            filename: filename.to_string(),
+            source_file,
             variables: BTreeMap::new(),
             types: BTreeMap::new(),
             functions: BTreeMap::new(),
@@ -77,10 +72,9 @@ impl Module {
         }
     }
 
-    // FIXME: handle virtual files (like `stdin`)
     /// Get source file for this module
-    pub fn source_file(&self) -> SourceFile {
-        SourceFile::with_path(&self.filename).unwrap()
+    pub fn source_file(&self) -> &SourceFile {
+        &self.source_file
     }
 
     /// Insert function to module
@@ -114,12 +108,15 @@ impl Module {
 
 impl Named for Module {
     fn name(&self) -> Cow<'_, str> {
-        self.name.as_str().into()
+        self.source_file.name().into()
     }
 }
 
 impl Default for Module {
     fn default() -> Self {
-        Self::new("main", "")
+        Self::new(SourceFile::in_memory(NamedSource::new(
+            "main",
+            "".to_string(),
+        )))
     }
 }

@@ -882,7 +882,7 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         llvm: &'llvm inkwell::context::Context,
     ) -> inkwell::module::Module<'llvm> {
         let module = llvm.create_module(&self.name());
-        module.set_source_file_name(&self.filename);
+        module.set_source_file_name(&self.source_file.path().to_string_lossy());
 
         let mut context = ModuleContext::new(module);
         for statement in self

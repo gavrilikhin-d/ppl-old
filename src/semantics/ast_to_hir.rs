@@ -260,7 +260,8 @@ impl ASTLoweringWithinContext for ast::Call {
                         .find(|function| function.name() == f.name())
                         .is_some()
                 })
-                .map(|m| m.source_file());
+                .map(|m| m.source_file())
+                .cloned();
 
             let mut args = Vec::new();
             let mut failed = false;
