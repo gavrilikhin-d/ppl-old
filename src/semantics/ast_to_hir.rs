@@ -961,5 +961,6 @@ mod tests {
     test_compilation_result!(generics);
     test_compilation_result!(missing_fields);
     test_compilation_result!(multiple_initialization);
+    test_compilation_result!(type_as_value);
     test_compilation_result!(wrong_initializer_type);
 }
