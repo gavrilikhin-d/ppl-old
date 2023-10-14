@@ -196,6 +196,14 @@ impl ASTLoweringWithinContext for ast::Call {
                             }
                             .into(),
                         ));
+                    } else if t.as_str().chars().nth(0).is_some_and(|c| c.is_uppercase()) && let Some(ty) = context.find_type(t) {
+                        return Ok(Some(
+                            hir::TypeReference {
+                                span: t.range().into(),
+                                referenced_type: ty,
+                            }
+                            .into(),
+                        ));
                     }
                     Ok(None)
                 }
