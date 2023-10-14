@@ -226,8 +226,7 @@ impl ASTLoweringWithinContext for ast::Call {
                                     member: type_for_type.members()[1].clone(),
                                     value: hir::Literal::Integer {
                                         span: 0..0,
-                                        // TODO: real byte size
-                                        value: 1.into(),
+                                        value: ty.size_in_bytes().into(),
                                         ty: context.builtin().types().integer(),
                                     }.into(),
                                 },

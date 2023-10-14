@@ -279,6 +279,14 @@ impl Type {
     pub fn as_class(self) -> Arc<TypeDeclaration> {
         self.try_into().unwrap()
     }
+
+    /// Size of type in bytes
+    pub fn size_in_bytes(&self) -> usize {
+        match self.specialized() {
+            Type::Class(c) => c.size_in_bytes(),
+            _ => 1,
+        }
+    }
 }
 
 impl Generic for Type {

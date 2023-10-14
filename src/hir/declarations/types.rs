@@ -96,6 +96,32 @@ impl TypeDeclaration {
     pub fn is_opaque(&self) -> bool {
         self.members.is_empty()
     }
+
+    /// Size of pointer in bytes
+    const POINTER_SIZE: usize = 8;
+
+    /// Get size in bytes for this type
+    pub fn size_in_bytes(&self) -> usize {
+        if self.is_builtin() {
+            return match self.name.as_str() {
+                "None" => 0,
+                "Bool" => 1,
+                "Integer" => Self::POINTER_SIZE,
+                "Rational" => Self::POINTER_SIZE,
+                "String" => Self::POINTER_SIZE,
+                ty => unreachable!("forgot to handle `{ty}` builtin type"),
+            };
+        }
+
+        if self.is_opaque() {
+            return Self::POINTER_SIZE;
+        }
+
+        self.members
+            .iter()
+            .map(|m| m.ty.size_in_bytes())
+            .sum::<usize>()
+    }
 }
 
 impl Generic for TypeDeclaration {
