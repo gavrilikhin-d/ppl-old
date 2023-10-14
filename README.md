@@ -40,6 +40,7 @@
 ### Current task
 * [ ] Types as values
 ---
+* [ ] Add `assert` and `panic`
 * [ ] Print exactly decimals in decimal form
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors
