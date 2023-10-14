@@ -6,7 +6,8 @@ use std::sync::Arc;
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericName, Specialize, SpecializeClass, Type, Typed,
+    self, FunctionNamePart, Generic, GenericName, Specialize, SpecializeClass, Type, TypeReference,
+    Typed,
 };
 use crate::mutability::Mutable;
 use crate::named::Named;
@@ -180,12 +181,12 @@ impl ASTLoweringWithinContext for ast::Call {
 
     /// Lower [`ast::Call`] to [`hir::Call`] within lowering context
     fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
-        let args_cache = self
+        let args_cache: Vec<Option<hir::Expression>> = self
             .name_parts
             .iter()
             .map(|part| match part {
-                CallNamePart::Argument(a) => Ok::<Option<hir::Expression>, Error>(Some(
-                    a.lower_to_hir_within_context(context)?,
+                CallNamePart::Argument(a) => Ok::<_, Error>(Some(
+                    a.lower_to_hir_within_context(context)?
                 )),
                 CallNamePart::Text(t) => {
                     if let Some(var) = context.find_variable(t) {
@@ -197,49 +198,29 @@ impl ASTLoweringWithinContext for ast::Call {
                             .into(),
                         ));
                     } else if t.as_str().chars().nth(0).is_some_and(|c| c.is_uppercase()) && let Some(ty) = context.find_type(t) {
-                        let type_for_type = context
-                        .builtin()
-                        .types()
-                        .type_of(ty.clone());
-                        let constructor = hir::Constructor {
-                            ty: hir::TypeReference {
+                        return Ok(Some(
+                            hir::TypeReference {
                                 span: t.range().into(),
-                                referenced_type: type_for_type.clone().into(), type_for_type: context
-                                .builtin()
-                                .types()
-                                .type_of(type_for_type.clone())
-                            },
-                            initializers: vec![
-                                hir::Initializer {
-                                    span: 0..0,
-                                    index: 0,
-                                    member: type_for_type.members()[0].clone(),
-                                    value: hir::Literal::String {
-                                        span: 0..0,
-                                        value: ty.generic_name().to_string(),
-                                        ty: context.builtin().types().string(),
-                                    }.into(),
-                                },
-                                hir::Initializer {
-                                    span: 0..0,
-                                    index: 1,
-                                    member: type_for_type.members()[1].clone(),
-                                    value: hir::Literal::Integer {
-                                        span: 0..0,
-                                        value: ty.size_in_bytes().into(),
-                                        ty: context.builtin().types().integer(),
-                                    }.into(),
-                                },
-                            ],
-                            rbrace: t.range().end - 1,
-                        };
-
-                        return Ok(Some(constructor.into()));
+                                referenced_type: ty.clone(),
+                                type_for_type: context.builtin().types().type_of(ty)
+                            }.into()
+                        ));
                     }
                     Ok(None)
                 }
             })
-            .try_collect::<Vec<_>>()?;
+            .try_collect()?;
+
+        let args_cache: Vec<_> = args_cache
+            .into_iter()
+            .map(|e| {
+                if let Some(hir::Expression::TypeReference(ty)) = e {
+                    Some(ty.replace_with_type_info(context).into())
+                } else {
+                    e
+                }
+            })
+            .collect();
 
         let candidates = context.candidates(&self.name_parts, &args_cache);
 
@@ -915,6 +896,53 @@ impl ASTLowering for ast::Module {
         let mut context = ModuleContext::new(&mut compiler);
         self.lower_to_hir_within_context(&mut context)?;
         Ok(context.module)
+    }
+}
+
+/// Trait to replace [`TypeReference`] with type info
+trait ReplaceWithTypeInfo {
+    /// Replace [`TypeReference`] with type info
+    fn replace_with_type_info(&self, context: &impl Context) -> hir::Expression;
+}
+
+impl ReplaceWithTypeInfo for TypeReference {
+    fn replace_with_type_info(&self, context: &impl Context) -> hir::Expression {
+        hir::Constructor {
+            ty: hir::TypeReference {
+                span: self.range(),
+                referenced_type: self.type_for_type.clone(),
+                type_for_type: context
+                    .builtin()
+                    .types()
+                    .type_of(self.type_for_type.clone()),
+            },
+            initializers: vec![
+                hir::Initializer {
+                    span: 0..0,
+                    index: 0,
+                    member: self.type_for_type.members()[0].clone(),
+                    value: hir::Literal::String {
+                        span: 0..0,
+                        value: self.referenced_type.generic_name().to_string(),
+                        ty: context.builtin().types().string(),
+                    }
+                    .into(),
+                },
+                hir::Initializer {
+                    span: 0..0,
+                    index: 1,
+                    member: self.type_for_type.members()[1].clone(),
+                    value: hir::Literal::Integer {
+                        span: 0..0,
+                        value: self.referenced_type.size_in_bytes().into(),
+                        ty: context.builtin().types().integer(),
+                    }
+                    .into(),
+                },
+            ],
+            rbrace: self.end() - 1,
+        }
+        .into()
     }
 }
 
