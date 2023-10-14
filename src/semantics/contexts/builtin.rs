@@ -43,5 +43,5 @@ impl BuiltinTypes<'_> {
         self.module.types.get(name).unwrap().clone().into()
     }
 
-    builtin_types!(none, bool, integer, rational, string);
+    builtin_types!(none, bool, integer, rational, string, type);
 }

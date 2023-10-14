@@ -158,3 +158,16 @@ trait Ord:
 	fn <x: Self> >= <y: Self> => not (x < y)
 
 //---------------------------------
+
+//=================================
+//             Type
+//=================================
+@builtin
+type Type<T>
+
+/// Size of a type in bytes
+fn<T> size of <:Type<T>> -> Integer
+
+/// Size of an expression in bytes
+fn<T> size of <:T> => size of T
+//=================================
