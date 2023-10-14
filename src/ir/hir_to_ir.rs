@@ -49,7 +49,7 @@ impl<'llvm> HIRTypesLowering<'llvm> for Type {
     type IR = inkwell::types::AnyTypeEnum<'llvm>;
 
     fn lower_to_ir(&self, context: &impl Context<'llvm>) -> Self::IR {
-        match self {
+        match self.specialized() {
             Type::Class(ty) => ty.lower_to_ir(context).into(),
             Type::Specialized(ty) if ty.is_partially_specialized() => {
                 unreachable!("Partially specialized type must not be lowered to IR")
