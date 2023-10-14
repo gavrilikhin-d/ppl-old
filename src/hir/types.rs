@@ -44,6 +44,12 @@ impl Display for FunctionType {
     }
 }
 
+impl Generic for FunctionType {
+    fn is_generic(&self) -> bool {
+        self.parameters.iter().any(|p| p.is_generic()) || self.return_type.is_generic()
+    }
+}
+
 /// Builder for FunctionType
 pub struct FunctionTypeBuilder {
     /// Parameters
@@ -272,11 +278,9 @@ impl Generic for Type {
     fn is_generic(&self) -> bool {
         match self {
             Type::SelfType(_) | Type::Trait(_) | Type::Generic(_) => true,
-            Type::Specialized(s) => s.specialized.is_generic(),
-            Type::Class(c) => c.members.iter().any(|m| m.ty().is_generic()),
-            Type::Function(f) => {
-                f.parameters.iter().any(|p| p.is_generic()) || f.return_type.is_generic()
-            }
+            Type::Specialized(s) => s.is_generic(),
+            Type::Class(c) => c.is_generic(),
+            Type::Function(f) => f.is_generic(),
         }
     }
 }
