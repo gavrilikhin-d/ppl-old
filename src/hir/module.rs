@@ -51,10 +51,6 @@ pub struct Module {
     /// Filename of module
     pub filename: String,
     /****************************/
-    // TODO: remove this and treat first module in the context as builtin
-    /// Is this a builtin module?
-    pub is_builtin: bool,
-
     /// Variables, visible in this module
     pub variables: BTreeMap<Name, Arc<VariableDeclaration>>,
 
@@ -74,7 +70,6 @@ impl Module {
         Self {
             name: name.to_string(),
             filename: filename.to_string(),
-            is_builtin: false,
             variables: BTreeMap::new(),
             types: BTreeMap::new(),
             functions: BTreeMap::new(),

@@ -100,10 +100,14 @@ impl Parse for Statement {
         };
 
         if !annotations.is_empty() {
-            if let Statement::Declaration(Declaration::Function(ref mut decl)) = res {
-                decl.annotations = annotations;
-            } else {
-                unimplemented!("Annotations are not supported for this statement");
+            match res {
+                Statement::Declaration(Declaration::Function(ref mut decl)) => {
+                    decl.annotations = annotations;
+                }
+                Statement::Declaration(Declaration::Type(ref mut decl)) => {
+                    decl.annotations = annotations;
+                }
+                _ => unimplemented!("Annotations are not supported for this statement"),
             }
         }
 

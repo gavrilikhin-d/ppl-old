@@ -67,6 +67,7 @@ impl Declare for ast::FunctionDeclaration {
 
         drop(generic_context);
 
+        // TODO: error if invalid annotation
         let annotations = self
             .annotations
             .iter()
@@ -74,6 +75,7 @@ impl Declare for ast::FunctionDeclaration {
             .collect::<Result<Vec<_>, _>>()?;
         let mangled_name = annotations.iter().find_map(|a| match a {
             hir::Annotation::MangleAs(name) => Some(name.clone()),
+            _ => None,
         });
 
         let f = Arc::new(
