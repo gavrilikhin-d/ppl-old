@@ -5,8 +5,22 @@
 //=================================
 //             Type
 //=================================
-@builtin
-type Type<T>
+/// Type of a type
+///
+/// When you pass type as value it gets converted to instance of this struct
+/// # Example
+/// `Bool` expands to:
+/// ```
+/// Type<Bool> {
+/// 	name: "Bool",
+/// 	size: 1
+/// }
+/// ```
+type Type<T>:
+    /// Name of type including generic parameters
+	name: String
+    /// Size of type in bytes
+	size: Integer
 //=================================
 
 //=================================
@@ -170,6 +184,5 @@ trait Ord:
 //             Type
 //=================================
 /// Size of a type in bytes
-@mangle_as("size_of")
-fn<T> size of <:Type<T>> -> Integer
+fn<T> size of <ty: Type<T>> => ty.size
 //=================================

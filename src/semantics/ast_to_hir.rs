@@ -6,7 +6,8 @@ use std::sync::Arc;
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericType, Specialize, SpecializeClass, Type, Typed,
+    self, FunctionNamePart, Generic, GenericName, GenericType, Specialize, SpecializeClass, Type,
+    Typed,
 };
 use crate::mutability::Mutable;
 use crate::named::Named;
@@ -197,17 +198,44 @@ impl ASTLoweringWithinContext for ast::Call {
                             .into(),
                         ));
                     } else if t.as_str().chars().nth(0).is_some_and(|c| c.is_uppercase()) && let Some(ty) = context.find_type(t) {
-                        return Ok(Some(
-                            hir::TypeReference {
-                                span: t.range().into(),
-                                referenced_type: ty.clone(),
-                                type_for_type: context
-                                    .builtin()
-                                    .types()
-                                    .type_of(ty)
-                            }
-                            .into(),
-                        ));
+                        let type_for_type = context
+                        .builtin()
+                        .types()
+                        .type_of(ty.clone());
+                        let type_reference =                             hir::TypeReference {
+                            span: t.range().into(),
+                            referenced_type: ty.clone(),
+                            type_for_type: type_for_type.clone(),
+                        };
+                        let constructor = hir::Constructor {
+                            ty: type_reference.into(),
+                            initializers: vec![
+                                hir::Initializer {
+                                    span: 0..0,
+                                    index: 0,
+                                    member: type_for_type.members()[0].clone(),
+                                    value: hir::Literal::String {
+                                        span: 0..0,
+                                        value: ty.generic_name().to_string(),
+                                        ty: context.builtin().types().string(),
+                                    }.into(),
+                                },
+                                hir::Initializer {
+                                    span: 0..0,
+                                    index: 1,
+                                    member: type_for_type.members()[1].clone(),
+                                    value: hir::Literal::Integer {
+                                        span: 0..0,
+                                        // TODO: real byte size
+                                        value: 1.into(),
+                                        ty: context.builtin().types().integer(),
+                                    }.into(),
+                                },
+                            ],
+                            rbrace: t.range().end - 1,
+                        };
+
+                        return Ok(Some(constructor.into()));
                     }
                     Ok(None)
                 }
@@ -340,10 +368,13 @@ impl ASTLoweringWithinContext for ast::TypeReference {
             }
             .into());
         }
+        let ty = ty.unwrap();
+
+        let type_for_type = context.builtin().types().type_of(ty.clone());
         Ok(hir::TypeReference {
             span: self.range().into(),
-            referenced_type: ty.clone().unwrap(),
-            type_for_type: context.builtin().types().type_of(ty.unwrap()),
+            referenced_type: ty,
+            type_for_type,
         })
     }
 }
