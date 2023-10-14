@@ -903,7 +903,7 @@ impl ASTLowering for ast::Module {
 }
 
 /// Trait to replace [`TypeReference`] with type info
-trait ReplaceWithTypeInfo {
+pub trait ReplaceWithTypeInfo {
     /// Replace [`TypeReference`] with type info
     fn replace_with_type_info(&self, context: &impl Context) -> hir::Expression;
 }
