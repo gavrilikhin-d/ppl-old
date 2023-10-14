@@ -45,15 +45,9 @@ pub trait Context: FindDeclaration + AddDeclaration {
         Context::parent(self).and_then(|p| p.function())
     }
 
-    /// Is this a context for builtin module?
-    fn is_for_builtin_module(&self) -> bool {
-        self.module().is_builtin
-    }
-
     /// Get module context of builtin module
     fn builtin(&self) -> BuiltinContext {
         let module = self.compiler().builtin_module().unwrap_or(self.module());
-        debug_assert!(module.is_builtin);
         BuiltinContext { module }
     }
 }

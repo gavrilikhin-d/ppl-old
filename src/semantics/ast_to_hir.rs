@@ -206,17 +206,13 @@ impl ASTLoweringWithinContext for ast::Call {
 
         let mut candidates_not_viable = Vec::new();
         for f in candidates {
-            let builtin = context.is_for_builtin_module();
             let mut modules = context
                 .compiler()
                 .modules
                 .values()
                 .map(|m| m.as_ref())
                 .collect::<Vec<_>>();
-            if builtin {
-                modules.push(context.module());
-            }
-            debug_assert!(!modules.is_empty() && modules[0].is_builtin);
+            modules.push(context.module());
 
             let source_file = modules
                 .iter()

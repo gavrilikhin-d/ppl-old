@@ -46,10 +46,7 @@ impl Compiler {
     ///
     /// Builtin module is the first module compiled
     pub fn builtin_module(&self) -> Option<&Module> {
-        self.modules.first_key_value().map(|(_, m)| {
-            debug_assert!(m.is_builtin);
-            m.as_ref()
-        })
+        self.modules.first_key_value().map(|(_, m)| m.as_ref())
     }
 
     /// Return compiler with root directory set to `root`
@@ -95,11 +92,10 @@ impl Compiler {
         let ast = ast::Module::from_file(&path)?;
         debug!(target: "ast", "{:#?}", ast);
 
-        let mut module = Module::new(
+        let module = Module::new(
             path.file_stem().unwrap().to_str().unwrap(),
             path.to_str().unwrap(),
         );
-        module.is_builtin = self.modules.is_empty();
 
         let content = fs::read_to_string(&path).map_err(|e| miette!("{path:?}: {e}"))?;
 
