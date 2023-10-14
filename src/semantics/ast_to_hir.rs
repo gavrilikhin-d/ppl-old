@@ -555,6 +555,15 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
 
     /// Lower [`ast::TypeDeclaration`] to [`hir::TypeDeclaration`] within lowering context
     fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
+        let annotations = self
+            .annotations
+            .iter()
+            .map(|a| a.lower_to_hir_within_context(context))
+            .collect::<Result<Vec<_>, _>>()?;
+        let is_builtin = annotations
+            .iter()
+            .any(|a| matches!(a, hir::Annotation::Builtin));
+
         // TODO: check for collisions, etc
         let generic_parameters: Vec<Type> = self
             .generic_parameters
@@ -563,7 +572,6 @@ impl ASTLoweringWithinContext for ast::TypeDeclaration {
             .map(|name| GenericType { name }.into())
             .collect();
 
-        let is_builtin = context.is_for_builtin_module();
         let mut generic_context = GenericContext {
             parent: context,
             generic_parameters: generic_parameters.clone(),
@@ -622,12 +630,17 @@ impl ASTLoweringWithinContext for ast::Annotation {
 
     /// Lower [`ast::Annotation`] to [`hir::Annotation`] within lowering context
     fn lower_to_hir_within_context(&self, _context: &mut impl Context) -> Result<Self::HIR, Error> {
-        if self.name == "mangle_as" {
-            if let Some(ast::Expression::Literal(ast::Literal::String { value, .. })) =
-                self.args.first()
-            {
-                return Ok(hir::Annotation::MangleAs(value.clone()));
+        // TODO: define annotations in code
+        match self.name.as_str() {
+            "mangle_as" => {
+                if let Some(ast::Expression::Literal(ast::Literal::String { value, .. })) =
+                    self.args.first()
+                {
+                    return Ok(hir::Annotation::MangleAs(value.clone()));
+                }
             }
+            "builtin" if self.args.is_empty() => return Ok(hir::Annotation::Builtin),
+            _ => {}
         }
         Err(UnknownAnnotation {
             name: self.name.to_string(),
