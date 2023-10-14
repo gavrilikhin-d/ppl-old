@@ -6,14 +6,13 @@ use std::sync::Arc;
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericName, GenericType, Specialize, SpecializeClass, Type,
-    Typed,
+    self, FunctionNamePart, Generic, GenericName, Specialize, SpecializeClass, Type, Typed,
 };
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
 
-use super::{error::*, Context, Declare, GenericContext, ModuleContext, MonomorphizedWithArgs};
+use super::{error::*, Context, Declare, ModuleContext, MonomorphizedWithArgs};
 use crate::ast::{self, CallNamePart, FnKind, If};
 
 /// Lower AST inside some context
