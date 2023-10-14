@@ -57,45 +57,31 @@ impl StartsHere for Expression {
 
 /// Parse atomic expression
 fn parse_atomic_expression(context: &mut Context<impl Lexer>) -> Result<Expression, ParseError> {
-    if Literal::starts_here(context) {
-        return Ok(Literal::parse(context)?.into());
-    }
-
-    if Tuple::starts_here(context) {
-        return Ok(Tuple::parse(context)?.into());
-    }
-
-    if context.lexer.try_match(Token::Id).is_ok() {
-        match context.lexer.peek_slice().chars().next() {
-            Some(c) if c.is_lowercase() => {
-                let var: Expression = VariableReference::parse(context)?.into();
-                if context.lexer.try_match(Token::Dot).is_err() {
-                    return Ok(var);
-                }
-                return Ok(MemberReference::parse_with_base(context, Box::new(var))?.into());
-            }
-            Some(c) if c.is_uppercase() => {
-                let ty = TypeReference::parse(context)?;
-                if context.lexer.try_match(Token::Dot).is_ok() {
-                    return Ok(
-                        MemberReference::parse_with_base(context, Box::new(ty.into()))?.into(),
-                    );
-                }
-                if context.lexer.try_match(Token::LBrace).is_err() {
-                    return Ok(ty.into());
-                }
-                return Ok(Constructor::parse_with_ty(context, ty)?.into());
-            }
-            t => {
-                unreachable!("unexpected id token: {:?}", t);
-            }
+    let expr: Expression = if Literal::starts_here(context) {
+        Literal::parse(context)?.into()
+    } else if Tuple::starts_here(context) {
+        Tuple::parse(context)?.into()
+    } else if VariableReference::starts_here(context) {
+        VariableReference::parse(context)?.into()
+    } else if TypeReference::starts_here(context) {
+        let ty = TypeReference::parse(context)?;
+        if context.lexer.try_match(Token::LBrace).is_err() {
+            ty.into()
+        } else {
+            Constructor::parse_with_ty(context, ty)?.into()
         }
+    } else {
+        return Err(MissingExpression {
+            at: context.lexer.span().end.into(),
+        }
+        .into());
+    };
+
+    if context.lexer.try_match(Token::Dot).is_ok() {
+        return Ok(MemberReference::parse_with_base(context, Box::new(expr))?.into());
     }
 
-    Err(MissingExpression {
-        at: context.lexer.span().end.into(),
-    }
-    .into())
+    Ok(expr)
 }
 
 /// postfix-expression: atomic-expression postfix-operator?
