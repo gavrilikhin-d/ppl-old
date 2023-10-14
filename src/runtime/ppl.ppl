@@ -3,6 +3,13 @@
 // IMPORTANT: add precedence for new binary operators
 
 //=================================
+//             Type
+//=================================
+@builtin
+type Type<T>
+//=================================
+
+//=================================
 //              None
 //=================================
 @builtin
@@ -162,12 +169,7 @@ trait Ord:
 //=================================
 //             Type
 //=================================
-@builtin
-type Type<T>
-
 /// Size of a type in bytes
+@mangle_as("size_of")
 fn<T> size of <:Type<T>> -> Integer
-
-/// Size of an expression in bytes
-fn<T> size of <:T> => size of T
 //=================================
