@@ -72,10 +72,12 @@ impl BuiltinTypes<'_> {
 mod test {
     use crate::{
         compilation::Compiler,
-        hir::{Specialize, SpecializeClass, SpecializedType},
+        hir::{GenericName, Specialize, SpecializeClass, SpecializedType},
     };
 
     use super::BuiltinTypes;
+
+    use pretty_assertions::{assert_eq, assert_str_eq};
 
     #[test]
     fn type_of() {
@@ -85,14 +87,30 @@ mod test {
         };
         let none = builtin.none();
         let none_ty = builtin.type_of(none.clone());
+        assert_str_eq!(none_ty.generic_name(), "Type<None>");
         assert_eq!(
-            none_ty,
+            none_ty.clone(),
             SpecializedType {
                 generic: builtin.type_(),
                 specialized: builtin
                     .type_()
                     .as_class()
                     .specialize_with(SpecializeClass::without_members(vec![none]))
+                    .into()
+            }
+            .into()
+        );
+
+        let type_of_type = builtin.type_of(none_ty.clone());
+        assert_str_eq!(type_of_type.generic_name(), "Type<Type<None>>");
+        assert_eq!(
+            type_of_type.clone(),
+            SpecializedType {
+                generic: builtin.type_(),
+                specialized: builtin
+                    .type_()
+                    .as_class()
+                    .specialize_with(SpecializeClass::without_members(vec![none_ty]))
                     .into()
             }
             .into()
