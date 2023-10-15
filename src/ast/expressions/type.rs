@@ -52,7 +52,11 @@ impl Parse for TypeReference {
 impl Ranged for TypeReference {
     /// Get range of type reference
     fn range(&self) -> std::ops::Range<usize> {
-        self.name.range()
+        self.name.start()
+            ..self
+                .generic_parameters
+                .last()
+                .map_or(self.name.end(), |p| p.range().end)
     }
 }
 
