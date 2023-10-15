@@ -351,6 +351,25 @@ impl ASTLoweringWithinContext for ast::TypeReference {
         }
         let ty = ty.unwrap();
 
+        let generics: Vec<_> = self
+            .generic_parameters
+            .iter()
+            .map(|p| p.lower_to_hir_within_context(context))
+            .try_collect()?;
+        let generics: Vec<_> = generics.into_iter().map(|g| g.referenced_type).collect();
+
+        let ty = if generics.is_empty() {
+            ty
+        } else {
+            ty.clone()
+                .specialize_with(
+                    ty.as_class()
+                        .specialize_with(SpecializeClass::without_members(generics))
+                        .into(),
+                )
+                .into()
+        };
+
         let type_for_type = context.builtin().types().type_of(ty.clone());
         Ok(hir::TypeReference {
             span: self.range().into(),
