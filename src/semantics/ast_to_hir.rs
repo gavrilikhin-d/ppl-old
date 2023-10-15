@@ -137,6 +137,9 @@ impl ConvertibleToCheck {
             (Type::Class(c), Type::Trait(tr)) => c.implements(tr.clone()).within(context),
             // TODO: check for constraints
             (_, Type::Generic(_)) => true,
+
+            // FIXME: rework this whole shit
+            (Type::Specialized(a), Type::Specialized(b)) => a.generic == b.generic,
             (Type::Specialized(from), to) if to.is_generic() => from.generic == *to,
             (Type::Specialized(from), to) => {
                 from.specialized.convertible_to(to.clone()).within(context)
