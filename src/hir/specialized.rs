@@ -3,7 +3,7 @@ use std::sync::Arc;
 use super::Generic;
 
 /// Specialized item
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct Specialized<G: Generic> {
     /// Generic item to specialize
     pub generic: G,

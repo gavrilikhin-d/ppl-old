@@ -1,6 +1,6 @@
 use std::{
     borrow::Cow,
-    fmt::Display,
+    fmt::{Debug, Display},
     sync::{Arc, Weak},
 };
 
@@ -158,6 +158,12 @@ impl GenericName for SpecializedType {
 impl Display for SpecializedType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.specialized)
+    }
+}
+
+impl Debug for SpecializedType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({} => {})", self.generic, self.specialized)
     }
 }
 
