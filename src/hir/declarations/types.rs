@@ -175,6 +175,7 @@ impl SpecializeClass {
     }
 }
 
+// TODO: should pass only generic types and substitute them in members
 impl Specialize<SpecializeClass> for TypeDeclaration {
     fn specialize_with(mut self, specialized: SpecializeClass) -> Self {
         self.generic_parameters = specialized.generic_parameters;
