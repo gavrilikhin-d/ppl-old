@@ -37,12 +37,13 @@
 * [x] Simplify builtin module compilation
 * [x] Add `@builtin`
 * [x] Types as values
+* [x] Fix `Type<None> as String`
 ---
 ### Current task
 * [ ] Add `assert` and `panic`
 ---
+* [ ] Rework specialized system and type conversions checks. Add reason, why conversion fails
 * [ ] Fix bus error
-* [ ] Fix `Type<None> as String`
 * [ ] Print exactly decimals in decimal form
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors
