@@ -39,10 +39,10 @@
 * [x] Types as values
 ---
 ### Current task
-* [ ] Fix `Type<None> as String == "Type<T>"` (reason: should replace only after monomorphization)
-* [ ] Fix bus error
----
 * [ ] Add `assert` and `panic`
+---
+* [ ] Fix bus error
+* [ ] Fix `Type<None> as String`
 * [ ] Print exactly decimals in decimal form
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors
