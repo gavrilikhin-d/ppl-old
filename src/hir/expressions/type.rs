@@ -9,6 +9,8 @@ pub struct TypeReference {
     pub span: std::ops::Range<usize>,
     /// Referenced type
     pub referenced_type: Type,
+    /// Type of the reference itself
+    pub type_for_type: Type,
 }
 
 impl Generic for TypeReference {
@@ -41,6 +43,6 @@ impl Ranged for TypeReference {
 impl Typed for TypeReference {
     /// Get type of variable reference
     fn ty(&self) -> Type {
-        unimplemented!("Type for types")
+        self.type_for_type.clone()
     }
 }

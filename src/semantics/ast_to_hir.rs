@@ -6,13 +6,14 @@ use std::sync::Arc;
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericType, Specialize, SpecializeClass, Type, Typed,
+    self, FunctionNamePart, Generic, GenericName, Specialize, SpecializeClass, Type, TypeReference,
+    Typed,
 };
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
 
-use super::{error::*, Context, Declare, GenericContext, ModuleContext, MonomorphizedWithArgs};
+use super::{error::*, Context, Declare, ModuleContext, MonomorphizedWithArgs};
 use crate::ast::{self, CallNamePart, FnKind, If};
 
 /// Lower AST inside some context
@@ -136,6 +137,9 @@ impl ConvertibleToCheck {
             (Type::Class(c), Type::Trait(tr)) => c.implements(tr.clone()).within(context),
             // TODO: check for constraints
             (_, Type::Generic(_)) => true,
+
+            // FIXME: rework this whole shit
+            (Type::Specialized(a), Type::Specialized(b)) => a.generic == b.generic,
             (Type::Specialized(from), to) if to.is_generic() => from.generic == *to,
             (Type::Specialized(from), to) => {
                 from.specialized.convertible_to(to.clone()).within(context)
@@ -180,12 +184,12 @@ impl ASTLoweringWithinContext for ast::Call {
 
     /// Lower [`ast::Call`] to [`hir::Call`] within lowering context
     fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
-        let args_cache = self
+        let args_cache: Vec<Option<hir::Expression>> = self
             .name_parts
             .iter()
             .map(|part| match part {
-                CallNamePart::Argument(a) => Ok::<Option<hir::Expression>, Error>(Some(
-                    a.lower_to_hir_within_context(context)?,
+                CallNamePart::Argument(a) => Ok::<_, Error>(Some(
+                    a.lower_to_hir_within_context(context)?
                 )),
                 CallNamePart::Text(t) => {
                     if let Some(var) = context.find_variable(t) {
@@ -196,11 +200,30 @@ impl ASTLoweringWithinContext for ast::Call {
                             }
                             .into(),
                         ));
+                    } else if t.as_str().chars().nth(0).is_some_and(|c| c.is_uppercase()) && let Some(ty) = context.find_type(t) {
+                        return Ok(Some(
+                            hir::TypeReference {
+                                span: t.range().into(),
+                                referenced_type: ty.clone(),
+                                type_for_type: context.builtin().types().type_of(ty)
+                            }.into()
+                        ));
                     }
                     Ok(None)
                 }
             })
-            .try_collect::<Vec<_>>()?;
+            .try_collect()?;
+
+        let args_cache: Vec<_> = args_cache
+            .into_iter()
+            .map(|e| {
+                if let Some(hir::Expression::TypeReference(ty)) = e {
+                    Some(ty.replace_with_type_info(context).into())
+                } else {
+                    e
+                }
+            })
+            .collect();
 
         let candidates = context.candidates(&self.name_parts, &args_cache);
 
@@ -221,7 +244,8 @@ impl ASTLoweringWithinContext for ast::Call {
                         .find(|function| function.name() == f.name())
                         .is_some()
                 })
-                .map(|m| m.source_file());
+                .map(|m| m.source_file())
+                .cloned();
 
             let mut args = Vec::new();
             let mut failed = false;
@@ -328,9 +352,32 @@ impl ASTLoweringWithinContext for ast::TypeReference {
             }
             .into());
         }
+        let ty = ty.unwrap();
+
+        let generics: Vec<_> = self
+            .generic_parameters
+            .iter()
+            .map(|p| p.lower_to_hir_within_context(context))
+            .try_collect()?;
+        let generics: Vec<_> = generics.into_iter().map(|g| g.referenced_type).collect();
+
+        let ty = if generics.is_empty() {
+            ty
+        } else {
+            ty.clone()
+                .specialize_with(
+                    ty.as_class()
+                        .specialize_with(SpecializeClass::without_members(generics))
+                        .into(),
+                )
+                .into()
+        };
+
+        let type_for_type = context.builtin().types().type_of(ty.clone());
         Ok(hir::TypeReference {
             span: self.range().into(),
-            referenced_type: ty.unwrap(),
+            referenced_type: ty,
+            type_for_type,
         })
     }
 }
@@ -476,7 +523,7 @@ impl ASTLoweringWithinContext for ast::Constructor {
                 generic_ty
                     .specialize_with(SpecializeClass {
                         generic_parameters,
-                        members,
+                        members: Some(members),
                     })
                     .into(),
             );
@@ -501,7 +548,10 @@ impl ASTLoweringWithinContext for ast::Expression {
             }
             ast::Expression::Call(call) => call.lower_to_hir_within_context(context)?.into(),
             ast::Expression::Tuple(t) => t.lower_to_hir_within_context(context)?.into(),
-            ast::Expression::TypeReference(t) => t.lower_to_hir_within_context(context)?.into(),
+            ast::Expression::TypeReference(t) => t
+                .lower_to_hir_within_context(context)?
+                .replace_with_type_info(context)
+                .into(),
             ast::Expression::MemberReference(m) => m.lower_to_hir_within_context(context)?.into(),
             ast::Expression::Constructor(c) => c.lower_to_hir_within_context(context)?.into(),
         })
@@ -543,51 +593,6 @@ impl ASTLoweringWithinContext for ast::VariableDeclaration {
         context.add_variable(var.clone());
 
         Ok(var)
-    }
-}
-
-impl ASTLoweringWithinContext for ast::TypeDeclaration {
-    type HIR = Arc<hir::TypeDeclaration>;
-
-    /// Lower [`ast::TypeDeclaration`] to [`hir::TypeDeclaration`] within lowering context
-    fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
-        let annotations = self
-            .annotations
-            .iter()
-            .map(|a| a.lower_to_hir_within_context(context))
-            .collect::<Result<Vec<_>, _>>()?;
-        let is_builtin = annotations
-            .iter()
-            .any(|a| matches!(a, hir::Annotation::Builtin));
-
-        // TODO: check for collisions, etc
-        let generic_parameters: Vec<Type> = self
-            .generic_parameters
-            .iter()
-            .cloned()
-            .map(|name| GenericType { name }.into())
-            .collect();
-
-        let mut generic_context = GenericContext {
-            parent: context,
-            generic_parameters: generic_parameters.clone(),
-        };
-
-        // TODO: recursive types
-        let ty = Arc::new(hir::TypeDeclaration {
-            name: self.name.clone(),
-            generic_parameters,
-            is_builtin,
-            members: self
-                .members
-                .iter()
-                .map(|m| m.lower_to_hir_within_context(&mut generic_context))
-                .try_collect()?,
-        });
-
-        context.add_type(ty.clone());
-
-        Ok(ty)
     }
 }
 
@@ -643,24 +648,6 @@ impl ASTLoweringWithinContext for ast::Annotation {
             at: self.name.range().into(),
         }
         .into())
-    }
-}
-
-impl ASTLoweringWithinContext for ast::FunctionDeclaration {
-    type HIR = hir::Function;
-
-    /// Lower [`ast::FunctionDeclaration`] to [`hir::Function`] within lowering context
-    fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
-        self.define(self.declare(context)?, context)
-    }
-}
-
-impl ASTLoweringWithinContext for ast::TraitDeclaration {
-    type HIR = Arc<hir::TraitDeclaration>;
-
-    /// Lower [`ast::TraitDeclaration`] to [`hir::TraitDeclaration`] within lowering context
-    fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
-        self.define(self.declare(context)?, context)
     }
 }
 
@@ -876,8 +863,8 @@ impl ASTLoweringWithinModule for ast::Module {
         // Add types then
         for stmt in &self.statements {
             match stmt {
-                ast::Statement::Declaration(ast::Declaration::Type(_)) => {
-                    stmt.lower_to_hir_within_context(context)?;
+                ast::Statement::Declaration(ast::Declaration::Type(ty)) => {
+                    ty.declare(context)?;
                 }
                 ast::Statement::Declaration(ast::Declaration::Trait(tr)) => {
                     tr.declare(context)?;
@@ -894,14 +881,11 @@ impl ASTLoweringWithinModule for ast::Module {
         }
 
         // Add rest of statements
-        for stmt in &self.statements {
-            if matches!(
-                stmt,
-                ast::Statement::Use(_) | ast::Statement::Declaration(ast::Declaration::Type(_))
-            ) {
-                continue;
-            }
-
+        for stmt in self
+            .statements
+            .iter()
+            .filter(|s| !matches!(s, ast::Statement::Use(_)))
+        {
             let stmt = stmt.lower_to_hir_within_context(context)?;
             context.module.statements.push(stmt);
         }
@@ -940,6 +924,53 @@ impl ASTLowering for ast::Module {
     }
 }
 
+/// Trait to replace [`TypeReference`] with type info
+pub trait ReplaceWithTypeInfo {
+    /// Replace [`TypeReference`] with type info
+    fn replace_with_type_info(&self, context: &impl Context) -> hir::Expression;
+}
+
+impl ReplaceWithTypeInfo for TypeReference {
+    fn replace_with_type_info(&self, context: &impl Context) -> hir::Expression {
+        hir::Constructor {
+            ty: hir::TypeReference {
+                span: self.range(),
+                referenced_type: self.type_for_type.clone(),
+                type_for_type: context
+                    .builtin()
+                    .types()
+                    .type_of(self.type_for_type.clone()),
+            },
+            initializers: vec![
+                hir::Initializer {
+                    span: 0..0,
+                    index: 0,
+                    member: self.type_for_type.members()[0].clone(),
+                    value: hir::Literal::String {
+                        span: 0..0,
+                        value: self.referenced_type.generic_name().to_string(),
+                        ty: context.builtin().types().string(),
+                    }
+                    .into(),
+                },
+                hir::Initializer {
+                    span: 0..0,
+                    index: 1,
+                    member: self.type_for_type.members()[1].clone(),
+                    value: hir::Literal::Integer {
+                        span: 0..0,
+                        value: self.referenced_type.size_in_bytes().into(),
+                        ty: context.builtin().types().integer(),
+                    }
+                    .into(),
+                },
+            ],
+            rbrace: self.end() - 1,
+        }
+        .into()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::test_compilation_result;
@@ -948,5 +979,6 @@ mod tests {
     test_compilation_result!(generics);
     test_compilation_result!(missing_fields);
     test_compilation_result!(multiple_initialization);
+    test_compilation_result!(type_as_value);
     test_compilation_result!(wrong_initializer_type);
 }

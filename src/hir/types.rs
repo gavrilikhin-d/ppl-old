@@ -1,6 +1,6 @@
 use std::{
     borrow::Cow,
-    fmt::Display,
+    fmt::{Debug, Display},
     sync::{Arc, Weak},
 };
 
@@ -41,6 +41,12 @@ impl Named for FunctionType {
 impl Display for FunctionType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.name())
+    }
+}
+
+impl Generic for FunctionType {
+    fn is_generic(&self) -> bool {
+        self.parameters.iter().any(|p| p.is_generic()) || self.return_type.is_generic()
     }
 }
 
@@ -155,6 +161,12 @@ impl Display for SpecializedType {
     }
 }
 
+impl Debug for SpecializedType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({} => {})", self.generic, self.specialized)
+    }
+}
+
 /// Type of values
 #[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Type {
@@ -266,17 +278,30 @@ impl Type {
             _ => false,
         }
     }
+
+    /// Convert this to class type
+    /// # Panics
+    /// Panics if this is not a class type
+    pub fn as_class(self) -> Arc<TypeDeclaration> {
+        self.try_into().unwrap()
+    }
+
+    /// Size of type in bytes
+    pub fn size_in_bytes(&self) -> usize {
+        match self.specialized() {
+            Type::Class(c) => c.size_in_bytes(),
+            _ => 1,
+        }
+    }
 }
 
 impl Generic for Type {
     fn is_generic(&self) -> bool {
         match self {
             Type::SelfType(_) | Type::Trait(_) | Type::Generic(_) => true,
-            Type::Specialized(s) => s.specialized.is_generic(),
-            Type::Class(c) => c.members.iter().any(|m| m.ty().is_generic()),
-            Type::Function(f) => {
-                f.parameters.iter().any(|p| p.is_generic()) || f.return_type.is_generic()
-            }
+            Type::Specialized(s) => s.is_generic(),
+            Type::Class(c) => c.is_generic(),
+            Type::Function(f) => f.is_generic(),
         }
     }
 }

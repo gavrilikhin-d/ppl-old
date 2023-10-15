@@ -49,7 +49,7 @@ impl<'llvm> HIRTypesLowering<'llvm> for Type {
     type IR = inkwell::types::AnyTypeEnum<'llvm>;
 
     fn lower_to_ir(&self, context: &impl Context<'llvm>) -> Self::IR {
-        match self {
+        match self.specialized() {
             Type::Class(ty) => ty.lower_to_ir(context).into(),
             Type::Specialized(ty) if ty.is_partially_specialized() => {
                 unreachable!("Partially specialized type must not be lowered to IR")
@@ -593,7 +593,9 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
 
             Expression::Literal(l) => l.lower_to_ir(context),
             Expression::Call(call) => call.lower_to_ir(context).try_as_basic_value().left(),
-            Expression::TypeReference(_ty) => unimplemented!("TypeReference as expresssion"),
+            Expression::TypeReference(_) => {
+                unreachable!("TypeReference should be converted to constructors")
+            }
             Expression::MemberReference(m) => m.lower_to_ir_without_load(context),
             Expression::Constructor(c) => Some(c.lower_to_ir(context).into()),
         }
@@ -880,7 +882,7 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         llvm: &'llvm inkwell::context::Context,
     ) -> inkwell::module::Module<'llvm> {
         let module = llvm.create_module(&self.name());
-        module.set_source_file_name(&self.filename);
+        module.set_source_file_name(&self.source_file.path().to_string_lossy());
 
         let mut context = ModuleContext::new(module);
         for statement in self

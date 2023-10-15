@@ -9,6 +9,7 @@ use crate::{
     ast,
     hir::Module,
     semantics::{ASTLoweringWithinModule, ModuleContext},
+    SourceFile,
 };
 use log::debug;
 use miette::miette;
@@ -92,10 +93,7 @@ impl Compiler {
         let ast = ast::Module::from_file(&path)?;
         debug!(target: "ast", "{:#?}", ast);
 
-        let module = Module::new(
-            path.file_stem().unwrap().to_str().unwrap(),
-            path.to_str().unwrap(),
-        );
+        let module = Module::new(SourceFile::with_path(&path).unwrap());
 
         let content = fs::read_to_string(&path).map_err(|e| miette!("{path:?}: {e}"))?;
 

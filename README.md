@@ -35,11 +35,16 @@
 * [x] Fix UB in errors printing order due to hash maps
 * [x] Add `SourceFile` as source code for errors
 * [x] Simplify builtin module compilation
+* [x] Add `@builtin`
+* [x] Types as values
+* [x] Fix `Type<None> as String`
 ---
 ### Current task
-* [ ] Print exactly decimals in decimal form
+* [ ] Add `assert` and `panic`
 ---
-* [ ] Add `@builtin`
+* [ ] Rework specialized system and type conversions checks. Add reason, why conversion fails
+* [ ] Fix bus error
+* [ ] Print exactly decimals in decimal form
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors
 * [ ] More functions to stdlib

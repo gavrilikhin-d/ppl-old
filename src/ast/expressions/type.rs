@@ -17,7 +17,10 @@ pub struct TypeReference {
 impl StartsHere for TypeReference {
     /// Check that type reference may start at current lexer position
     fn starts_here(context: &mut Context<impl Lexer>) -> bool {
-        context.lexer.try_match(Token::Id).is_ok()
+        context
+            .lexer
+            .try_match(Token::Id)
+            .is_ok_and(|t| t.as_str().chars().nth(0).is_some_and(|c| c.is_uppercase()))
     }
 }
 
@@ -49,7 +52,11 @@ impl Parse for TypeReference {
 impl Ranged for TypeReference {
     /// Get range of type reference
     fn range(&self) -> std::ops::Range<usize> {
-        self.name.range()
+        self.name.start()
+            ..self
+                .generic_parameters
+                .last()
+                .map_or(self.name.end(), |p| p.range().end)
     }
 }
 

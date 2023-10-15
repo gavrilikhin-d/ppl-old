@@ -3,6 +3,27 @@
 // IMPORTANT: add precedence for new binary operators
 
 //=================================
+//             Type
+//=================================
+/// Type of a type
+///
+/// When you pass type as value it gets converted to instance of this struct
+/// # Example
+/// `Bool` expands to:
+/// ```
+/// Type<Bool> {
+/// 	name: "Bool",
+/// 	size: 1
+/// }
+/// ```
+type Type<T>:
+    /// Name of type including generic parameters
+	name: String
+    /// Size of type in bytes
+	size: Integer
+//=================================
+
+//=================================
 //              None
 //=================================
 @builtin
@@ -158,3 +179,13 @@ trait Ord:
 	fn <x: Self> >= <y: Self> => not (x < y)
 
 //---------------------------------
+
+//=================================
+//             Type
+//=================================
+/// Name of a type including generic parameters
+fn<T> <ty: Type<T>> as String => ty.name
+
+/// Size of a type in bytes
+fn<T> size of <ty: Type<T>> => ty.size
+//=================================

@@ -7,7 +7,7 @@ use std::path::Path;
 use clap::Parser;
 use inkwell::OptimizationLevel;
 use log::debug;
-use ppl::ast::*;
+use miette::NamedSource;
 use ppl::compilation::Compiler;
 use ppl::driver::{self, Execute};
 use ppl::hir::{self, Type, Typed};
@@ -16,6 +16,7 @@ use ppl::ir::GlobalHIRLowering;
 use ppl::named::Named;
 use ppl::semantics::{ASTLoweringWithinContext, ModuleContext};
 use ppl::syntax::{InteractiveLexer, Lexer, Parse};
+use ppl::{ast::*, SourceFile};
 
 extern crate runtime;
 
@@ -97,7 +98,7 @@ fn process_single_statement<'llvm>(
 fn repl() {
     let mut compiler = Compiler::new();
     let mut ast_context = ModuleContext {
-        module: hir::Module::new("repl", ""),
+        module: hir::Module::new(SourceFile::in_memory(NamedSource::new("repl", ""))),
         compiler: &mut compiler,
     };
 

@@ -1,4 +1,4 @@
-use crate::hir::{Module, Type};
+use crate::hir::{Module, Specialize, SpecializeClass, Type};
 
 /// Helper struct to get builtin things
 pub struct BuiltinContext<'m> {
@@ -40,8 +40,80 @@ macro_rules! builtin_types {
 impl BuiltinTypes<'_> {
     /// Get builtin type by name
     fn get_type(&self, name: &str) -> Type {
-        self.module.types.get(name).unwrap().clone().into()
+        self.module
+            .types
+            .get(name)
+            .expect(format!("Builtin type `{name}` should be present").as_str())
+            .clone()
+            .into()
     }
 
     builtin_types!(none, bool, integer, rational, string);
+
+    /// Get builtin type for types
+    pub fn type_(&self) -> Type {
+        self.get_type("Type")
+    }
+
+    /// Get `Type<T>` of this type
+    pub fn type_of(&self, ty: Type) -> Type {
+        self.type_()
+            .specialize_with(
+                self.type_()
+                    .as_class()
+                    .specialize_with(SpecializeClass::without_members(vec![ty]))
+                    .into(),
+            )
+            .into()
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::{
+        compilation::Compiler,
+        hir::{GenericName, Specialize, SpecializeClass, SpecializedType},
+    };
+
+    use super::BuiltinTypes;
+
+    use pretty_assertions::{assert_eq, assert_str_eq};
+
+    #[test]
+    fn type_of() {
+        let compiler = Compiler::new();
+        let builtin = BuiltinTypes {
+            module: compiler.builtin_module().unwrap(),
+        };
+        let none = builtin.none();
+        let none_ty = builtin.type_of(none.clone());
+        assert_str_eq!(none_ty.generic_name(), "Type<None>");
+        assert_eq!(
+            none_ty.clone(),
+            SpecializedType {
+                generic: builtin.type_(),
+                specialized: builtin
+                    .type_()
+                    .as_class()
+                    .specialize_with(SpecializeClass::without_members(vec![none]))
+                    .into()
+            }
+            .into()
+        );
+
+        let type_of_type = builtin.type_of(none_ty.clone());
+        assert_str_eq!(type_of_type.generic_name(), "Type<Type<None>>");
+        assert_eq!(
+            type_of_type.clone(),
+            SpecializedType {
+                generic: builtin.type_(),
+                specialized: builtin
+                    .type_()
+                    .as_class()
+                    .specialize_with(SpecializeClass::without_members(vec![none_ty]))
+                    .into()
+            }
+            .into()
+        );
+    }
 }

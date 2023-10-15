@@ -1,0 +1,9 @@
+(size of None) == 0
+(size of Bool) == 1
+None as String
+Type<Integer> as String
+
+let x = Integer
+let y = Integer.size
+y == (size of Integer)
+Integer
