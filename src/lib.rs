@@ -27,3 +27,6 @@ mod source_file;
 pub use source_file::*;
 
 pub(crate) mod utils;
+
+mod reporter;
+pub use reporter::*;
