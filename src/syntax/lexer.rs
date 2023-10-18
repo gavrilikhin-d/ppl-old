@@ -304,6 +304,14 @@ pub trait Lexer: Iterator<Item = Token> {
 
     /// Set lexer's start byte position
     fn set_start_position(&mut self, position: usize);
+
+    /// Skip tokens until next line
+    fn skip_till_next_line(&mut self) -> &mut Self {
+        self.skip_while(|t| *t != Token::Newline)
+            .skip(1)
+            .for_each(|_| {});
+        self
+    }
 }
 
 /// Lexer for full source code of PPL
