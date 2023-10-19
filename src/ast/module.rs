@@ -7,7 +7,21 @@ use super::Statement;
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{error::ParseError, Context, Lexer, Parse};
+use crate::{
+    syntax::{
+        error::{ExtraToken, ParseError},
+        Context, Lexer, Parse,
+    },
+    ErrVec,
+};
+
+impl From<ExtraToken> for ErrVec<ParseError> {
+    fn from(value: ExtraToken) -> Self {
+        ErrVec {
+            errors: vec![value.into()],
+        }
+    }
+}
 
 /// Any PPL statement
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -17,19 +31,33 @@ pub struct Module {
 }
 
 impl Parse for Module {
-    type Err = ParseError;
+    type Err = ErrVec<ParseError>;
 
     /// Parse all statements in module
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        let mut errors = Vec::new();
         let mut statements = Vec::new();
 
         context.lexer.skip_spaces();
         while context.lexer.peek().is_some() {
-            statements.push(Statement::parse(context)?);
-            context.lexer.skip_spaces();
+            let res = Statement::parse(context);
+            match res {
+                Ok(stmt) => {
+                    statements.push(stmt);
+                    context.lexer.skip_spaces();
+                }
+                Err(e) => {
+                    errors.push(e);
+                    context.lexer.skip_till_next_line();
+                }
+            }
         }
 
-        Ok(Module { statements })
+        if errors.is_empty() {
+            Ok(Module { statements })
+        } else {
+            Err(errors.into())
+        }
     }
 }
 
