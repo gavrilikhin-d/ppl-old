@@ -30,3 +30,6 @@ pub(crate) mod test_compilation_result;
 
 mod reporter;
 pub use reporter::*;
+
+mod err_vec;
+pub use err_vec::*;
