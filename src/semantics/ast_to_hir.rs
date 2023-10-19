@@ -423,8 +423,14 @@ impl ASTLoweringWithinContext for ast::Constructor {
             .referenced_type
             .specialized()
             .try_into()
-            // TODO: error
-            .expect("constructors only meant for classes");
+            .map_err(|_| NonClassConstructor {
+                ty: TypeWithSpan {
+                    at: self.ty.range().into(),
+                    ty: ty.referenced_type.clone(),
+                    // TODO: real source file
+                    source_file: None,
+                },
+            })?;
 
         let mut members = ty.referenced_type.members().to_vec();
 
@@ -979,6 +985,7 @@ mod tests {
     test_compilation_result!(generics);
     test_compilation_result!(missing_fields);
     test_compilation_result!(multiple_initialization);
+    test_compilation_result!(non_class_constructor);
     test_compilation_result!(type_as_value);
     test_compilation_result!(wrong_initializer_type);
 }

@@ -370,6 +370,15 @@ impl<D: Display> Display for DisplayVec<D> {
     }
 }
 
+/// Diagnostic for using constructor with non-class type
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("constructor can be used only with class types")]
+#[diagnostic(code(semantics::non_class_constructor))]
+pub struct NonClassConstructor {
+    #[label("Can't construct this non-class type")]
+    pub ty: TypeWithSpan,
+}
+
 /// Helper macro to create error enumeration
 macro_rules! error_enum {
 	($($name:ident),*) => {
@@ -399,5 +408,6 @@ error_enum!(
     CantDeduceReturnType,
     NoMember,
     MultipleInitialization,
-    MissingFields
+    MissingFields,
+    NonClassConstructor
 );
