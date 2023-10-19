@@ -421,7 +421,7 @@ impl ASTLoweringWithinContext for ast::Constructor {
         let mut ty = self.ty.lower_to_hir_within_context(context)?;
         let generic_ty: Arc<hir::TypeDeclaration> = ty
             .referenced_type
-            .clone()
+            .specialized()
             .try_into()
             // TODO: error
             .expect("constructors only meant for classes");
