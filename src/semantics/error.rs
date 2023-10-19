@@ -72,6 +72,12 @@ pub struct TypeWithSpan {
     pub source_file: Option<SourceFile>,
 }
 
+impl From<TypeWithSpan> for SourceSpan {
+    fn from(value: TypeWithSpan) -> Self {
+        value.at
+    }
+}
+
 /// Diagnostic for not convertible types
 #[derive(Error, Debug, Clone, PartialEq)]
 #[error("expected `{expected}` type, got `{got}`")]
