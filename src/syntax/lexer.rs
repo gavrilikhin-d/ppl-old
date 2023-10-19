@@ -307,9 +307,10 @@ pub trait Lexer: Iterator<Item = Token> {
 
     /// Skip tokens until next line
     fn skip_till_next_line(&mut self) -> &mut Self {
-        self.skip_while(|t| *t != Token::Newline)
-            .skip(1)
-            .for_each(|_| {});
+        while self.peek().is_some_and(|t| t != Token::Newline) {
+            self.next();
+        }
+        self.next();
         self
     }
 }
