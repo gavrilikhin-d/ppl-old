@@ -17,7 +17,7 @@ pub struct InvalidToken {
 
 /// Diagnostic for unwanted extra tokens
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq, Eq)]
-#[error("extra {token}")]
+#[error("extra `{token}`")]
 #[diagnostic(code(lexer::extra_token))]
 pub struct ExtraToken {
     /// Extra token
@@ -45,12 +45,12 @@ impl Display for MissingToken {
         debug_assert!(self.expected.len() > 0);
 
         if self.expected.len() == 1 {
-            write!(f, "missing {}", self.expected[0])
+            write!(f, "missing `{}`", self.expected[0])
         } else {
             write!(f, "missing tokens: ")?;
             self.expected
                 .iter()
-                .map(|token| format!("{}", token))
+                .map(|token| format!("`{}`", token))
                 .collect::<Vec<_>>()
                 .join(" | ")
                 .fmt(f)
@@ -78,7 +78,7 @@ impl Display for UnexpectedToken {
 
         write!(
             f,
-            "expected {}, got {}",
+            "expected `{}`, got `{}`",
             self.expected
                 .iter()
                 .map(|token| format!("{}", token))
