@@ -8,7 +8,7 @@ use crate::{
 
 use super::{
     error::{CantDeduceReturnType, Error, ReturnTypeMismatch},
-    ASTLoweringWithinContext, Context, FunctionContext, GenericContext, TraitContext,
+    ASTLowering, Context, FunctionContext, GenericContext, TraitContext,
 };
 
 /// Trait to pre-declare something
@@ -280,7 +280,7 @@ impl Declare for ast::TypeDeclaration {
     }
 }
 
-impl<D: Declare> ASTLoweringWithinContext for D {
+impl<D: Declare> ASTLowering for D {
     type HIR = D::Definition;
 
     fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {

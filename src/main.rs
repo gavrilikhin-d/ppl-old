@@ -14,7 +14,7 @@ use ppl::hir::{self, Type, Typed};
 use ppl::ir;
 use ppl::ir::GlobalHIRLowering;
 use ppl::named::Named;
-use ppl::semantics::{ASTLoweringWithinContext, ModuleContext};
+use ppl::semantics::{ASTLowering, ModuleContext};
 use ppl::syntax::{InteractiveLexer, Lexer, Parse};
 use ppl::{ast::*, SourceFile};
 

@@ -199,7 +199,7 @@ mod tests {
     use crate::ast;
     use crate::compilation::Compiler;
     use crate::hir::{GenericType, Member, Type};
-    use crate::semantics::{ASTLowering, ASTLoweringWithinContext, ModuleContext};
+    use crate::semantics::{ASTLowering, ModuleContext};
     use pretty_assertions::assert_eq;
 
     #[test]
