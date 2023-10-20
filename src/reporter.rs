@@ -1,36 +1,32 @@
-use miette::Report;
+use std::fmt;
+
+use miette::{MietteHandler, ReportHandler};
 
 /// Struct to report errors
-pub struct Reporter {
-    /// Reports reported through this reporter
-    pub reports: Vec<Report>,
-    /// Handler for reports
-    pub report_handler: Box<dyn FnMut(&Report)>,
+pub struct Reporter;
+
+impl Default for Reporter {
+    fn default() -> Self {
+        Self
+    }
 }
 
-impl Reporter {
-    /// Create new reporter
-    pub fn new() -> Self {
-        Self {
-            reports: vec![],
-            report_handler: Box::new(|r| println!("{:?}", r)),
+impl ReportHandler for Reporter {
+    fn debug(&self, error: &(dyn miette::Diagnostic), f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if f.alternate() {
+            return fmt::Debug::fmt(error, f);
         }
-    }
 
-    /// Has this reporter reported any errors?
-    pub fn has_errors(&self) -> bool {
-        self.reports.iter().any(|r| {
-            r.severity().is_none()
-                || r.severity()
-                    .is_some_and(|s| matches!(s, miette::Severity::Error))
-        })
-    }
-
-    /// Handle a new report
-    pub fn report(&mut self, report: impl Into<Report>) -> &mut Self {
-        let report = report.into();
-        (self.report_handler)(&report);
-        self.reports.push(report);
-        self
+        let handler = MietteHandler::default();
+        // Check that this is an error vector.
+        // We want to threat it as just a collection of unrelated errors
+        if error.to_string().is_empty() {
+            for e in error.related().unwrap() {
+                handler.debug(e, f)?;
+            }
+            Ok(())
+        } else {
+            handler.debug(error, f)
+        }
     }
 }

@@ -1,5 +1,3 @@
-Error:   × 
-
 Error: lexer::unexpected_token
 
   × expected `=`, got `integer`
