@@ -46,7 +46,7 @@
 * [ ] Allow tabs before comments for members
 * [ ] Add `assert` and `panic`
 * [ ] Rework specialized system and type conversions checks. Add reason, why conversion fails
-* [ ] Fix bus error
+* [ ] Fix bus error (caused by llvm 16 [issue](https://github.com/llvm/llvm-project/issues/60432))
 * [ ] Print exactly decimals in decimal form
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors
