@@ -42,6 +42,8 @@
 ### Current task
 * [ ] Multiple errors support instead of exiting on first error
 ---
+* [ ] Allow newlines inside parentheses
+* [ ] Allow tabs before comments for members
 * [ ] Add `assert` and `panic`
 * [ ] Rework specialized system and type conversions checks. Add reason, why conversion fails
 * [ ] Fix bus error
