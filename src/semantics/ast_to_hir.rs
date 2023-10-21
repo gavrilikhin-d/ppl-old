@@ -1044,6 +1044,7 @@ mod tests {
     test_compilation_result!(candidate_not_viable);
     test_compilation_result!(generics);
     test_compilation_result!(missing_fields);
+    test_compilation_result!(multiple_errors);
     test_compilation_result!(multiple_initialization);
     test_compilation_result!(non_class_constructor);
     test_compilation_result!(type_as_value);
