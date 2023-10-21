@@ -26,4 +26,10 @@ pub mod driver;
 mod source_file;
 pub use source_file::*;
 
-pub(crate) mod utils;
+pub(crate) mod test_compilation_result;
+
+mod reporter;
+pub use reporter::*;
+
+mod err_vec;
+pub use err_vec::*;

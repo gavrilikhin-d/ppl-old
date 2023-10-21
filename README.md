@@ -38,10 +38,13 @@
 * [x] Add `@builtin`
 * [x] Types as values
 * [x] Fix `Type<None> as String`
+* [x] Multiple errors support instead of exiting on first error
 ---
 ### Current task
-* [ ] Add `assert` and `panic`
 ---
+* [ ] Allow newlines inside parentheses
+* [ ] Allow tabs before comments for members
+* [ ] Add `assert` and `panic`
 * [ ] Rework specialized system and type conversions checks. Add reason, why conversion fails
 * [ ] Fix bus error
 * [ ] Print exactly decimals in decimal form
@@ -56,7 +59,6 @@
 * [ ] Make `if` to be an expression?
 * [ ] Add `Array` type
 * [ ] Add `HashMap` type
-* [ ] Multiple errors support instead of exiting on first error
 * [ ] Fix memory leak due to pointers to builtin types
 * [ ] Explicit traits implementation
 * [ ] Functions as values

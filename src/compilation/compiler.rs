@@ -8,7 +8,7 @@ use std::{
 use crate::{
     ast,
     hir::Module,
-    semantics::{ASTLoweringWithinModule, ModuleContext},
+    semantics::{ASTLowering, ModuleContext},
     SourceFile,
 };
 use log::debug;

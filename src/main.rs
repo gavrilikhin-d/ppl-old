@@ -11,12 +11,12 @@ use miette::NamedSource;
 use ppl::compilation::Compiler;
 use ppl::driver::{self, Execute};
 use ppl::hir::{self, Type, Typed};
-use ppl::ir;
 use ppl::ir::GlobalHIRLowering;
 use ppl::named::Named;
-use ppl::semantics::{ASTLoweringWithinContext, ModuleContext};
+use ppl::semantics::{ASTLowering, ModuleContext};
 use ppl::syntax::{InteractiveLexer, Lexer, Parse};
 use ppl::{ast::*, SourceFile};
+use ppl::{ir, Reporter};
 
 extern crate runtime;
 
@@ -163,6 +163,7 @@ fn repl() {
 
 fn main() -> miette::Result<()> {
     miette::set_panic_hook();
+    miette::set_hook(Box::new(|_| Box::new(Reporter::default())))?;
     pretty_env_logger::init();
 
     let args = driver::Args::parse();
