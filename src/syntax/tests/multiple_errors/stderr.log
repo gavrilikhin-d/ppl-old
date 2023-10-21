@@ -6,7 +6,7 @@ Error: lexer::unexpected_token
    ·       ─
  2 │ if
    ╰────
-Error: parser::missing_expression
+parser::missing_expression
 
   × missing expression
    ╭─[multiple_errors.ppl:2:3]
