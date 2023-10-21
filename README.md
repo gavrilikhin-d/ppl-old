@@ -38,9 +38,9 @@
 * [x] Add `@builtin`
 * [x] Types as values
 * [x] Fix `Type<None> as String`
+* [x] Multiple errors support instead of exiting on first error
 ---
 ### Current task
-* [ ] Multiple errors support instead of exiting on first error
 ---
 * [ ] Allow newlines inside parentheses
 * [ ] Allow tabs before comments for members
