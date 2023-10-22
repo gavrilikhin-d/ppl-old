@@ -41,6 +41,7 @@
 * [x] Multiple errors support instead of exiting on first error
 ---
 ### Current task
+* [ ] Add `Array` type
 ---
 * [ ] Allow newlines inside parentheses
 * [ ] Allow tabs before comments for members
@@ -57,7 +58,6 @@
 * [ ] Add constrains to generics
 * [ ] Make statements to return `None` type for convenience
 * [ ] Make `if` to be an expression?
-* [ ] Add `Array` type
 * [ ] Add `HashMap` type
 * [ ] Fix memory leak due to pointers to builtin types
 * [ ] Explicit traits implementation

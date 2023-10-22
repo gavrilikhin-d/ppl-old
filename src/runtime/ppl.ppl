@@ -189,3 +189,26 @@ fn<T> <ty: Type<T>> as String => ty.name
 /// Size of a type in bytes
 fn<T> size of <ty: Type<T>> => ty.size
 //=================================
+
+//=================================
+//          MemoryAddress
+//=================================
+/// Address in memory
+type MemoryAddress:
+	value: Integer
+
+/// Interpret and integer as memory address
+fn <value: Integer> as MemoryAddress => MemoryAddress { value }
+
+/// Convert `MemoryAddress` to `String`
+@mangle_as("memory_address_as_string")
+fn <address: MemoryAddress> as String -> String
+
+/// Allocate `n` bytes of memory
+@mangle_as("allocate_n_bytes")
+fn allocate <n: Integer> bytes -> MemoryAddress
+
+/// Free previously allocated memory
+@mangle_as("free_memory")
+fn free <address: MemoryAddress>
+//=================================

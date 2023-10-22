@@ -7,7 +7,7 @@ use crate::{
         Specialize, Statement, Type, Typed, VariableReference, While,
     },
     named::Named,
-    semantics::{ConvertibleTo, FunctionContext},
+    semantics::FunctionContext,
 };
 
 use super::{AddDeclaration, Context, FindDeclaration};
@@ -166,7 +166,6 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
                 FunctionNamePart::Text(text) => text.clone().into(),
                 FunctionNamePart::Parameter(param) => {
                     let arg_ty = arg.next().unwrap().clone();
-                    debug_assert!(arg_ty.convertible_to(param.ty()).within(context));
                     if !param.is_generic() {
                         return param.clone().into();
                     }

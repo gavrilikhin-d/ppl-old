@@ -173,7 +173,7 @@ impl Implements for Arc<hir::TypeDeclaration> {
     fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck {
         ImplementsCheck {
             ty: self.clone().into(),
-            tr: tr,
+            tr,
         }
     }
 }
