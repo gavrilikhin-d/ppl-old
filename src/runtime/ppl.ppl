@@ -191,7 +191,7 @@ fn<T> size of <ty: Type<T>> => ty.size
 //=================================
 
 //=================================
-//             MemoryAddress
+//          MemoryAddress
 //=================================
 /// Address in memory
 type MemoryAddress:
