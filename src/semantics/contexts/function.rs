@@ -16,16 +16,26 @@ pub struct FunctionContext<'p> {
     /// Function, which is being lowered
     pub function: Arc<FunctionDeclaration>,
 
+    /// Local variables declared so far
+    pub variables: Vec<Arc<VariableDeclaration>>,
+
     /// Parent context for this function
     pub parent: &'p mut dyn Context,
 }
 
 impl FindDeclarationHere for FunctionContext<'_> {
     fn find_variable_here(&self, name: &str) -> Option<ParameterOrVariable> {
-        self.function
-            .parameters()
+        self.variables
+            .iter()
+            .cloned()
             .find(|p| p.name() == name)
             .map(|p| p.into())
+            .or_else(|| {
+                self.function
+                    .parameters()
+                    .find(|p| p.name() == name)
+                    .map(|p| p.into())
+            })
     }
 }
 
@@ -53,8 +63,8 @@ impl AddDeclaration for FunctionContext<'_> {
         self.parent.add_function(f)
     }
 
-    fn add_variable(&mut self, _v: Arc<VariableDeclaration>) {
-        todo!("local variables")
+    fn add_variable(&mut self, v: Arc<VariableDeclaration>) {
+        self.variables.push(v)
     }
 }
 

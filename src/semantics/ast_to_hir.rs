@@ -617,26 +617,6 @@ impl Condition for ast::Expression {
     }
 }
 
-impl ASTLowering for ast::VariableDeclaration {
-    type HIR = Arc<hir::VariableDeclaration>;
-
-    /// Lower [`ast::VariableDeclaration`] to [`hir::VariableDeclaration`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
-        let var = Arc::new(hir::VariableDeclaration {
-            name: self.name.clone(),
-            initializer: self.initializer.lower_to_hir_within_context(context)?,
-            mutability: self.mutability.clone(),
-        });
-
-        context.add_variable(var.clone());
-
-        Ok(var)
-    }
-}
-
 impl ASTLowering for ast::Member {
     type HIR = Arc<hir::Member>;
 
@@ -698,23 +678,6 @@ impl ASTLowering for ast::Annotation {
             at: self.name.range().into(),
         }
         .into())
-    }
-}
-
-impl ASTLowering for ast::Declaration {
-    type HIR = hir::Declaration;
-
-    /// Lower [`ast::Declaration`] to [`hir::Declaration`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
-        Ok(match self {
-            ast::Declaration::Variable(decl) => decl.lower_to_hir_within_context(context)?.into(),
-            ast::Declaration::Type(decl) => decl.lower_to_hir_within_context(context)?.into(),
-            ast::Declaration::Function(decl) => decl.lower_to_hir_within_context(context)?.into(),
-            ast::Declaration::Trait(decl) => decl.lower_to_hir_within_context(context)?.into(),
-        })
     }
 }
 
@@ -924,70 +887,104 @@ impl ASTLowering for ast::Module {
     type Error = ErrVec<Error>;
 
     /// Lower [`ast::Module`] to [`hir::Module`] within lowering context
+    ///
+    /// # Order
+    ///
+    /// Lowering happens in 2 passes: `declaration`` and `definition`
+    ///
+    /// 1. Use statements
+    /// 2. Types
+    /// 3. Traits
+    /// 4. Functions
+    /// 5. Rest of statements
     fn lower_to_hir_within_context(
         &self,
         context: &mut impl Context,
     ) -> Result<Self::HIR, Self::Error> {
+        use ast::Declaration as D;
+        use ast::Statement as S;
+
         let mut errors = Vec::new();
 
         // Import things first
-        for stmt in &self.statements {
-            if let ast::Statement::Use(u) = stmt {
-                let res = u.lower_to_hir_within_context(context);
-                if let Err(err) = res {
-                    errors.push(err);
-                }
-            }
-        }
-
-        // Add types then
-        for stmt in &self.statements {
-            match stmt {
-                ast::Statement::Declaration(ast::Declaration::Type(ty)) => {
-                    let res = ty.declare(context);
-                    if let Err(err) = res {
-                        errors.push(err);
-                    }
-                }
-                ast::Statement::Declaration(ast::Declaration::Trait(tr)) => {
-                    let res = tr.declare(context);
-                    if let Err(err) = res {
-                        errors.push(err);
-                    }
-                }
-                _ => {}
-            }
-        }
-
-        // Declare functions, but don't define them yet
-        for stmt in &self.statements {
-            if let ast::Statement::Declaration(ast::Declaration::Function(f)) = stmt {
-                let res = f.declare(context);
-                if let Err(err) = res {
-                    errors.push(err);
-                }
-            }
-        }
-
-        // Add rest of statements
-        for stmt in self
-            .statements
+        self.statements
             .iter()
-            .filter(|s| !matches!(s, ast::Statement::Use(_)))
-        {
+            .filter(|s| matches!(s, ast::Statement::Use(_)))
+            .for_each(|stmt: &S| {
+                let res = stmt.lower_to_hir_within_context(context);
+                match res {
+                    Ok(stmt) => context.module_mut().statements.push(stmt),
+                    Err(err) => errors.push(err),
+                }
+            });
+
+        for_each_declaration_in_order(&self.statements, |stmt: &S| {
+            let decl: &D = match stmt {
+                S::Declaration(d) => d,
+                _ => return,
+            };
+
+            let res = decl.declare(context);
+            if let Err(err) = res {
+                errors.push(err);
+            }
+        });
+
+        // TODO: find a way to reuse this above
+        let mut define = |stmt: &S| {
             let res = stmt.lower_to_hir_within_context(context);
             match res {
                 Ok(stmt) => context.module_mut().statements.push(stmt),
                 Err(err) => errors.push(err),
             }
+        };
+
+        for_each_declaration_in_order(&self.statements, &mut define);
+
+        // Add rest of statements
+        self.statements
+            .iter()
+            .filter(|s| {
+                !matches!(
+                    s,
+                    S::Use(_) | S::Declaration(D::Type(_) | D::Trait(_) | D::Function(_))
+                )
+            })
+            .for_each(&mut define);
+
+        if !errors.is_empty() {
+            return Err(errors.into());
         }
 
-        if errors.is_empty() {
-            Ok(context.module().clone())
-        } else {
-            Err(errors.into())
-        }
+        Ok(context.module().clone())
     }
+}
+
+/// Run some function for each decl in order:
+/// 1. Types
+/// 2. Traits
+/// 3. Function
+fn for_each_declaration_in_order(stmts: &[ast::Statement], mut f: impl FnMut(&ast::Statement)) {
+    use ast::Declaration as D;
+    use ast::Statement as S;
+
+    // First for types
+    stmts
+        .iter()
+        .filter(|s| matches!(s, S::Declaration(D::Type(_))))
+        .for_each(&mut f);
+
+    // Then for traits
+    stmts
+        .iter()
+        .filter(|s| matches!(s, S::Declaration(D::Trait(_))))
+        .for_each(&mut f);
+
+    // Lastly for functions
+    stmts
+        .iter()
+        .filter(|s| matches!(s, S::Declaration(D::Function(_))))
+        .for_each(&mut f);
 }
 
 /// Trait to replace [`TypeReference`] with type info

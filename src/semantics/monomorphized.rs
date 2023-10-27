@@ -225,6 +225,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDefinition> {
 
         let mut context = FunctionContext {
             function: declaration.clone(),
+            variables: vec![],
             parent: context,
         };
 
