@@ -1,0 +1,10 @@
+trait Test:
+	fn required <:Self>
+
+	fn default <x: Self> => x
+
+// TODO: `impl Test for Integer:`
+fn required <x: Integer> => none
+
+
+default 1

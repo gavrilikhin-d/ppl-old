@@ -1047,6 +1047,7 @@ mod tests {
     test_compilation_result!(multiple_errors);
     test_compilation_result!(multiple_initialization);
     test_compilation_result!(non_class_constructor);
+    test_compilation_result!(traits);
     test_compilation_result!(type_as_value);
     test_compilation_result!(wrong_initializer_type);
 }
