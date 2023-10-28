@@ -152,8 +152,9 @@ impl ConvertibleToCheck {
             }
             (Type::Class(c), Type::SelfType(s)) => c
                 .implements(s.associated_trait.upgrade().unwrap())
-                .within(context),
-            (Type::Class(c), Type::Trait(tr)) => c.implements(tr.clone()).within(context),
+                .within(context)
+                .is_ok(),
+            (Type::Class(c), Type::Trait(tr)) => c.implements(tr.clone()).within(context).is_ok(),
             // TODO: check for constraints
             (_, Type::Generic(_)) => true,
 
@@ -194,16 +195,27 @@ pub struct ImplementsCheck {
 }
 
 impl ImplementsCheck {
-    // TODO: add reason
-    pub fn within(&self, context: &impl Context) -> bool {
-        let res = self.tr.functions.iter().all(|f| {
-            context.find_implementation(&f, &self.ty).is_some()
-                || matches!(f, hir::Function::Definition(_))
-        });
+    pub fn within(&self, context: &impl Context) -> Result<(), NotImplemented> {
+        let unimplemented: Vec<_> = self
+            .tr
+            .functions
+            .iter()
+            .filter(|f| {
+                matches!(f, hir::Function::Declaration(_))
+                    && context.find_implementation(&f, &self.ty).is_none()
+            })
+            .cloned()
+            .collect();
 
-        debug!(target: "implements", "`{}` implements `{}`? {res}", self.ty, self.tr.name());
+        if !unimplemented.is_empty() {
+            return Err(NotImplemented {
+                ty: self.ty.clone(),
+                tr: self.tr.clone(),
+                unimplemented,
+            });
+        }
 
-        res
+        Ok(())
     }
 }
 
