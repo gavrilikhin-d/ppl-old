@@ -226,7 +226,7 @@ impl ImplementsCheck {
             .tr
             .value
             .functions
-            .iter()
+            .values()
             .filter(|f| {
                 matches!(f, hir::Function::Declaration(_))
                     && context

@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{collections::BTreeMap, sync::Arc};
 
 use crate::{
     ast,
@@ -159,7 +159,7 @@ impl Declare for ast::TraitDeclaration {
             let mut context = TraitContext {
                 tr: hir::TraitDeclaration {
                     name: self.name.clone(),
-                    functions: vec![],
+                    functions: BTreeMap::new(),
                 },
                 trait_weak: trait_weak.clone(),
                 parent: context,
@@ -194,7 +194,7 @@ impl Declare for ast::TraitDeclaration {
             let mut context = TraitContext {
                 tr: hir::TraitDeclaration {
                     name: self.name.clone(),
-                    functions: vec![],
+                    functions: BTreeMap::new(),
                 },
                 trait_weak: trait_weak.clone(),
                 parent: context,
