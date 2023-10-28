@@ -4,6 +4,7 @@ use crate::{
     hir::{Generic, GenericName, Specialize, Type, Typed},
     named::Named,
     syntax::StringWithOffset,
+    AddSourceLocation,
 };
 
 /// Member of type
@@ -156,6 +157,8 @@ impl Display for TypeDeclaration {
         write!(f, "{}", self.generic_name())
     }
 }
+
+impl AddSourceLocation for Arc<TypeDeclaration> {}
 
 /// Arguments to specialize class
 pub struct SpecializeClass {

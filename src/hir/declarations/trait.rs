@@ -1,6 +1,6 @@
-use std::{borrow::Cow, fmt::Display};
+use std::{borrow::Cow, fmt::Display, sync::Arc};
 
-use crate::{named::Named, syntax::StringWithOffset};
+use crate::{named::Named, syntax::StringWithOffset, AddSourceLocation};
 
 use super::Function;
 
@@ -33,3 +33,5 @@ impl Display for TraitDeclaration {
         write!(f, "{}", self.name())
     }
 }
+
+impl AddSourceLocation for Arc<TraitDeclaration> {}

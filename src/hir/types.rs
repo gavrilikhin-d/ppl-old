@@ -4,7 +4,7 @@ use std::{
     sync::{Arc, Weak},
 };
 
-use crate::{mutability::Mutable, named::Named, syntax::StringWithOffset};
+use crate::{mutability::Mutable, named::Named, syntax::StringWithOffset, AddSourceLocation};
 
 use super::{
     Generic, GenericName, Member, Specialize, Specialized, TraitDeclaration, TypeDeclaration,
@@ -347,6 +347,8 @@ impl Mutable for Type {
         false
     }
 }
+
+impl AddSourceLocation for Type {}
 
 /// Trait for values with a type
 #[enum_dispatch]

@@ -3,8 +3,6 @@ use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use log::debug;
-
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
@@ -14,7 +12,7 @@ use crate::hir::{
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
-use crate::ErrVec;
+use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
 use super::{error::*, Context, Declare, ModuleContext, MonomorphizedWithArgs};
 use crate::ast::{self, CallNamePart, FnKind, If};
@@ -125,64 +123,92 @@ impl ASTLowering for ast::VariableReference {
 /// Trait to check if one type is convertible to another within context
 pub trait ConvertibleTo {
     /// Is this type convertible to another?
-    fn convertible_to(&self, ty: hir::Type) -> ConvertibleToCheck;
+    fn convertible_to(&self, ty: WithSourceLocation<hir::Type>) -> ConvertibleToCheck;
 }
 
-impl ConvertibleTo for hir::Type {
-    fn convertible_to(&self, ty: hir::Type) -> ConvertibleToCheck {
+impl ConvertibleTo for WithSourceLocation<hir::Type> {
+    fn convertible_to(&self, to: WithSourceLocation<hir::Type>) -> ConvertibleToCheck {
         ConvertibleToCheck {
             from: self.clone(),
-            to: ty,
+            to,
         }
     }
 }
 
 /// Helper struct to perform check within context
 pub struct ConvertibleToCheck {
-    from: Type,
-    to: Type,
+    from: WithSourceLocation<Type>,
+    to: WithSourceLocation<Type>,
 }
 
 impl ConvertibleToCheck {
     // TODO: add reason
-    pub fn within(&self, context: &impl Context) -> bool {
-        let res = match (&self.from, &self.to) {
+    pub fn within(&self, context: &impl Context) -> Result<(), NotConvertible> {
+        let convertible = match (self.from.value.clone(), self.to.value.clone()) {
             (Type::Trait(tr), Type::SelfType(s)) => {
                 Arc::ptr_eq(&tr, &s.associated_trait.upgrade().unwrap())
             }
             (Type::Class(c), Type::SelfType(s)) => c
-                .implements(s.associated_trait.upgrade().unwrap())
+                .at(self.from.source_location.clone())
+                .implements(
+                    s.associated_trait
+                        .upgrade()
+                        .unwrap()
+                        .at(self.to.source_location.clone()),
+                )
                 .within(context)
-                .is_ok(),
-            (Type::Class(c), Type::Trait(tr)) => c.implements(tr.clone()).within(context).is_ok(),
+                .map(|_| true)?,
+            (Type::Class(c), Type::Trait(tr)) => c
+                .at(self.from.source_location.clone())
+                .implements(tr.clone().at(self.to.source_location.clone()))
+                .within(context)
+                .map(|_| true)?,
             // TODO: check for constraints
             (_, Type::Generic(_)) => true,
 
             // FIXME: rework this whole shit
             (Type::Specialized(a), Type::Specialized(b)) => a.generic == b.generic,
-            (Type::Specialized(from), to) if to.is_generic() => from.generic == *to,
-            (Type::Specialized(from), to) => {
-                from.specialized.convertible_to(to.clone()).within(context)
-            }
-            _ => self.from == self.to,
+            (Type::Specialized(from), to) if to.is_generic() => from.generic == to,
+            (Type::Specialized(from), _) => from
+                .specialized
+                .at(self.from.source_location.clone())
+                .convertible_to(self.to.clone())
+                .within(context)
+                .map(|_| true)?,
+            (from, to) => from == to,
         };
 
-        debug!(target: "convertible", "`{}` convertible to `{}`? {res}", self.from, self.to);
+        if !convertible {
+            return Err(TypeMismatch {
+                // TODO: use WithSourceLocation for TypeWithSpan
+                got: TypeWithSpan {
+                    ty: self.from.value.clone(),
+                    at: self.from.source_location.at.clone(),
+                    source_file: self.from.source_location.source_file.clone(),
+                },
+                expected: TypeWithSpan {
+                    ty: self.to.value.clone(),
+                    at: self.to.source_location.at.clone(),
+                    source_file: self.to.source_location.source_file.clone(),
+                },
+            }
+            .into());
+        }
 
-        res
+        Ok(())
     }
 }
 
 /// Trait to check if type implements trait
 pub trait Implements {
     /// Does this class implement given trait?
-    fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck;
+    fn implements(&self, tr: WithSourceLocation<Arc<hir::TraitDeclaration>>) -> ImplementsCheck;
 }
 
-impl Implements for Arc<hir::TypeDeclaration> {
-    fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck {
+impl Implements for WithSourceLocation<Arc<hir::TypeDeclaration>> {
+    fn implements(&self, tr: WithSourceLocation<Arc<hir::TraitDeclaration>>) -> ImplementsCheck {
         ImplementsCheck {
-            ty: self.clone().into(),
+            ty: self.clone(),
             tr,
         }
     }
@@ -190,27 +216,30 @@ impl Implements for Arc<hir::TypeDeclaration> {
 
 /// Helper struct to do check within context
 pub struct ImplementsCheck {
-    ty: Type,
-    tr: Arc<hir::TraitDeclaration>,
+    ty: WithSourceLocation<Arc<hir::TypeDeclaration>>,
+    tr: WithSourceLocation<Arc<hir::TraitDeclaration>>,
 }
 
 impl ImplementsCheck {
     pub fn within(&self, context: &impl Context) -> Result<(), NotImplemented> {
         let unimplemented: Vec<_> = self
             .tr
+            .value
             .functions
             .iter()
             .filter(|f| {
                 matches!(f, hir::Function::Declaration(_))
-                    && context.find_implementation(&f, &self.ty).is_none()
+                    && context
+                        .find_implementation(&f, &Type::from(self.ty.value.clone()))
+                        .is_none()
             })
             .cloned()
             .collect();
 
         if !unimplemented.is_empty() {
             return Err(NotImplemented {
-                ty: self.ty.clone(),
-                tr: self.tr.clone(),
+                ty: self.ty.value.clone().into(),
+                tr: self.tr.value.clone(),
                 unimplemented,
             });
         }
@@ -297,22 +326,16 @@ impl ASTLowering for ast::Call {
                     FunctionNamePart::Text(_) => continue,
                     FunctionNamePart::Parameter(p) => {
                         let arg = args_cache[i].as_ref().unwrap();
-                        if !arg.ty().convertible_to(p.ty()).within(context) {
-                            candidates_not_viable.push(CandidateNotViable {
-                                reason: TypeMismatch {
-                                    expected: TypeWithSpan {
-                                        ty: p.ty(),
-                                        at: p.name.range().into(),
-                                        source_file,
-                                    },
-                                    got: TypeWithSpan {
-                                        ty: arg.ty(),
-                                        at: arg.range().into(),
-                                        source_file: None,
-                                    },
-                                }
-                                .into(),
-                            });
+                        if let Err(err) = arg
+                            .ty()
+                            .at(arg.range())
+                            .convertible_to(p.ty().at(SourceLocation {
+                                at: p.name.range().into(),
+                                source_file: source_file.clone().map(Into::into),
+                            }))
+                            .within(context)
+                        {
+                            candidates_not_viable.push(CandidateNotViable { reason: err.into() });
                             failed = true;
                             break;
                         }
@@ -506,22 +529,12 @@ impl ASTLowering for ast::Constructor {
                 .enumerate()
                 .find(|(_, m)| m.name() == name.as_str())
             {
-                if !value.ty().convertible_to(member.ty()).within(context) {
-                    return Err(TypeMismatch {
-                        expected: TypeWithSpan {
-                            ty: member.ty(),
-                            at: member.name.range().into(),
-                            // FIXME: find in which file type was declared
-                            source_file: None,
-                        },
-                        got: TypeWithSpan {
-                            ty: value.ty(),
-                            at: value.range().into(),
-                            source_file: None,
-                        },
-                    }
-                    .into());
-                }
+                // FIXME: find in which file member type was declared
+                value
+                    .ty()
+                    .at(value.range())
+                    .convertible_to(member.ty().at(member.name.range()))
+                    .within(context)?;
 
                 if let Some(prev) = initializers.iter().find(|i| i.index == index) {
                     return Err(MultipleInitialization {

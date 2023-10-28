@@ -26,6 +26,9 @@ pub mod driver;
 mod source_file;
 pub use source_file::*;
 
+mod source_location;
+pub use source_location::*;
+
 pub(crate) mod test_compilation_result;
 
 mod reporter;

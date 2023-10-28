@@ -411,6 +411,17 @@ impl Diagnostic for NotImplemented {
     }
 }
 
+/// Diagnostic for not convertible types
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+pub enum NotConvertible {
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    TypeMismatch(#[from] TypeMismatch),
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    NotImplemented(#[from] NotImplemented),
+}
+
 /// Helper macro to create error enumeration
 macro_rules! error_enum {
 	($($name:ident),*) => {
@@ -442,5 +453,6 @@ error_enum!(
     MultipleInitialization,
     MissingFields,
     NonClassConstructor,
-    NotImplemented
+    NotImplemented,
+    NotConvertible
 );
