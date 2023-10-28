@@ -1,4 +1,0 @@
-use template.Point
-use template.`distance from <:Point> to <:Point>`
-
-print (distance from Point{x: 0, y: 0} to Point{x: 3, y: 4})
