@@ -1,8 +1,11 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, sync::Arc};
 
 use crate::{
     ast::CallNamePart,
-    hir::{Expression, Function, FunctionNamePart, Module, Name, ParameterOrVariable, Type, Typed},
+    hir::{
+        ClassOrTrait, Expression, Function, FunctionNamePart, Module, Name, ParameterOrVariable,
+        TraitDeclaration, Type, TypeDeclaration, Typed,
+    },
 };
 
 /// Trait to find declaration at current level
@@ -35,6 +38,12 @@ pub trait FindDeclarationHere {
     fn functions_with_format_here(&self, format: &str) -> BTreeMap<Name, Function> {
         let _ = format;
         BTreeMap::new()
+    }
+
+    /// Get all traits implemented for `ty` here
+    fn traits_for_here(&self, ty: Arc<TypeDeclaration>) -> Vec<Arc<TraitDeclaration>> {
+        let _ = ty;
+        vec![]
     }
 }
 
@@ -88,6 +97,19 @@ pub trait FindDeclaration: FindDeclarationHere {
             .collect()
     }
 
+    /// Get all traits implemented for `ty`
+    fn traits_for(&self, ty: Arc<TypeDeclaration>) -> Vec<Arc<TraitDeclaration>> {
+        self.traits_for_here(ty.clone())
+            .into_iter()
+            .chain(
+                self.parent()
+                    .and_then(|p| Some(p.traits_for(ty)))
+                    .unwrap_or_default()
+                    .into_iter(),
+            )
+            .collect()
+    }
+
     /// Get candidates for function call
     fn candidates(
         &self,
@@ -100,13 +122,12 @@ pub trait FindDeclaration: FindDeclarationHere {
             args_cache
                 .iter()
                 .filter_map(|a| a.as_ref())
-                .filter_map(|a| {
-                    if let Type::Trait(tr) = a.ty() {
-                        return Some(tr);
-                    } else {
-                        None
-                    }
+                .filter_map(|a| match a.ty() {
+                    Type::Trait(tr) => Some(vec![tr].into_iter()),
+                    Type::Class(c) => Some(self.traits_for(c).into_iter()),
+                    _ => None,
                 })
+                .flatten()
                 .flat_map(|tr| {
                     tr.functions_with_n_name_parts(name_parts.len())
                         .cloned()
@@ -180,6 +201,19 @@ impl FindDeclarationHere for Module {
     fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Function> {
         self.functions_with_n_name_parts(n).cloned().collect()
     }
+
+    fn traits_for_here(&self, ty: Arc<TypeDeclaration>) -> Vec<Arc<TraitDeclaration>> {
+        // TODO: find only implemented traits
+        let _ = ty;
+        self.types
+            .values()
+            .cloned()
+            .filter_map(|t| match t {
+                ClassOrTrait::Trait(tr) => Some(tr),
+                ClassOrTrait::Class(_) => None,
+            })
+            .collect()
+    }
 }
 
 impl FindDeclaration for Module {}
@@ -203,5 +237,9 @@ impl<M: AsRef<Module>> FindDeclarationHere for M {
 
     fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Function> {
         self.as_ref().functions_with_n_name_parts_here(n)
+    }
+
+    fn traits_for_here(&self, ty: Arc<TypeDeclaration>) -> Vec<Arc<TraitDeclaration>> {
+        self.as_ref().traits_for_here(ty)
     }
 }

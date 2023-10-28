@@ -1,11 +1,16 @@
-use std::fmt::Display;
+use std::{fmt::Display, sync::Arc};
 
 use miette::{Diagnostic, SourceSpan};
 use thiserror::Error;
 
 use derive_more::From;
 
-use crate::{ast::FnKind, hir::Type, SourceFile};
+use crate::{
+    ast::FnKind,
+    hir::{Function, TraitDeclaration, Type},
+    syntax::Ranged,
+    SourceFile,
+};
 
 /// Diagnostic for undefined variables
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
@@ -379,6 +384,44 @@ pub struct NonClassConstructor {
     pub ty: TypeWithSpan,
 }
 
+/// Diagnostic for unimplemented trait
+#[derive(Error, Debug, Clone, PartialEq)]
+#[error("`{ty}` doesn't satisfy trait `{tr}` requirements")]
+pub struct NotImplemented {
+    /// Type that doesn't satisfy trait requirements
+    pub ty: Type,
+    /// Trait, that is not implemented
+    pub tr: Arc<TraitDeclaration>,
+    /// Unimplemented functions
+    pub unimplemented: Vec<Function>,
+}
+
+impl Diagnostic for NotImplemented {
+    fn code<'a>(&'a self) -> Option<Box<dyn std::fmt::Display + 'a>> {
+        Some(Box::new("semantics::not_implemented"))
+    }
+
+    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
+        Some(Box::new(self.unimplemented.iter().map(|f| {
+            miette::LabeledSpan::new_with_span(
+                Some("This required function isn't implemented".to_string()),
+                f.declaration().range(),
+            )
+        })))
+    }
+}
+
+/// Diagnostic for not convertible types
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+pub enum NotConvertible {
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    TypeMismatch(#[from] TypeMismatch),
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    NotImplemented(#[from] NotImplemented),
+}
+
 /// Helper macro to create error enumeration
 macro_rules! error_enum {
 	($($name:ident),*) => {
@@ -409,5 +452,7 @@ error_enum!(
     NoMember,
     MultipleInitialization,
     MissingFields,
-    NonClassConstructor
+    NonClassConstructor,
+    NotImplemented,
+    NotConvertible
 );

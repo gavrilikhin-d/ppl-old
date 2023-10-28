@@ -1,6 +1,6 @@
-use std::{borrow::Cow, fmt::Display};
+use std::{borrow::Cow, collections::BTreeMap, fmt::Display, sync::Arc};
 
-use crate::{named::Named, syntax::StringWithOffset};
+use crate::{named::Named, syntax::StringWithOffset, AddSourceLocation};
 
 use super::Function;
 
@@ -10,14 +10,14 @@ pub struct TraitDeclaration {
     /// Trait's name
     pub name: StringWithOffset,
     /// Associated functions
-    pub functions: Vec<Function>,
+    pub functions: BTreeMap<String, Function>,
 }
 
 impl TraitDeclaration {
     /// Iterate over all functions with `n` name parts
     pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = &Function> + '_ {
         self.functions
-            .iter()
+            .values()
             .filter(move |f| f.name_parts().len() == n)
     }
 }
@@ -33,3 +33,5 @@ impl Display for TraitDeclaration {
         write!(f, "{}", self.name())
     }
 }
+
+impl AddSourceLocation for Arc<TraitDeclaration> {}

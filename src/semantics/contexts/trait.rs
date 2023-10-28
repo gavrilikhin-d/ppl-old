@@ -2,6 +2,7 @@ use std::sync::{Arc, Weak};
 
 use crate::{
     hir::{Function, SelfType, TraitDeclaration, Type, TypeDeclaration, VariableDeclaration},
+    named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
 };
 
@@ -36,7 +37,7 @@ impl FindDeclarationHere for TraitContext<'_> {
     fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Function> {
         self.tr
             .functions
-            .iter()
+            .values()
             .filter(move |f| f.name_parts().len() == n)
             .cloned()
             .collect()
@@ -63,7 +64,7 @@ impl AddDeclaration for TraitContext<'_> {
     }
 
     fn add_function(&mut self, f: Function) {
-        self.tr.functions.push(f)
+        self.tr.functions.insert(f.name().to_string(), f);
     }
 
     fn add_variable(&mut self, _v: Arc<VariableDeclaration>) {

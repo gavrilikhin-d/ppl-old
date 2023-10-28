@@ -41,8 +41,9 @@
 * [x] Multiple errors support instead of exiting on first error
 ---
 ### Current task
-* [ ] Add `Array` type
+* [ ] Link ppl.dylib to executable
 ---
+* [ ] Add `Array` type
 * [ ] Allow newlines inside parentheses
 * [ ] Allow tabs before comments for members
 * [ ] Add `assert` and `panic`
@@ -53,7 +54,7 @@
 * [ ] Remove unnecessary information from errors
 * [ ] More functions to stdlib
 * [ ] Multiple output types
-* [ ] Check errors in repl too
+* [ ] Check compiler errors in repl too
 * [ ] Add more checks for compiler
 * [ ] Add constrains to generics
 * [ ] Make statements to return `None` type for convenience

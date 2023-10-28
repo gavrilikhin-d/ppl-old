@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{collections::BTreeMap, sync::Arc};
 
 use crate::{
     ast,
@@ -102,6 +102,7 @@ impl Declare for ast::FunctionDeclaration {
 
         let mut f_context = FunctionContext {
             function: declaration.clone(),
+            variables: vec![],
             parent: context,
         };
 
@@ -158,7 +159,7 @@ impl Declare for ast::TraitDeclaration {
             let mut context = TraitContext {
                 tr: hir::TraitDeclaration {
                     name: self.name.clone(),
-                    functions: vec![],
+                    functions: BTreeMap::new(),
                 },
                 trait_weak: trait_weak.clone(),
                 parent: context,
@@ -193,7 +194,7 @@ impl Declare for ast::TraitDeclaration {
             let mut context = TraitContext {
                 tr: hir::TraitDeclaration {
                     name: self.name.clone(),
-                    functions: vec![],
+                    functions: BTreeMap::new(),
                 },
                 trait_weak: trait_weak.clone(),
                 parent: context,
@@ -277,6 +278,75 @@ impl Declare for ast::TypeDeclaration {
         context.add_type(ty.clone());
 
         Ok(ty)
+    }
+}
+
+impl Declare for ast::VariableDeclaration {
+    type Declaration = Arc<hir::VariableDeclaration>;
+    type Definition = Arc<hir::VariableDeclaration>;
+
+    fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
+        // TODO: don't define value right away
+        let var = Arc::new(hir::VariableDeclaration {
+            name: self.name.clone(),
+            initializer: self.initializer.lower_to_hir_within_context(context)?,
+            mutability: self.mutability.clone(),
+        });
+
+        context.add_variable(var.clone());
+
+        Ok(var)
+    }
+
+    fn define(
+        &self,
+        declaration: Self::Declaration,
+        _context: &mut impl Context,
+    ) -> Result<Self::Definition, Error> {
+        Ok(declaration)
+    }
+}
+
+impl Declare for ast::Declaration {
+    type Declaration = hir::Declaration;
+    type Definition = hir::Declaration;
+
+    fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
+        match self {
+            ast::Declaration::Function(f) => f
+                .declare(context)
+                .map(|f| hir::Function::Declaration(f).into()),
+            ast::Declaration::Trait(t) => t.declare(context).map(Into::into),
+            ast::Declaration::Type(t) => t.declare(context).map(Into::into),
+            ast::Declaration::Variable(v) => v.declare(context).map(Into::into),
+        }
+    }
+
+    fn define(
+        &self,
+        declaration: Self::Declaration,
+        context: &mut impl Context,
+    ) -> Result<Self::Definition, Error> {
+        match self {
+            ast::Declaration::Function(f) => f
+                .define(
+                    TryInto::<hir::Function>::try_into(declaration)
+                        .unwrap()
+                        .try_into()
+                        .unwrap(),
+                    context,
+                )
+                .map(Into::into),
+            ast::Declaration::Trait(t) => t
+                .define(declaration.try_into().unwrap(), context)
+                .map(Into::into),
+            ast::Declaration::Type(t) => t
+                .define(declaration.try_into().unwrap(), context)
+                .map(Into::into),
+            ast::Declaration::Variable(v) => v
+                .define(declaration.try_into().unwrap(), context)
+                .map(Into::into),
+        }
     }
 }
 

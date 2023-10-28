@@ -7,7 +7,7 @@ use derive_more::{From, TryInto};
 use crate::hir::{FunctionType, Generic, GenericName, Specialize, Statement, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
-use crate::syntax::StringWithOffset;
+use crate::syntax::{Ranged, StringWithOffset};
 
 /// Declaration of a function parameter
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -16,6 +16,13 @@ pub struct Parameter {
     pub name: StringWithOffset,
     /// Type of parameter
     pub ty: Type,
+}
+
+// TODO: range of whole parameter decl
+impl Ranged for Parameter {
+    fn range(&self) -> std::ops::Range<usize> {
+        self.name.range()
+    }
 }
 
 impl Generic for Parameter {
@@ -77,6 +84,15 @@ impl From<Parameter> for FunctionNamePart {
     }
 }
 
+impl Ranged for FunctionNamePart {
+    fn range(&self) -> std::ops::Range<usize> {
+        match self {
+            FunctionNamePart::Text(text) => text.range(),
+            FunctionNamePart::Parameter(parameter) => parameter.range(),
+        }
+    }
+}
+
 /// Declaration of a type
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct FunctionDeclaration {
@@ -134,6 +150,16 @@ impl FunctionDeclaration {
             .as_deref()
             .map(|n| n.into())
             .unwrap_or(self.name())
+    }
+}
+
+impl Ranged for FunctionDeclaration {
+    fn start(&self) -> usize {
+        self.name_parts().first().unwrap().start()
+    }
+
+    fn end(&self) -> usize {
+        self.name_parts().last().unwrap().end()
     }
 }
 

@@ -12,7 +12,7 @@ use crate::hir::{
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
-use crate::ErrVec;
+use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
 use super::{error::*, Context, Declare, ModuleContext, MonomorphizedWithArgs};
 use crate::ast::{self, CallNamePart, FnKind, If};
@@ -123,56 +123,92 @@ impl ASTLowering for ast::VariableReference {
 /// Trait to check if one type is convertible to another within context
 pub trait ConvertibleTo {
     /// Is this type convertible to another?
-    fn convertible_to(&self, ty: hir::Type) -> ConvertibleToCheck;
+    fn convertible_to(&self, ty: WithSourceLocation<hir::Type>) -> ConvertibleToCheck;
 }
 
-impl ConvertibleTo for hir::Type {
-    fn convertible_to(&self, ty: hir::Type) -> ConvertibleToCheck {
+impl ConvertibleTo for WithSourceLocation<hir::Type> {
+    fn convertible_to(&self, to: WithSourceLocation<hir::Type>) -> ConvertibleToCheck {
         ConvertibleToCheck {
             from: self.clone(),
-            to: ty,
+            to,
         }
     }
 }
 
 /// Helper struct to perform check within context
 pub struct ConvertibleToCheck {
-    from: Type,
-    to: Type,
+    from: WithSourceLocation<Type>,
+    to: WithSourceLocation<Type>,
 }
 
 impl ConvertibleToCheck {
-    pub fn within(&self, context: &impl Context) -> bool {
-        match (&self.from, &self.to) {
+    // TODO: add reason
+    pub fn within(&self, context: &impl Context) -> Result<(), NotConvertible> {
+        let convertible = match (self.from.value.clone(), self.to.value.clone()) {
             (Type::Trait(tr), Type::SelfType(s)) => {
                 Arc::ptr_eq(&tr, &s.associated_trait.upgrade().unwrap())
             }
-            // TODO: this needs context of all visible functions to check if class implements trait
-            (Type::Class(c), Type::Trait(tr)) => c.implements(tr.clone()).within(context),
+            (Type::Class(c), Type::SelfType(s)) => c
+                .at(self.from.source_location.clone())
+                .implements(
+                    s.associated_trait
+                        .upgrade()
+                        .unwrap()
+                        .at(self.to.source_location.clone()),
+                )
+                .within(context)
+                .map(|_| true)?,
+            (Type::Class(c), Type::Trait(tr)) => c
+                .at(self.from.source_location.clone())
+                .implements(tr.clone().at(self.to.source_location.clone()))
+                .within(context)
+                .map(|_| true)?,
             // TODO: check for constraints
             (_, Type::Generic(_)) => true,
 
             // FIXME: rework this whole shit
             (Type::Specialized(a), Type::Specialized(b)) => a.generic == b.generic,
-            (Type::Specialized(from), to) if to.is_generic() => from.generic == *to,
-            (Type::Specialized(from), to) => {
-                from.specialized.convertible_to(to.clone()).within(context)
+            (Type::Specialized(from), to) if to.is_generic() => from.generic == to,
+            (Type::Specialized(from), _) => from
+                .specialized
+                .at(self.from.source_location.clone())
+                .convertible_to(self.to.clone())
+                .within(context)
+                .map(|_| true)?,
+            (from, to) => from == to,
+        };
+
+        if !convertible {
+            return Err(TypeMismatch {
+                // TODO: use WithSourceLocation for TypeWithSpan
+                got: TypeWithSpan {
+                    ty: self.from.value.clone(),
+                    at: self.from.source_location.at.clone(),
+                    source_file: self.from.source_location.source_file.clone(),
+                },
+                expected: TypeWithSpan {
+                    ty: self.to.value.clone(),
+                    at: self.to.source_location.at.clone(),
+                    source_file: self.to.source_location.source_file.clone(),
+                },
             }
-            _ => self.from == self.to,
+            .into());
         }
+
+        Ok(())
     }
 }
 
 /// Trait to check if type implements trait
 pub trait Implements {
     /// Does this class implement given trait?
-    fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck;
+    fn implements(&self, tr: WithSourceLocation<Arc<hir::TraitDeclaration>>) -> ImplementsCheck;
 }
 
-impl Implements for Arc<hir::TypeDeclaration> {
-    fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck {
+impl Implements for WithSourceLocation<Arc<hir::TypeDeclaration>> {
+    fn implements(&self, tr: WithSourceLocation<Arc<hir::TraitDeclaration>>) -> ImplementsCheck {
         ImplementsCheck {
-            ty: self.clone().into(),
+            ty: self.clone(),
             tr,
         }
     }
@@ -180,16 +216,35 @@ impl Implements for Arc<hir::TypeDeclaration> {
 
 /// Helper struct to do check within context
 pub struct ImplementsCheck {
-    ty: Type,
-    tr: Arc<hir::TraitDeclaration>,
+    ty: WithSourceLocation<Arc<hir::TypeDeclaration>>,
+    tr: WithSourceLocation<Arc<hir::TraitDeclaration>>,
 }
 
 impl ImplementsCheck {
-    pub fn within(&self, context: &impl Context) -> bool {
-        self.tr
+    pub fn within(&self, context: &impl Context) -> Result<(), NotImplemented> {
+        let unimplemented: Vec<_> = self
+            .tr
+            .value
             .functions
-            .iter()
-            .all(|f| context.find_implementation(&f, &self.ty).is_some())
+            .values()
+            .filter(|f| {
+                matches!(f, hir::Function::Declaration(_))
+                    && context
+                        .find_implementation(&f, &Type::from(self.ty.value.clone()))
+                        .is_none()
+            })
+            .cloned()
+            .collect();
+
+        if !unimplemented.is_empty() {
+            return Err(NotImplemented {
+                ty: self.ty.value.clone().into(),
+                tr: self.tr.value.clone(),
+                unimplemented,
+            });
+        }
+
+        Ok(())
     }
 }
 
@@ -271,22 +326,16 @@ impl ASTLowering for ast::Call {
                     FunctionNamePart::Text(_) => continue,
                     FunctionNamePart::Parameter(p) => {
                         let arg = args_cache[i].as_ref().unwrap();
-                        if !arg.ty().convertible_to(p.ty()).within(context) {
-                            candidates_not_viable.push(CandidateNotViable {
-                                reason: TypeMismatch {
-                                    expected: TypeWithSpan {
-                                        ty: p.ty(),
-                                        at: p.name.range().into(),
-                                        source_file,
-                                    },
-                                    got: TypeWithSpan {
-                                        ty: arg.ty(),
-                                        at: arg.range().into(),
-                                        source_file: None,
-                                    },
-                                }
-                                .into(),
-                            });
+                        if let Err(err) = arg
+                            .ty()
+                            .at(arg.range())
+                            .convertible_to(p.ty().at(SourceLocation {
+                                at: p.name.range().into(),
+                                source_file: source_file.clone().map(Into::into),
+                            }))
+                            .within(context)
+                        {
+                            candidates_not_viable.push(CandidateNotViable { reason: err.into() });
                             failed = true;
                             break;
                         }
@@ -480,22 +529,12 @@ impl ASTLowering for ast::Constructor {
                 .enumerate()
                 .find(|(_, m)| m.name() == name.as_str())
             {
-                if !value.ty().convertible_to(member.ty()).within(context) {
-                    return Err(TypeMismatch {
-                        expected: TypeWithSpan {
-                            ty: member.ty(),
-                            at: member.name.range().into(),
-                            // FIXME: find in which file type was declared
-                            source_file: None,
-                        },
-                        got: TypeWithSpan {
-                            ty: value.ty(),
-                            at: value.range().into(),
-                            source_file: None,
-                        },
-                    }
-                    .into());
-                }
+                // FIXME: find in which file member type was declared
+                value
+                    .ty()
+                    .at(value.range())
+                    .convertible_to(member.ty().at(member.name.range()))
+                    .within(context)?;
 
                 if let Some(prev) = initializers.iter().find(|i| i.index == index) {
                     return Err(MultipleInitialization {
@@ -617,26 +656,6 @@ impl Condition for ast::Expression {
     }
 }
 
-impl ASTLowering for ast::VariableDeclaration {
-    type HIR = Arc<hir::VariableDeclaration>;
-
-    /// Lower [`ast::VariableDeclaration`] to [`hir::VariableDeclaration`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
-        let var = Arc::new(hir::VariableDeclaration {
-            name: self.name.clone(),
-            initializer: self.initializer.lower_to_hir_within_context(context)?,
-            mutability: self.mutability.clone(),
-        });
-
-        context.add_variable(var.clone());
-
-        Ok(var)
-    }
-}
-
 impl ASTLowering for ast::Member {
     type HIR = Arc<hir::Member>;
 
@@ -698,23 +717,6 @@ impl ASTLowering for ast::Annotation {
             at: self.name.range().into(),
         }
         .into())
-    }
-}
-
-impl ASTLowering for ast::Declaration {
-    type HIR = hir::Declaration;
-
-    /// Lower [`ast::Declaration`] to [`hir::Declaration`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
-        Ok(match self {
-            ast::Declaration::Variable(decl) => decl.lower_to_hir_within_context(context)?.into(),
-            ast::Declaration::Type(decl) => decl.lower_to_hir_within_context(context)?.into(),
-            ast::Declaration::Function(decl) => decl.lower_to_hir_within_context(context)?.into(),
-            ast::Declaration::Trait(decl) => decl.lower_to_hir_within_context(context)?.into(),
-        })
     }
 }
 
@@ -924,70 +926,104 @@ impl ASTLowering for ast::Module {
     type Error = ErrVec<Error>;
 
     /// Lower [`ast::Module`] to [`hir::Module`] within lowering context
+    ///
+    /// # Order
+    ///
+    /// Lowering happens in 2 passes: `declaration`` and `definition`
+    ///
+    /// 1. Use statements
+    /// 2. Types
+    /// 3. Traits
+    /// 4. Functions
+    /// 5. Rest of statements
     fn lower_to_hir_within_context(
         &self,
         context: &mut impl Context,
     ) -> Result<Self::HIR, Self::Error> {
+        use ast::Declaration as D;
+        use ast::Statement as S;
+
         let mut errors = Vec::new();
 
         // Import things first
-        for stmt in &self.statements {
-            if let ast::Statement::Use(u) = stmt {
-                let res = u.lower_to_hir_within_context(context);
-                if let Err(err) = res {
-                    errors.push(err);
-                }
-            }
-        }
-
-        // Add types then
-        for stmt in &self.statements {
-            match stmt {
-                ast::Statement::Declaration(ast::Declaration::Type(ty)) => {
-                    let res = ty.declare(context);
-                    if let Err(err) = res {
-                        errors.push(err);
-                    }
-                }
-                ast::Statement::Declaration(ast::Declaration::Trait(tr)) => {
-                    let res = tr.declare(context);
-                    if let Err(err) = res {
-                        errors.push(err);
-                    }
-                }
-                _ => {}
-            }
-        }
-
-        // Declare functions, but don't define them yet
-        for stmt in &self.statements {
-            if let ast::Statement::Declaration(ast::Declaration::Function(f)) = stmt {
-                let res = f.declare(context);
-                if let Err(err) = res {
-                    errors.push(err);
-                }
-            }
-        }
-
-        // Add rest of statements
-        for stmt in self
-            .statements
+        self.statements
             .iter()
-            .filter(|s| !matches!(s, ast::Statement::Use(_)))
-        {
+            .filter(|s| matches!(s, ast::Statement::Use(_)))
+            .for_each(|stmt: &S| {
+                let res = stmt.lower_to_hir_within_context(context);
+                match res {
+                    Ok(stmt) => context.module_mut().statements.push(stmt),
+                    Err(err) => errors.push(err),
+                }
+            });
+
+        for_each_declaration_in_order(&self.statements, |stmt: &S| {
+            let decl: &D = match stmt {
+                S::Declaration(d) => d,
+                _ => return,
+            };
+
+            let res = decl.declare(context);
+            if let Err(err) = res {
+                errors.push(err);
+            }
+        });
+
+        // TODO: find a way to reuse this above
+        let mut define = |stmt: &S| {
             let res = stmt.lower_to_hir_within_context(context);
             match res {
                 Ok(stmt) => context.module_mut().statements.push(stmt),
                 Err(err) => errors.push(err),
             }
+        };
+
+        for_each_declaration_in_order(&self.statements, &mut define);
+
+        // Add rest of statements
+        self.statements
+            .iter()
+            .filter(|s| {
+                !matches!(
+                    s,
+                    S::Use(_) | S::Declaration(D::Type(_) | D::Trait(_) | D::Function(_))
+                )
+            })
+            .for_each(&mut define);
+
+        if !errors.is_empty() {
+            return Err(errors.into());
         }
 
-        if errors.is_empty() {
-            Ok(context.module().clone())
-        } else {
-            Err(errors.into())
-        }
+        Ok(context.module().clone())
     }
+}
+
+/// Run some function for each decl in order:
+/// 1. Types
+/// 2. Traits
+/// 3. Function
+fn for_each_declaration_in_order(stmts: &[ast::Statement], mut f: impl FnMut(&ast::Statement)) {
+    use ast::Declaration as D;
+    use ast::Statement as S;
+
+    // First for types
+    stmts
+        .iter()
+        .filter(|s| matches!(s, S::Declaration(D::Type(_))))
+        .for_each(&mut f);
+
+    // Then for traits
+    stmts
+        .iter()
+        .filter(|s| matches!(s, S::Declaration(D::Trait(_))))
+        .for_each(&mut f);
+
+    // Lastly for functions
+    stmts
+        .iter()
+        .filter(|s| matches!(s, S::Declaration(D::Function(_))))
+        .for_each(&mut f);
 }
 
 /// Trait to replace [`TypeReference`] with type info
@@ -1047,6 +1083,7 @@ mod tests {
     test_compilation_result!(multiple_errors);
     test_compilation_result!(multiple_initialization);
     test_compilation_result!(non_class_constructor);
+    test_compilation_result!(traits);
     test_compilation_result!(type_as_value);
     test_compilation_result!(wrong_initializer_type);
 }
