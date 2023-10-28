@@ -3,6 +3,8 @@ use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
+use log::debug;
+
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
@@ -142,12 +144,15 @@ pub struct ConvertibleToCheck {
 }
 
 impl ConvertibleToCheck {
+    // TODO: add reason
     pub fn within(&self, context: &impl Context) -> bool {
-        match (&self.from, &self.to) {
+        let res = match (&self.from, &self.to) {
             (Type::Trait(tr), Type::SelfType(s)) => {
                 Arc::ptr_eq(&tr, &s.associated_trait.upgrade().unwrap())
             }
-            // TODO: this needs context of all visible functions to check if class implements trait
+            (Type::Class(c), Type::SelfType(s)) => c
+                .implements(s.associated_trait.upgrade().unwrap())
+                .within(context),
             (Type::Class(c), Type::Trait(tr)) => c.implements(tr.clone()).within(context),
             // TODO: check for constraints
             (_, Type::Generic(_)) => true,
@@ -159,7 +164,11 @@ impl ConvertibleToCheck {
                 from.specialized.convertible_to(to.clone()).within(context)
             }
             _ => self.from == self.to,
-        }
+        };
+
+        debug!(target: "convertible", "`{}` convertible to `{}`? {res}", self.from, self.to);
+
+        res
     }
 }
 
@@ -185,11 +194,16 @@ pub struct ImplementsCheck {
 }
 
 impl ImplementsCheck {
+    // TODO: add reason
     pub fn within(&self, context: &impl Context) -> bool {
-        self.tr
-            .functions
-            .iter()
-            .all(|f| context.find_implementation(&f, &self.ty).is_some())
+        let res = self.tr.functions.iter().all(|f| {
+            context.find_implementation(&f, &self.ty).is_some()
+                || matches!(f, hir::Function::Definition(_))
+        });
+
+        debug!(target: "implements", "`{}` implements `{}`? {res}", self.ty, self.tr.name());
+
+        res
     }
 }
 
