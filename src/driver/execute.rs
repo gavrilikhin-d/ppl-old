@@ -83,29 +83,31 @@ impl Execute for Compile {
         let runtime_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/debug/deps");
         let runtime = runtime_path.to_str().unwrap();
 
+        let core_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/runtime");
+        let core = core_path.to_str().unwrap();
+
         match output_type {
             OutputType::IR => unreachable!("IR is already written"),
             OutputType::Bitcode => unreachable!("IR is already written"),
 
             OutputType::Object => clang.arg("-c"),
             OutputType::Assembler => clang.arg("-S"),
-            OutputType::StaticLibrary => {
-                clang
-                    .args(&["-c", "-fPIC"])
-                    .args(&["-L", runtime, "-lruntime"])
-            }
-            OutputType::DynamicLibrary => {
-                clang
-                    .args(&["-c", "-fPIC", "-shared"])
-                    .args(&["-L", runtime, "-lruntime"])
-            }
-            OutputType::Executable => clang.args(&["-L", runtime, "-lruntime"]),
+            OutputType::StaticLibrary => clang.args(&["-c", "-fPIC"]),
+            OutputType::DynamicLibrary => clang.args(&["-c", "-fPIC", "-shared"]),
+            OutputType::Executable => &mut clang,
         }
+        .args(&["-L", runtime, "-lruntime"])
         .arg(bitcode)
         .args(&["-o", output_file.to_str().unwrap()])
-        .arg("-Wno-override-module")
-        .status()
-        .map_err(|e| miette!("{output_file:?}: {e}"))?;
+        .arg("-Wno-override-module");
+
+        if !self.no_core {
+            clang.args(&["-L", core, "-lppl"]);
+        }
+
+        clang
+            .status()
+            .map_err(|e| miette!("{output_file:?}: {e}"))?;
 
         fs::remove_file(&bitcode).unwrap();
 
