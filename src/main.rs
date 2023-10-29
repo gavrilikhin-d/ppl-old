@@ -112,15 +112,6 @@ fn repl() {
     // TODO: env var for runtime path
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let lib_path = manifest_dir
-        .join("target/debug/deps")
-        .join("libruntime.dylib")
-        .to_str()
-        .unwrap()
-        .to_string();
-    let error = inkwell::support::load_library_permanently(&lib_path);
-    assert!(!error, "Failed to load runtime library at: {}", &lib_path);
-
-    let lib_path = manifest_dir
         .join("src/runtime")
         .join("libppl.dylib")
         .to_str()
