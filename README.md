@@ -39,10 +39,12 @@
 * [x] Types as values
 * [x] Fix `Type<None> as String`
 * [x] Multiple errors support instead of exiting on first error
+* [x] Link ppl.dylib to executable
 ---
 ### Current task
-* [ ] Link ppl.dylib to executable
 ---
+* [ ] Format strings
+* [ ] Varadic arguments functions
 * [ ] Add `Array` type
 * [ ] Allow newlines inside parentheses
 * [ ] Allow tabs before comments for members
