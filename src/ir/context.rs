@@ -172,10 +172,10 @@ impl Drop for FunctionContext<'_, '_> {
             self.builder.build_return(None);
         }
 
-        assert!(
-            self.function.verify(true),
-            "Should never produce invalid functions"
-        );
+        if !self.function.verify(true) {
+            self.function.print_to_stderr();
+            panic!("Invalid LLVM IR for function");
+        }
     }
 }
 
