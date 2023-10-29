@@ -125,3 +125,19 @@ pub extern "C" fn integer_less_integer(x: *const Integer, y: *const Integer) -> 
 
     unsafe { *x < *y }
 }
+
+/// Calculate square root of an integer with rounding
+///
+/// # PPL
+/// ```no_run
+/// fn sqrt <:Integer> -> Integer
+/// ```
+#[no_mangle]
+pub extern "C" fn sqrt_integer(i: *const Integer) -> *mut Integer {
+    debug_assert!(!i.is_null());
+
+    let i = unsafe { &*i };
+
+    let boxed = Box::new(i.clone().root(2));
+    Box::into_raw(boxed)
+}
