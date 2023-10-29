@@ -91,6 +91,26 @@ pub mod commands {
                     }
                 }
             }
+
+            /// File prefix associated with this output file
+            ///
+            /// `Some("lib")` for [`DynamicLibrary`](OutputType::DynamicLibrary) and [`StaticLibrary`](OutputType::StaticLibrary);
+            /// `None`, otherwise
+            pub fn file_prefix(&self) -> Option<&'static str> {
+                match self {
+                    Self::StaticLibrary | Self::DynamicLibrary => Some("lib"),
+                    _ => None,
+                }
+            }
+
+            /// Get name of output file with correct prefix and extension
+            pub fn named(&self, name: &str) -> String {
+                format!(
+                    "{prefix}{name}.{ext}",
+                    prefix = self.file_prefix().unwrap_or(""),
+                    ext = self.extension()
+                )
+            }
         }
 
         impl FromStr for OutputType {
