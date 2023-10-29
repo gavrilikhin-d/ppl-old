@@ -102,7 +102,7 @@ impl Execute for Compile {
             OutputType::Object => clang.arg("-c"),
             OutputType::Assembler => clang.arg("-S"),
             OutputType::StaticLibrary => clang.args(&["-c", "-fPIC"]),
-            OutputType::DynamicLibrary => clang.args(&["-c", "-fPIC", "-shared"]),
+            OutputType::DynamicLibrary => clang.arg("-dynamiclib"),
             OutputType::Executable => &mut clang,
         }
         .args(&["-L", runtime, "-lruntime"])
