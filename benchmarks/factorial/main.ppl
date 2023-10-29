@@ -1,0 +1,10 @@
+/// Calculate factorial of a number
+fn <n: Integer> ! -> Integer:
+	let mut res = 1
+	let mut i = 2
+	while i <= n:
+		res = res * i
+		i = i + 1
+	return res
+
+print 5!
