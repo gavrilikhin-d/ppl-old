@@ -1,4 +1,4 @@
-use rug::{Integer, Rational};
+use rug::{ops::Pow, Integer, Rational};
 
 /// Construct [`Integer`](ppl::semantics::Type::Integer) from i64
 #[no_mangle]
@@ -124,4 +124,41 @@ pub extern "C" fn integer_less_integer(x: *const Integer, y: *const Integer) -> 
     debug_assert!(!y.is_null());
 
     unsafe { *x < *y }
+}
+
+/// Calculate square root of an integer with rounding
+///
+/// # PPL
+/// ```no_run
+/// fn sqrt <:Integer> -> Integer
+/// ```
+#[no_mangle]
+pub extern "C" fn sqrt_integer(i: *const Integer) -> *mut Integer {
+    debug_assert!(!i.is_null());
+
+    let i = unsafe { &*i };
+
+    let boxed = Box::new(i.clone().root(2));
+    Box::into_raw(boxed)
+}
+
+/// Calculate `x` in `n`th power
+///
+/// # PPL
+/// ```no_run
+/// fn <x: Integer> ^ <n: Integer> -> Integer
+/// ```
+#[no_mangle]
+pub extern "C" fn integer_power_integer(x: *const Integer, n: *const Integer) -> *mut Integer {
+    debug_assert!(!x.is_null());
+    debug_assert!(!n.is_null());
+
+    let x = unsafe { &*x };
+    let n = unsafe { &*n };
+
+    // TODO: support other powers
+    let res: Integer = x.pow(n.to_u32().unwrap()).into();
+
+    let boxed = Box::new(res);
+    Box::into_raw(boxed)
 }

@@ -9,6 +9,7 @@ use inkwell::OptimizationLevel;
 use log::debug;
 use miette::NamedSource;
 use ppl::compilation::Compiler;
+use ppl::driver::commands::compile::OutputType;
 use ppl::driver::{self, Execute};
 use ppl::hir::{self, Type, Typed};
 use ppl::ir::GlobalHIRLowering;
@@ -113,12 +114,12 @@ fn repl() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let lib_path = manifest_dir
         .join("target/debug/deps")
-        .join("libruntime.dylib")
+        .join(OutputType::DynamicLibrary.named("ppl"))
         .to_str()
         .unwrap()
         .to_string();
     let error = inkwell::support::load_library_permanently(&lib_path);
-    assert!(!error, "Failed to load runtime library at: {}", &lib_path);
+    assert!(!error, "Failed to load core library at: {}", &lib_path);
 
     let prompt = Cell::new(Some(">>> "));
     let get_line = || -> String {

@@ -20,7 +20,8 @@ fn operator(lexer: &mut Lexer<Token>) -> OperatorKind {
     }
 
     let before = lexer.source().chars().nth(lexer.span().start - 1).unwrap();
-    let after = lexer.source().chars().nth(lexer.span().end).unwrap();
+    // If we reach eof, we assume that it is a whitespace
+    let after = lexer.source().chars().nth(lexer.span().end).unwrap_or(' ');
     if before.is_whitespace() == after.is_whitespace() {
         OperatorKind::Infix
     } else if after.is_whitespace() {

@@ -56,10 +56,10 @@ impl Execute for Compile {
                 OutputType::DynamicLibrary
             }
         });
-        let output_file = self
-            .output_dir
-            .join(self.file.file_stem().unwrap())
-            .with_extension(output_type.extension());
+
+        let filename = output_type.named(name);
+
+        let output_file = self.output_dir.join(&filename);
 
         if output_type == OutputType::IR {
             fs::write(&output_file, ir.to_string()).map_err(|e| miette!("{output_file:?}: {e}"))?;
@@ -68,10 +68,7 @@ impl Execute for Compile {
 
         let temp_dir = TempDir::new("ppl").unwrap();
 
-        let bitcode = temp_dir
-            .path()
-            .join(self.file.file_stem().unwrap())
-            .with_extension("bc");
+        let bitcode = temp_dir.path().join(filename).with_extension("bc");
         ir.write_bitcode_to_path(&bitcode);
         if output_type == OutputType::Bitcode {
             std::fs::copy(bitcode, output_file.with_extension("bc")).unwrap();
@@ -80,8 +77,8 @@ impl Execute for Compile {
         let bitcode = bitcode.to_str().unwrap();
 
         let mut clang = std::process::Command::new("clang");
-        let runtime_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/debug/deps");
-        let runtime = runtime_path.to_str().unwrap();
+        let lib_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/debug/deps");
+        let lib = lib_path.to_str().unwrap();
 
         match output_type {
             OutputType::IR => unreachable!("IR is already written"),
@@ -89,25 +86,21 @@ impl Execute for Compile {
 
             OutputType::Object => clang.arg("-c"),
             OutputType::Assembler => clang.arg("-S"),
-            OutputType::StaticLibrary => {
-                clang
-                    .args(&["-c", "-fPIC"])
-                    .args(&["-L", runtime, "-lruntime"])
-            }
-            OutputType::DynamicLibrary => {
-                clang
-                    .args(&["-c", "-fPIC", "-shared"])
-                    .args(&["-L", runtime, "-lruntime"])
-            }
-            OutputType::Executable => clang.args(&["-L", runtime, "-lruntime"]),
+            OutputType::StaticLibrary => clang.args(&["-c", "-fPIC"]),
+            OutputType::DynamicLibrary => clang.arg("-dynamiclib"),
+            OutputType::Executable => &mut clang,
         }
+        .args(&[
+            "-L",
+            lib,
+            "-lruntime",
+            if !self.no_core { "-lppl" } else { "" },
+        ])
         .arg(bitcode)
         .args(&["-o", output_file.to_str().unwrap()])
         .arg("-Wno-override-module")
         .status()
         .map_err(|e| miette!("{output_file:?}: {e}"))?;
-
-        fs::remove_file(&bitcode).unwrap();
 
         Ok(())
     }

@@ -1,0 +1,15 @@
+print "Solutions to n! + 1 = x^2\n"
+
+let limit = 10000
+let mut n = 1
+while n <= limit:
+	let x = n! + 1
+	let root = sqrt x
+	if root ^ 2 == x:
+		print "n = "
+		print n
+		print ", "
+		print "x = "
+		print root
+		print "\n"
+	n = n + 1

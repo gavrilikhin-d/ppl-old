@@ -95,6 +95,23 @@ fn <:Integer> * <:Integer> -> Integer
 @mangle_as("integer_slash_integer")
 fn <:Integer> / <:Integer> -> Rational
 
+/// Calculate factorial of a number
+fn <n: Integer> ! -> Integer:
+	let mut res = 1
+	let mut i = 2
+	while i <= n:
+		res = res * i
+		i = i + 1
+	return res
+
+/// Calculate square root of an integer with rounding
+@mangle_as("sqrt_integer")
+fn sqrt <:Integer> -> Integer
+
+/// Calculate `x` in `n`th power
+@mangle_as("integer_power_integer")
+fn <x: Integer> ^ <n: Integer> -> Integer
+
 /// Convert `Integer` to `String`
 @mangle_as("integer_as_string")
 fn <:Integer> as String -> String
@@ -139,6 +156,10 @@ fn <:Rational> as String -> String
 //=================================
 @builtin
 type String
+
+/// Concatenate 2 strings
+@mangle_as("string_plus_string")
+fn <:String> + <:String> -> String
 
 /// Prints string to stdout with newline
 @mangle_as("print_string")

@@ -10,6 +10,24 @@ pub extern "C" fn string_from_c_string_and_length(str: *const i8, _len: u64) -> 
     Box::into_raw(boxed)
 }
 
+/// Concatenate 2 string
+///
+/// # PPL
+/// ```no_run
+/// fn <:String> + <:String> -> None
+/// ```
+#[no_mangle]
+pub extern "C" fn string_plus_string(a: *const String, b: *const String) -> *mut String {
+    debug_assert!(!a.is_null());
+    debug_assert!(!b.is_null());
+
+    let a = unsafe { &*a };
+    let b = unsafe { &*b };
+
+    let boxed = Box::new(format!("{a}{b}"));
+    Box::into_raw(boxed)
+}
+
 /// Prints none value
 ///
 /// Runtime for builtin ppl's function:

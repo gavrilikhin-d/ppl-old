@@ -75,6 +75,10 @@ impl Default for PrecedenceGroups {
                     name: "MultiplicationPrecedence".to_string(),
                     associativity: Associativity::Left,
                 },
+                PrecedenceGroup {
+                    name: "PowerPrecedence".to_string(),
+                    associativity: Associativity::Right,
+                },
             ],
             operators_mapping: vec![
                 ("==".to_string(), 1),
@@ -87,6 +91,7 @@ impl Default for PrecedenceGroups {
                 ("-".to_string(), 2),
                 ("*".to_string(), 3),
                 ("/".to_string(), 3),
+                ("^".to_string(), 4),
             ]
             .into_iter()
             .collect(),
