@@ -56,9 +56,21 @@ impl Execute for Compile {
                 OutputType::DynamicLibrary
             }
         });
+
+        let file_stem = self.file.file_stem().unwrap().to_string_lossy();
+        let lib_prefix = if matches!(
+            output_type,
+            OutputType::StaticLibrary | OutputType::DynamicLibrary
+        ) {
+            "lib"
+        } else {
+            ""
+        };
+        let file_stem = format!("{lib_prefix}{file_stem}");
+
         let output_file = self
             .output_dir
-            .join(self.file.file_stem().unwrap())
+            .join(&file_stem)
             .with_extension(output_type.extension());
 
         if output_type == OutputType::IR {
@@ -68,10 +80,7 @@ impl Execute for Compile {
 
         let temp_dir = TempDir::new("ppl").unwrap();
 
-        let bitcode = temp_dir
-            .path()
-            .join(self.file.file_stem().unwrap())
-            .with_extension("bc");
+        let bitcode = temp_dir.path().join(file_stem).with_extension("bc");
         ir.write_bitcode_to_path(&bitcode);
         if output_type == OutputType::Bitcode {
             std::fs::copy(bitcode, output_file.with_extension("bc")).unwrap();
