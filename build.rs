@@ -35,7 +35,7 @@ fn compile_builtin_module() -> Result<(), Error> {
             "--emit",
             "dynamic-library",
             "--output-dir",
-            "src/runtime",
+            "target/debug/deps",
             "--no-core",
         ])
         .status()?;

@@ -9,6 +9,7 @@ use inkwell::OptimizationLevel;
 use log::debug;
 use miette::NamedSource;
 use ppl::compilation::Compiler;
+use ppl::driver::commands::compile::OutputType;
 use ppl::driver::{self, Execute};
 use ppl::hir::{self, Type, Typed};
 use ppl::ir::GlobalHIRLowering;
@@ -112,8 +113,8 @@ fn repl() {
     // TODO: env var for runtime path
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let lib_path = manifest_dir
-        .join("src/runtime")
-        .join("libppl.dylib")
+        .join("target/debug/deps")
+        .join(OutputType::DynamicLibrary.named("ppl"))
         .to_str()
         .unwrap()
         .to_string();

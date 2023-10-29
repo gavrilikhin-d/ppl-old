@@ -57,21 +57,9 @@ impl Execute for Compile {
             }
         });
 
-        let file_stem = self.file.file_stem().unwrap().to_string_lossy();
-        let lib_prefix = if matches!(
-            output_type,
-            OutputType::StaticLibrary | OutputType::DynamicLibrary
-        ) {
-            "lib"
-        } else {
-            ""
-        };
-        let file_stem = format!("{lib_prefix}{file_stem}");
+        let filename = output_type.named(name);
 
-        let output_file = self
-            .output_dir
-            .join(&file_stem)
-            .with_extension(output_type.extension());
+        let output_file = self.output_dir.join(&filename);
 
         if output_type == OutputType::IR {
             fs::write(&output_file, ir.to_string()).map_err(|e| miette!("{output_file:?}: {e}"))?;
@@ -80,7 +68,7 @@ impl Execute for Compile {
 
         let temp_dir = TempDir::new("ppl").unwrap();
 
-        let bitcode = temp_dir.path().join(file_stem).with_extension("bc");
+        let bitcode = temp_dir.path().join(filename).with_extension("bc");
         ir.write_bitcode_to_path(&bitcode);
         if output_type == OutputType::Bitcode {
             std::fs::copy(bitcode, output_file.with_extension("bc")).unwrap();
@@ -89,11 +77,8 @@ impl Execute for Compile {
         let bitcode = bitcode.to_str().unwrap();
 
         let mut clang = std::process::Command::new("clang");
-        let runtime_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/debug/deps");
-        let runtime = runtime_path.to_str().unwrap();
-
-        let core_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/runtime");
-        let core = core_path.to_str().unwrap();
+        let lib_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/debug/deps");
+        let lib = lib_path.to_str().unwrap();
 
         match output_type {
             OutputType::IR => unreachable!("IR is already written"),
@@ -105,20 +90,17 @@ impl Execute for Compile {
             OutputType::DynamicLibrary => clang.arg("-dynamiclib"),
             OutputType::Executable => &mut clang,
         }
-        .args(&["-L", runtime, "-lruntime"])
+        .args(&[
+            "-L",
+            lib,
+            "-lruntime",
+            if !self.no_core { "-lppl" } else { "" },
+        ])
         .arg(bitcode)
         .args(&["-o", output_file.to_str().unwrap()])
-        .arg("-Wno-override-module");
-
-        if !self.no_core {
-            clang.args(&["-L", core, "-lppl"]);
-        }
-
-        clang
-            .status()
-            .map_err(|e| miette!("{output_file:?}: {e}"))?;
-
-        fs::remove_file(&bitcode).unwrap();
+        .arg("-Wno-override-module")
+        .status()
+        .map_err(|e| miette!("{output_file:?}: {e}"))?;
 
         Ok(())
     }
