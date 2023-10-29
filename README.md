@@ -42,6 +42,7 @@
 * [x] Link ppl.dylib to executable
 ---
 ### Current task
+* [ ] Fix IR generation for complex while loops (benchmarks/factorial/main.ppl)
 ---
 * [ ] Format strings
 * [ ] Varadic arguments functions
