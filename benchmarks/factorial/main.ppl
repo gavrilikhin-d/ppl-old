@@ -1,10 +1,15 @@
-/// Calculate factorial of a number
-fn <n: Integer> ! -> Integer:
-	let mut res = 1
-	let mut i = 2
-	while i <= n:
-		res = res * i
-		i = i + 1
-	return res
+print "Solutions to n! + 1 = x^2\n"
 
-print 5!
+let limit = 10000
+let mut n = 1
+while n <= limit:
+	let x = n! + 1
+	let root = sqrt x
+	if root ^ 2 == x:
+		print "n = "
+		print n
+		print ", "
+		print "x = "
+		print root
+		print "\n"
+	n = n + 1
