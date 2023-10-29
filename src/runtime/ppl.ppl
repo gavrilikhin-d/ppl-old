@@ -108,6 +108,10 @@ fn <n: Integer> ! -> Integer:
 @mangle_as("sqrt_integer")
 fn sqrt <:Integer> -> Integer
 
+/// Calculate `x` in `n`th power
+@mangle_as("integer_power_integer")
+fn <x: Integer> ^ <n: Integer> -> Integer
+
 /// Convert `Integer` to `String`
 @mangle_as("integer_as_string")
 fn <:Integer> as String -> String
