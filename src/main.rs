@@ -120,6 +120,15 @@ fn repl() {
     let error = inkwell::support::load_library_permanently(&lib_path);
     assert!(!error, "Failed to load runtime library at: {}", &lib_path);
 
+    let lib_path = manifest_dir
+        .join("src/runtime")
+        .join("libppl.dylib")
+        .to_str()
+        .unwrap()
+        .to_string();
+    let error = inkwell::support::load_library_permanently(&lib_path);
+    assert!(!error, "Failed to load core library at: {}", &lib_path);
+
     let prompt = Cell::new(Some(">>> "));
     let get_line = || -> String {
         let mut content = String::new();
