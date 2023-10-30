@@ -40,9 +40,10 @@
 * [x] Fix `Type<None> as String`
 * [x] Multiple errors support instead of exiting on first error
 * [x] Link ppl.dylib to executable
+* [x] Fix IR generation for complex while loops (benchmarks/factorial/main.ppl)
+* [x] Run initializer for global variables (`global_ctor` or add to main)
 ---
 ### Current task
-* [ ] Fix IR generation for complex while loops (benchmarks/factorial/main.ppl)
 ---
 * [ ] Format strings
 * [ ] Varadic arguments functions

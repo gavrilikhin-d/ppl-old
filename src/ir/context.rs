@@ -152,7 +152,10 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
         for stmt in statements {
             stmt.lower_local_to_ir(self);
         }
-        if block.get_terminator().is_none() && jump_to.is_some() {
+
+        let last_block = self.function.get_last_basic_block().unwrap();
+        if last_block.get_terminator().is_none() && jump_to.is_some() {
+            self.builder.position_at_end(last_block);
             self.builder.build_unconditional_branch(jump_to.unwrap());
         }
         self.builder.position_at_end(entry);

@@ -17,7 +17,7 @@ Error:   × Integer
  87 │ fn <:Integer> + <:Integer> -> Integer
     ·     ▲
     ·     ╰── this has `Integer` type
- 88 │
+ 88 │ 
     ╰────
 Error:   × Rational
    ╭─[candidate_not_viable.ppl:1:1]
@@ -28,17 +28,33 @@ Error:   × Rational
 Advice:   ☞ candidate is not viable: expected `Rational` type, got `Integer`
 
 Error:   × Rational
-     ╭─[ppl.ppl:130:19]
- 129 │ @mangle_as("rational_plus_rational")
- 130 │ fn <:Rational> + <:Rational> -> Rational
+     ╭─[ppl.ppl:138:19]
+ 137 │ @mangle_as("rational_plus_rational")
+ 138 │ fn <:Rational> + <:Rational> -> Rational
      ·                   ▲
      ·                   ╰── this has `Rational` type
- 131 │
+ 139 │ 
      ╰────
 Error:   × Integer
    ╭─[candidate_not_viable.ppl:1:7]
  1 │ 0.1 + 2
    ·       ┬
    ·       ╰── this has `Integer` type
+   ╰────
+Advice:   ☞ candidate is not viable: expected `String` type, got `Rational`
+
+Error:   × String
+     ╭─[ppl.ppl:162:5]
+ 161 │ @mangle_as("string_plus_string")
+ 162 │ fn <:String> + <:String> -> String
+     ·     ▲
+     ·     ╰── this has `String` type
+ 163 │ 
+     ╰────
+Error:   × Rational
+   ╭─[candidate_not_viable.ppl:1:1]
+ 1 │ 0.1 + 2
+   · ─┬─
+   ·  ╰── this has `Rational` type
    ╰────
 
