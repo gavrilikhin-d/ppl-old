@@ -3,6 +3,8 @@ use std::sync::Arc;
 use inkwell::types::BasicMetadataTypeEnum;
 
 use inkwell::values::BasicMetadataValueEnum;
+use log::debug;
+use log::log_enabled;
 
 use super::inkwell::*;
 use crate::hir::*;
@@ -914,6 +916,10 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         drop(fn_context);
 
         if main_is_empty {
+            debug!(target: "ir", "Deleting main, because it's empty");
+            if log_enabled!(target: "ir", Debug) {
+                main.print_to_stderr();
+            }
             unsafe { main.delete() };
         }
 
