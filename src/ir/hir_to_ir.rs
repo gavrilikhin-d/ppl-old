@@ -907,12 +907,9 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
             statement.lower_local_to_ir(&mut fn_context);
         }
 
-        let main_is_empty = fn_context
-            .builder
-            .get_insert_block()
-            .map(|b| b.get_last_instruction())
-            .flatten()
-            .is_none();
+        let blocks = main.get_basic_blocks();
+        let main_is_empty = blocks.is_empty()
+            || blocks.len() == 1 && blocks.last().unwrap().get_last_instruction().is_none();
 
         drop(fn_context);
 
