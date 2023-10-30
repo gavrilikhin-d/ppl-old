@@ -3,8 +3,7 @@ use std::sync::Arc;
 use inkwell::types::BasicMetadataTypeEnum;
 
 use inkwell::values::BasicMetadataValueEnum;
-use log::debug;
-use log::log_enabled;
+use log::{debug, log_enabled, Level::Debug};
 
 use super::inkwell::*;
 use crate::hir::*;
@@ -912,6 +911,34 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         let blocks = main.get_basic_blocks();
         let main_is_empty = blocks.is_empty()
             || blocks.len() == 1 && blocks.last().unwrap().get_last_instruction().is_none();
+
+        if !main_is_empty && let Some(init) = fn_context.module_context.module.get_function("initialize") {
+            let past_last_index = (1..)
+                .find(|i| {
+                    fn_context.module_context.module
+                        .get_function(&format!("initialize.{i}"))
+                        .is_none()
+                })
+                .unwrap();
+            let inits = std::iter::once(init)
+                .chain((1..past_last_index).into_iter().map(|i| {
+                    fn_context.module_context.module
+                        .get_function(&format!("initialize.{i}"))
+                        .unwrap()
+                }));
+
+            let first_block = main.get_first_basic_block().unwrap();
+            let init_block = fn_context.llvm().prepend_basic_block(first_block, "init_globals");
+            fn_context.builder.position_at_end(init_block);
+
+            for init in inits {
+                fn_context.builder.build_call(init, &[], "");
+            }
+            fn_context.builder.build_unconditional_branch(first_block);
+
+            let last_block = main.get_last_basic_block().unwrap();
+            fn_context.builder.position_at_end(last_block);
+        }
 
         drop(fn_context);
 
