@@ -155,6 +155,9 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Arc<VariableDeclaration> {
         }
         let global = global.unwrap();
 
+        // TODO: check that we can initialize without function
+        global.set_constant(false);
+
         global.set_initializer(
             &self
                 .ty()
