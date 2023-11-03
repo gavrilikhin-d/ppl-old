@@ -11,57 +11,29 @@ use crate::hir;
 pub struct Scope {
     /// Parameters of the scope
     pub parameters: Vec<Weak<Variable>>,
-    /// Entry block
-    pub entry: Arc<Block>,
+    /// Assignments to variables in order of execution
+    ///
+    /// # Note
+    /// Each assignment creates a new variable.
+    /// All variables are immutable
+    ///
+    /// # Return value
+    /// Last assignment is the return value
+    pub variables: Vec<Arc<Variable>>,
 }
 
-/// Block is a sequence of assignments,
-/// followed by a branch to another block or out of scope
+/// Switch between two values depending on a condition.
+///
+/// # Note
+/// Values must have the same type
 #[derive(Debug, Clone)]
-pub struct Block {
-    /// Assignments in order of execution
-    /// Each assignment creates a new variable
-    pub assignments: Vec<Arc<Variable>>,
-    /// Branch to another block or out of scope
-    pub branch: Branch,
-}
-
-/// Branch instruction that connect blocks
-#[derive(Debug, Clone, From, TryInto)]
-pub enum Branch {
-    /// Return from the scope
-    Return(Return),
-    /// Go to another branch
-    GoTo(GoTo),
-    /// Switch between two branches by condition
-    GoToSwitch(GoToSwitch),
-}
-
-/// Return from a scope
-#[derive(Debug, Clone)]
-pub struct Return {
-    /// Value to return
-    pub value: Option<Weak<Variable>>,
-}
-
-/// Unconditionally go to another block
-#[derive(Debug, Clone, From, TryInto)]
-pub enum GoTo {
-    /// Go to a new block
-    Forward(Arc<Block>),
-    /// Go to one of the previous blocks
-    Backward(Weak<Block>),
-}
-
-/// Go to one of two blocks by condition
-#[derive(Debug, Clone)]
-pub struct GoToSwitch {
+pub struct Switch {
     /// Condition to switch
     pub condition: Weak<Variable>,
-    /// Block to go if condition is true
-    pub on_true: GoTo,
-    /// Block to go if condition is false
-    pub on_false: GoTo,
+    /// Expression to assign if condition is true
+    pub on_true: Expression,
+    /// Expression to assign if condition is false
+    pub on_false: Expression,
 }
 
 /// Variable is a named value
@@ -81,17 +53,31 @@ pub enum Expression {
     Literal(hir::Literal),
     /// Reference to a variable
     Reference(Weak<Variable>),
-    /// Call to a function
+    /// Call to a function or a scope
     Call(Call),
-    /// Call to a scope
-    Scope(Scope),
+    /// Switch between two values depending on a condition.
+    ///
+    /// # Note
+    /// Values must have the same type
+    Switch(Box<Switch>),
 }
 
-/// Call to a function
+/// Call to a function or a call
 #[derive(Debug, Clone)]
 pub struct Call {
-    /// Function to call
-    pub function: String,
+    /// Called entity
+    pub callee: Callee,
     /// Arguments to pass to the function
     pub arguments: Vec<Weak<Variable>>,
+}
+
+/// Called entity
+#[derive(Debug, Clone, From, TryInto)]
+pub enum Callee {
+    /// Call to function
+    Function(String),
+    /// Call to child scope
+    Scope(Arc<Scope>),
+    /// Call to the parent scope
+    RecursiveScope(Weak<Scope>),
 }
