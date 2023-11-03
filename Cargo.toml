@@ -29,6 +29,3 @@ clap = { version = "4.4.4", features = ["derive"] }
 clap_complete = "4.4.1"
 clap_complete_fig = "4.4.1"
 derive_more = "0.99.17"
-
-[profile.dev]
-rpath = true
