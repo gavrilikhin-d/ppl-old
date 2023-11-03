@@ -115,6 +115,9 @@ fn <x: Integer> ^ <n: Integer> -> Integer
 /// Convert `Integer` to `String`
 @mangle_as("integer_as_string")
 fn <:Integer> as String -> String
+
+@mangle_as("drop_integer")
+fn drop <:Integer>
 //---------------------------------
 
 //=================================

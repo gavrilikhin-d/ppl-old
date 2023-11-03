@@ -162,3 +162,17 @@ pub extern "C" fn integer_power_integer(x: *const Integer, n: *const Integer) ->
     let boxed = Box::new(res);
     Box::into_raw(boxed)
 }
+
+/// Free resources allocated for `Integer`.
+/// Called automatically at the end of variable scope
+///
+/// # PPL
+/// ```no_run
+/// fn drop <:Integer>
+/// ```
+#[no_mangle]
+pub extern "C" fn drop_integer(i: *mut Integer) {
+    debug_assert!(!i.is_null());
+
+    unsafe { drop(Box::from_raw(i)) };
+}
