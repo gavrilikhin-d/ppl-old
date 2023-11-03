@@ -15,6 +15,8 @@ pub mod syntax;
 pub mod hir;
 pub mod semantics;
 
+pub mod mir;
+
 pub mod ir;
 
 pub mod compilation;
