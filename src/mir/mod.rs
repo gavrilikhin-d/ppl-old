@@ -5,6 +5,9 @@ use derive_more::{DebugCustom, Display, From, TryInto};
 
 use crate::hir;
 
+mod hir_to_mir;
+pub use hir_to_mir::*;
+
 /// Scope is a set of parameters and a block tree
 ///
 /// Program is a single directional graph of scopes
