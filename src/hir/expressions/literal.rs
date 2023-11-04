@@ -1,9 +1,11 @@
+use std::fmt::{self, Debug, Display, Formatter};
+
 use crate::hir::{Type, Typed};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 
 /// AST for compile time known values
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum Literal {
     /// None literal
     None { offset: usize, ty: Type },
@@ -31,6 +33,24 @@ pub enum Literal {
         value: String,
         ty: Type,
     },
+}
+
+impl Display for Literal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Debug::fmt(&self, f)
+    }
+}
+
+impl Debug for Literal {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Literal::None { .. } => write!(f, "none"),
+            Literal::Bool { value, .. } => write!(f, "{}", value),
+            Literal::Integer { value, .. } => write!(f, "{}", value),
+            Literal::Rational { value, .. } => write!(f, "{}", value),
+            Literal::String { value, .. } => write!(f, "{:?}", value),
+        }
+    }
 }
 
 impl Ranged for Literal {

@@ -68,7 +68,7 @@ pub struct TypeWithSpan {
     /// Type to show
     pub ty: Type,
 
-    /// Span of expected type
+    /// Span of the thing with this type
     #[label("this has `{ty}` type")]
     pub at: SourceSpan,
 
