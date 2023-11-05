@@ -222,6 +222,24 @@ impl Type {
         }
     }
 
+    /// Get this type without reference
+    pub fn without_ref(&self) -> Type {
+        if !self.is_reference() {
+            return self.clone();
+        }
+
+        self.generics()[0].clone()
+    }
+
+    /// Get generic parameters of type
+    pub fn generics(&self) -> &[Type] {
+        match self {
+            Type::Class(c) => c.generics(),
+            Type::Specialized(s) => &s.specialized.generics(),
+            _ => &[],
+        }
+    }
+
     /// Get members of type
     pub fn members(&self) -> &[Arc<Member>] {
         match self {
@@ -241,7 +259,7 @@ impl Type {
 
     /// Is this a builtin type?
     pub fn is_builtin(&self) -> bool {
-        match self {
+        match self.without_ref() {
             Type::Class(c) => c.is_builtin(),
             _ => false,
         }
@@ -249,7 +267,7 @@ impl Type {
 
     /// Is this a builtin "None" type?
     pub fn is_none(&self) -> bool {
-        match self {
+        match self.without_ref() {
             Type::Class(c) => c.is_none(),
             _ => false,
         }
@@ -257,7 +275,7 @@ impl Type {
 
     /// Is this a builtin "Bool" type?
     pub fn is_bool(&self) -> bool {
-        match self {
+        match self.without_ref() {
             Type::Class(c) => c.is_bool(),
             _ => false,
         }
@@ -265,7 +283,7 @@ impl Type {
 
     /// Is this a builtin "Integer" type?
     pub fn is_integer(&self) -> bool {
-        match self {
+        match self.without_ref() {
             Type::Class(c) => c.is_integer(),
             _ => false,
         }
@@ -273,8 +291,16 @@ impl Type {
 
     /// Is this a builtin "String" type?
     pub fn is_string(&self) -> bool {
-        match self {
+        match self.without_ref() {
             Type::Class(c) => c.is_string(),
+            _ => false,
+        }
+    }
+
+    /// Is this a builtin `Reference` type?
+    pub fn is_reference(&self) -> bool {
+        match self.specialized() {
+            Type::Class(c) => c.is_reference(),
             _ => false,
         }
     }
@@ -290,7 +316,8 @@ impl Type {
     pub fn size_in_bytes(&self) -> usize {
         match self.specialized() {
             Type::Class(c) => c.size_in_bytes(),
-            _ => 1,
+            // TODO: implement size for other types
+            _ => 0,
         }
     }
 }

@@ -504,7 +504,15 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
         let arguments = self
             .args
             .iter()
-            .filter_map(|arg| arg.lower_to_ir(context).map(|x| x.into()))
+            .zip(self.function.parameters().map(|p| p.ty()))
+            .filter_map(|(arg, p)| {
+                if !p.is_reference() {
+                    arg.lower_to_ir(context)
+                } else {
+                    arg.lower_to_ir_without_load(context)
+                }
+                .map(|x| x.into())
+            })
             .collect::<Vec<BasicMetadataValueEnum>>();
 
         context.builder.build_call(function, &arguments, "")

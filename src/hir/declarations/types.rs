@@ -1,4 +1,4 @@
-use std::{borrow::Cow, fmt::Display, sync::Arc};
+use std::{borrow::Cow, fmt::Display, str::FromStr, sync::Arc};
 
 use crate::{
     hir::{Generic, GenericName, Specialize, Type, Typed},
@@ -44,6 +44,49 @@ impl Typed for Member {
     }
 }
 
+/// Size of pointer in bytes
+const POINTER_SIZE: usize = 8;
+
+/// Enum of all builtin classes
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum BuiltinClass {
+    None,
+    Bool,
+    Integer,
+    Rational,
+    String,
+    Reference,
+}
+
+impl BuiltinClass {
+    /// Get size in bytes for this type
+    pub fn size_in_bytes(&self) -> usize {
+        use BuiltinClass::*;
+        match self {
+            None => 0,
+            Bool => 1,
+            Integer | Rational | String | Reference => POINTER_SIZE,
+        }
+    }
+}
+
+impl FromStr for BuiltinClass {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use BuiltinClass::*;
+        Ok(match s {
+            "None" => None,
+            "Bool" => Bool,
+            "Integer" => Integer,
+            "Rational" => Rational,
+            "String" => String,
+            "Reference" => Reference,
+            _ => return Err(format!("Invalid builtin type `{s}`")),
+        })
+    }
+}
+
 /// Declaration of a type
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct TypeDeclaration {
@@ -51,8 +94,8 @@ pub struct TypeDeclaration {
     pub name: StringWithOffset,
     /// Generic parameters of type
     pub generic_parameters: Vec<Type>,
-    /// Is this type from builtin module?
-    pub is_builtin: bool,
+    /// Kind of a builtin type, if it is a builtin class
+    pub builtin: Option<BuiltinClass>,
     /// Members of type
     pub members: Vec<Arc<Member>>,
 }
@@ -63,34 +106,44 @@ impl TypeDeclaration {
         self.members.as_slice()
     }
 
+    /// Get generic parameters of a type
+    pub fn generics(&self) -> &[Type] {
+        self.generic_parameters.as_slice()
+    }
+
     /// Is this a builtin type?
     pub fn is_builtin(&self) -> bool {
-        self.is_builtin
+        self.builtin.is_some()
     }
 
     /// Is this a builtin "None" type?
     pub fn is_none(&self) -> bool {
-        self.is_builtin && self.name == "None"
+        self.builtin == Some(BuiltinClass::None)
     }
 
     /// Is this a builtin "Bool" type?
     pub fn is_bool(&self) -> bool {
-        self.is_builtin && self.name == "Bool"
+        self.builtin == Some(BuiltinClass::Bool)
     }
 
     /// Is this a builtin "Integer" type?
     pub fn is_integer(&self) -> bool {
-        self.is_builtin && self.name == "Integer"
+        self.builtin == Some(BuiltinClass::Integer)
     }
 
     /// Is this a builtin "Rational" type?
     pub fn is_rational(&self) -> bool {
-        self.is_builtin && self.name == "Rational"
+        self.builtin == Some(BuiltinClass::Rational)
     }
 
     /// Is this a builtin "String" type?
     pub fn is_string(&self) -> bool {
-        self.is_builtin && self.name == "String"
+        self.builtin == Some(BuiltinClass::String)
+    }
+
+    /// Is this a builtin `Reference` type?
+    pub fn is_reference(&self) -> bool {
+        self.builtin == Some(BuiltinClass::Reference)
     }
 
     /// Is this an opaque type?
@@ -98,24 +151,14 @@ impl TypeDeclaration {
         self.members.is_empty()
     }
 
-    /// Size of pointer in bytes
-    const POINTER_SIZE: usize = 8;
-
     /// Get size in bytes for this type
     pub fn size_in_bytes(&self) -> usize {
-        if self.is_builtin() {
-            return match self.name.as_str() {
-                "None" => 0,
-                "Bool" => 1,
-                "Integer" => Self::POINTER_SIZE,
-                "Rational" => Self::POINTER_SIZE,
-                "String" => Self::POINTER_SIZE,
-                ty => unreachable!("forgot to handle `{ty}` builtin type"),
-            };
+        if let Some(builtin) = &self.builtin {
+            return builtin.size_in_bytes();
         }
 
         if self.is_opaque() {
-            return Self::POINTER_SIZE;
+            return POINTER_SIZE;
         }
 
         self.members
@@ -218,7 +261,7 @@ mod tests {
             TypeDeclaration {
                 name: StringWithOffset::from("x").at(5),
                 generic_parameters: vec![],
-                is_builtin: false,
+                builtin: None,
                 members: vec![],
             }
         );
@@ -240,7 +283,7 @@ mod tests {
                     name: StringWithOffset::from("U").at(11),
                 }
                 .into()],
-                is_builtin: false,
+                builtin: None,
                 members: vec![Arc::new(Member {
                     name: StringWithOffset::from("x").at(16),
                     ty: GenericType {
@@ -276,7 +319,7 @@ mod tests {
             TypeDeclaration {
                 name: StringWithOffset::from("Point").at(5),
                 generic_parameters: vec![],
-                is_builtin: false,
+                builtin: None,
                 members: vec![
                     Arc::new(Member {
                         name: StringWithOffset::from("x").at(13),

@@ -233,3 +233,14 @@ fn allocate <n: Integer> bytes -> MemoryAddress
 @mangle_as("free_memory")
 fn free <address: MemoryAddress>
 //=================================
+
+//=================================
+//          Reference
+//=================================
+/// Reference to a value
+@builtin
+type Reference<T>
+
+/// Get reference to a value
+fn<T> & <ref: Reference<T>> => ref
+//=================================

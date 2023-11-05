@@ -4,7 +4,7 @@ use crate::{
     hir::{
         Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
         FunctionDefinition, FunctionNamePart, Generic, If, Loop, MemberReference, Return,
-        Specialize, Statement, Type, Typed, VariableReference, While,
+        Specialize, SpecializeClass, Statement, Type, Typed, VariableReference, While,
     },
     named::Named,
     semantics::FunctionContext,
@@ -165,26 +165,53 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
             .map(|part| match part {
                 FunctionNamePart::Text(text) => text.clone().into(),
                 FunctionNamePart::Parameter(param) => {
-                    let arg_ty = arg.next().unwrap().clone();
+                    let mut arg_ty = arg.next().unwrap().clone();
                     if !param.is_generic() {
                         return param.clone().into();
                     }
 
                     let param_ty = param.ty();
-                    let param = param.as_ref().clone().specialize_with(arg_ty.clone());
+                    if param_ty.is_reference() && !arg_ty.is_reference() {
+                        arg_ty = context.builtin().types().reference_to(arg_ty);
+                    }
 
-                    let diff = param_ty.diff(arg_ty);
+                    let diff = param_ty.diff(arg_ty.clone());
                     for ty in diff.into_iter() {
                         let name = (&ty).generic.name().to_string();
                         generics_map.insert(name.into(), ty.into());
                     }
 
+                    let param = param.as_ref().clone().specialize_with(arg_ty);
                     param.into()
                 }
             })
             .collect::<Vec<_>>();
 
         let name = Function::build_name(&name_parts);
+
+        let return_type = if !self.return_type.is_generic() {
+            self.return_type.clone()
+        } else if let Some(ty) = generics_map.get(&self.return_type.name()) {
+            ty.clone().into()
+        } else {
+            let generics = self
+                .return_type
+                .generics()
+                .iter()
+                .cloned()
+                .map(|ty| generics_map.get(&ty.name()).cloned().unwrap_or(ty))
+                .collect();
+            self.return_type
+                .specialized()
+                .specialize_with(
+                    self.return_type
+                        .specialized()
+                        .as_class()
+                        .specialize_with(SpecializeClass::without_members(generics))
+                        .into(),
+                )
+                .into()
+        };
 
         let generic_types: Vec<Type> = self
             .generic_types
@@ -201,12 +228,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
                         .map(|f| f.declaration().mangled_name.clone())
                         .flatten(),
                 )
-                .with_return_type(
-                    generics_map
-                        .get(&self.return_type.name())
-                        .cloned()
-                        .unwrap_or(self.return_type.clone()),
-                ),
+                .with_return_type(return_type),
         )
     }
 }
