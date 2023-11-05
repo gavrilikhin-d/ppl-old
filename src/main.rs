@@ -13,7 +13,6 @@ use ppl::driver::commands::compile::OutputType;
 use ppl::driver::{self, Execute};
 use ppl::hir::{self, Type, Typed};
 use ppl::ir::GlobalHIRLowering;
-use ppl::named::Named;
 use ppl::semantics::{ASTLowering, ModuleContext};
 use ppl::syntax::{InteractiveLexer, Lexer, Parse};
 use ppl::{ast::*, SourceFile};
@@ -56,29 +55,41 @@ fn process_single_statement<'llvm>(
         let result = unsafe { engine.run_function(f, &[]) };
         if let hir::Statement::Expression(expr) = hir {
             let ty = expr.ty().specialized();
-            match ty {
+            match &ty {
                 Type::Class(c) => {
-                    if !c.is_builtin() {
-                        // TODO: implement proper printing for user-defined classes through `as String`
-                        println!("<object of type {:?}>", c.name())
-                    } else if c.is_integer() {
-                        let result = unsafe { result.into_pointer::<rug::Integer>() };
-                        println!("{}", unsafe { &*result });
-                    } else if c.is_rational() {
-                        let result = unsafe { result.into_pointer::<rug::Rational>() };
-                        println!("{}", unsafe { &*result });
-                    } else if c.is_string() {
-                        let result = unsafe { result.into_pointer::<String>() };
-                        println!("{:?}", unsafe { &*result });
-                    } else if c.is_bool() {
-                        let result = result.as_int(false);
-                        if result == 0 {
-                            println!("false");
-                        } else {
-                            println!("true");
+                    if let Some(builtin) = &c.builtin {
+                        use hir::BuiltinClass::*;
+                        match builtin {
+                            None => {}
+                            Integer => {
+                                let result = unsafe { result.into_pointer::<rug::Integer>() };
+                                println!("{}", unsafe { &*result });
+                            }
+                            Rational => {
+                                let result = unsafe { result.into_pointer::<rug::Rational>() };
+                                println!("{}", unsafe { &*result });
+                            }
+                            String => {
+                                let result =
+                                    unsafe { result.into_pointer::<std::string::String>() };
+                                println!("{:?}", unsafe { &*result });
+                            }
+                            Bool => {
+                                let result = result.as_int(false);
+                                if result == 0 {
+                                    println!("false");
+                                } else {
+                                    println!("true");
+                                }
+                            }
+                            Reference => {
+                                // TODO: print value
+                                println!("<object of type `{}`>", ty)
+                            }
                         }
-                    } else if !c.is_none() {
-                        unreachable!("forgot to handle builtin class");
+                    } else {
+                        // TODO: implement proper printing for user-defined classes through `as String`
+                        println!("<object of type `{}`>", ty)
                     }
                 }
                 Type::Function(_) => unimplemented!("returning functions"),

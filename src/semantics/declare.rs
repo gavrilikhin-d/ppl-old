@@ -233,6 +233,12 @@ impl Declare for ast::TypeDeclaration {
         let is_builtin = annotations
             .iter()
             .any(|a| matches!(a, hir::Annotation::Builtin));
+        // TODO: error for incorrect builtin type name
+        let builtin = if is_builtin {
+            Some(self.name.parse().unwrap())
+        } else {
+            None
+        };
 
         // TODO: check for collisions, etc
         let generic_parameters: Vec<Type> = self
@@ -246,7 +252,7 @@ impl Declare for ast::TypeDeclaration {
         let ty = Arc::new(hir::TypeDeclaration {
             name: self.name.clone(),
             generic_parameters,
-            is_builtin,
+            builtin,
             members: vec![],
         });
 
