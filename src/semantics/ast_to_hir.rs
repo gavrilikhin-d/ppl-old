@@ -144,7 +144,9 @@ pub struct ConvertibleToCheck {
 impl ConvertibleToCheck {
     // TODO: add reason
     pub fn within(&self, context: &impl Context) -> Result<(), NotConvertible> {
-        let convertible = match (self.from.value.clone(), self.to.value.clone()) {
+        let from = self.from.value.without_ref();
+        let to = self.to.value.without_ref();
+        let convertible = match (from, to) {
             (Type::Trait(tr), Type::SelfType(s)) => {
                 Arc::ptr_eq(&tr, &s.associated_trait.upgrade().unwrap())
             }

@@ -106,6 +106,11 @@ impl TypeDeclaration {
         self.members.as_slice()
     }
 
+    /// Get generic parameters of a type
+    pub fn generics(&self) -> &[Type] {
+        self.generic_parameters.as_slice()
+    }
+
     /// Is this a builtin type?
     pub fn is_builtin(&self) -> bool {
         self.builtin.is_some()
@@ -134,6 +139,11 @@ impl TypeDeclaration {
     /// Is this a builtin "String" type?
     pub fn is_string(&self) -> bool {
         self.builtin == Some(BuiltinClass::String)
+    }
+
+    /// Is this a builtin `Reference` type?
+    pub fn is_reference(&self) -> bool {
+        self.builtin == Some(BuiltinClass::Reference)
     }
 
     /// Is this an opaque type?
