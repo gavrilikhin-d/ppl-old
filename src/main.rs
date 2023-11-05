@@ -1,6 +1,7 @@
 #![feature(anonymous_lifetime_in_impl_trait)]
 
 use std::cell::Cell;
+use std::ffi::c_void;
 use std::io::Write;
 use std::path::Path;
 
@@ -19,6 +20,54 @@ use ppl::{ast::*, SourceFile};
 use ppl::{ir, Reporter};
 
 extern crate runtime;
+
+fn print_value(result: *const c_void, ty: Type) {
+    match &ty {
+        Type::Class(c) => {
+            if let Some(builtin) = &c.builtin {
+                use hir::BuiltinClass::*;
+                match builtin {
+                    None => {}
+                    Integer => {
+                        let result = result.cast::<rug::Integer>();
+                        println!("{}", unsafe { &*result });
+                    }
+                    Rational => {
+                        let result = result.cast::<rug::Rational>();
+                        println!("{}", unsafe { &*result });
+                    }
+                    String => {
+                        let result = result.cast::<std::string::String>();
+                        println!("{:?}", unsafe { &*result });
+                    }
+                    Bool => {
+                        let result = result as usize;
+                        if result == 0 {
+                            println!("false");
+                        } else {
+                            println!("true");
+                        }
+                    }
+                    Reference => {
+                        let result = result.cast::<*const c_void>();
+                        let ty = ty.generics()[0].specialized();
+                        print_value(unsafe { *result }, ty);
+                    }
+                }
+            } else {
+                // TODO: implement proper printing for user-defined classes through `as String`
+                println!("<object of type `{}`>", ty)
+            }
+        }
+        Type::Function(_) => unimplemented!("returning functions"),
+        Type::Trait(_) => unimplemented!("returning traits"),
+        Type::SelfType(_) => {
+            unreachable!("Self may not be returned as result of expression")
+        }
+        Type::Generic(_) => unreachable!("generic types may not be returned"),
+        Type::Specialized(_) => unreachable!("should be most specialized"),
+    }
+}
 
 /// Parse and compile single statement
 fn process_single_statement<'llvm>(
@@ -55,51 +104,12 @@ fn process_single_statement<'llvm>(
         let result = unsafe { engine.run_function(f, &[]) };
         if let hir::Statement::Expression(expr) = hir {
             let ty = expr.ty().specialized();
-            match &ty {
-                Type::Class(c) => {
-                    if let Some(builtin) = &c.builtin {
-                        use hir::BuiltinClass::*;
-                        match builtin {
-                            None => {}
-                            Integer => {
-                                let result = unsafe { result.into_pointer::<rug::Integer>() };
-                                println!("{}", unsafe { &*result });
-                            }
-                            Rational => {
-                                let result = unsafe { result.into_pointer::<rug::Rational>() };
-                                println!("{}", unsafe { &*result });
-                            }
-                            String => {
-                                let result =
-                                    unsafe { result.into_pointer::<std::string::String>() };
-                                println!("{:?}", unsafe { &*result });
-                            }
-                            Bool => {
-                                let result = result.as_int(false);
-                                if result == 0 {
-                                    println!("false");
-                                } else {
-                                    println!("true");
-                                }
-                            }
-                            Reference => {
-                                // TODO: print value
-                                println!("<object of type `{}`>", ty)
-                            }
-                        }
-                    } else {
-                        // TODO: implement proper printing for user-defined classes through `as String`
-                        println!("<object of type `{}`>", ty)
-                    }
-                }
-                Type::Function(_) => unimplemented!("returning functions"),
-                Type::Trait(_) => unimplemented!("returning traits"),
-                Type::SelfType(_) => {
-                    unreachable!("Self may not be returned as result of expression")
-                }
-                Type::Generic(_) => unreachable!("generic types may not be returned"),
-                Type::Specialized(_) => unreachable!("should be most specialized"),
-            }
+            let ptr = if ty.is_bool() {
+                result.as_int(false) as *const c_void
+            } else {
+                unsafe { result.into_pointer::<c_void>() }
+            };
+            print_value(ptr, ty);
         }
     }
 
