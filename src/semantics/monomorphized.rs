@@ -165,20 +165,23 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
             .map(|part| match part {
                 FunctionNamePart::Text(text) => text.clone().into(),
                 FunctionNamePart::Parameter(param) => {
-                    let arg_ty = arg.next().unwrap().clone();
+                    let mut arg_ty = arg.next().unwrap().clone();
                     if !param.is_generic() {
                         return param.clone().into();
                     }
 
                     let param_ty = param.ty();
-                    let param = param.as_ref().clone().specialize_with(arg_ty.clone());
+                    if param_ty.is_reference() && !arg_ty.is_reference() {
+                        arg_ty = context.builtin().types().reference_to(arg_ty);
+                    }
 
-                    let diff = param_ty.diff(arg_ty);
+                    let diff = param_ty.diff(arg_ty.clone());
                     for ty in diff.into_iter() {
                         let name = (&ty).generic.name().to_string();
                         generics_map.insert(name.into(), ty.into());
                     }
 
+                    let param = param.as_ref().clone().specialize_with(arg_ty);
                     param.into()
                 }
             })

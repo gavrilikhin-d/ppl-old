@@ -48,7 +48,7 @@ impl BuiltinTypes<'_> {
             .into()
     }
 
-    builtin_types!(none, bool, integer, rational, string);
+    builtin_types!(none, bool, integer, rational, string, reference);
 
     /// Get builtin type for types
     pub fn type_(&self) -> Type {
@@ -64,6 +64,14 @@ impl BuiltinTypes<'_> {
                     .specialize_with(SpecializeClass::without_members(vec![ty]))
                     .into(),
             )
+            .into()
+    }
+
+    /// Get `Reference<T>` for this type
+    pub fn reference_to(&self, ty: Type) -> Type {
+        self.reference()
+            .as_class()
+            .specialize_with(SpecializeClass::without_members(vec![ty]))
             .into()
     }
 }
