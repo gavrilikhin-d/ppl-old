@@ -14,7 +14,7 @@ use crate::named::Named;
 use crate::syntax::Ranged;
 use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
-use super::{error::*, Context, Declare, ModuleContext, MonomorphizedWithArgs};
+use super::{error::*, Context, Declare, FindDeclaration, ModuleContext, MonomorphizedWithArgs};
 use crate::ast::{self, CallNamePart, FnKind, If};
 
 /// Lower AST inside some context
@@ -143,7 +143,7 @@ pub struct ConvertibleToCheck {
 
 impl ConvertibleToCheck {
     // TODO: add reason
-    pub fn within(&self, context: &impl Context) -> Result<(), NotConvertible> {
+    pub fn within(&self, context: &impl FindDeclaration) -> Result<(), NotConvertible> {
         let from = self.from.value.without_ref();
         let to = self.to.value.without_ref();
         let convertible = match (from, to) {
@@ -223,7 +223,7 @@ pub struct ImplementsCheck {
 }
 
 impl ImplementsCheck {
-    pub fn within(&self, context: &impl Context) -> Result<(), NotImplemented> {
+    pub fn within(&self, context: &impl FindDeclaration) -> Result<(), NotImplemented> {
         let unimplemented: Vec<_> = self
             .tr
             .value
