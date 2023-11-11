@@ -10,7 +10,7 @@ use crate::{
     AddSourceLocation,
 };
 
-use super::ConvertibleTo;
+use super::Convert;
 
 /// Trait to find declaration at current level
 pub trait FindDeclarationHere {
@@ -182,7 +182,7 @@ pub trait FindDeclaration: FindDeclarationHere {
                             .map_self(self_type)
                             .clone()
                             .at(a.range())
-                            .convertible_to(b.ty().at(b.range()))
+                            .convert_to(b.ty().at(b.range()))
                             .within(self)
                             .is_ok(),
                         _ => false,
@@ -193,7 +193,7 @@ pub trait FindDeclaration: FindDeclarationHere {
                         .clone()
                         // TODO: real return type range
                         .at(trait_fn.declaration().range())
-                        .convertible_to(f.return_type().at(f.declaration().range()))
+                        .convert_to(f.return_type().at(f.declaration().range()))
                         .within(self)
                         .is_ok()
             })
