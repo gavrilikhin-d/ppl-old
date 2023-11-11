@@ -1,0 +1,6 @@
+let n = size of Integer
+let address = allocate n bytes
+let value = read Integer at address
+print value
+print "\n"
+free address
