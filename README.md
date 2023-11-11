@@ -42,6 +42,7 @@
 * [x] Link ppl.dylib to executable
 * [x] Fix IR generation for complex while loops (benchmarks/factorial/main.ppl)
 * [x] Run initializer for global variables (`global_ctor` or add to main)
+* [x] Fix undefined variable when returning `=> global`
 ---
 ### Current task
 ---

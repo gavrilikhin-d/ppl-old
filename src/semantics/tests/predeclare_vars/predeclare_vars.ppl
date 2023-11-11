@@ -1,0 +1,5 @@
+let x = 1
+fn get x => x
+
+let y = get x
+fn get y => y

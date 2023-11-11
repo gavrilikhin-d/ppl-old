@@ -944,7 +944,7 @@ impl ASTLowering for ast::Module {
     /// 1. Use statements
     /// 2. Types
     /// 3. Traits
-    /// 4. Functions
+    /// 4. Functions & Global variables (in the order they are declared)
     /// 5. Rest of statements
     fn lower_to_hir_within_context(
         &self,
@@ -993,12 +993,7 @@ impl ASTLowering for ast::Module {
         // Add rest of statements
         self.statements
             .iter()
-            .filter(|s| {
-                !matches!(
-                    s,
-                    S::Use(_) | S::Declaration(D::Type(_) | D::Trait(_) | D::Function(_))
-                )
-            })
+            .filter(|s| !matches!(s, S::Use(_) | S::Declaration(_)))
             .for_each(&mut define);
 
         if !errors.is_empty() {
@@ -1012,7 +1007,7 @@ impl ASTLowering for ast::Module {
 /// Run some function for each decl in order:
 /// 1. Types
 /// 2. Traits
-/// 3. Function
+/// 3. Function & Global variables
 fn for_each_declaration_in_order(stmts: &[ast::Statement], mut f: impl FnMut(&ast::Statement)) {
     use ast::Declaration as D;
     use ast::Statement as S;
@@ -1029,10 +1024,10 @@ fn for_each_declaration_in_order(stmts: &[ast::Statement], mut f: impl FnMut(&as
         .filter(|s| matches!(s, S::Declaration(D::Trait(_))))
         .for_each(&mut f);
 
-    // Lastly for functions
+    // Then for functions & global variables
     stmts
         .iter()
-        .filter(|s| matches!(s, S::Declaration(D::Function(_))))
+        .filter(|s| matches!(s, S::Declaration(D::Function(_) | D::Variable(_))))
         .for_each(&mut f);
 }
 
@@ -1093,6 +1088,7 @@ mod tests {
     test_compilation_result!(multiple_errors);
     test_compilation_result!(multiple_initialization);
     test_compilation_result!(non_class_constructor);
+    test_compilation_result!(predeclare_vars);
     test_compilation_result!(references);
     test_compilation_result!(traits);
     test_compilation_result!(type_as_value);
