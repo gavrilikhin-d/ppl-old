@@ -306,10 +306,18 @@ impl Declare for ast::VariableDeclaration {
 
     fn define(
         &self,
-        declaration: Self::Declaration,
-        _context: &mut impl Context,
+        _declaration: Self::Declaration,
+        context: &mut impl Context,
     ) -> Result<Self::Definition, Error> {
-        Ok(declaration)
+        let var = Arc::new(hir::VariableDeclaration {
+            name: self.name.clone(),
+            initializer: self.initializer.lower_to_hir_within_context(context)?,
+            mutability: self.mutability.clone(),
+        });
+
+        context.add_variable(var.clone());
+
+        Ok(var)
     }
 }
 
