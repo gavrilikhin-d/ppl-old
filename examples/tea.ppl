@@ -1,0 +1,64 @@
+let mut currentLevel = 100
+let minLevel = 200
+let maxLevel = 1500
+
+fn water level -> Integer:
+	print "Current water level is: "
+	print currentLevel
+	print "mL\n\n"
+	sleep 1000 ms
+	return currentLevel
+
+fn pour more water:
+	print "Pouring more water...\n"
+	sleep 2000 ms
+	currentLevel = maxLevel
+	print "New water level is: " + (currentLevel as String) + "mL\n\n"
+	sleep 1000 ms
+
+fn set kettle on gas:
+	print "Setting kettle on gas\n\n"
+	sleep 1000 ms
+
+let mut check = 0
+let threshold = 3
+fn water is boiling -> Bool:
+	print "Checking if water is boiling...\n"
+	sleep 1000 ms
+	check = check + 1
+	if check < threshold:
+		print "Water is not boiling\n\n"
+		sleep 1000 ms
+		return false
+
+	print "Water is boiling! Yey!\n\n"
+	sleep 1000 ms
+	return true
+
+fn wait a little:
+	print "Waiting...\n\n"
+	sleep 1000 ms
+
+fn brew tea:
+	print "Brewing tea\n\n"
+	sleep 1000 ms
+
+fn drink tea:
+	print "Drinking freshly brewed tea fills you with determination\n"
+	print "All of your HP were restored!\n"
+
+//=====================================================================//
+
+let level = water level
+if level < minLevel:
+	pour more water
+
+set kettle on gas
+
+while not (water is boiling):
+	wait a little
+
+brew tea
+
+drink tea
+
