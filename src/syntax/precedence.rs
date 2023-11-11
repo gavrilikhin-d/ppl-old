@@ -91,6 +91,7 @@ impl Default for PrecedenceGroups {
                 ("-".to_string(), 2),
                 ("*".to_string(), 3),
                 ("/".to_string(), 3),
+                ("%".to_string(), 3),
                 ("^".to_string(), 4),
             ]
             .into_iter()
