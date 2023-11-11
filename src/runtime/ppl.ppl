@@ -248,3 +248,11 @@ type Reference<T>
 /// Get reference to a value
 fn<T> & <ref: Reference<T>> => ref
 //=================================
+
+//=================================
+//             Threads
+//=================================
+/// Force this thread to sleep for at least `ms` milliseconds
+@mangle_as("sleep_ms")
+fn sleep <ms: Integer> ms
+//=================================
