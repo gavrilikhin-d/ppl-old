@@ -228,7 +228,7 @@ impl Type {
             return self.clone();
         }
 
-        self.generics()[0].clone()
+        self.generics()[0].specialized()
     }
 
     /// Get generic parameters of type

@@ -14,7 +14,7 @@ use crate::named::Named;
 use crate::syntax::Ranged;
 use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
-use super::{error::*, Context, Declare, ModuleContext, MonomorphizedWithArgs};
+use super::{error::*, Context, Declare, FindDeclaration, ModuleContext, MonomorphizedWithArgs};
 use crate::ast::{self, CallNamePart, FnKind, If};
 
 /// Lower AST inside some context
@@ -120,15 +120,15 @@ impl ASTLowering for ast::VariableReference {
     }
 }
 
-/// Trait to check if one type is convertible to another within context
-pub trait ConvertibleTo {
-    /// Is this type convertible to another?
-    fn convertible_to(&self, ty: WithSourceLocation<hir::Type>) -> ConvertibleToCheck;
+/// Trait to convert one type to another
+pub trait Convert {
+    /// Convert this type to another type
+    fn convert_to(&self, ty: WithSourceLocation<hir::Type>) -> ConversionRequest;
 }
 
-impl ConvertibleTo for WithSourceLocation<hir::Type> {
-    fn convertible_to(&self, to: WithSourceLocation<hir::Type>) -> ConvertibleToCheck {
-        ConvertibleToCheck {
+impl Convert for WithSourceLocation<hir::Type> {
+    fn convert_to(&self, to: WithSourceLocation<hir::Type>) -> ConversionRequest {
+        ConversionRequest {
             from: self.clone(),
             to,
         }
@@ -136,17 +136,17 @@ impl ConvertibleTo for WithSourceLocation<hir::Type> {
 }
 
 /// Helper struct to perform check within context
-pub struct ConvertibleToCheck {
+pub struct ConversionRequest {
     from: WithSourceLocation<Type>,
     to: WithSourceLocation<Type>,
 }
 
-impl ConvertibleToCheck {
-    // TODO: add reason
-    pub fn within(&self, context: &impl Context) -> Result<(), NotConvertible> {
+impl ConversionRequest {
+    /// Convert one type to another within context
+    pub fn within(&self, context: &impl FindDeclaration) -> Result<Type, NotConvertible> {
         let from = self.from.value.without_ref();
         let to = self.to.value.without_ref();
-        let convertible = match (from, to) {
+        let convertible = match (from, to.clone()) {
             (Type::Trait(tr), Type::SelfType(s)) => {
                 Arc::ptr_eq(&tr, &s.associated_trait.upgrade().unwrap())
             }
@@ -174,7 +174,7 @@ impl ConvertibleToCheck {
             (Type::Specialized(from), _) => from
                 .specialized
                 .at(self.from.source_location.clone())
-                .convertible_to(self.to.clone())
+                .convert_to(self.to.clone())
                 .within(context)
                 .map(|_| true)?,
             (from, to) => from == to,
@@ -197,7 +197,7 @@ impl ConvertibleToCheck {
             .into());
         }
 
-        Ok(())
+        Ok(to)
     }
 }
 
@@ -223,7 +223,7 @@ pub struct ImplementsCheck {
 }
 
 impl ImplementsCheck {
-    pub fn within(&self, context: &impl Context) -> Result<(), NotImplemented> {
+    pub fn within(&self, context: &impl FindDeclaration) -> Result<(), NotImplemented> {
         let unimplemented: Vec<_> = self
             .tr
             .value
@@ -322,32 +322,40 @@ impl ASTLowering for ast::Call {
                 .cloned();
 
             let mut args = Vec::new();
+            let mut args_types = Vec::new();
             let mut failed = false;
             for (i, f_part) in f.name_parts().iter().enumerate() {
                 match f_part {
                     FunctionNamePart::Text(_) => continue,
                     FunctionNamePart::Parameter(p) => {
                         let arg = args_cache[i].as_ref().unwrap();
-                        if let Err(err) = arg
+
+                        let conversion = arg
                             .ty()
                             .at(arg.range())
-                            .convertible_to(p.ty().at(SourceLocation {
+                            .convert_to(p.ty().at(SourceLocation {
                                 at: p.name.range().into(),
                                 source_file: source_file.clone().map(Into::into),
                             }))
-                            .within(context)
-                        {
-                            candidates_not_viable.push(CandidateNotViable { reason: err.into() });
-                            failed = true;
-                            break;
+                            .within(context);
+                        match conversion {
+                            Ok(ty) => {
+                                args_types.push(if ty.is_generic() { arg.ty() } else { ty });
+                                args.push(arg.clone());
+                            }
+                            Err(err) => {
+                                candidates_not_viable
+                                    .push(CandidateNotViable { reason: err.into() });
+                                failed = true;
+                                break;
+                            }
                         }
-                        args.push(arg.clone());
                     }
                 }
             }
 
             if !failed {
-                let function = f.monomorphized(context, args.iter().map(|a| a.ty()));
+                let function = f.monomorphized(context, args_types);
                 let generic = if f.is_generic() { Some(f) } else { None };
                 return Ok(hir::Call {
                     range: self.range(),
@@ -535,7 +543,7 @@ impl ASTLowering for ast::Constructor {
                 value
                     .ty()
                     .at(value.range())
-                    .convertible_to(member.ty().at(member.name.range()))
+                    .convert_to(member.ty().at(member.name.range()))
                     .within(context)?;
 
                 if let Some(prev) = initializers.iter().find(|i| i.index == index) {
@@ -1085,6 +1093,7 @@ mod tests {
     test_compilation_result!(multiple_errors);
     test_compilation_result!(multiple_initialization);
     test_compilation_result!(non_class_constructor);
+    test_compilation_result!(references);
     test_compilation_result!(traits);
     test_compilation_result!(type_as_value);
     test_compilation_result!(wrong_initializer_type);

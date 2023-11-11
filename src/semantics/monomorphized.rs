@@ -226,7 +226,8 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
                     context
                         .function_with_name(&name)
                         .map(|f| f.declaration().mangled_name.clone())
-                        .flatten(),
+                        .flatten()
+                        .or_else(|| self.mangled_name.clone()),
                 )
                 .with_return_type(return_type),
         )

@@ -9,3 +9,6 @@ pub use string::*;
 
 mod memory;
 pub use memory::*;
+
+mod r#type;
+pub use r#type::*;

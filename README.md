@@ -45,6 +45,9 @@
 ---
 ### Current task
 ---
+* [ ] Implicit conversions from one type to another (dereference and etc)
+* [ ] Unsafe code marker
+* [ ] Check result of the program itself in `test_compiler_result`
 * [ ] Format strings
 * [ ] Varadic arguments functions
 * [ ] Add `Array` type

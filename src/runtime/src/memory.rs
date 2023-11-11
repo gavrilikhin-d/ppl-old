@@ -1,7 +1,7 @@
-use libc::malloc;
+use libc::{c_void, malloc};
 use rug::Integer;
 
-use crate::{integer_from_i64, integer_from_u64};
+use crate::{integer_from_i64, integer_from_u64, Type};
 
 #[repr(C)]
 pub struct MemoryAddress {
@@ -64,4 +64,20 @@ pub extern "C" fn free_memory(address: MemoryAddress) {
     unsafe {
         libc::free(address as *mut libc::c_void);
     }
+}
+
+/// # PPL
+/// ```no_run
+/// fn<T> read <ty: Type<T>> at <address: MemoryAddress> -> Reference<T>
+/// ```
+#[no_mangle]
+pub extern "C" fn read_memory(ty: Type, address: MemoryAddress) -> *mut c_void {
+    let _ = ty;
+
+    assert!(!address.value.is_null());
+    let address = unsafe { &*address.value };
+
+    let address = address.to_u64().unwrap();
+
+    address as *mut libc::c_void
 }
