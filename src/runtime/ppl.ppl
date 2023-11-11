@@ -168,6 +168,9 @@ fn <:String> + <:String> -> String
 /// Prints string to stdout with newline
 @mangle_as("print_string")
 fn print <:String>
+
+/// Print string with a newline at the end
+fn println <str: String> => print (str + "\n")
 //---------------------------------
 
 //=================================
@@ -179,6 +182,9 @@ trait AsString:
 
 /// Print anything that may be interpreted as String
 fn print <x: AsString> => print (x as String)
+
+/// Print anything that may be interpreted as String with newline
+fn println <x: AsString> => println (x as String)
 //---------------------------------
 
 //=================================
