@@ -46,6 +46,7 @@
 ---
 ### Current task
 ---
+* [ ] Fix `<:Self> > <:Self>`
 * [ ] Implicit conversions from one type to another (dereference and etc)
 * [ ] Unsafe code marker
 * [ ] Check result of the program itself in `test_compiler_result`
