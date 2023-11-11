@@ -112,6 +112,10 @@ fn sqrt <:Integer> -> Integer
 @mangle_as("integer_power_integer")
 fn <x: Integer> ^ <n: Integer> -> Integer
 
+/// Get remainder of division
+@mangle_as("integer_mod_integer")
+fn <x: Integer> % <y: Integer> -> Integer
+
 /// Convert `Integer` to `String`
 @mangle_as("integer_as_string")
 fn <:Integer> as String -> String
