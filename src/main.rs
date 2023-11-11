@@ -18,6 +18,7 @@ use ppl::semantics::{ASTLowering, ModuleContext};
 use ppl::syntax::{InteractiveLexer, Lexer, Parse};
 use ppl::{ast::*, SourceFile};
 use ppl::{ir, Reporter};
+use runtime::maybe_to_decimal_string;
 
 extern crate runtime;
 
@@ -34,7 +35,8 @@ fn print_value(result: *const c_void, ty: Type) {
                     }
                     Rational => {
                         let result = result.cast::<rug::Rational>();
-                        println!("{}", unsafe { &*result });
+                        let value = unsafe { &*result };
+                        println!("{}", maybe_to_decimal_string(value));
                     }
                     String => {
                         let result = result.cast::<std::string::String>();
