@@ -162,3 +162,21 @@ pub extern "C" fn integer_power_integer(x: *const Integer, n: *const Integer) ->
     let boxed = Box::new(res);
     Box::into_raw(boxed)
 }
+
+/// # PPL
+/// ```no_run
+/// fn <x: Integer> % <y: Integer> -> Integer
+/// ```
+#[no_mangle]
+pub extern "C" fn integer_mod_integer(x: *const Integer, y: *const Integer) -> *mut Integer {
+    debug_assert!(!x.is_null());
+    debug_assert!(!y.is_null());
+
+    let x = unsafe { &*x };
+    let y = unsafe { &*y };
+
+    let res = x.clone().modulo(y);
+
+    let boxed = Box::new(res);
+    Box::into_raw(boxed)
+}
