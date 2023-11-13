@@ -126,6 +126,8 @@ impl Display for SelfType {
 pub struct GenericType {
     /// Name of the generic type
     pub name: StringWithOffset,
+    /// Constraint for this type
+    pub constraint: Option<Type>,
 }
 
 impl Named for GenericType {
@@ -177,7 +179,7 @@ pub enum Type {
     /// Self type and trait it represents
     SelfType(SelfType),
     /// Type for generic parameters
-    Generic(GenericType),
+    Generic(Box<GenericType>),
     /// Specialized type
     Specialized(Box<SpecializedType>),
     /// Function type
@@ -187,6 +189,12 @@ pub enum Type {
 impl From<SpecializedType> for Type {
     fn from(specialized: SpecializedType) -> Self {
         Self::Specialized(Box::new(specialized))
+    }
+}
+
+impl From<GenericType> for Type {
+    fn from(generic: GenericType) -> Self {
+        Box::new(generic).into()
     }
 }
 

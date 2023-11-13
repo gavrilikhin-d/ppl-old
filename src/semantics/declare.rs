@@ -39,6 +39,7 @@ impl Declare for ast::FunctionDeclaration {
             .map(|p| {
                 GenericType {
                     name: p.name.clone(),
+                    constraint: None,
                 }
                 .into()
             })
@@ -251,6 +252,7 @@ impl Declare for ast::TypeDeclaration {
             .map(|p| {
                 GenericType {
                     name: p.name.clone(),
+                    constraint: None,
                 }
                 .into()
             })
