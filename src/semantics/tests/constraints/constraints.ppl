@@ -1,0 +1,9 @@
+trait Foo:
+	fn foo <:Self>
+
+fn<T: Foo> bar <x: T> => foo x
+
+fn foo <:None> => none
+
+bar none
+bar 1
