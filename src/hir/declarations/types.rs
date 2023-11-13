@@ -281,6 +281,7 @@ mod tests {
                 name: StringWithOffset::from("Point").at(5),
                 generic_parameters: vec![GenericType {
                     name: StringWithOffset::from("U").at(11),
+                    constraint: None
                 }
                 .into()],
                 builtin: None,
@@ -288,6 +289,7 @@ mod tests {
                     name: StringWithOffset::from("x").at(16),
                     ty: GenericType {
                         name: StringWithOffset::from("U").at(11),
+                        constraint: None,
                     }
                     .into(),
                 }),],

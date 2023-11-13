@@ -8,6 +8,7 @@ use crate::{mutability::Mutable, named::Named, syntax::StringWithOffset, AddSour
 
 use super::{
     Generic, GenericName, Member, Specialize, Specialized, TraitDeclaration, TypeDeclaration,
+    TypeReference,
 };
 use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
@@ -127,7 +128,7 @@ pub struct GenericType {
     /// Name of the generic type
     pub name: StringWithOffset,
     /// Constraint for this type
-    pub constraint: Option<Type>,
+    pub constraint: Option<TypeReference>,
 }
 
 impl Named for GenericType {
@@ -424,10 +425,12 @@ mod tests {
 
         let t: Type = GenericType {
             name: StringWithOffset::from("T").at(7),
+            constraint: None,
         }
         .into();
         let u: Type = GenericType {
             name: StringWithOffset::from("U").at(10),
+            constraint: None,
         }
         .into();
 
@@ -459,15 +462,25 @@ mod tests {
         let b = type_decl("type B<T>");
         let c = type_decl("type C");
 
-        let x: Type = GenericType { name: "X".into() }.into();
-        let y: Type = GenericType { name: "Y".into() }.into();
+        let x: Type = GenericType {
+            name: "X".into(),
+            constraint: None,
+        }
+        .into();
+        let y: Type = GenericType {
+            name: "Y".into(),
+            constraint: None,
+        }
+        .into();
 
         let t: Type = GenericType {
             name: StringWithOffset::from("T").at(7),
+            constraint: None,
         }
         .into();
         let u: Type = GenericType {
             name: StringWithOffset::from("U").at(10),
+            constraint: None,
         }
         .into();
 

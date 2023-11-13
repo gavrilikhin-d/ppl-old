@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, sync::Arc};
 
 use crate::{
     ast,
-    hir::{self, FunctionDefinition, GenericType, Type, Typed},
+    hir::{self, FunctionDefinition, Type, Typed},
     syntax::Ranged,
 };
 
@@ -35,15 +35,7 @@ impl Declare for ast::FunctionDeclaration {
         // TODO: check for collision
         let generic_parameters: Vec<Type> = self
             .generic_parameters
-            .iter()
-            .map(|p| {
-                GenericType {
-                    name: p.name.clone(),
-                    constraint: None,
-                }
-                .into()
-            })
-            .collect();
+            .lower_to_hir_within_context(context)?;
 
         let mut generic_context = GenericContext {
             parent: context,
@@ -248,15 +240,7 @@ impl Declare for ast::TypeDeclaration {
         // TODO: check for collisions, etc
         let generic_parameters: Vec<Type> = self
             .generic_parameters
-            .iter()
-            .map(|p| {
-                GenericType {
-                    name: p.name.clone(),
-                    constraint: None,
-                }
-                .into()
-            })
-            .collect();
+            .lower_to_hir_within_context(context)?;
 
         // TODO: recursive types
         let ty = Arc::new(hir::TypeDeclaration {

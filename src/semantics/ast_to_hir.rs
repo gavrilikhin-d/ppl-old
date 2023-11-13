@@ -6,8 +6,8 @@ use std::sync::Arc;
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericName, Specialize, SpecializeClass, Type, TypeReference,
-    Typed,
+    self, FunctionNamePart, Generic, GenericName, GenericType, Specialize, SpecializeClass, Type,
+    TypeReference, Typed,
 };
 use crate::mutability::Mutable;
 use crate::named::Named;
@@ -168,7 +168,12 @@ impl ConversionRequest {
             (_, Type::Generic(to)) => {
                 if let Some(constraint) = to.constraint {
                     self.from
-                        .convert_to(constraint.at(self.to.source_location.clone()))
+                        .convert_to(
+                            constraint
+                                .referenced_type
+                                .clone()
+                                .at(self.to.source_location.clone()),
+                        )
                         .within(context)
                         .map(|_| true)?
                 } else {
@@ -1083,6 +1088,40 @@ impl ReplaceWithTypeInfo for TypeReference {
             rbrace: self.end() - 1,
         }
         .into()
+    }
+}
+
+impl ASTLowering for ast::GenericParameter {
+    type HIR = Type;
+    type Error = Error;
+
+    fn lower_to_hir_within_context(
+        &self,
+        context: &mut impl Context,
+    ) -> Result<Self::HIR, Self::Error> {
+        Ok(GenericType {
+            name: self.name.clone(),
+            constraint: self
+                .constraint
+                .as_ref()
+                .map(|ty| ty.lower_to_hir_within_context(context))
+                .transpose()?,
+        }
+        .into())
+    }
+}
+
+impl<T: ASTLowering> ASTLowering for Vec<T> {
+    type HIR = Vec<T::HIR>;
+    type Error = T::Error;
+
+    fn lower_to_hir_within_context(
+        &self,
+        context: &mut impl Context,
+    ) -> Result<Self::HIR, Self::Error> {
+        self.iter()
+            .map(|t| t.lower_to_hir_within_context(context))
+            .try_collect()
     }
 }
 
