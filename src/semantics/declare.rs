@@ -244,8 +244,12 @@ impl Declare for ast::TypeDeclaration {
         let generic_parameters: Vec<Type> = self
             .generic_parameters
             .iter()
-            .cloned()
-            .map(|name| GenericType { name }.into())
+            .map(|p| {
+                GenericType {
+                    name: p.name.clone(),
+                }
+                .into()
+            })
             .collect();
 
         // TODO: recursive types

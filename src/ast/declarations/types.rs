@@ -41,6 +41,32 @@ pub fn parse_members(context: &mut Context<impl Lexer>) -> Result<Vec<Member>, P
         .collect())
 }
 
+/// Declaration of a generic parameter
+#[derive(Debug, PartialEq, Eq, AST, Clone)]
+pub struct GenericParameter {
+    /// Name of a generic parameter
+    pub name: StringWithOffset,
+    /// Constraint for a generic parameter
+    pub constraint: Option<TypeReference>,
+}
+
+impl Parse for GenericParameter {
+    type Err = ParseError;
+
+    /// Parse generic parameter using lexer
+    fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        let name = context.lexer.consume(Token::Id)?;
+
+        let constraint = if context.lexer.consume(Token::Colon).is_ok() {
+            Some(TypeReference::parse(context)?)
+        } else {
+            None
+        };
+
+        Ok(GenericParameter { name, constraint })
+    }
+}
+
 /// Declaration of type
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct TypeDeclaration {
@@ -49,7 +75,7 @@ pub struct TypeDeclaration {
     /// Name of type
     pub name: StringWithOffset,
     /// Generic parameters of type
-    pub generic_parameters: Vec<StringWithOffset>,
+    pub generic_parameters: Vec<GenericParameter>,
     /// Members of type
     pub members: Vec<Member>,
 }
@@ -72,15 +98,8 @@ impl Parse for TypeDeclaration {
 
         let mut generic_parameters = Vec::new();
         if context.lexer.consume(Token::Less).is_ok() {
-            loop {
-                generic_parameters.push(context.lexer.consume(Token::Id)?);
-
-                if context.lexer.consume_greater().is_ok() {
-                    break;
-                }
-
-                context.lexer.consume(Token::Comma)?;
-            }
+            generic_parameters = context.parse_comma_separated(GenericParameter::parse);
+            context.lexer.consume_greater()?;
         }
 
         let mut members = Vec::new();
