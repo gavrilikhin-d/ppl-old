@@ -149,11 +149,39 @@ mod tests {
             TypeDeclaration {
                 annotations: vec![],
                 name: StringWithOffset::from("Point").at(5),
-                generic_parameters: vec![StringWithOffset::from("U").at(11),],
+                generic_parameters: vec![GenericParameter {
+                    name: StringWithOffset::from("U").at(11),
+                    constraint: None,
+                }],
                 members: vec![Member {
                     name: StringWithOffset::from("x").at(16),
                     ty: TypeReference {
                         name: StringWithOffset::from("U").at(18),
+                        generic_parameters: Vec::new(),
+                    },
+                },],
+            }
+        );
+
+        let type_decl = "type Point<U: A>:\n\tx:U"
+            .parse::<TypeDeclaration>()
+            .unwrap();
+        assert_eq!(
+            type_decl,
+            TypeDeclaration {
+                annotations: vec![],
+                name: StringWithOffset::from("Point").at(5),
+                generic_parameters: vec![GenericParameter {
+                    name: StringWithOffset::from("U").at(11),
+                    constraint: Some(TypeReference {
+                        name: StringWithOffset::from("A").at(14),
+                        generic_parameters: Vec::new()
+                    })
+                }],
+                members: vec![Member {
+                    name: StringWithOffset::from("x").at(19),
+                    ty: TypeReference {
+                        name: StringWithOffset::from("U").at(21),
                         generic_parameters: Vec::new(),
                     },
                 },],

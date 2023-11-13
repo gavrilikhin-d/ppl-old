@@ -203,8 +203,8 @@ impl Parse for FunctionDeclaration {
 mod tests {
     use crate::{
         ast::{
-            FunctionDeclaration, FunctionNamePart, Parameter, Statement, TypeReference,
-            VariableReference,
+            FunctionDeclaration, FunctionNamePart, GenericParameter, Parameter, Statement,
+            TypeReference, VariableReference,
         },
         syntax::StringWithOffset,
     };
@@ -290,7 +290,10 @@ mod tests {
         assert_eq!(
             func,
             FunctionDeclaration {
-                generic_parameters: vec![StringWithOffset::from("T").at(3).into(),],
+                generic_parameters: vec![GenericParameter {
+                    name: StringWithOffset::from("T").at(3).into(),
+                    constraint: None
+                }],
                 name_parts: vec![FunctionNamePart::Parameter {
                     less: 6,
                     parameter: Parameter {
@@ -310,6 +313,45 @@ mod tests {
                 body: vec![Statement::Expression(
                     VariableReference {
                         name: StringWithOffset::from("x").at(21).into(),
+                    }
+                    .into()
+                ),],
+                implicit_return: true
+            }
+        );
+
+        let func = "fn<T: A> <x: T> -> T => x"
+            .parse::<FunctionDeclaration>()
+            .unwrap();
+        assert_eq!(
+            func,
+            FunctionDeclaration {
+                generic_parameters: vec![GenericParameter {
+                    name: StringWithOffset::from("T").at(3).into(),
+                    constraint: Some(TypeReference {
+                        name: StringWithOffset::from("A").at(6).into(),
+                        generic_parameters: vec![],
+                    })
+                }],
+                name_parts: vec![FunctionNamePart::Parameter {
+                    less: 9,
+                    parameter: Parameter {
+                        name: StringWithOffset::from("x").at(10).into(),
+                        ty: TypeReference {
+                            name: StringWithOffset::from("T").at(13).into(),
+                            generic_parameters: Vec::new(),
+                        },
+                    },
+                    greater: 14,
+                },],
+                return_type: Some(TypeReference {
+                    name: StringWithOffset::from("T").at(19).into(),
+                    generic_parameters: Vec::new(),
+                }),
+                annotations: vec![],
+                body: vec![Statement::Expression(
+                    VariableReference {
+                        name: StringWithOffset::from("x").at(24).into(),
                     }
                     .into()
                 ),],
