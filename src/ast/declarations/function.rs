@@ -11,6 +11,8 @@ use crate::{
     },
 };
 
+use super::GenericParameter;
+
 /// Parameter of function
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct Parameter {
@@ -111,7 +113,7 @@ impl Parse for FunctionNamePart {
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct FunctionDeclaration {
     /// Generic parameters of a function
-    pub generic_parameters: Vec<StringWithOffset>,
+    pub generic_parameters: Vec<GenericParameter>,
     /// Name parts of function
     pub name_parts: Vec<FunctionNamePart>,
     /// Return type of function
@@ -147,7 +149,7 @@ impl Parse for FunctionDeclaration {
             .is_ok_and(|t| t.start() == fn_token.end())
         {
             context.lexer.consume(Token::Less).unwrap();
-            generic_parameters = context.parse_comma_separated(|ctx| ctx.lexer.consume(Token::Id));
+            generic_parameters = context.parse_comma_separated(GenericParameter::parse);
             context.lexer.consume_greater()?;
         }
 

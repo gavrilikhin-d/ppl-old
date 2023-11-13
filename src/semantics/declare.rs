@@ -36,8 +36,12 @@ impl Declare for ast::FunctionDeclaration {
         let generic_parameters: Vec<Type> = self
             .generic_parameters
             .iter()
-            .cloned()
-            .map(|name| GenericType { name }.into())
+            .map(|p| {
+                GenericType {
+                    name: p.name.clone(),
+                }
+                .into()
+            })
             .collect();
 
         let mut generic_context = GenericContext {
