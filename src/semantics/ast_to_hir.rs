@@ -165,8 +165,16 @@ impl ConversionRequest {
                 .implements(tr.clone().at(self.to.source_location.clone()))
                 .within(context)
                 .map(|_| true)?,
-            // TODO: check for constraints
-            (_, Type::Generic(_)) => true,
+            (_, Type::Generic(to)) => {
+                if let Some(constraint) = to.constraint {
+                    self.from
+                        .convert_to(constraint.at(self.to.source_location.clone()))
+                        .within(context)
+                        .map(|_| true)?
+                } else {
+                    true
+                }
+            }
 
             // FIXME: rework this whole shit
             (Type::Specialized(a), Type::Specialized(b)) => a.generic == b.generic,
