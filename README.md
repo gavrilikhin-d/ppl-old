@@ -45,6 +45,7 @@
 * [x] Fix undefined variable when returning `=> global`
 ---
 ### Current task
+* [ ] Mapping of generic types while checking candidates
 ---
 * [ ] Logic for printing decimals inside ppl
 * [ ] Fix `<:Self> > <:Self>`
