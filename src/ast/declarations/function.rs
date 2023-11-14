@@ -11,6 +11,8 @@ use crate::{
     },
 };
 
+use super::GenericParameter;
+
 /// Parameter of function
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct Parameter {
@@ -111,7 +113,7 @@ impl Parse for FunctionNamePart {
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct FunctionDeclaration {
     /// Generic parameters of a function
-    pub generic_parameters: Vec<StringWithOffset>,
+    pub generic_parameters: Vec<GenericParameter>,
     /// Name parts of function
     pub name_parts: Vec<FunctionNamePart>,
     /// Return type of function
@@ -147,7 +149,7 @@ impl Parse for FunctionDeclaration {
             .is_ok_and(|t| t.start() == fn_token.end())
         {
             context.lexer.consume(Token::Less).unwrap();
-            generic_parameters = context.parse_comma_separated(|ctx| ctx.lexer.consume(Token::Id));
+            generic_parameters = context.parse_comma_separated(GenericParameter::parse);
             context.lexer.consume_greater()?;
         }
 
@@ -201,8 +203,8 @@ impl Parse for FunctionDeclaration {
 mod tests {
     use crate::{
         ast::{
-            FunctionDeclaration, FunctionNamePart, Parameter, Statement, TypeReference,
-            VariableReference,
+            FunctionDeclaration, FunctionNamePart, GenericParameter, Parameter, Statement,
+            TypeReference, VariableReference,
         },
         syntax::StringWithOffset,
     };
@@ -288,7 +290,10 @@ mod tests {
         assert_eq!(
             func,
             FunctionDeclaration {
-                generic_parameters: vec![StringWithOffset::from("T").at(3).into(),],
+                generic_parameters: vec![GenericParameter {
+                    name: StringWithOffset::from("T").at(3).into(),
+                    constraint: None
+                }],
                 name_parts: vec![FunctionNamePart::Parameter {
                     less: 6,
                     parameter: Parameter {
@@ -308,6 +313,45 @@ mod tests {
                 body: vec![Statement::Expression(
                     VariableReference {
                         name: StringWithOffset::from("x").at(21).into(),
+                    }
+                    .into()
+                ),],
+                implicit_return: true
+            }
+        );
+
+        let func = "fn<T: A> <x: T> -> T => x"
+            .parse::<FunctionDeclaration>()
+            .unwrap();
+        assert_eq!(
+            func,
+            FunctionDeclaration {
+                generic_parameters: vec![GenericParameter {
+                    name: StringWithOffset::from("T").at(3).into(),
+                    constraint: Some(TypeReference {
+                        name: StringWithOffset::from("A").at(6).into(),
+                        generic_parameters: vec![],
+                    })
+                }],
+                name_parts: vec![FunctionNamePart::Parameter {
+                    less: 9,
+                    parameter: Parameter {
+                        name: StringWithOffset::from("x").at(10).into(),
+                        ty: TypeReference {
+                            name: StringWithOffset::from("T").at(13).into(),
+                            generic_parameters: Vec::new(),
+                        },
+                    },
+                    greater: 14,
+                },],
+                return_type: Some(TypeReference {
+                    name: StringWithOffset::from("T").at(19).into(),
+                    generic_parameters: Vec::new(),
+                }),
+                annotations: vec![],
+                body: vec![Statement::Expression(
+                    VariableReference {
+                        name: StringWithOffset::from("x").at(24).into(),
                     }
                     .into()
                 ),],

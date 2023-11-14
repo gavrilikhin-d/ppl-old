@@ -1,0 +1,39 @@
+Error: semantics::no_function
+
+  × no function `bar <:Integer>`
+    ╭─[constraints.ppl:10:5]
+  9 │ bar none
+ 10 │ bar 1
+    ·     ┬
+    ·     ╰── <:Integer>
+ 11 │ 
+    ╰────
+
+Advice:   ☞ candidate is not viable: expected `None` type, got `Integer`
+
+Error:   × None
+   ╭─[constraints.ppl:4:17]
+ 3 │ 
+ 4 │ fn<T: Foo> bar <x: T> => foo x
+   ·                 ┬
+   ·                 ╰── this has `None` type
+ 5 │ 
+   ╰────
+Error:   × Integer
+    ╭─[constraints.ppl:10:5]
+  9 │ bar none
+ 10 │ bar 1
+    ·     ┬
+    ·     ╰── this has `Integer` type
+ 11 │ 
+    ╰────
+Advice:   ☞ candidate is not viable: `Integer` doesn't satisfy trait `Foo`
+  │ requirements
+   ╭─[constraints.ppl:2:5]
+ 1 │ trait Foo:
+ 2 │     fn foo <:Self>
+   ·        ──┬──
+   ·          ╰── This required function isn't implemented
+ 3 │ 
+   ╰────
+

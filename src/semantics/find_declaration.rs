@@ -126,9 +126,19 @@ pub trait FindDeclaration: FindDeclarationHere {
             args_cache
                 .iter()
                 .filter_map(|a| a.as_ref())
-                .filter_map(|a| match a.ty() {
+                .filter_map(|a| match a.ty().specialized() {
                     Type::Trait(tr) => Some(vec![tr].into_iter()),
                     Type::Class(c) => Some(self.traits_for(c).into_iter()),
+                    Type::Generic(g) => g
+                        .constraint
+                        .map(|c| {
+                            if let Type::Trait(tr) = c.referenced_type {
+                                Some(vec![tr].into_iter())
+                            } else {
+                                None
+                            }
+                        })
+                        .flatten(),
                     _ => None,
                 })
                 .flatten()

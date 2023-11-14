@@ -8,6 +8,7 @@ use crate::{mutability::Mutable, named::Named, syntax::StringWithOffset, AddSour
 
 use super::{
     Generic, GenericName, Member, Specialize, Specialized, TraitDeclaration, TypeDeclaration,
+    TypeReference,
 };
 use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
@@ -126,6 +127,8 @@ impl Display for SelfType {
 pub struct GenericType {
     /// Name of the generic type
     pub name: StringWithOffset,
+    /// Constraint for this type
+    pub constraint: Option<TypeReference>,
 }
 
 impl Named for GenericType {
@@ -177,7 +180,7 @@ pub enum Type {
     /// Self type and trait it represents
     SelfType(SelfType),
     /// Type for generic parameters
-    Generic(GenericType),
+    Generic(Box<GenericType>),
     /// Specialized type
     Specialized(Box<SpecializedType>),
     /// Function type
@@ -187,6 +190,12 @@ pub enum Type {
 impl From<SpecializedType> for Type {
     fn from(specialized: SpecializedType) -> Self {
         Self::Specialized(Box::new(specialized))
+    }
+}
+
+impl From<GenericType> for Type {
+    fn from(generic: GenericType) -> Self {
+        Box::new(generic).into()
     }
 }
 
@@ -416,10 +425,12 @@ mod tests {
 
         let t: Type = GenericType {
             name: StringWithOffset::from("T").at(7),
+            constraint: None,
         }
         .into();
         let u: Type = GenericType {
             name: StringWithOffset::from("U").at(10),
+            constraint: None,
         }
         .into();
 
@@ -451,15 +462,25 @@ mod tests {
         let b = type_decl("type B<T>");
         let c = type_decl("type C");
 
-        let x: Type = GenericType { name: "X".into() }.into();
-        let y: Type = GenericType { name: "Y".into() }.into();
+        let x: Type = GenericType {
+            name: "X".into(),
+            constraint: None,
+        }
+        .into();
+        let y: Type = GenericType {
+            name: "Y".into(),
+            constraint: None,
+        }
+        .into();
 
         let t: Type = GenericType {
             name: StringWithOffset::from("T").at(7),
+            constraint: None,
         }
         .into();
         let u: Type = GenericType {
             name: StringWithOffset::from("U").at(10),
+            constraint: None,
         }
         .into();
 

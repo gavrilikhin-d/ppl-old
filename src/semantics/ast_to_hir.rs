@@ -6,8 +6,8 @@ use std::sync::Arc;
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericName, Specialize, SpecializeClass, Type, TypeReference,
-    Typed,
+    self, FunctionNamePart, Generic, GenericName, GenericType, Specialize, SpecializeClass, Type,
+    TypeReference, Typed,
 };
 use crate::mutability::Mutable;
 use crate::named::Named;
@@ -165,8 +165,29 @@ impl ConversionRequest {
                 .implements(tr.clone().at(self.to.source_location.clone()))
                 .within(context)
                 .map(|_| true)?,
-            // TODO: check for constraints
-            (_, Type::Generic(_)) => true,
+            (_, Type::Generic(to)) => {
+                if let Some(constraint) = to.constraint {
+                    self.from
+                        .convert_to(
+                            constraint
+                                .referenced_type
+                                .clone()
+                                .at(self.to.source_location.clone()),
+                        )
+                        .within(context)
+                        .map(|_| true)?
+                } else {
+                    true
+                }
+            }
+            (Type::Generic(from), _) if from.constraint.is_some() => from
+                .constraint
+                .unwrap()
+                .referenced_type
+                .at(self.from.source_location.clone())
+                .convert_to(self.to.clone())
+                .within(context)
+                .map(|_| true)?,
 
             // FIXME: rework this whole shit
             (Type::Specialized(a), Type::Specialized(b)) => a.generic == b.generic,
@@ -1078,11 +1099,46 @@ impl ReplaceWithTypeInfo for TypeReference {
     }
 }
 
+impl ASTLowering for ast::GenericParameter {
+    type HIR = Type;
+    type Error = Error;
+
+    fn lower_to_hir_within_context(
+        &self,
+        context: &mut impl Context,
+    ) -> Result<Self::HIR, Self::Error> {
+        Ok(GenericType {
+            name: self.name.clone(),
+            constraint: self
+                .constraint
+                .as_ref()
+                .map(|ty| ty.lower_to_hir_within_context(context))
+                .transpose()?,
+        }
+        .into())
+    }
+}
+
+impl<T: ASTLowering> ASTLowering for Vec<T> {
+    type HIR = Vec<T::HIR>;
+    type Error = T::Error;
+
+    fn lower_to_hir_within_context(
+        &self,
+        context: &mut impl Context,
+    ) -> Result<Self::HIR, Self::Error> {
+        self.iter()
+            .map(|t| t.lower_to_hir_within_context(context))
+            .try_collect()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::test_compilation_result;
 
     test_compilation_result!(candidate_not_viable);
+    test_compilation_result!(constraints);
     test_compilation_result!(generics);
     test_compilation_result!(missing_fields);
     test_compilation_result!(multiple_errors);

@@ -329,11 +329,12 @@ impl<'llvm> EmitBody<'llvm> for FunctionDefinition {
             let mut f_context = FunctionContext::new(context, f);
             for (i, p) in self
                 .parameters()
-                .filter(|p| !p.name().is_empty() && !p.ty().is_none())
+                .filter(|p| !p.name().is_empty() && !p.ty().specialized().is_none())
                 .enumerate()
             {
                 let alloca = f_context.builder.build_alloca(
                     p.ty()
+                        .specialized()
                         .lower_to_ir(&f_context)
                         .try_into_basic_type()
                         .unwrap(),
@@ -464,7 +465,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for VariableReferenc
 
     /// Lower [`VariableReference`] to LLVM IR
     fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        if self.variable.ty().is_none() {
+        if self.variable.ty().specialized().is_none() {
             return None;
         }
 
