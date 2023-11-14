@@ -92,6 +92,8 @@ impl FromStr for BuiltinClass {
 pub struct TypeDeclaration {
     /// Type's name
     pub name: StringWithOffset,
+    /// Base generic type, if this is a specialization
+    pub specialization_of: Option<Arc<TypeDeclaration>>,
     /// Generic parameters of type
     pub generic_parameters: Vec<Type>,
     /// Kind of a builtin type, if it is a builtin class
@@ -260,6 +262,7 @@ mod tests {
             *type_decl,
             TypeDeclaration {
                 name: StringWithOffset::from("x").at(5),
+                specialization_of: None,
                 generic_parameters: vec![],
                 builtin: None,
                 members: vec![],
@@ -279,6 +282,7 @@ mod tests {
             *type_decl,
             TypeDeclaration {
                 name: StringWithOffset::from("Point").at(5),
+                specialization_of: None,
                 generic_parameters: vec![GenericType {
                     name: StringWithOffset::from("U").at(11),
                     constraint: None
@@ -320,6 +324,7 @@ mod tests {
             *type_decl,
             TypeDeclaration {
                 name: StringWithOffset::from("Point").at(5),
+                specialization_of: None,
                 generic_parameters: vec![],
                 builtin: None,
                 members: vec![
