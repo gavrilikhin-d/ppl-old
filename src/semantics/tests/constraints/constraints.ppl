@@ -4,6 +4,16 @@ trait Foo:
 fn<T: Foo> bar <x: T> => foo x
 
 fn foo <:None> => none
+fn foo <:Bool> => println "foo"
 
 bar none
 bar 1
+
+fn<T: Foo> baz <a: T> <b: T>:
+	foo a
+	foo b
+
+baz none none
+baz none true
+baz true none
+baz true true
