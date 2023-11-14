@@ -180,6 +180,14 @@ impl ConversionRequest {
                     true
                 }
             }
+            (Type::Generic(from), _) if from.constraint.is_some() => from
+                .constraint
+                .unwrap()
+                .referenced_type
+                .at(self.from.source_location.clone())
+                .convert_to(self.to.clone())
+                .within(context)
+                .map(|_| true)?,
 
             // FIXME: rework this whole shit
             (Type::Specialized(a), Type::Specialized(b)) => a.generic == b.generic,
