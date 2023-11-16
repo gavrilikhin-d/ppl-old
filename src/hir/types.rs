@@ -6,17 +6,14 @@ use std::{
 
 use crate::{mutability::Mutable, named::Named, syntax::StringWithOffset, AddSourceLocation};
 
-use super::{
-    Generic, GenericName, Member, Specialize, Specialized, TraitDeclaration, TypeDeclaration,
-    TypeReference,
-};
+use super::{Generic, GenericName, Member, TraitDeclaration, TypeDeclaration, TypeReference};
 use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
 
 use super::Expression;
 
 /// PPL's Function type
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct FunctionType {
     /// Parameters
     pub parameters: Vec<Type>,
@@ -110,6 +107,12 @@ impl PartialEq for SelfType {
 }
 impl Eq for SelfType {}
 
+impl std::hash::Hash for SelfType {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.associated_trait.as_ptr().hash(state);
+    }
+}
+
 impl Named for SelfType {
     fn name(&self) -> Cow<'_, str> {
         "Self".into()
@@ -123,7 +126,7 @@ impl Display for SelfType {
 }
 
 /// Type of a generic parameter
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct GenericType {
     /// Name of the generic type
     pub name: StringWithOffset,
@@ -143,35 +146,8 @@ impl Display for GenericType {
     }
 }
 
-/// Specialized type
-pub type SpecializedType = Specialized<Type>;
-
-impl Named for SpecializedType {
-    fn name(&self) -> Cow<'_, str> {
-        self.specialized.name()
-    }
-}
-
-impl GenericName for SpecializedType {
-    fn generic_name(&self) -> Cow<'_, str> {
-        self.specialized.generic_name()
-    }
-}
-
-impl Display for SpecializedType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.specialized)
-    }
-}
-
-impl Debug for SpecializedType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({} => {})", self.generic, self.specialized)
-    }
-}
-
 /// Type of values
-#[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto)]
+#[derive(Debug, Display, PartialEq, Eq, Hash, Clone, From, TryInto)]
 pub enum Type {
     /// User defined type
     Class(Arc<TypeDeclaration>),
@@ -181,16 +157,8 @@ pub enum Type {
     SelfType(SelfType),
     /// Type for generic parameters
     Generic(Box<GenericType>),
-    /// Specialized type
-    Specialized(Box<SpecializedType>),
     /// Function type
     Function(FunctionType),
-}
-
-impl From<SpecializedType> for Type {
-    fn from(specialized: SpecializedType) -> Self {
-        Self::Specialized(Box::new(specialized))
-    }
 }
 
 impl From<GenericType> for Type {
@@ -205,10 +173,10 @@ impl Type {
     ///
     /// # Note
     /// This function ignores the fact that types may be non-generic
-    pub fn diff(&self, target: Type) -> Vec<SpecializedType> {
-        let from = self.specialized();
-        let to = target.specialized();
-        if from == to {
+    pub fn diff(&self, target: Type) -> Vec<Type> {
+        let from = self;
+        let to = target;
+        if from == &to {
             return vec![];
         }
 
@@ -219,15 +187,7 @@ impl Type {
                 .zip(to.generic_parameters.iter())
                 .flat_map(|(t1, t2)| t1.diff(t2.clone()))
                 .collect(),
-            _ => vec![from.specialize_with(to).try_into().unwrap()],
-        }
-    }
-
-    /// Return most specialized subtype
-    pub fn specialized(&self) -> Type {
-        match self {
-            Type::Specialized(s) => s.specialized.specialized(),
-            _ => self.clone(),
+            _ => vec![to],
         }
     }
 
@@ -237,14 +197,13 @@ impl Type {
             return self.clone();
         }
 
-        self.generics()[0].specialized()
+        self.generics()[0]
     }
 
     /// Get generic parameters of type
     pub fn generics(&self) -> &[Type] {
         match self {
             Type::Class(c) => c.generics(),
-            Type::Specialized(s) => &s.specialized.generics(),
             _ => &[],
         }
     }
@@ -253,7 +212,6 @@ impl Type {
     pub fn members(&self) -> &[Arc<Member>] {
         match self {
             Type::Class(c) => c.members(),
-            Type::Specialized(s) => &s.specialized.members(),
             _ => &[],
         }
     }
@@ -308,7 +266,7 @@ impl Type {
 
     /// Is this a builtin `Reference` type?
     pub fn is_reference(&self) -> bool {
-        match self.specialized() {
+        match self {
             Type::Class(c) => c.is_reference(),
             _ => false,
         }
@@ -323,7 +281,7 @@ impl Type {
 
     /// Size of type in bytes
     pub fn size_in_bytes(&self) -> usize {
-        match self.specialized() {
+        match self {
             Type::Class(c) => c.size_in_bytes(),
             // TODO: implement size for other types
             _ => 0,
@@ -335,7 +293,6 @@ impl Generic for Type {
     fn is_generic(&self) -> bool {
         match self {
             Type::SelfType(_) | Type::Trait(_) | Type::Generic(_) => true,
-            Type::Specialized(s) => s.is_generic(),
             Type::Class(c) => c.is_generic(),
             Type::Function(f) => f.is_generic(),
         }
@@ -346,21 +303,7 @@ impl GenericName for Type {
     fn generic_name(&self) -> Cow<'_, str> {
         match self {
             Type::Class(c) => c.generic_name(),
-            Type::Specialized(s) => s.generic_name(),
             _ => self.name(),
-        }
-    }
-}
-
-impl Specialize<Type> for Type {
-    type Specialized = SpecializedType;
-
-    fn specialize_with(self, specialized: Type) -> SpecializedType {
-        debug_assert!(self.is_generic());
-
-        SpecializedType {
-            generic: self,
-            specialized,
         }
     }
 }
@@ -373,7 +316,6 @@ impl Named for Type {
             Type::SelfType(s) => s.name(),
             Type::Function(f) => f.name(),
             Type::Generic(g) => g.name(),
-            Type::Specialized(s) => s.name(),
         }
     }
 }
@@ -401,7 +343,7 @@ mod tests {
 
     use crate::{
         ast,
-        hir::{GenericName, GenericType, Specialize, SpecializeClass, Type, TypeDeclaration},
+        hir::{GenericName, GenericType, Type, TypeDeclaration},
         semantics::ASTLowering,
         syntax::StringWithOffset,
     };

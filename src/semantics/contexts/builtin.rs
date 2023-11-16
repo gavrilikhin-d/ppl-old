@@ -1,4 +1,4 @@
-use crate::hir::{Module, Specialize, SpecializeClass, Type};
+use crate::hir::{Module, Type};
 
 /// Helper struct to get builtin things
 pub struct BuiltinContext<'m> {
@@ -58,30 +58,21 @@ impl BuiltinTypes<'_> {
     /// Get `Type<T>` of this type
     pub fn type_of(&self, ty: Type) -> Type {
         self.type_()
-            .specialize_with(
-                self.type_()
-                    .as_class()
-                    .specialize_with(SpecializeClass::without_members(vec![ty]))
-                    .into(),
-            )
-            .into()
+            .as_class()
+            .specialize_by_order(std::iter::once(ty))
     }
 
     /// Get `Reference<T>` for this type
     pub fn reference_to(&self, ty: Type) -> Type {
         self.reference()
             .as_class()
-            .specialize_with(SpecializeClass::without_members(vec![ty]))
-            .into()
+            .specialize_by_order(std::iter::once(ty))
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::{
-        compilation::Compiler,
-        hir::{GenericName, Specialize, SpecializeClass, SpecializedType},
-    };
+    use crate::{compilation::Compiler, hir::GenericName};
 
     use super::BuiltinTypes;
 

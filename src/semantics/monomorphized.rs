@@ -1,10 +1,13 @@
-use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
+use std::{
+    collections::{BTreeMap, HashMap},
+    sync::Arc,
+};
 
 use crate::{
     hir::{
         Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
         FunctionDefinition, FunctionNamePart, Generic, If, Loop, MemberReference, Return,
-        Specialize, SpecializeClass, Statement, Type, Typed, VariableReference, While,
+        Specialize, Statement, Type, Typed, VariableReference, While,
     },
     named::Named,
     semantics::FunctionContext,
@@ -156,7 +159,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
             return self.clone();
         }
 
-        let mut generics_map: BTreeMap<Cow<'_, str>, Type> = BTreeMap::new();
+        let mut generics_map: HashMap<Type, Type> = BTreeMap::new();
 
         let mut arg = args.into_iter();
         let name_parts = self
@@ -189,34 +192,12 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
 
         let name = Function::build_name(&name_parts);
 
-        let return_type = if !self.return_type.is_generic() {
-            self.return_type.clone()
-        } else if let Some(ty) = generics_map.get(&self.return_type.name()) {
-            ty.clone().into()
-        } else {
-            let generics = self
-                .return_type
-                .generics()
-                .iter()
-                .cloned()
-                .map(|ty| generics_map.get(&ty.name()).cloned().unwrap_or(ty))
-                .collect();
-            self.return_type
-                .specialized()
-                .specialize_with(
-                    self.return_type
-                        .specialized()
-                        .as_class()
-                        .specialize_with(SpecializeClass::without_members(generics))
-                        .into(),
-                )
-                .into()
-        };
+        let return_type = self.return_type.specialize_with(&generics_map);
 
         let generic_types: Vec<Type> = self
             .generic_types
             .iter()
-            .map(|g| generics_map.get(&g.name()).cloned().unwrap_or(g.clone()))
+            .map(|g| g.specialize_with(&generics_map))
             .collect();
         Arc::new(
             FunctionDeclaration::build()

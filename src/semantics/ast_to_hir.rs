@@ -1,13 +1,12 @@
 use core::panic;
-use std::borrow::Cow;
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericName, GenericType, Specialize, SpecializeClass, Type,
-    TypeReference, Typed,
+    self, FunctionNamePart, Generic, GenericName, GenericType, Specialize, Type, TypeReference,
+    Typed,
 };
 use crate::mutability::Mutable;
 use crate::named::Named;
@@ -184,16 +183,6 @@ impl ConversionRequest {
                 .constraint
                 .unwrap()
                 .referenced_type
-                .at(self.from.source_location.clone())
-                .convert_to(self.to.clone())
-                .within(context)
-                .map(|_| true)?,
-
-            // FIXME: rework this whole shit
-            (Type::Specialized(a), Type::Specialized(b)) => a.generic == b.generic,
-            (Type::Specialized(from), to) if to.is_generic() => from.generic == to,
-            (Type::Specialized(from), _) => from
-                .specialized
                 .at(self.from.source_location.clone())
                 .convert_to(self.to.clone())
                 .within(context)
@@ -462,19 +451,15 @@ impl ASTLowering for ast::TypeReference {
             .iter()
             .map(|p| p.lower_to_hir_within_context(context))
             .try_collect()?;
-        let generics: Vec<_> = generics.into_iter().map(|g| g.referenced_type).collect();
 
-        let ty = if generics.is_empty() {
-            ty
-        } else {
-            ty.clone()
-                .specialize_with(
-                    ty.as_class()
-                        .specialize_with(SpecializeClass::without_members(generics))
-                        .into(),
-                )
-                .into()
-        };
+        let generics_mapping = HashMap::from_iter(
+            ty.generics()
+                .into_iter()
+                .cloned()
+                .zip(generics.into_iter().map(|g| g.referenced_type)),
+        );
+
+        let ty = ty.specialize_with(&generics_mapping);
 
         let type_for_type = context.builtin().types().type_of(ty.clone());
         Ok(hir::TypeReference {
@@ -528,22 +513,21 @@ impl ASTLowering for ast::Constructor {
         context: &mut impl Context,
     ) -> Result<Self::HIR, Self::Error> {
         let mut ty = self.ty.lower_to_hir_within_context(context)?;
-        let generic_ty: Arc<hir::TypeDeclaration> = ty
-            .referenced_type
-            .specialized()
-            .try_into()
-            .map_err(|_| NonClassConstructor {
-                ty: TypeWithSpan {
-                    at: self.ty.range().into(),
-                    ty: ty.referenced_type.clone(),
-                    // TODO: real source file
-                    source_file: None,
-                },
-            })?;
+        let generic_ty: Arc<hir::TypeDeclaration> =
+            ty.referenced_type
+                .try_into()
+                .map_err(|_| NonClassConstructor {
+                    ty: TypeWithSpan {
+                        at: self.ty.range().into(),
+                        ty: ty.referenced_type.clone(),
+                        // TODO: real source file
+                        source_file: None,
+                    },
+                })?;
 
         let mut members = ty.referenced_type.members().to_vec();
 
-        let mut generics_map: BTreeMap<Cow<'_, str>, Type> = BTreeMap::new();
+        let mut generics_map: HashMap<Type, Type> = HashMap::new();
 
         let mut initializers = Vec::<hir::Initializer>::new();
         for init in &self.initializers {
@@ -576,10 +560,11 @@ impl ASTLowering for ast::Constructor {
                 }
 
                 if member.is_generic() {
-                    // TODO: check for constraints and repeats
+                    // TODO: check for constraints
                     let member_ty = member.ty();
-                    members[index] = members[index].clone().specialize_with(value.ty());
-                    generics_map.insert(member_ty.name().to_string().into(), members[index].ty());
+                    members[index].ty = value.ty();
+                    // TODO: indirect specialization like x: Point<T> -> x: Point<Integer>
+                    generics_map.insert(member_ty, value.ty());
                 }
 
                 initializers.push(hir::Initializer {
@@ -618,20 +603,7 @@ impl ASTLowering for ast::Constructor {
         }
 
         if generic_ty.is_generic() {
-            let generic_parameters: Vec<_> = generic_ty
-                .generic_parameters
-                .iter()
-                .map(|g| generics_map.get(&g.name()).unwrap_or(g))
-                .cloned()
-                .collect();
-            ty = ty.specialize_with(
-                generic_ty
-                    .specialize_with(SpecializeClass {
-                        generic_parameters,
-                        members: Some(members),
-                    })
-                    .into(),
-            );
+            ty.referenced_type = generic_ty.specialize_with(&generics_map).into();
         }
         Ok(hir::Constructor {
             ty,

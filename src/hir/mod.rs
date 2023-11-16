@@ -16,8 +16,8 @@ pub use module::*;
 mod types;
 pub use types::*;
 
-mod specialized;
-pub use specialized::*;
+mod specialize;
+pub use specialize::*;
 
 mod generic;
 pub use generic::*;

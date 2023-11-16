@@ -1,9 +1,9 @@
-use crate::hir::{Generic, Specialize, Type, Typed};
+use crate::hir::{Generic, Type, Typed};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 
 /// HIR for type reference
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct TypeReference {
     /// Range of type reference
     pub span: std::ops::Range<usize>,
@@ -16,13 +16,6 @@ pub struct TypeReference {
 impl Generic for TypeReference {
     fn is_generic(&self) -> bool {
         self.referenced_type.is_generic()
-    }
-}
-
-impl Specialize<Type> for TypeReference {
-    fn specialize_with(mut self, specialized: Type) -> Self {
-        self.referenced_type = self.referenced_type.specialize_with(specialized).into();
-        self
     }
 }
 

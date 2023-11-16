@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use derive_more::{From, TryInto};
 
-use crate::hir::{FunctionType, Generic, GenericName, Specialize, Statement, Type, Typed};
+use crate::hir::{FunctionType, Generic, GenericName, Statement, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::{Ranged, StringWithOffset};
@@ -29,14 +29,6 @@ impl Generic for Parameter {
     /// Is this a generic parameter?
     fn is_generic(&self) -> bool {
         self.ty.is_generic()
-    }
-}
-
-impl Specialize<Type> for Parameter {
-    /// Specialize generic parameter
-    fn specialize_with(mut self, specialized: Type) -> Self {
-        self.ty = self.ty.specialize_with(specialized).into();
-        self
     }
 }
 

@@ -15,7 +15,7 @@ pub struct WithOffset<T> {
 }
 
 /// String at some offset
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct StringWithOffset {
     /// Offset of the start of the string
     pub offset: usize,

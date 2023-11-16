@@ -52,7 +52,7 @@ fn print_value(result: *const c_void, ty: Type) {
                     }
                     Reference => {
                         let result = result.cast::<*const c_void>();
-                        let ty = ty.generics()[0].specialized();
+                        let ty = ty.generics()[0];
                         print_value(unsafe { *result }, ty);
                     }
                 }
@@ -67,7 +67,6 @@ fn print_value(result: *const c_void, ty: Type) {
             unreachable!("Self may not be returned as result of expression")
         }
         Type::Generic(_) => unreachable!("generic types may not be returned"),
-        Type::Specialized(_) => unreachable!("should be most specialized"),
     }
 }
 
@@ -105,7 +104,7 @@ fn process_single_statement<'llvm>(
     if let Some(f) = module.get_function("execute") {
         let result = unsafe { engine.run_function(f, &[]) };
         if let hir::Statement::Expression(expr) = hir {
-            let ty = expr.ty().specialized();
+            let ty = expr.ty();
             let ptr = if ty.is_bool() {
                 result.as_int(false) as *const c_void
             } else {
