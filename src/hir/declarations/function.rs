@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use derive_more::{From, TryInto};
 
-use crate::hir::{FunctionType, Generic, GenericName, Statement, Type, Typed};
+use crate::hir::{FunctionType, Generic, GenericName, Statement, Type, TypeReference, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::{Ranged, StringWithOffset};
@@ -15,20 +15,23 @@ pub struct Parameter {
     /// Type's name
     pub name: StringWithOffset,
     /// Type of parameter
-    pub ty: Type,
+    pub ty: TypeReference,
 }
 
-// TODO: range of whole parameter decl
 impl Ranged for Parameter {
-    fn range(&self) -> std::ops::Range<usize> {
-        self.name.range()
+    fn start(&self) -> usize {
+        self.name.start()
+    }
+
+    fn end(&self) -> usize {
+        self.ty.end()
     }
 }
 
 impl Generic for Parameter {
     /// Is this a generic parameter?
     fn is_generic(&self) -> bool {
-        self.ty.is_generic()
+        self.ty.referenced_type.is_generic()
     }
 }
 
@@ -42,7 +45,7 @@ impl Named for Parameter {
 impl Typed for Parameter {
     /// Get type of parameter
     fn ty(&self) -> Type {
-        self.ty.clone()
+        self.ty.referenced_type.clone()
     }
 }
 
@@ -64,7 +67,7 @@ impl Display for FunctionNamePart {
         match self {
             FunctionNamePart::Text(text) => write!(f, "{}", text),
             FunctionNamePart::Parameter(parameter) => {
-                write!(f, "<{}: {}>", parameter.name, parameter.ty)
+                write!(f, "<{}: {}>", parameter.name, parameter.ty.referenced_type)
             }
         }
     }
@@ -441,7 +444,7 @@ mod tests {
         ast,
         hir::{
             Function, FunctionDeclaration, FunctionDefinition, GenericType, Parameter, Return,
-            Statement, VariableReference,
+            Statement, TypeReference, VariableReference,
         },
         semantics::ASTLowering,
         syntax::StringWithOffset,
@@ -465,7 +468,11 @@ mod tests {
         };
         let param = Parameter {
             name: StringWithOffset::from("x").at(7),
-            ty: ty.clone().into(),
+            ty: TypeReference {
+                referenced_type: ty.clone().into(),
+                span: 10..11,
+                type_for_type: hir.parameters().next().unwrap().ty.type_for_type.clone(),
+            },
         };
         assert_eq!(
             *hir.declaration,

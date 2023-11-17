@@ -710,10 +710,7 @@ impl ASTLowering for ast::Parameter {
     ) -> Result<Self::HIR, Self::Error> {
         Ok(Arc::new(hir::Parameter {
             name: self.name.clone(),
-            ty: self
-                .ty
-                .lower_to_hir_within_context(context)?
-                .referenced_type,
+            ty: self.ty.lower_to_hir_within_context(context)?,
         }))
     }
 }
