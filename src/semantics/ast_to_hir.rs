@@ -145,7 +145,7 @@ impl ConversionRequest {
     pub fn within(&self, context: &impl FindDeclaration) -> Result<Type, NotConvertible> {
         let from = self.from.value.without_ref();
         let to = self.to.value.without_ref();
-        let convertible = match (from, to.clone()) {
+        let convertible = match (from.clone(), to.clone()) {
             (Type::Trait(tr), Type::SelfType(s)) => {
                 Arc::ptr_eq(&tr, &s.associated_trait.upgrade().unwrap())
             }
@@ -187,6 +187,26 @@ impl ConversionRequest {
                 .convert_to(self.to.clone())
                 .within(context)
                 .map(|_| true)?,
+            (Type::Class(from), Type::Class(to)) => {
+                if to.specialization_of == Some(from.clone())
+                    || from.specialization_of.is_some()
+                        && to.specialization_of == from.specialization_of
+                {
+                    from.generics()
+                        .iter()
+                        .zip(to.generics().iter())
+                        .all(|(from, to)| {
+                            from.clone()
+                                .at(self.from.source_location.clone())
+                                .convert_to(to.clone().at(self.to.source_location.clone()))
+                                .within(context)
+                                // TODO: Add error
+                                .is_ok()
+                        })
+                } else {
+                    from == to
+                }
+            }
             (from, to) => from == to,
         };
 
