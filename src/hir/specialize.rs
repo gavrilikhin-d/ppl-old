@@ -84,7 +84,7 @@ impl Specialize for FunctionType {
 ///
 /// # Example
 /// `Point<T, U>` specialize by order with [`A`, `B`] is `Point<A, B>`
-pub trait SpecializeByOrder
+pub trait SpecializeParameters
 where
     Self: Sized,
 {
@@ -95,11 +95,11 @@ where
     ///
     /// # Example
     /// `Point<T, U>` specialize by order with [`A`, `B`] is `Point<A, B>`
-    fn specialize_by_order(self, args: impl IntoIterator<Item = Type>) -> Self::Output;
+    fn specialize_parameters(self, args: impl IntoIterator<Item = Type>) -> Self::Output;
 }
 
-impl SpecializeByOrder for Arc<TypeDeclaration> {
-    fn specialize_by_order(self, args: impl IntoIterator<Item = Type>) -> Self::Output {
+impl SpecializeParameters for Arc<TypeDeclaration> {
+    fn specialize_parameters(self, args: impl IntoIterator<Item = Type>) -> Self::Output {
         let mapping = HashMap::from_iter((&self).generics().into_iter().cloned().zip(args));
         self.specialize_with(&mapping)
     }

@@ -338,15 +338,14 @@ pub trait Typed {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
+    use std::{collections::HashMap, sync::Arc};
 
     use pretty_assertions::{assert_eq, assert_str_eq};
 
     use crate::{
         ast,
-        hir::{GenericName, GenericType, Type, TypeDeclaration},
+        hir::{GenericName, GenericType, SpecializeParameters, Type, TypeDeclaration},
         semantics::ASTLowering,
-        syntax::StringWithOffset,
     };
 
     /// Get type declaration from source
@@ -366,36 +365,17 @@ mod tests {
         let b = type_decl("type B<T>");
         assert_str_eq!(b.generic_name(), "B<T>");
 
-        let t: Type = GenericType {
-            name: StringWithOffset::from("T").at(7),
-            constraint: None,
-        }
-        .into();
-        let u: Type = GenericType {
-            name: StringWithOffset::from("U").at(10),
-            constraint: None,
-        }
-        .into();
-
         let x: Type = type_decl("type X").into();
         assert_str_eq!(x.generic_name(), "X");
         let y: Type = type_decl("type Y").into();
         assert_str_eq!(y.generic_name(), "Y");
 
         // B<Y>
-        let by: Type = b
-            .specialize_with(SpecializeClass::without_members(vec![t
-                .clone()
-                .specialize_with(y)
-                .into()]))
-            .into();
+        let by: Type = b.specialize_parameters(std::iter::once(y.clone())).into();
         assert_str_eq!(by.generic_name(), "B<Y>");
 
         // A<X, B<Y>>
-        let t1 = a.specialize_with(SpecializeClass::without_members(vec![
-            t.specialize_with(x).into(),
-            u.specialize_with(by).into(),
-        ]));
+        let t1 = a.specialize_parameters(vec![x, by]);
         assert_str_eq!(t1.generic_name(), "A<X, B<Y>>");
     }
 
@@ -403,7 +383,7 @@ mod tests {
     fn diff() {
         let a = type_decl("type A<T, U>");
         let b = type_decl("type B<T>");
-        let c = type_decl("type C");
+        let c: Type = type_decl("type C").into();
 
         let x: Type = GenericType {
             name: "X".into(),
@@ -416,55 +396,21 @@ mod tests {
         }
         .into();
 
-        let t: Type = GenericType {
-            name: StringWithOffset::from("T").at(7),
-            constraint: None,
-        }
-        .into();
-        let u: Type = GenericType {
-            name: StringWithOffset::from("U").at(10),
-            constraint: None,
-        }
-        .into();
-
-        let by: Type = b
-            .clone()
-            .specialize_with(SpecializeClass::without_members(vec![t
-                .clone()
-                .specialize_with(y.clone())
-                .into()]))
-            .into();
+        let by: Type = b.clone().specialize_parameters(vec![y.clone()]).into();
         println!("{}", by.generic_name());
 
         // A<X, B<Y>>
         let t1: Type = a
             .clone()
-            .specialize_with(SpecializeClass::without_members(vec![
-                t.clone().specialize_with(x.clone()).into(),
-                u.clone().specialize_with(by.clone()).into(),
-            ]))
+            .specialize_parameters(vec![x.clone(), by.clone()])
             .into();
         println!("{}", t1.generic_name());
 
         // B<C>
-        let bc: Type = b
-            .specialize_with(SpecializeClass::without_members(vec![t
-                .clone()
-                .specialize_with(c.clone().into())
-                .into()]))
-            .into();
+        let bc: Type = b.specialize_parameters(vec![c.clone()]).into();
         // A<B<C>, B<C>>
-        let t2: Type = a
-            .specialize_with(SpecializeClass::without_members(vec![
-                t.specialize_with(bc.clone()).into(),
-                u.specialize_with(bc.clone()).into(),
-            ]))
-            .into();
+        let t2: Type = a.specialize_parameters(vec![bc.clone(), bc.clone()]).into();
         let diff = t1.diff(t2);
-        diff.iter().for_each(|s| println!("{s}"));
-        assert_eq!(
-            diff,
-            vec![x.specialize_with(bc), y.specialize_with(c.into())]
-        );
+        assert_eq!(diff, HashMap::from_iter(vec![(x, bc), (y, c)]));
     }
 }
