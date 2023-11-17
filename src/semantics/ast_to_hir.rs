@@ -515,6 +515,7 @@ impl ASTLowering for ast::Constructor {
         let mut ty = self.ty.lower_to_hir_within_context(context)?;
         let generic_ty: Arc<hir::TypeDeclaration> =
             ty.referenced_type
+                .clone()
                 .try_into()
                 .map_err(|_| NonClassConstructor {
                     ty: TypeWithSpan {
@@ -561,10 +562,12 @@ impl ASTLowering for ast::Constructor {
 
                 if member.is_generic() {
                     // TODO: check for constraints
-                    let member_ty = member.ty();
-                    members[index].ty = value.ty();
-                    // TODO: indirect specialization like x: Point<T> -> x: Point<Integer>
-                    generics_map.insert(member_ty, value.ty());
+                    let diff = members[index].ty().diff(value.ty());
+                    generics_map.extend(diff);
+                    members[index] = Arc::new(hir::Member {
+                        ty: members[index].ty().specialize_with(&generics_map),
+                        ..members[index].as_ref().clone()
+                    })
                 }
 
                 initializers.push(hir::Initializer {

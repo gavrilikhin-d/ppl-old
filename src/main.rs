@@ -52,7 +52,7 @@ fn print_value(result: *const c_void, ty: Type) {
                     }
                     Reference => {
                         let result = result.cast::<*const c_void>();
-                        let ty = ty.generics()[0];
+                        let ty = ty.without_ref();
                         print_value(unsafe { *result }, ty);
                     }
                 }

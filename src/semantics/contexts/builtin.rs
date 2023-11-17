@@ -1,4 +1,4 @@
-use crate::hir::{Module, Type};
+use crate::hir::{Module, SpecializeByOrder, Type};
 
 /// Helper struct to get builtin things
 pub struct BuiltinContext<'m> {
@@ -60,6 +60,7 @@ impl BuiltinTypes<'_> {
         self.type_()
             .as_class()
             .specialize_by_order(std::iter::once(ty))
+            .into()
     }
 
     /// Get `Reference<T>` for this type
@@ -67,6 +68,7 @@ impl BuiltinTypes<'_> {
         self.reference()
             .as_class()
             .specialize_by_order(std::iter::once(ty))
+            .into()
     }
 }
 

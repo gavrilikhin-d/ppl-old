@@ -1,5 +1,6 @@
 use std::{
     borrow::Cow,
+    collections::HashMap,
     fmt::{Debug, Display},
     sync::{Arc, Weak},
 };
@@ -173,11 +174,11 @@ impl Type {
     ///
     /// # Note
     /// This function ignores the fact that types may be non-generic
-    pub fn diff(&self, target: Type) -> Vec<Type> {
+    pub fn diff(&self, target: Type) -> HashMap<Type, Type> {
         let from = self;
         let to = target;
         if from == &to {
-            return vec![];
+            return HashMap::new();
         }
 
         match (&from, &to) {
@@ -187,7 +188,7 @@ impl Type {
                 .zip(to.generic_parameters.iter())
                 .flat_map(|(t1, t2)| t1.diff(t2.clone()))
                 .collect(),
-            _ => vec![to],
+            _ => HashMap::from_iter(std::iter::once((from.clone(), to))),
         }
     }
 
@@ -197,7 +198,7 @@ impl Type {
             return self.clone();
         }
 
-        self.generics()[0]
+        self.generics()[0].clone()
     }
 
     /// Get generic parameters of type

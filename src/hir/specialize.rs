@@ -1,9 +1,9 @@
 use std::{collections::HashMap, sync::Arc};
 
-use super::{FunctionType, Generic, Type, TypeDeclaration};
+use super::{FunctionType, Generic, Member, Type, TypeDeclaration};
 
 /// Specialize type using given mapping
-pub trait Specialize: Generics
+pub trait Specialize
 where
     Self: Sized,
 {
@@ -11,12 +11,6 @@ where
 
     /// Specialize type using
     fn specialize_with(self, mapping: &HashMap<Type, Type>) -> Self::Output;
-
-    fn specialize_by_order(self, args: impl IntoIterator<Item = Type>) -> Self::Output {
-        self.specialize_with(&HashMap::from_iter(
-            self.generics().into_iter().cloned().zip(args),
-        ))
-    }
 }
 
 impl Specialize for Type {
@@ -44,15 +38,18 @@ impl Specialize for Arc<TypeDeclaration> {
         let generic_parameters = self
             .generic_parameters
             .iter()
+            .cloned()
             .map(|p| p.specialize_with(mapping))
             .collect::<Vec<_>>();
 
         let members = self
             .members
-            .into_iter()
-            .map(|mut m| {
-                m.ty = m.ty.specialize_with(mapping);
-                m
+            .iter()
+            .map(|m| {
+                Arc::new(Member {
+                    ty: m.ty.clone().specialize_with(mapping),
+                    ..m.as_ref().clone()
+                })
             })
             .collect::<Vec<_>>();
 
@@ -61,7 +58,7 @@ impl Specialize for Arc<TypeDeclaration> {
         }
 
         Arc::new(TypeDeclaration {
-            specialization_of: self.specialization_of.or(Some(self.clone())),
+            specialization_of: self.specialization_of.clone().or(Some(self.clone())),
             generic_parameters,
             members,
             ..self.as_ref().clone()
@@ -70,7 +67,7 @@ impl Specialize for Arc<TypeDeclaration> {
 }
 
 impl Specialize for FunctionType {
-    fn specialize_with(mut self, mapping: &HashMap<Type, Type>) -> Self::Output {
+    fn specialize_with(self, mapping: &HashMap<Type, Type>) -> Self::Output {
         FunctionType::build()
             .with_parameters(
                 self.parameters
@@ -79,5 +76,31 @@ impl Specialize for FunctionType {
                     .collect(),
             )
             .with_return_type(self.return_type.specialize_with(mapping))
+    }
+}
+
+/// Specialize class without passing explicit mapping.
+/// Order of parameters will be used instead.
+///
+/// # Example
+/// `Point<T, U>` specialize by order with [`A`, `B`] is `Point<A, B>`
+pub trait SpecializeByOrder
+where
+    Self: Sized,
+{
+    type Output = Self;
+
+    /// Specialize class without passing explicit mapping.
+    /// Order of parameters will be used instead.
+    ///
+    /// # Example
+    /// `Point<T, U>` specialize by order with [`A`, `B`] is `Point<A, B>`
+    fn specialize_by_order(self, args: impl IntoIterator<Item = Type>) -> Self::Output;
+}
+
+impl SpecializeByOrder for Arc<TypeDeclaration> {
+    fn specialize_by_order(self, args: impl IntoIterator<Item = Type>) -> Self::Output {
+        let mapping = HashMap::from_iter((&self).generics().into_iter().cloned().zip(args));
+        self.specialize_with(&mapping)
     }
 }

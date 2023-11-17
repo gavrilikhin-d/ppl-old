@@ -1,13 +1,10 @@
-use std::{
-    collections::{BTreeMap, HashMap},
-    sync::Arc,
-};
+use std::{collections::HashMap, sync::Arc};
 
 use crate::{
     hir::{
         Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
-        FunctionDefinition, FunctionNamePart, Generic, If, Loop, MemberReference, Return,
-        Specialize, Statement, Type, Typed, VariableReference, While,
+        FunctionDefinition, FunctionNamePart, Generic, If, Loop, MemberReference, Parameter,
+        Return, Specialize, Statement, Type, Typed, VariableReference, While,
     },
     named::Named,
     semantics::FunctionContext,
@@ -159,7 +156,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
             return self.clone();
         }
 
-        let mut generics_map: HashMap<Type, Type> = BTreeMap::new();
+        let mut generics_map: HashMap<Type, Type> = HashMap::new();
 
         let mut arg = args.into_iter();
         let name_parts = self
@@ -179,24 +176,25 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
                     }
 
                     let diff = param_ty.diff(arg_ty.clone());
-                    for ty in diff.into_iter() {
-                        let name = (&ty).generic.name().to_string();
-                        generics_map.insert(name.into(), ty.into());
-                    }
+                    generics_map.extend(diff);
 
-                    let param = param.as_ref().clone().specialize_with(arg_ty);
-                    param.into()
+                    Arc::new(Parameter {
+                        ty: arg_ty,
+                        ..param.as_ref().clone()
+                    })
+                    .into()
                 }
             })
             .collect::<Vec<_>>();
 
         let name = Function::build_name(&name_parts);
 
-        let return_type = self.return_type.specialize_with(&generics_map);
+        let return_type = self.return_type.clone().specialize_with(&generics_map);
 
         let generic_types: Vec<Type> = self
             .generic_types
             .iter()
+            .cloned()
             .map(|g| g.specialize_with(&generics_map))
             .collect();
         Arc::new(
