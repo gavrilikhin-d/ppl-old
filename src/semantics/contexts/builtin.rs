@@ -1,4 +1,4 @@
-use crate::hir::{Module, Specialize, SpecializeClass, Type};
+use crate::hir::{Module, SpecializeParameters, Type};
 
 /// Helper struct to get builtin things
 pub struct BuiltinContext<'m> {
@@ -58,12 +58,8 @@ impl BuiltinTypes<'_> {
     /// Get `Type<T>` of this type
     pub fn type_of(&self, ty: Type) -> Type {
         self.type_()
-            .specialize_with(
-                self.type_()
-                    .as_class()
-                    .specialize_with(SpecializeClass::without_members(vec![ty]))
-                    .into(),
-            )
+            .as_class()
+            .specialize_parameters(std::iter::once(ty))
             .into()
     }
 
@@ -71,7 +67,7 @@ impl BuiltinTypes<'_> {
     pub fn reference_to(&self, ty: Type) -> Type {
         self.reference()
             .as_class()
-            .specialize_with(SpecializeClass::without_members(vec![ty]))
+            .specialize_parameters(std::iter::once(ty))
             .into()
     }
 }
@@ -80,7 +76,7 @@ impl BuiltinTypes<'_> {
 mod test {
     use crate::{
         compilation::Compiler,
-        hir::{GenericName, Specialize, SpecializeClass, SpecializedType},
+        hir::{GenericName, TypeDeclaration},
     };
 
     use super::BuiltinTypes;
@@ -94,34 +90,27 @@ mod test {
             module: compiler.builtin_module().unwrap(),
         };
         let none = builtin.none();
+        let ty = builtin.type_();
         let none_ty = builtin.type_of(none.clone());
         assert_str_eq!(none_ty.generic_name(), "Type<None>");
         assert_eq!(
-            none_ty.clone(),
-            SpecializedType {
-                generic: builtin.type_(),
-                specialized: builtin
-                    .type_()
-                    .as_class()
-                    .specialize_with(SpecializeClass::without_members(vec![none]))
-                    .into()
+            none_ty.clone().as_class().as_ref(),
+            &TypeDeclaration {
+                specialization_of: Some(ty.clone().as_class()),
+                generic_parameters: vec![none.clone().into()],
+                ..ty.clone().as_class().as_ref().clone()
             }
-            .into()
         );
 
         let type_of_type = builtin.type_of(none_ty.clone());
         assert_str_eq!(type_of_type.generic_name(), "Type<Type<None>>");
         assert_eq!(
-            type_of_type.clone(),
-            SpecializedType {
-                generic: builtin.type_(),
-                specialized: builtin
-                    .type_()
-                    .as_class()
-                    .specialize_with(SpecializeClass::without_members(vec![none_ty]))
-                    .into()
+            type_of_type.clone().as_class().as_ref(),
+            &TypeDeclaration {
+                specialization_of: Some(ty.clone().as_class()),
+                generic_parameters: vec![none_ty.clone().into()],
+                ..ty.clone().as_class().as_ref().clone()
             }
-            .into()
         );
     }
 }

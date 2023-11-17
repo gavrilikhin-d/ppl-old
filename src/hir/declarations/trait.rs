@@ -1,4 +1,10 @@
-use std::{borrow::Cow, collections::BTreeMap, fmt::Display, sync::Arc};
+use std::{
+    borrow::Cow,
+    collections::BTreeMap,
+    fmt::Display,
+    hash::{Hash, Hasher},
+    sync::Arc,
+};
 
 use crate::{named::Named, syntax::StringWithOffset, AddSourceLocation};
 
@@ -35,3 +41,9 @@ impl Display for TraitDeclaration {
 }
 
 impl AddSourceLocation for Arc<TraitDeclaration> {}
+
+impl Hash for TraitDeclaration {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
+    }
+}

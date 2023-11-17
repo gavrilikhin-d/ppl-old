@@ -1,14 +1,14 @@
 use std::{borrow::Cow, fmt::Display, str::FromStr, sync::Arc};
 
 use crate::{
-    hir::{Generic, GenericName, Specialize, Type, Typed},
+    hir::{Generic, GenericName, Type, Typed},
     named::Named,
     syntax::StringWithOffset,
     AddSourceLocation,
 };
 
 /// Member of type
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Member {
     /// Member's name
     pub name: StringWithOffset,
@@ -20,13 +20,6 @@ impl Generic for Member {
     /// Is this a generic member?
     fn is_generic(&self) -> bool {
         self.ty.is_generic()
-    }
-}
-
-impl Specialize<Type> for Member {
-    fn specialize_with(mut self, ty: Type) -> Self {
-        self.ty = self.ty.specialize_with(ty).into();
-        self
     }
 }
 
@@ -48,7 +41,7 @@ impl Typed for Member {
 const POINTER_SIZE: usize = 8;
 
 /// Enum of all builtin classes
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum BuiltinClass {
     None,
     Bool,
@@ -88,10 +81,12 @@ impl FromStr for BuiltinClass {
 }
 
 /// Declaration of a type
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct TypeDeclaration {
     /// Type's name
     pub name: StringWithOffset,
+    /// Base generic type, if this is a specialization
+    pub specialization_of: Option<Arc<TypeDeclaration>>,
     /// Generic parameters of type
     pub generic_parameters: Vec<Type>,
     /// Kind of a builtin type, if it is a builtin class
@@ -203,35 +198,6 @@ impl Display for TypeDeclaration {
 
 impl AddSourceLocation for Arc<TypeDeclaration> {}
 
-/// Arguments to specialize class
-pub struct SpecializeClass {
-    /// Specialized generics
-    pub generic_parameters: Vec<Type>,
-    /// Specialized members
-    pub members: Option<Vec<Arc<Member>>>,
-}
-
-impl SpecializeClass {
-    /// Specialize class without members
-    pub fn without_members(generic_parameters: Vec<Type>) -> Self {
-        Self {
-            generic_parameters,
-            members: None,
-        }
-    }
-}
-
-// TODO: should pass only generic types and substitute them in members
-impl Specialize<SpecializeClass> for TypeDeclaration {
-    fn specialize_with(mut self, specialized: SpecializeClass) -> Self {
-        self.generic_parameters = specialized.generic_parameters;
-        if let Some(members) = specialized.members {
-            self.members = members;
-        }
-        self
-    }
-}
-
 impl Named for TypeDeclaration {
     /// Get name of type
     fn name(&self) -> Cow<'_, str> {
@@ -260,6 +226,7 @@ mod tests {
             *type_decl,
             TypeDeclaration {
                 name: StringWithOffset::from("x").at(5),
+                specialization_of: None,
                 generic_parameters: vec![],
                 builtin: None,
                 members: vec![],
@@ -279,6 +246,7 @@ mod tests {
             *type_decl,
             TypeDeclaration {
                 name: StringWithOffset::from("Point").at(5),
+                specialization_of: None,
                 generic_parameters: vec![GenericType {
                     name: StringWithOffset::from("U").at(11),
                     constraint: None
@@ -320,6 +288,7 @@ mod tests {
             *type_decl,
             TypeDeclaration {
                 name: StringWithOffset::from("Point").at(5),
+                specialization_of: None,
                 generic_parameters: vec![],
                 builtin: None,
                 members: vec![
