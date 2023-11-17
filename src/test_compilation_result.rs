@@ -12,11 +12,7 @@ macro_rules! test_compilation_result {
             let temp_dir_path = temp_dir.path().to_str().unwrap();
 
             let ppl = concat!(env!("CARGO_MANIFEST_DIR"), "/target/debug/ppl");
-            let dir = Path::new(file!())
-                .parent()
-                .unwrap()
-                .join("tests")
-                .join(stringify!($name));
+            let dir = Path::new(file!()).parent().unwrap().join(stringify!($name));
             let file = concat!(stringify!($name), ".ppl");
             let output = std::process::Command::new(ppl)
                 .args(&["compile", file])
@@ -26,7 +22,7 @@ macro_rules! test_compilation_result {
                 .expect("failed to run command");
 
             let stderr = String::from_utf8(output.stderr).expect("stderr is not utf8");
-            let expected_stderr = include_str!(concat!("tests/", stringify!($name), "/stderr.log"));
+            let expected_stderr = include_str!(concat!(stringify!($name), "/stderr.log"));
             assert_str_eq!(stderr, expected_stderr);
         }
     };

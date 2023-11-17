@@ -17,3 +17,6 @@ pub use find_declaration::*;
 
 mod add_declaration;
 pub use add_declaration::*;
+
+#[cfg(test)]
+mod tests;
