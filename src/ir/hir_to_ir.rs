@@ -523,7 +523,8 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Constructor {
             .ty
             .referenced_type
             .lower_to_ir(context)
-            .into_struct_type();
+            .try_into_basic_type()
+            .expect("non-basic type constructor");
         let alloca = context.builder.build_alloca(ty, "");
 
         for init in self.initializers.iter().filter(|i| !i.value.ty().is_none()) {
