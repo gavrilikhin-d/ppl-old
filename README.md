@@ -43,12 +43,15 @@
 * [x] Fix IR generation for complex while loops (benchmarks/factorial/main.ppl)
 * [x] Run initializer for global variables (`global_ctor` or add to main)
 * [x] Fix undefined variable when returning `=> global`
+* [x] Fix `<:Self> > <:Self>`
+* [x] Print exactly decimals in decimal form
+* [x] Multiple output types
+* [x] Add constrains to generics
 ---
 ### Current task
 * [ ] Mapping of generic types while checking candidates
 ---
 * [ ] Logic for printing decimals inside ppl
-* [ ] Fix `<:Self> > <:Self>`
 * [ ] Implicit conversions from one type to another (dereference and etc)
 * [ ] Unsafe code marker
 * [ ] Check result of the program itself in `test_compiler_result`
@@ -60,14 +63,11 @@
 * [ ] Add `assert` and `panic`
 * [ ] Rework specialized system and type conversions checks. Add reason, why conversion fails
 * [ ] Fix bus error (caused by llvm 16 [issue](https://github.com/llvm/llvm-project/issues/60432))
-* [ ] Print exactly decimals in decimal form
 * [ ] Remove cached names from functions
-* [ ] Remove unnecessary information from errors
+* [ ] Remove unnecessary information from errors (like `Error: <Type>`)
 * [ ] More functions to stdlib
-* [ ] Multiple output types
 * [ ] Check compiler errors in repl too
 * [ ] Add more checks for compiler
-* [ ] Add constrains to generics
 * [ ] Make statements to return `None` type for convenience
 * [ ] Make `if` to be an expression?
 * [ ] Add `HashMap` type

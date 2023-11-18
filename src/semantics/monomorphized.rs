@@ -4,7 +4,7 @@ use crate::{
     hir::{
         Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
         FunctionDefinition, FunctionNamePart, Generic, If, Loop, MemberReference, Parameter,
-        Return, Specialize, Statement, Type, Typed, VariableReference, While,
+        Return, Specialize, Statement, Type, TypeReference, Typed, VariableReference, While,
     },
     named::Named,
     semantics::FunctionContext,
@@ -179,7 +179,10 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
                     generics_map.extend(diff);
 
                     Arc::new(Parameter {
-                        ty: arg_ty,
+                        ty: TypeReference {
+                            referenced_type: arg_ty,
+                            ..param.ty.clone()
+                        },
                         ..param.as_ref().clone()
                     })
                     .into()

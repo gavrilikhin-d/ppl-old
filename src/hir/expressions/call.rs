@@ -9,7 +9,6 @@ pub struct Call {
     /// Range of function call
     pub range: Range<usize>,
 
-    // TODO: replace by Specialized<Function>
     /// Called function
     pub function: Function,
     /// Generic version of called function

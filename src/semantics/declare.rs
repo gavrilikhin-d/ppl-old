@@ -46,11 +46,9 @@ impl Declare for ast::FunctionDeclaration {
         for part in &self.name_parts {
             match part {
                 ast::FunctionNamePart::Text(t) => name_parts.push(t.clone().into()),
-                ast::FunctionNamePart::Parameter { parameter, .. } => name_parts.push(
-                    parameter
-                        .lower_to_hir_within_context(&mut generic_context)?
-                        .into(),
-                ),
+                ast::FunctionNamePart::Parameter(p) => {
+                    name_parts.push(p.lower_to_hir_within_context(&mut generic_context)?.into())
+                }
             }
         }
 
@@ -244,7 +242,7 @@ impl Declare for ast::TypeDeclaration {
 
         // TODO: recursive types
         let ty = Arc::new(hir::TypeDeclaration {
-            name: self.name.clone(),
+            basename: self.name.clone(),
             specialization_of: None,
             generic_parameters,
             builtin,

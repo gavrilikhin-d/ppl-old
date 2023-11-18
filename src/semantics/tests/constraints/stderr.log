@@ -32,8 +32,8 @@ Advice:   ☞ candidate is not viable: `Integer` doesn't satisfy trait `Foo`
    ╭─[constraints.ppl:2:5]
  1 │ trait Foo:
  2 │     fn foo <:Self>
-   ·        ──┬──
-   ·          ╰── This required function isn't implemented
+   ·        ─────┬─────
+   ·             ╰── This required function isn't implemented
  3 │ 
    ╰────
 

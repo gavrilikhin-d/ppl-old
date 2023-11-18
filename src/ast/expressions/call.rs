@@ -80,7 +80,10 @@ impl Call {
 impl StartsHere for Call {
     /// Check that call may start at current lexer position
     fn starts_here(context: &mut Context<impl Lexer>) -> bool {
-        context.lexer.try_match(Token::Id).is_ok()
+        context
+            .lexer
+            .try_match_one_of(&[Token::Id, Token::EscapedId])
+            .is_ok()
     }
 }
 

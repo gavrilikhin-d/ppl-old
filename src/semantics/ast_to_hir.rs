@@ -5,8 +5,7 @@ use std::sync::Arc;
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericName, GenericType, Specialize, Type, TypeReference,
-    Typed,
+    self, FunctionNamePart, Generic, GenericType, Specialize, Type, TypeReference, Typed,
 };
 use crate::mutability::Mutable;
 use crate::named::Named;
@@ -710,10 +709,8 @@ impl ASTLowering for ast::Parameter {
     ) -> Result<Self::HIR, Self::Error> {
         Ok(Arc::new(hir::Parameter {
             name: self.name.clone(),
-            ty: self
-                .ty
-                .lower_to_hir_within_context(context)?
-                .referenced_type,
+            ty: self.ty.lower_to_hir_within_context(context)?,
+            range: self.less..self.greater + 1,
         }))
     }
 }
@@ -1071,7 +1068,7 @@ impl ReplaceWithTypeInfo for TypeReference {
                     member: self.type_for_type.members()[0].clone(),
                     value: hir::Literal::String {
                         span: 0..0,
-                        value: self.referenced_type.generic_name().to_string(),
+                        value: self.referenced_type.name().to_string(),
                         ty: context.builtin().types().string(),
                     }
                     .into(),
@@ -1126,22 +1123,4 @@ impl<T: ASTLowering> ASTLowering for Vec<T> {
             .map(|t| t.lower_to_hir_within_context(context))
             .try_collect()
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::test_compilation_result;
-
-    test_compilation_result!(candidate_not_viable);
-    test_compilation_result!(constraints);
-    test_compilation_result!(generics);
-    test_compilation_result!(missing_fields);
-    test_compilation_result!(multiple_errors);
-    test_compilation_result!(multiple_initialization);
-    test_compilation_result!(non_class_constructor);
-    test_compilation_result!(predeclare_vars);
-    test_compilation_result!(references);
-    test_compilation_result!(traits);
-    test_compilation_result!(type_as_value);
-    test_compilation_result!(wrong_initializer_type);
 }

@@ -16,16 +16,23 @@ use super::GenericParameter;
 /// Parameter of function
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct Parameter {
+    /// Location of '<'
+    pub less: usize,
     /// Parameter's name
     pub name: StringWithOffset,
     /// Parameter's type
     pub ty: TypeReference,
+    /// Location of '>'
+    pub greater: usize,
 }
 
 impl Ranged for Parameter {
-    /// Get range of parameter
-    fn range(&self) -> std::ops::Range<usize> {
-        self.name.range().start..self.ty.range().end
+    fn start(&self) -> usize {
+        self.less
+    }
+
+    fn end(&self) -> usize {
+        self.greater + 1
     }
 }
 
@@ -34,9 +41,10 @@ impl Parse for Parameter {
 
     /// Parse parameter using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        let less = context.lexer.consume(Token::Less)?.start();
+
         let name = context
-            .lexer
-            .consume(Token::Id)
+            .consume_id()
             .ok()
             .unwrap_or_else(|| StringWithOffset::from("").at(context.lexer.span().end));
 
@@ -44,7 +52,14 @@ impl Parse for Parameter {
 
         let ty = TypeReference::parse(context)?;
 
-        Ok(Parameter { name, ty })
+        let greater = context.lexer.consume_greater()?.start();
+
+        Ok(Parameter {
+            less,
+            name,
+            ty,
+            greater,
+        })
     }
 }
 
@@ -52,11 +67,7 @@ impl Parse for Parameter {
 #[derive(Debug, PartialEq, Eq, AST, Clone, From)]
 pub enum FunctionNamePart {
     Text(StringWithOffset),
-    Parameter {
-        less: usize,
-        parameter: Parameter,
-        greater: usize,
-    },
+    Parameter(Parameter),
 }
 
 impl Ranged for FunctionNamePart {
@@ -64,7 +75,7 @@ impl Ranged for FunctionNamePart {
     fn range(&self) -> std::ops::Range<usize> {
         match self {
             FunctionNamePart::Text(s) => s.range(),
-            FunctionNamePart::Parameter { less, greater, .. } => *less..*greater + 1,
+            FunctionNamePart::Parameter(p) => p.range(),
         }
     }
 }
@@ -76,6 +87,7 @@ impl Parse for FunctionNamePart {
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
         let token = context.lexer.consume_one_of(&[
             Token::Id,
+            Token::EscapedId,
             Token::Less,
             Token::Greater,
             Token::Operator(OperatorKind::Prefix),
@@ -83,7 +95,7 @@ impl Parse for FunctionNamePart {
             Token::Operator(OperatorKind::Postfix),
         ])?;
         match token {
-            Token::Id | Token::Greater | Token::Operator(_) => {
+            Token::Id | Token::EscapedId | Token::Greater | Token::Operator(_) => {
                 Ok(context.lexer.string_with_offset().into())
             }
             Token::Less => {
@@ -94,15 +106,24 @@ impl Parse for FunctionNamePart {
 
                 let less = context.lexer.span().start;
 
-                let parameter = Parameter::parse(context)?;
+                let name = context
+                    .consume_id()
+                    .ok()
+                    .unwrap_or_else(|| StringWithOffset::from("").at(context.lexer.span().end));
+
+                context.lexer.consume(Token::Colon)?;
+
+                let ty = TypeReference::parse(context)?;
 
                 let greater = context.lexer.consume_greater()?.start();
 
-                Ok(FunctionNamePart::Parameter {
+                Ok(Parameter {
                     less,
-                    parameter,
+                    name,
+                    ty,
                     greater,
-                })
+                }
+                .into())
             }
             _ => unreachable!("consume_one_of returned unexpected token"),
         }
@@ -203,8 +224,8 @@ impl Parse for FunctionDeclaration {
 mod tests {
     use crate::{
         ast::{
-            FunctionDeclaration, FunctionNamePart, GenericParameter, Parameter, Statement,
-            TypeReference, VariableReference,
+            FunctionDeclaration, GenericParameter, Parameter, Statement, TypeReference,
+            VariableReference,
         },
         syntax::StringWithOffset,
     };
@@ -223,29 +244,27 @@ mod tests {
                 name_parts: vec![
                     StringWithOffset::from("distance").at(3).into(),
                     StringWithOffset::from("from").at(12).into(),
-                    FunctionNamePart::Parameter {
+                    Parameter {
                         less: 17,
-                        parameter: Parameter {
-                            name: StringWithOffset::from("a").at(18).into(),
-                            ty: TypeReference {
-                                name: StringWithOffset::from("Point").at(21).into(),
-                                generic_parameters: Vec::new(),
-                            },
+                        name: StringWithOffset::from("a").at(18).into(),
+                        ty: TypeReference {
+                            name: StringWithOffset::from("Point").at(21).into(),
+                            generic_parameters: Vec::new(),
                         },
                         greater: 26,
-                    },
+                    }
+                    .into(),
                     StringWithOffset::from("to").at(28).into(),
-                    FunctionNamePart::Parameter {
+                    Parameter {
                         less: 31,
-                        parameter: Parameter {
-                            name: StringWithOffset::from("b").at(32).into(),
-                            ty: TypeReference {
-                                name: StringWithOffset::from("Point").at(35).into(),
-                                generic_parameters: Vec::new(),
-                            },
+                        name: StringWithOffset::from("b").at(32).into(),
+                        ty: TypeReference {
+                            name: StringWithOffset::from("Point").at(35).into(),
+                            generic_parameters: Vec::new(),
                         },
                         greater: 40,
-                    },
+                    }
+                    .into(),
                 ],
                 return_type: Some(TypeReference {
                     name: StringWithOffset::from("Distance").at(45).into(),
@@ -294,17 +313,16 @@ mod tests {
                     name: StringWithOffset::from("T").at(3).into(),
                     constraint: None
                 }],
-                name_parts: vec![FunctionNamePart::Parameter {
+                name_parts: vec![Parameter {
                     less: 6,
-                    parameter: Parameter {
-                        name: StringWithOffset::from("x").at(7).into(),
-                        ty: TypeReference {
-                            name: StringWithOffset::from("T").at(10).into(),
-                            generic_parameters: Vec::new(),
-                        },
+                    name: StringWithOffset::from("x").at(7).into(),
+                    ty: TypeReference {
+                        name: StringWithOffset::from("T").at(10).into(),
+                        generic_parameters: Vec::new(),
                     },
                     greater: 11,
-                },],
+                }
+                .into()],
                 return_type: Some(TypeReference {
                     name: StringWithOffset::from("T").at(16).into(),
                     generic_parameters: Vec::new(),
@@ -333,17 +351,16 @@ mod tests {
                         generic_parameters: vec![],
                     })
                 }],
-                name_parts: vec![FunctionNamePart::Parameter {
+                name_parts: vec![Parameter {
                     less: 9,
-                    parameter: Parameter {
-                        name: StringWithOffset::from("x").at(10).into(),
-                        ty: TypeReference {
-                            name: StringWithOffset::from("T").at(13).into(),
-                            generic_parameters: Vec::new(),
-                        },
+                    name: StringWithOffset::from("x").at(10).into(),
+                    ty: TypeReference {
+                        name: StringWithOffset::from("T").at(13).into(),
+                        generic_parameters: Vec::new(),
                     },
                     greater: 14,
-                },],
+                }
+                .into(),],
                 return_type: Some(TypeReference {
                     name: StringWithOffset::from("T").at(19).into(),
                     generic_parameters: Vec::new(),

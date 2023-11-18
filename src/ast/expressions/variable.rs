@@ -19,6 +19,10 @@ impl StartsHere for VariableReference {
             .lexer
             .try_match(Token::Id)
             .is_ok_and(|t| t.as_str().chars().nth(0).is_some_and(|c| c.is_lowercase()))
+            || context
+                .lexer
+                .try_match(Token::EscapedId)
+                .is_ok_and(|t| t.as_str().chars().nth(1).is_some_and(|c| c.is_lowercase()))
     }
 }
 
@@ -28,7 +32,7 @@ impl Parse for VariableReference {
     /// Parse variable reference using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
         Ok(VariableReference {
-            name: context.lexer.consume(Token::Id)?,
+            name: context.consume_id()?,
         })
     }
 }

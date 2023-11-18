@@ -22,11 +22,8 @@ impl<Lexer: super::Lexer> Context<Lexer> {
 
     /// Consume id or escaped id
     pub fn consume_id(&mut self) -> Result<StringWithOffset, LexerError> {
-        if let Some(Token::EscapedId(id)) = self.lexer.peek() {
-            self.lexer.next();
-            return Ok(StringWithOffset::from(id).at(self.lexer.span().start + 1));
-        }
-        self.lexer.consume(Token::Id)
+        self.lexer.consume_one_of(&[Token::Id, Token::EscapedId])?;
+        Ok(self.lexer.string_with_offset())
     }
 
     /// Parse block of items

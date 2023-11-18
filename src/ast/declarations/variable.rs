@@ -40,7 +40,7 @@ impl Parse for VariableDeclaration {
 
         let mutable = context.lexer.consume(Token::Mut).is_ok();
 
-        let name = context.lexer.consume(Token::Id).or_else(|_| {
+        let name = context.consume_id().or_else(|_| {
             Err(MissingVariableName {
                 at: context.lexer.span().end.into(),
             })

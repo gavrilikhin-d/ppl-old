@@ -74,10 +74,7 @@ impl BuiltinTypes<'_> {
 
 #[cfg(test)]
 mod test {
-    use crate::{
-        compilation::Compiler,
-        hir::{GenericName, TypeDeclaration},
-    };
+    use crate::{compilation::Compiler, hir::TypeDeclaration, named::Named};
 
     use super::BuiltinTypes;
 
@@ -92,7 +89,7 @@ mod test {
         let none = builtin.none();
         let ty = builtin.type_();
         let none_ty = builtin.type_of(none.clone());
-        assert_str_eq!(none_ty.generic_name(), "Type<None>");
+        assert_str_eq!(none_ty.name(), "Type<None>");
         assert_eq!(
             none_ty.clone().as_class().as_ref(),
             &TypeDeclaration {
@@ -103,7 +100,7 @@ mod test {
         );
 
         let type_of_type = builtin.type_of(none_ty.clone());
-        assert_str_eq!(type_of_type.generic_name(), "Type<Type<None>>");
+        assert_str_eq!(type_of_type.name(), "Type<Type<None>>");
         assert_eq!(
             type_of_type.clone().as_class().as_ref(),
             &TypeDeclaration {
