@@ -61,6 +61,7 @@ pub enum Token {
     #[regex("[_a-zA-Z][_a-zA-Z0-9]*")]
     Id,
 
+    // TODO: remove string parameter and use another means to obtain it
     /// Escaped identifier
     #[regex("[`][^`]*[`]", without_quotes)]
     EscapedId(String),

@@ -711,6 +711,7 @@ impl ASTLowering for ast::Parameter {
         Ok(Arc::new(hir::Parameter {
             name: self.name.clone(),
             ty: self.ty.lower_to_hir_within_context(context)?,
+            range: self.less..self.greater + 1,
         }))
     }
 }

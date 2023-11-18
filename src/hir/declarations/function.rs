@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::fmt::Display;
+use std::ops::Range;
 use std::sync::Arc;
 
 use derive_more::{From, TryInto};
@@ -16,15 +17,13 @@ pub struct Parameter {
     pub name: StringWithOffset,
     /// Type of parameter
     pub ty: TypeReference,
+    /// Range of the whole parameter
+    pub range: Range<usize>,
 }
 
 impl Ranged for Parameter {
-    fn start(&self) -> usize {
-        self.name.start()
-    }
-
-    fn end(&self) -> usize {
-        self.ty.end()
+    fn range(&self) -> std::ops::Range<usize> {
+        self.range.clone()
     }
 }
 
@@ -473,6 +472,7 @@ mod tests {
                 span: 10..11,
                 type_for_type: hir.parameters().next().unwrap().ty.type_for_type.clone(),
             },
+            range: 6..12,
         };
         assert_eq!(
             *hir.declaration,
