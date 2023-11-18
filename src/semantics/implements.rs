@@ -26,7 +26,7 @@ pub struct ImplementsCheck {
 }
 
 impl ImplementsCheck {
-    pub fn within(&self, context: &impl FindDeclaration) -> Result<(), NotImplemented> {
+    pub fn within(self, context: &impl FindDeclaration) -> Result<(), NotImplemented> {
         let unimplemented: Vec<_> = self
             .tr
             .functions
@@ -42,8 +42,8 @@ impl ImplementsCheck {
 
         if !unimplemented.is_empty() {
             return Err(NotImplemented {
-                ty: self.ty.clone().into(),
-                tr: self.tr.clone(),
+                ty: self.ty.into(),
+                tr: self.tr,
                 unimplemented,
             });
         }
