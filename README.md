@@ -51,6 +51,7 @@
 ### Current task
 * [ ] Mapping of generic types while checking candidates
 ---
+* [ ] `Any` trait
 * [ ] Logic for printing decimals inside ppl
 * [ ] Implicit conversions from one type to another (dereference and etc)
 * [ ] Unsafe code marker

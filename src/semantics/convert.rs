@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    hir::{TraitDeclaration, Type, TypeDeclaration},
+    hir::{GenericType, TraitDeclaration, Type, TypeDeclaration},
     WithSourceLocation,
 };
 
@@ -44,12 +44,7 @@ impl ConvertibleToRequest<'_, Type> {
                     true
                 }
             }
-            (Type::Generic(from), _) if from.constraint.is_some() => from
-                .constraint
-                .unwrap()
-                .referenced_type
-                .convertible_to(self.to.clone())
-                .within(context)?,
+            (Type::Generic(from), _) => from.convertible_to(to).within(context)?,
             (from, to) => from == to,
         })
     }
@@ -102,7 +97,7 @@ impl ConvertibleToRequest<'_, Arc<TypeDeclaration>> {
 // TODO: unify `fn <:Trait>` with `fn<T: Trait> <x: T>`
 impl ConvertibleTo for Arc<TraitDeclaration> {}
 impl ConvertibleToRequest<'_, Arc<TraitDeclaration>> {
-    /// Check if struct type can be converted to another type within context
+    /// Check if trait can be converted to another type within context
     fn within(self, context: &impl FindDeclaration) -> Result<bool, NotImplemented> {
         let from = self.from;
         let to = self.to;
@@ -119,6 +114,39 @@ impl ConvertibleToRequest<'_, Arc<TraitDeclaration>> {
             }
             Type::Trait(tr) => *from == tr,
             Type::SelfType(s) => *from == s.associated_trait.upgrade().unwrap(),
+        })
+    }
+}
+
+impl ConvertibleTo for GenericType {}
+impl ConvertibleToRequest<'_, GenericType> {
+    /// Check if trait can be converted to another type within context
+    fn within(self, context: &impl FindDeclaration) -> Result<bool, NotImplemented> {
+        let from = self.from;
+        let to = self.to;
+        Ok(match to {
+            Type::Class(_) => false,
+            Type::Function(_) => false,
+            Type::SelfType(_) | Type::Trait(_) => {
+                if let Some(constraint) = &from.constraint {
+                    constraint
+                        .referenced_type
+                        .convertible_to(to)
+                        .within(context)?
+                } else {
+                    false
+                }
+            }
+            Type::Generic(g) => {
+                if let Some(constraint) = &from.constraint {
+                    constraint
+                        .referenced_type
+                        .convertible_to(g.into())
+                        .within(context)?
+                } else {
+                    g.constraint.is_none()
+                }
+            }
         })
     }
 }
