@@ -184,14 +184,14 @@ impl Parse for Expression {
         Ok(match call.name_parts.first().unwrap() {
             CallNamePart::Argument(arg) => arg.clone(),
             CallNamePart::Text(t) => {
-                if t.as_str().chars().nth(0).is_some_and(|c| c.is_lowercase()) {
-                    VariableReference { name: t.clone() }.into()
-                } else {
+                if t.as_str().chars().nth(0).unwrap().is_uppercase() {
                     TypeReference {
                         generic_parameters: vec![],
                         name: t.clone(),
                     }
                     .into()
+                } else {
+                    VariableReference { name: t.clone() }.into()
                 }
             }
         })
