@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    hir::{Type, TypeDeclaration},
+    hir::{TraitDeclaration, Type, TypeDeclaration},
     WithSourceLocation,
 };
 
@@ -34,9 +34,7 @@ impl ConvertibleToRequest<'_, Type> {
         let from = self.from.without_ref();
         let to = self.to.without_ref();
         Ok(match (from.clone(), to.clone()) {
-            (Type::Trait(tr), Type::SelfType(s)) => {
-                Arc::ptr_eq(&tr, &s.associated_trait.upgrade().unwrap())
-            }
+            (Type::Trait(tr), _) => tr.convertible_to(to).within(context)?,
             (Type::Class(c), _) => c.convertible_to(to).within(context)?,
             (_, Type::Generic(to)) => {
                 if let Some(constraint) = to.constraint {
@@ -97,6 +95,30 @@ impl ConvertibleToRequest<'_, Arc<TypeDeclaration>> {
                 }
             }
             Type::Function(_) => false,
+        })
+    }
+}
+
+// TODO: unify `fn <:Trait>` with `fn<T: Trait> <x: T>`
+impl ConvertibleTo for Arc<TraitDeclaration> {}
+impl ConvertibleToRequest<'_, Arc<TraitDeclaration>> {
+    /// Check if struct type can be converted to another type within context
+    fn within(self, context: &impl FindDeclaration) -> Result<bool, NotImplemented> {
+        let from = self.from;
+        let to = self.to;
+        Ok(match to {
+            Type::Class(_) => false,
+            Type::Function(_) => false,
+            Type::Generic(g) => {
+                if let Some(constraint) = g.constraint {
+                    from.convertible_to(constraint.referenced_type.clone())
+                        .within(context)?
+                } else {
+                    true
+                }
+            }
+            Type::Trait(tr) => *from == tr,
+            Type::SelfType(s) => *from == s.associated_trait.upgrade().unwrap(),
         })
     }
 }
