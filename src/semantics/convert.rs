@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    hir::{GenericType, TraitDeclaration, Type, TypeDeclaration},
+    hir::{FunctionType, GenericType, SelfType, TraitDeclaration, Type, TypeDeclaration},
     WithSourceLocation,
 };
 
@@ -33,20 +33,13 @@ impl ConvertibleToRequest<'_, Type> {
     fn within(self, context: &impl FindDeclaration) -> Result<bool, NotImplemented> {
         let from = self.from.without_ref();
         let to = self.to.without_ref();
-        Ok(match (from.clone(), to.clone()) {
-            (Type::Trait(tr), _) => tr.convertible_to(to).within(context)?,
-            (Type::Class(c), _) => c.convertible_to(to).within(context)?,
-            (_, Type::Generic(to)) => {
-                if let Some(constraint) = to.constraint {
-                    from.convertible_to(constraint.referenced_type.clone())
-                        .within(context)?
-                } else {
-                    true
-                }
-            }
-            (Type::Generic(from), _) => from.convertible_to(to).within(context)?,
-            (from, to) => from == to,
-        })
+        match from {
+            Type::Class(c) => c.convertible_to(to).within(context),
+            Type::Function(f) => f.convertible_to(to).within(context),
+            Type::Generic(g) => g.convertible_to(to).within(context),
+            Type::SelfType(s) => s.convertible_to(to).within(context),
+            Type::Trait(tr) => tr.convertible_to(to).within(context),
+        }
     }
 }
 
@@ -120,7 +113,7 @@ impl ConvertibleToRequest<'_, Arc<TraitDeclaration>> {
 
 impl ConvertibleTo for GenericType {}
 impl ConvertibleToRequest<'_, GenericType> {
-    /// Check if trait can be converted to another type within context
+    /// Check if generic type can be converted to another type within context
     fn within(self, context: &impl FindDeclaration) -> Result<bool, NotImplemented> {
         let from = self.from;
         let to = self.to;
@@ -147,6 +140,42 @@ impl ConvertibleToRequest<'_, GenericType> {
                     g.constraint.is_none()
                 }
             }
+        })
+    }
+}
+
+impl ConvertibleTo for FunctionType {}
+impl ConvertibleToRequest<'_, FunctionType> {
+    /// Check if function type can be converted to another type within context
+    fn within(self, _context: &impl FindDeclaration) -> Result<bool, NotImplemented> {
+        let _from = self.from;
+        let to = self.to;
+        Ok(match to {
+            Type::Class(_) => false,
+            Type::Function(_) => todo!(),
+            Type::Generic(_) => false,
+            Type::Trait(_) => false,
+            Type::SelfType(_) => false,
+        })
+    }
+}
+
+impl ConvertibleTo for SelfType {}
+impl ConvertibleToRequest<'_, SelfType> {
+    /// Check if self type can be converted to another type within context
+    fn within(self, context: &impl FindDeclaration) -> Result<bool, NotImplemented> {
+        let from = self.from;
+        let to = self.to;
+        Ok(match to {
+            Type::Class(_) => false,
+            Type::Function(_) => false,
+            Type::SelfType(s) => *from == s,
+            Type::Generic(_) | Type::Trait(_) => from
+                .associated_trait
+                .upgrade()
+                .unwrap()
+                .convertible_to(to)
+                .within(context)?,
         })
     }
 }
