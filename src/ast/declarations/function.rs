@@ -44,8 +44,7 @@ impl Parse for Parameter {
         let less = context.lexer.consume(Token::Less)?.start();
 
         let name = context
-            .lexer
-            .consume(Token::Id)
+            .consume_id()
             .ok()
             .unwrap_or_else(|| StringWithOffset::from("").at(context.lexer.span().end));
 
@@ -88,6 +87,7 @@ impl Parse for FunctionNamePart {
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
         let token = context.lexer.consume_one_of(&[
             Token::Id,
+            Token::EscapedId,
             Token::Less,
             Token::Greater,
             Token::Operator(OperatorKind::Prefix),
@@ -95,7 +95,7 @@ impl Parse for FunctionNamePart {
             Token::Operator(OperatorKind::Postfix),
         ])?;
         match token {
-            Token::Id | Token::Greater | Token::Operator(_) => {
+            Token::Id | Token::EscapedId | Token::Greater | Token::Operator(_) => {
                 Ok(context.lexer.string_with_offset().into())
             }
             Token::Less => {
@@ -107,8 +107,7 @@ impl Parse for FunctionNamePart {
                 let less = context.lexer.span().start;
 
                 let name = context
-                    .lexer
-                    .consume(Token::Id)
+                    .consume_id()
                     .ok()
                     .unwrap_or_else(|| StringWithOffset::from("").at(context.lexer.span().end));
 

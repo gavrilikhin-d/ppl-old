@@ -30,7 +30,7 @@ impl Parse for Initializer {
     type Err = ParseError;
 
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        let id = context.lexer.consume(Token::Id)?;
+        let id = context.consume_id()?;
 
         let mut name = None;
         let value = if context.lexer.consume(Token::Colon).is_ok() {

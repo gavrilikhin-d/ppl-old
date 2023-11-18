@@ -31,11 +31,6 @@ fn operator(lexer: &mut Lexer<Token>) -> OperatorKind {
     }
 }
 
-fn without_quotes(lexer: &mut Lexer<Token>) -> String {
-    let end = lexer.slice().len() - 1;
-    lexer.slice()[1..end].to_string()
-}
-
 /// The different kinds of tokens that can be lexed.
 #[derive(Logos, Debug, PartialEq, Eq, Clone)]
 #[logos(skip "[ ]+")]
@@ -61,10 +56,9 @@ pub enum Token {
     #[regex("[_a-zA-Z][_a-zA-Z0-9]*")]
     Id,
 
-    // TODO: remove string parameter and use another means to obtain it
     /// Escaped identifier
-    #[regex("[`][^`]*[`]", without_quotes)]
-    EscapedId(String),
+    #[regex("[`][^`]*[`]")]
+    EscapedId,
 
     /// "let" token
     #[token("let")]

@@ -21,7 +21,7 @@ impl MemberReference {
         mut base: Box<Expression>,
     ) -> Result<Self, <Self as Parse>::Err> {
         while context.lexer.consume(Token::Dot).is_ok() {
-            let name = context.lexer.consume(Token::Id)?;
+            let name = context.consume_id()?;
             base = Box::new(MemberReference { base, name }.into());
         }
         return Ok((*base).try_into().unwrap());

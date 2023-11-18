@@ -19,7 +19,7 @@ pub struct Member {
 pub fn parse_members(context: &mut Context<impl Lexer>) -> Result<Vec<Member>, ParseError> {
     let mut names = Vec::new();
     loop {
-        names.push(context.lexer.consume(Token::Id)?);
+        names.push(context.consume_id()?);
 
         if context.lexer.consume(Token::Colon).is_ok() {
             break;
