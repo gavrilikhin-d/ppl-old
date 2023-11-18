@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use crate::{hir::Type, WithSourceLocation};
+use crate::{
+    hir::{Type, TypeDeclaration},
+    WithSourceLocation,
+};
 
 use super::{
     error::{NotConvertible, NotImplemented, TypeMismatch, TypeWithSpan},
@@ -18,14 +21,13 @@ where
     }
 }
 
-impl ConvertibleTo for Type {}
-
 /// Helper struct to perform check within context
 pub struct ConvertibleToRequest<'s, S> {
     from: &'s S,
     to: Type,
 }
 
+impl ConvertibleTo for Type {}
 impl ConvertibleToRequest<'_, Type> {
     /// Check if one type can be converted to another type within context
     fn within(self, context: &impl FindDeclaration) -> Result<bool, NotImplemented> {
@@ -35,13 +37,7 @@ impl ConvertibleToRequest<'_, Type> {
             (Type::Trait(tr), Type::SelfType(s)) => {
                 Arc::ptr_eq(&tr, &s.associated_trait.upgrade().unwrap())
             }
-            (Type::Class(c), Type::SelfType(s)) => c
-                .implements(s.associated_trait.upgrade().unwrap())
-                .within(context)
-                .map(|_| true)?,
-            (Type::Class(c), Type::Trait(tr)) => {
-                c.implements(tr.clone()).within(context).map(|_| true)?
-            }
+            (Type::Class(c), _) => c.convertible_to(to).within(context)?,
             (_, Type::Generic(to)) => {
                 if let Some(constraint) = to.constraint {
                     from.convertible_to(constraint.referenced_type.clone())
@@ -56,7 +52,19 @@ impl ConvertibleToRequest<'_, Type> {
                 .referenced_type
                 .convertible_to(self.to.clone())
                 .within(context)?,
-            (Type::Class(from), Type::Class(to)) => {
+            (from, to) => from == to,
+        })
+    }
+}
+
+impl ConvertibleTo for Arc<TypeDeclaration> {}
+impl ConvertibleToRequest<'_, Arc<TypeDeclaration>> {
+    /// Check if struct type can be converted to another type within context
+    fn within(self, context: &impl FindDeclaration) -> Result<bool, NotImplemented> {
+        let from = self.from;
+        let to = self.to;
+        Ok(match to {
+            Type::Class(to) => {
                 if to.specialization_of == Some(from.clone())
                     || from.specialization_of.is_some()
                         && to.specialization_of == from.specialization_of
@@ -72,10 +80,23 @@ impl ConvertibleToRequest<'_, Type> {
                                 .is_ok_and(|convertible| convertible)
                         })
                 } else {
-                    from == to
+                    *from == to
                 }
             }
-            (from, to) => from == to,
+            Type::Trait(tr) => from.implements(tr.clone()).within(context).map(|_| true)?,
+            Type::SelfType(s) => from
+                .implements(s.associated_trait.upgrade().unwrap())
+                .within(context)
+                .map(|_| true)?,
+            Type::Generic(g) => {
+                if let Some(constraint) = g.constraint {
+                    from.convertible_to(constraint.referenced_type.clone())
+                        .within(context)?
+                } else {
+                    true
+                }
+            }
+            Type::Function(_) => false,
         })
     }
 }
