@@ -1,20 +1,17 @@
 use std::sync::Arc;
 
-use crate::{
-    hir::{self, Type},
-    WithSourceLocation,
-};
+use crate::hir::{self, Type};
 
 use super::{error::NotImplemented, FindDeclaration};
 
 /// Trait to check if type implements trait
 pub trait Implements {
     /// Does this class implement given trait?
-    fn implements(&self, tr: WithSourceLocation<Arc<hir::TraitDeclaration>>) -> ImplementsCheck;
+    fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck;
 }
 
-impl Implements for WithSourceLocation<Arc<hir::TypeDeclaration>> {
-    fn implements(&self, tr: WithSourceLocation<Arc<hir::TraitDeclaration>>) -> ImplementsCheck {
+impl Implements for Arc<hir::TypeDeclaration> {
+    fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck {
         ImplementsCheck {
             ty: self.clone(),
             tr,
@@ -24,21 +21,20 @@ impl Implements for WithSourceLocation<Arc<hir::TypeDeclaration>> {
 
 /// Helper struct to do check within context
 pub struct ImplementsCheck {
-    ty: WithSourceLocation<Arc<hir::TypeDeclaration>>,
-    tr: WithSourceLocation<Arc<hir::TraitDeclaration>>,
+    ty: Arc<hir::TypeDeclaration>,
+    tr: Arc<hir::TraitDeclaration>,
 }
 
 impl ImplementsCheck {
     pub fn within(&self, context: &impl FindDeclaration) -> Result<(), NotImplemented> {
         let unimplemented: Vec<_> = self
             .tr
-            .value
             .functions
             .values()
             .filter(|f| {
                 matches!(f, hir::Function::Declaration(_))
                     && context
-                        .find_implementation(&f, &Type::from(self.ty.value.clone()))
+                        .find_implementation(&f, &Type::from(self.ty.clone()))
                         .is_none()
             })
             .cloned()
@@ -46,8 +42,8 @@ impl ImplementsCheck {
 
         if !unimplemented.is_empty() {
             return Err(NotImplemented {
-                ty: self.ty.value.clone().into(),
-                tr: self.tr.value.clone(),
+                ty: self.ty.clone().into(),
+                tr: self.tr.clone(),
                 unimplemented,
             });
         }

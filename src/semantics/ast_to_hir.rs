@@ -151,20 +151,12 @@ impl ConversionRequest {
                 Arc::ptr_eq(&tr, &s.associated_trait.upgrade().unwrap())
             }
             (Type::Class(c), Type::SelfType(s)) => c
-                .at(self.from.source_location.clone())
-                .implements(
-                    s.associated_trait
-                        .upgrade()
-                        .unwrap()
-                        .at(self.to.source_location.clone()),
-                )
+                .implements(s.associated_trait.upgrade().unwrap())
                 .within(context)
                 .map(|_| true)?,
-            (Type::Class(c), Type::Trait(tr)) => c
-                .at(self.from.source_location.clone())
-                .implements(tr.clone().at(self.to.source_location.clone()))
-                .within(context)
-                .map(|_| true)?,
+            (Type::Class(c), Type::Trait(tr)) => {
+                c.implements(tr.clone()).within(context).map(|_| true)?
+            }
             (_, Type::Generic(to)) => {
                 if let Some(constraint) = to.constraint {
                     self.from
