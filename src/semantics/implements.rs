@@ -5,27 +5,25 @@ use crate::hir::{self, Type};
 use super::{error::NotImplemented, FindDeclaration};
 
 /// Trait to check if type implements trait
-pub trait Implements {
+pub trait Implements
+where
+    Self: Sized,
+{
     /// Does this class implement given trait?
-    fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck;
-}
-
-impl Implements for Arc<hir::TypeDeclaration> {
-    fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck {
-        ImplementsCheck {
-            ty: self.clone(),
-            tr,
-        }
+    fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck<Self> {
+        ImplementsCheck { ty: self, tr }
     }
 }
 
+impl Implements for Arc<hir::TypeDeclaration> {}
+
 /// Helper struct to do check within context
-pub struct ImplementsCheck {
-    ty: Arc<hir::TypeDeclaration>,
+pub struct ImplementsCheck<'s, S> {
+    ty: &'s S,
     tr: Arc<hir::TraitDeclaration>,
 }
 
-impl ImplementsCheck {
+impl ImplementsCheck<'_, Arc<hir::TypeDeclaration>> {
     pub fn within(self, context: &impl FindDeclaration) -> Result<(), NotImplemented> {
         let unimplemented: Vec<_> = self
             .tr
@@ -42,7 +40,7 @@ impl ImplementsCheck {
 
         if !unimplemented.is_empty() {
             return Err(NotImplemented {
-                ty: self.ty.into(),
+                ty: self.ty.clone().into(),
                 tr: self.tr,
                 unimplemented,
             });
