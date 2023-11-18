@@ -242,7 +242,7 @@ impl Declare for ast::TypeDeclaration {
 
         // TODO: recursive types
         let ty = Arc::new(hir::TypeDeclaration {
-            name: self.name.clone(),
+            basename: self.name.clone(),
             specialization_of: None,
             generic_parameters,
             builtin,

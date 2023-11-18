@@ -214,7 +214,7 @@ impl<'llvm> HIRTypesLowering<'llvm> for TypeDeclaration {
         }
 
         if self.members.is_empty() {
-            return context.types().opaque(&self.name).into();
+            return context.types().opaque(&self.basename).into();
         }
 
         if let Some(ty) = context.llvm().get_struct_type(&self.name()) {

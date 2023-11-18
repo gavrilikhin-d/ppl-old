@@ -1,7 +1,7 @@
 use std::{borrow::Cow, fmt::Display, str::FromStr, sync::Arc};
 
 use crate::{
-    hir::{Generic, GenericName, Type, Typed},
+    hir::{Basename, Generic, Type, Typed},
     named::Named,
     syntax::StringWithOffset,
     AddSourceLocation,
@@ -84,7 +84,7 @@ impl FromStr for BuiltinClass {
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct TypeDeclaration {
     /// Type's name
-    pub name: StringWithOffset,
+    pub basename: StringWithOffset,
     /// Base generic type, if this is a specialization
     pub specialization_of: Option<Arc<TypeDeclaration>>,
     /// Generic parameters of type
@@ -171,28 +171,15 @@ impl Generic for TypeDeclaration {
     }
 }
 
-impl GenericName for TypeDeclaration {
-    fn generic_name(&self) -> Cow<'_, str> {
-        if self.generic_parameters.is_empty() {
-            return self.name();
-        }
-
-        format!(
-            "{}<{}>",
-            self.name.as_str(),
-            self.generic_parameters
-                .iter()
-                .map(|p| p.generic_name())
-                .collect::<Vec<_>>()
-                .join(", ")
-        )
-        .into()
+impl Basename for TypeDeclaration {
+    fn basename(&self) -> Cow<'_, str> {
+        self.basename.as_str().into()
     }
 }
 
 impl Display for TypeDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.generic_name())
+        write!(f, "{}", self.name())
     }
 }
 
@@ -201,7 +188,20 @@ impl AddSourceLocation for Arc<TypeDeclaration> {}
 impl Named for TypeDeclaration {
     /// Get name of type
     fn name(&self) -> Cow<'_, str> {
-        self.name.as_str().into()
+        if self.generic_parameters.is_empty() {
+            return self.basename();
+        }
+
+        format!(
+            "{}<{}>",
+            self.basename.as_str(),
+            self.generic_parameters
+                .iter()
+                .map(|p| p.name())
+                .collect::<Vec<_>>()
+                .join(", ")
+        )
+        .into()
     }
 }
 
@@ -225,7 +225,7 @@ mod tests {
         assert_eq!(
             *type_decl,
             TypeDeclaration {
-                name: StringWithOffset::from("x").at(5),
+                basename: StringWithOffset::from("x").at(5),
                 specialization_of: None,
                 generic_parameters: vec![],
                 builtin: None,
@@ -245,7 +245,7 @@ mod tests {
         assert_eq!(
             *type_decl,
             TypeDeclaration {
-                name: StringWithOffset::from("Point").at(5),
+                basename: StringWithOffset::from("Point").at(5),
                 specialization_of: None,
                 generic_parameters: vec![GenericType {
                     name: StringWithOffset::from("U").at(11),
@@ -287,7 +287,7 @@ mod tests {
         assert_eq!(
             *type_decl,
             TypeDeclaration {
-                name: StringWithOffset::from("Point").at(5),
+                basename: StringWithOffset::from("Point").at(5),
                 specialization_of: None,
                 generic_parameters: vec![],
                 builtin: None,

@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use derive_more::{From, TryInto};
 
-use crate::hir::{FunctionType, Generic, GenericName, Statement, Type, TypeReference, Typed};
+use crate::hir::{FunctionType, Generic, Statement, Type, TypeReference, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::{Ranged, StringWithOffset};
@@ -196,7 +196,7 @@ impl Display for FunctionDeclaration {
                 "<{}>",
                 self.generic_types
                     .iter()
-                    .map(|g| g.generic_name())
+                    .map(|g| g.name())
                     .collect::<Vec<_>>()
                     .join(", ")
             )
@@ -207,7 +207,7 @@ impl Display for FunctionDeclaration {
             .map(|p| p.to_string())
             .collect::<Vec<_>>()
             .join(" ");
-        let return_type = self.return_type.generic_name();
+        let return_type = self.return_type.name();
         write!(f, "fn{generics} {name_parts} -> {return_type}")
     }
 }
@@ -358,7 +358,7 @@ impl Function {
             match part {
                 FunctionNamePart::Text(text) => name.push_str(&text),
                 FunctionNamePart::Parameter(p) => {
-                    name.push_str(format!("<:{}>", p.ty().generic_name()).as_str())
+                    name.push_str(format!("<:{}>", p.ty().name()).as_str())
                 }
             }
         }

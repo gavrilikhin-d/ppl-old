@@ -5,8 +5,7 @@ use std::sync::Arc;
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericName, GenericType, Specialize, Type, TypeReference,
-    Typed,
+    self, FunctionNamePart, Generic, GenericType, Specialize, Type, TypeReference, Typed,
 };
 use crate::mutability::Mutable;
 use crate::named::Named;
@@ -1069,7 +1068,7 @@ impl ReplaceWithTypeInfo for TypeReference {
                     member: self.type_for_type.members()[0].clone(),
                     value: hir::Literal::String {
                         span: 0..0,
-                        value: self.referenced_type.generic_name().to_string(),
+                        value: self.referenced_type.name().to_string(),
                         ty: context.builtin().types().string(),
                     }
                     .into(),

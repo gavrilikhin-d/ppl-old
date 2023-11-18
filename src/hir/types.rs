@@ -7,7 +7,7 @@ use std::{
 
 use crate::{mutability::Mutable, named::Named, syntax::StringWithOffset, AddSourceLocation};
 
-use super::{Generic, GenericName, Member, TraitDeclaration, TypeDeclaration, TypeReference};
+use super::{Basename, Generic, Member, TraitDeclaration, TypeDeclaration, TypeReference};
 use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
 
@@ -87,9 +87,9 @@ impl FunctionTypeBuilder {
             if i != 0 {
                 name.push_str(", ");
             }
-            name.push_str(&parameter.generic_name());
+            name.push_str(&parameter.name());
         }
-        name.push_str(&format!(") -> {}", return_type.generic_name()));
+        name.push_str(&format!(") -> {}", return_type.name()));
         name
     }
 }
@@ -182,7 +182,7 @@ impl Type {
         }
 
         match (&from, &to) {
-            (Type::Class(from), Type::Class(to)) if from.name == to.name => from
+            (Type::Class(from), Type::Class(to)) if from.basename == to.basename => from
                 .generic_parameters
                 .iter()
                 .zip(to.generic_parameters.iter())
@@ -300,10 +300,10 @@ impl Generic for Type {
     }
 }
 
-impl GenericName for Type {
-    fn generic_name(&self) -> Cow<'_, str> {
+impl Basename for Type {
+    fn basename(&self) -> Cow<'_, str> {
         match self {
-            Type::Class(c) => c.generic_name(),
+            Type::Class(c) => c.basename(),
             _ => self.name(),
         }
     }
@@ -344,7 +344,8 @@ mod tests {
 
     use crate::{
         ast,
-        hir::{GenericName, GenericType, SpecializeParameters, Type, TypeDeclaration},
+        hir::{GenericType, SpecializeParameters, Type, TypeDeclaration},
+        named::Named,
         semantics::ASTLowering,
     };
 
@@ -360,23 +361,23 @@ mod tests {
     #[test]
     fn generic_name() {
         let a = type_decl("type A<T, U>");
-        assert_str_eq!(a.generic_name(), "A<T, U>");
+        assert_str_eq!(a.name(), "A<T, U>");
 
         let b = type_decl("type B<T>");
-        assert_str_eq!(b.generic_name(), "B<T>");
+        assert_str_eq!(b.name(), "B<T>");
 
         let x: Type = type_decl("type X").into();
-        assert_str_eq!(x.generic_name(), "X");
+        assert_str_eq!(x.name(), "X");
         let y: Type = type_decl("type Y").into();
-        assert_str_eq!(y.generic_name(), "Y");
+        assert_str_eq!(y.name(), "Y");
 
         // B<Y>
         let by: Type = b.specialize_parameters(std::iter::once(y.clone())).into();
-        assert_str_eq!(by.generic_name(), "B<Y>");
+        assert_str_eq!(by.name(), "B<Y>");
 
         // A<X, B<Y>>
         let t1 = a.specialize_parameters(vec![x, by]);
-        assert_str_eq!(t1.generic_name(), "A<X, B<Y>>");
+        assert_str_eq!(t1.name(), "A<X, B<Y>>");
     }
 
     #[test]
@@ -397,14 +398,14 @@ mod tests {
         .into();
 
         let by: Type = b.clone().specialize_parameters(vec![y.clone()]).into();
-        println!("{}", by.generic_name());
+        println!("{}", by.name());
 
         // A<X, B<Y>>
         let t1: Type = a
             .clone()
             .specialize_parameters(vec![x.clone(), by.clone()])
             .into();
-        println!("{}", t1.generic_name());
+        println!("{}", t1.name());
 
         // B<C>
         let bc: Type = b.specialize_parameters(vec![c.clone()]).into();
