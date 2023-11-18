@@ -1,11 +1,84 @@
 use std::sync::Arc;
 
-use crate::{hir::Type, AddSourceLocation, WithSourceLocation};
+use crate::{hir::Type, WithSourceLocation};
 
 use super::{
-    error::{NotConvertible, TypeMismatch, TypeWithSpan},
+    error::{NotConvertible, NotImplemented, TypeMismatch, TypeWithSpan},
     FindDeclaration, Implements,
 };
+
+/// Trait to check if one type is convertible to another
+pub trait ConvertibleTo
+where
+    Self: Sized,
+{
+    /// Is this type convertible to another type?
+    fn convertible_to(&self, to: Type) -> ConvertibleToRequest<'_, Self> {
+        ConvertibleToRequest { from: self, to }
+    }
+}
+
+impl ConvertibleTo for Type {}
+
+/// Helper struct to perform check within context
+pub struct ConvertibleToRequest<'s, S> {
+    from: &'s S,
+    to: Type,
+}
+
+impl ConvertibleToRequest<'_, Type> {
+    /// Check if one type can be converted to another type within context
+    fn within(self, context: &impl FindDeclaration) -> Result<bool, NotImplemented> {
+        let from = self.from.without_ref();
+        let to = self.to.without_ref();
+        Ok(match (from.clone(), to.clone()) {
+            (Type::Trait(tr), Type::SelfType(s)) => {
+                Arc::ptr_eq(&tr, &s.associated_trait.upgrade().unwrap())
+            }
+            (Type::Class(c), Type::SelfType(s)) => c
+                .implements(s.associated_trait.upgrade().unwrap())
+                .within(context)
+                .map(|_| true)?,
+            (Type::Class(c), Type::Trait(tr)) => {
+                c.implements(tr.clone()).within(context).map(|_| true)?
+            }
+            (_, Type::Generic(to)) => {
+                if let Some(constraint) = to.constraint {
+                    from.convertible_to(constraint.referenced_type.clone())
+                        .within(context)?
+                } else {
+                    true
+                }
+            }
+            (Type::Generic(from), _) if from.constraint.is_some() => from
+                .constraint
+                .unwrap()
+                .referenced_type
+                .convertible_to(self.to.clone())
+                .within(context)?,
+            (Type::Class(from), Type::Class(to)) => {
+                if to.specialization_of == Some(from.clone())
+                    || from.specialization_of.is_some()
+                        && to.specialization_of == from.specialization_of
+                {
+                    from.generics()
+                        .iter()
+                        .zip(to.generics().iter())
+                        .all(|(from, to)| {
+                            from.clone()
+                                .convertible_to(to.clone())
+                                .within(context)
+                                // TODO: Add error
+                                .is_ok_and(|convertible| convertible)
+                        })
+                } else {
+                    from == to
+                }
+            }
+            (from, to) => from == to,
+        })
+    }
+}
 
 /// Trait to convert one type to another
 pub trait Convert {
@@ -30,65 +103,12 @@ pub struct ConversionRequest {
 
 impl ConversionRequest {
     /// Convert one type to another within context
-    pub fn within(&self, context: &impl FindDeclaration) -> Result<Type, NotConvertible> {
-        let from = self.from.value.without_ref();
-        let to = self.to.value.without_ref();
-        let convertible = match (from.clone(), to.clone()) {
-            (Type::Trait(tr), Type::SelfType(s)) => {
-                Arc::ptr_eq(&tr, &s.associated_trait.upgrade().unwrap())
-            }
-            (Type::Class(c), Type::SelfType(s)) => c
-                .implements(s.associated_trait.upgrade().unwrap())
-                .within(context)
-                .map(|_| true)?,
-            (Type::Class(c), Type::Trait(tr)) => {
-                c.implements(tr.clone()).within(context).map(|_| true)?
-            }
-            (_, Type::Generic(to)) => {
-                if let Some(constraint) = to.constraint {
-                    self.from
-                        .convert_to(
-                            constraint
-                                .referenced_type
-                                .clone()
-                                .at(self.to.source_location.clone()),
-                        )
-                        .within(context)
-                        .map(|_| true)?
-                } else {
-                    true
-                }
-            }
-            (Type::Generic(from), _) if from.constraint.is_some() => from
-                .constraint
-                .unwrap()
-                .referenced_type
-                .at(self.from.source_location.clone())
-                .convert_to(self.to.clone())
-                .within(context)
-                .map(|_| true)?,
-            (Type::Class(from), Type::Class(to)) => {
-                if to.specialization_of == Some(from.clone())
-                    || from.specialization_of.is_some()
-                        && to.specialization_of == from.specialization_of
-                {
-                    from.generics()
-                        .iter()
-                        .zip(to.generics().iter())
-                        .all(|(from, to)| {
-                            from.clone()
-                                .at(self.from.source_location.clone())
-                                .convert_to(to.clone().at(self.to.source_location.clone()))
-                                .within(context)
-                                // TODO: Add error
-                                .is_ok()
-                        })
-                } else {
-                    from == to
-                }
-            }
-            (from, to) => from == to,
-        };
+    pub fn within(self, context: &impl FindDeclaration) -> Result<Type, NotConvertible> {
+        let convertible = self
+            .from
+            .value
+            .convertible_to(self.to.value.clone())
+            .within(context)?;
 
         if !convertible {
             return Err(TypeMismatch {
@@ -99,14 +119,14 @@ impl ConversionRequest {
                     source_file: self.from.source_location.source_file.clone(),
                 },
                 expected: TypeWithSpan {
-                    ty: self.to.value.clone(),
-                    at: self.to.source_location.at.clone(),
-                    source_file: self.to.source_location.source_file.clone(),
+                    ty: self.to.value,
+                    at: self.to.source_location.at,
+                    source_file: self.to.source_location.source_file,
                 },
             }
             .into());
         }
 
-        Ok(to)
+        Ok(self.to.value)
     }
 }
