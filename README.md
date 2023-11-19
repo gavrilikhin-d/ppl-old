@@ -48,14 +48,14 @@
 * [x] Multiple output types
 * [x] Add constrains to generics
 * [x] Mapping of generic types while checking candidates
+* [x] Checking constraints in constructor
 ---
 ### Current task
-* [ ] Checking constraints in constructor
 ---
 * [ ] Add better errors for inferred generics
 * [ ] Make inferring `Self` work
 * [ ] Unify `Self` and `GenericType`
-* [ ] Unify `TraitType` in type checking with constraind generic type with random name
+* [ ] Unify `TraitType` in type checking with constraint generic type with random name
 * [ ] `Any` trait
 * [ ] Logic for printing decimals inside ppl
 * [ ] Implicit conversions from one type to another (dereference and etc)
