@@ -31,6 +31,8 @@ pub trait AddDeclaration {
     /// Maps generic type to a concrete type.
     /// Returns previous concrete type, if any.
     fn map_generic(&mut self, generic: Type, concrete: Type) -> Option<Type> {
-        self.parent_mut().unwrap().map_generic(generic, concrete)
+        self.parent_mut()
+            .map(|p| p.map_generic(generic, concrete))
+            .flatten()
     }
 }

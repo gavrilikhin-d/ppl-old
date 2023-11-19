@@ -112,7 +112,7 @@ pub trait FindDeclaration: FindDeclarationHere {
 
     /// Get specialized type for generic type
     fn get_specialized(&self, generic: Type) -> Option<Type> {
-        self.parent().unwrap().get_specialized(generic)
+        self.parent().map(|p| p.get_specialized(generic)).flatten()
     }
 
     /// Get candidates for function call

@@ -70,17 +70,35 @@ impl ConvertibleToRequest<'_, Arc<TypeDeclaration>> {
                 }
             }
             Type::Trait(tr) => from.implements(tr.clone()).within(context).map(|_| true)?,
-            Type::SelfType(s) => from
-                .implements(s.associated_trait.upgrade().unwrap())
-                .within(context)
-                .map(|_| true)?,
+            Type::SelfType(s) => {
+                if let Some(specialized) = context.get_specialized(s.clone().into()) {
+                    return from.convertible_to(specialized).within(context);
+                }
+
+                let convertible = from
+                    .implements(s.associated_trait.upgrade().unwrap())
+                    .within(context)
+                    .map(|_| true)?;
+                if convertible {
+                    context.map_generic(s.clone().into(), from.clone().into());
+                }
+                convertible
+            }
             Type::Generic(g) => {
-                if let Some(constraint) = g.constraint {
+                if let Some(specialized) = context.get_specialized(g.clone().into()) {
+                    return from.convertible_to(specialized).within(context);
+                }
+
+                let convertible = if let Some(constraint) = &g.constraint {
                     from.convertible_to(constraint.referenced_type.clone())
                         .within(context)?
                 } else {
                     true
+                };
+                if convertible {
+                    context.map_generic(g.clone().into(), from.clone().into());
                 }
+                convertible
             }
             Type::Function(_) => false,
         })
