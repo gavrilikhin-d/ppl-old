@@ -24,7 +24,7 @@ pub struct ImplementsCheck<'s, S> {
 }
 
 impl ImplementsCheck<'_, Arc<hir::TypeDeclaration>> {
-    pub fn within(self, context: &impl FindDeclaration) -> Result<(), NotImplemented> {
+    pub fn within(self, context: &mut impl FindDeclaration) -> Result<(), NotImplemented> {
         let unimplemented: Vec<_> = self
             .tr
             .functions

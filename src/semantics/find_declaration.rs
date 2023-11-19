@@ -171,7 +171,7 @@ pub trait FindDeclaration: FindDeclarationHere {
     }
 
     /// Find concrete function for trait function
-    fn find_implementation(&self, trait_fn: &Function, self_type: &Type) -> Option<Function>
+    fn find_implementation(&mut self, trait_fn: &Function, self_type: &Type) -> Option<Function>
     where
         Self: Sized,
     {
