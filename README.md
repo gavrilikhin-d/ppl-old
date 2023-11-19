@@ -51,9 +51,9 @@
 * [x] Checking constraints in constructor
 ---
 ### Current task
+* [ ] Make inferring `Self` work
 ---
 * [ ] Add better errors for inferred generics
-* [ ] Make inferring `Self` work
 * [ ] Unify `Self` and `GenericType`
 * [ ] Unify `TraitType` in type checking with constraint generic type with random name
 * [ ] `Any` trait
