@@ -12,7 +12,9 @@ use crate::named::Named;
 use crate::syntax::Ranged;
 use crate::{AddSourceLocation, ErrVec, SourceLocation};
 
-use super::{error::*, Context, Convert, Declare, ModuleContext, MonomorphizedWithArgs};
+use super::{
+    error::*, Context, Convert, Declare, GenericContext, ModuleContext, MonomorphizedWithArgs,
+};
 use crate::ast::{self, CallNamePart, FnKind, If};
 
 /// Lower AST inside some context
@@ -189,6 +191,12 @@ impl ASTLowering for ast::Call {
                 .map(|m| m.source_file())
                 .cloned();
 
+            let mut candidate_context = GenericContext {
+                generic_parameters: f.declaration().generic_types.clone(),
+                generics_mapping: HashMap::new(),
+                parent: context,
+            };
+
             let mut args = Vec::new();
             let mut args_types = Vec::new();
             let mut failed = false;
@@ -205,7 +213,7 @@ impl ASTLowering for ast::Call {
                                 at: p.name.range().into(),
                                 source_file: source_file.clone().map(Into::into),
                             }))
-                            .within(context);
+                            .within(&mut candidate_context);
                         match conversion {
                             Ok(ty) => {
                                 args_types.push(if ty.is_generic() { arg.ty() } else { ty });
@@ -223,7 +231,7 @@ impl ASTLowering for ast::Call {
             }
 
             if !failed {
-                let function = f.monomorphized(context, args_types);
+                let function = f.monomorphized(&mut candidate_context, args_types);
                 let generic = if f.is_generic() { Some(f) } else { None };
                 return Ok(hir::Call {
                     range: self.range(),
