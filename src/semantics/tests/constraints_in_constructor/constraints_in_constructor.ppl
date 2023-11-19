@@ -1,0 +1,4 @@
+type Point<T>:
+	x, y: T
+
+Point { x: 1, y: 0.1 }
