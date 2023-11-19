@@ -1,4 +1,7 @@
-use std::{collections::BTreeMap, sync::Arc};
+use std::{
+    collections::{BTreeMap, HashMap},
+    sync::Arc,
+};
 
 use crate::{
     ast,
@@ -40,6 +43,7 @@ impl Declare for ast::FunctionDeclaration {
         let mut generic_context = GenericContext {
             parent: context,
             generic_parameters: generic_parameters.clone(),
+            generics_mapping: HashMap::new(),
         };
 
         let mut name_parts: Vec<hir::FunctionNamePart> = Vec::new();
@@ -262,6 +266,7 @@ impl Declare for ast::TypeDeclaration {
         let mut generic_context = GenericContext {
             parent: context,
             generic_parameters: declaration.generic_parameters.clone(),
+            generics_mapping: HashMap::new(),
         };
 
         // TODO: recursive types
