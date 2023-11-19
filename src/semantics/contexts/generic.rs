@@ -33,6 +33,17 @@ impl FindDeclaration for GenericContext<'_> {
     fn parent(&self) -> Option<&dyn FindDeclaration> {
         Some(self.parent as _)
     }
+
+    /// Get specialized type for generic type
+    fn get_specialized(&self, generic: Type) -> Option<Type> {
+        if !self.generic_parameters.contains(&generic) {
+            return FindDeclaration::parent(self)
+                .unwrap()
+                .get_specialized(generic);
+        }
+
+        self.generics_mapping.get(&generic).cloned()
+    }
 }
 
 impl AddDeclaration for GenericContext<'_> {
