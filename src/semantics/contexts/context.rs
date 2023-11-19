@@ -2,8 +2,10 @@ use std::sync::Arc;
 
 use crate::{
     compilation::Compiler,
-    hir::{FunctionDeclaration, Module},
-    semantics::{AddDeclaration, FindDeclaration},
+    hir::{Function, FunctionDeclaration, FunctionNamePart, Module, Type, Typed},
+    semantics::{AddDeclaration, Convert, FindDeclaration},
+    syntax::Ranged,
+    AddSourceLocation,
 };
 
 use super::BuiltinContext;
@@ -49,5 +51,45 @@ pub trait Context: FindDeclaration + AddDeclaration {
     fn builtin(&self) -> BuiltinContext {
         let module = self.compiler().builtin_module().unwrap_or(self.module());
         BuiltinContext { module }
+    }
+
+    /// Find concrete function for trait function
+    fn find_implementation(&mut self, trait_fn: &Function, self_type: &Type) -> Option<Function>
+    where
+        Self: Sized,
+    {
+        let funcs = self.functions_with_n_name_parts(trait_fn.name_parts().len());
+        funcs
+            .iter()
+            .find(|f| {
+                trait_fn
+                    .name_parts()
+                    .iter()
+                    .zip(f.name_parts())
+                    .all(|(a, b)| match (a, b) {
+                        (FunctionNamePart::Text(a), FunctionNamePart::Text(b)) => {
+                            a.as_str() == b.as_str()
+                        }
+                        (FunctionNamePart::Parameter(a), FunctionNamePart::Parameter(b)) => a
+                            .ty()
+                            .map_self(self_type)
+                            .clone()
+                            .at(a.range())
+                            .convert_to(b.ty().at(b.range()))
+                            .within(self)
+                            .is_ok(),
+                        _ => false,
+                    })
+                    && trait_fn
+                        .return_type()
+                        .map_self(self_type)
+                        .clone()
+                        // TODO: real return type range
+                        .at(trait_fn.declaration().range())
+                        .convert_to(f.return_type().at(f.declaration().range()))
+                        .within(self)
+                        .is_ok()
+            })
+            .cloned()
     }
 }

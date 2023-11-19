@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::hir::{self, Type};
 
-use super::{error::NotImplemented, FindDeclaration};
+use super::{error::NotImplemented, Context};
 
 /// Trait to check if type implements trait
 pub trait Implements
@@ -24,7 +24,7 @@ pub struct ImplementsCheck<'s, S> {
 }
 
 impl ImplementsCheck<'_, Arc<hir::TypeDeclaration>> {
-    pub fn within(self, context: &mut impl FindDeclaration) -> Result<(), NotImplemented> {
+    pub fn within(self, context: &mut impl Context) -> Result<(), NotImplemented> {
         let unimplemented: Vec<_> = self
             .tr
             .functions
