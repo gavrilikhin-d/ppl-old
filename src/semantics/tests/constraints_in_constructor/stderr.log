@@ -1,0 +1,20 @@
+Error: semantics::type_mismatch
+
+  × expected `T` type, got `Rational`
+
+Error:   × T
+   ╭─[constraints_in_constructor.ppl:2:5]
+ 1 │ type Point<T>:
+ 2 │     x, y: T
+   ·        ┬
+   ·        ╰── this has `T` type
+ 3 │ 
+   ╰────
+Error:   × Rational
+   ╭─[constraints_in_constructor.ppl:4:18]
+ 3 │ 
+ 4 │ Point { x: 1, y: 0.1 }
+   ·                  ─┬─
+   ·                   ╰── this has `Rational` type
+   ╰────
+

@@ -394,7 +394,11 @@ impl ASTLowering for ast::Constructor {
 
         let mut members = ty.referenced_type.members().to_vec();
 
-        let mut generics_map: HashMap<Type, Type> = HashMap::new();
+        let mut constructor_context = GenericContext {
+            generic_parameters: generic_ty.generic_parameters.clone(),
+            generics_mapping: HashMap::new(),
+            parent: context,
+        };
 
         let mut initializers = Vec::<hir::Initializer>::new();
         for init in &self.initializers {
@@ -402,7 +406,9 @@ impl ASTLowering for ast::Constructor {
                 ast::Expression::VariableReference(var) => var.name.clone(),
                 _ => unreachable!(),
             });
-            let value = init.value.lower_to_hir_within_context(context)?;
+            let value = init
+                .value
+                .lower_to_hir_within_context(&mut constructor_context)?;
 
             if let Some((index, member)) = ty
                 .referenced_type
@@ -412,11 +418,11 @@ impl ASTLowering for ast::Constructor {
                 .find(|(_, m)| m.name() == name.as_str())
             {
                 // FIXME: find in which file member type was declared
-                value
+                let ty = value
                     .ty()
                     .at(value.range())
                     .convert_to(member.ty().at(member.name.range()))
-                    .within(context)?;
+                    .within(&mut constructor_context)?;
 
                 if let Some(prev) = initializers.iter().find(|i| i.index == index) {
                     return Err(MultipleInitialization {
@@ -427,11 +433,8 @@ impl ASTLowering for ast::Constructor {
                 }
 
                 if member.is_generic() {
-                    // TODO: check for constraints
-                    let diff = members[index].ty().diff(value.ty());
-                    generics_map.extend(diff);
                     members[index] = Arc::new(hir::Member {
-                        ty: members[index].ty().specialize_with(&generics_map),
+                        ty,
                         ..members[index].as_ref().clone()
                     })
                 }
@@ -472,7 +475,9 @@ impl ASTLowering for ast::Constructor {
         }
 
         if generic_ty.is_generic() {
-            ty.referenced_type = generic_ty.specialize_with(&generics_map).into();
+            ty.referenced_type = generic_ty
+                .specialize_with(&constructor_context.generics_mapping)
+                .into();
         }
         Ok(hir::Constructor {
             ty,
