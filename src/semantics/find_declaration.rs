@@ -6,11 +6,7 @@ use crate::{
         ClassOrTrait, Expression, Function, FunctionNamePart, Module, Name, ParameterOrVariable,
         TraitDeclaration, Type, TypeDeclaration, Typed,
     },
-    syntax::Ranged,
-    AddSourceLocation,
 };
-
-use super::Convert;
 
 /// Trait to find declaration at current level
 pub trait FindDeclarationHere {
@@ -114,6 +110,11 @@ pub trait FindDeclaration: FindDeclarationHere {
             .collect()
     }
 
+    /// Get specialized type for generic type
+    fn get_specialized(&self, generic: Type) -> Option<Type> {
+        self.parent().map(|p| p.get_specialized(generic)).flatten()
+    }
+
     /// Get candidates for function call
     fn candidates(
         &self,
@@ -168,46 +169,6 @@ pub trait FindDeclaration: FindDeclarationHere {
             })
             .cloned()
             .collect()
-    }
-
-    /// Find concrete function for trait function
-    fn find_implementation(&self, trait_fn: &Function, self_type: &Type) -> Option<Function>
-    where
-        Self: Sized,
-    {
-        let funcs = self.functions_with_n_name_parts(trait_fn.name_parts().len());
-        funcs
-            .iter()
-            .find(|f| {
-                trait_fn
-                    .name_parts()
-                    .iter()
-                    .zip(f.name_parts())
-                    .all(|(a, b)| match (a, b) {
-                        (FunctionNamePart::Text(a), FunctionNamePart::Text(b)) => {
-                            a.as_str() == b.as_str()
-                        }
-                        (FunctionNamePart::Parameter(a), FunctionNamePart::Parameter(b)) => a
-                            .ty()
-                            .map_self(self_type)
-                            .clone()
-                            .at(a.range())
-                            .convert_to(b.ty().at(b.range()))
-                            .within(self)
-                            .is_ok(),
-                        _ => false,
-                    })
-                    && trait_fn
-                        .return_type()
-                        .map_self(self_type)
-                        .clone()
-                        // TODO: real return type range
-                        .at(trait_fn.declaration().range())
-                        .convert_to(f.return_type().at(f.declaration().range()))
-                        .within(self)
-                        .is_ok()
-            })
-            .cloned()
     }
 }
 

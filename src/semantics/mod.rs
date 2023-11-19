@@ -18,5 +18,11 @@ pub use find_declaration::*;
 mod add_declaration;
 pub use add_declaration::*;
 
+mod implements;
+pub use implements::*;
+
+mod convert;
+pub use convert::*;
+
 #[cfg(test)]
 mod tests;

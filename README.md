@@ -47,10 +47,16 @@
 * [x] Print exactly decimals in decimal form
 * [x] Multiple output types
 * [x] Add constrains to generics
+* [x] Mapping of generic types while checking candidates
 ---
 ### Current task
-* [ ] Mapping of generic types while checking candidates
+* [ ] Checking constraints in constructor
 ---
+* [ ] Add better errors for inferred generics
+* [ ] Make inferring `Self` work
+* [ ] Unify `Self` and `GenericType`
+* [ ] Unify `TraitType` in type checking with constraind generic type with random name
+* [ ] `Any` trait
 * [ ] Logic for printing decimals inside ppl
 * [ ] Implicit conversions from one type to another (dereference and etc)
 * [ ] Unsafe code marker
