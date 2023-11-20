@@ -197,6 +197,14 @@ impl ASTLowering for ast::Call {
                 parent: context,
             };
 
+            if let Some(ty) = f
+                .parameters()
+                .map(|p| p.ty())
+                .find(|ty| matches!(ty, Type::SelfType(_)))
+            {
+                candidate_context.generic_parameters.push(ty);
+            }
+
             let mut args = Vec::new();
             let mut args_types = Vec::new();
             let mut failed = false;
