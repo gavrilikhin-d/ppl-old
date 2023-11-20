@@ -22,43 +22,16 @@
 * Metaprogramming
 * Documentation
 
-* [X] Generate libraries and executables
-* [X] Provide runtime as dylib
-* [X] Default implementations inside traits
-* [X] Make `print <:String>` print without newline
-* [X] Add testing CI
-* [x] Fix formatter error when `candidate is not viable`
-* [x] Generic functions
-* [x] Specialize types of expressions inside generic functions
-* [x] Generate temporary files in tmp dir
-* [x] Allow generics types usage
-* [x] Fix UB in errors printing order due to hash maps
-* [x] Add `SourceFile` as source code for errors
-* [x] Simplify builtin module compilation
-* [x] Add `@builtin`
-* [x] Types as values
-* [x] Fix `Type<None> as String`
-* [x] Multiple errors support instead of exiting on first error
-* [x] Link ppl.dylib to executable
-* [x] Fix IR generation for complex while loops (benchmarks/factorial/main.ppl)
-* [x] Run initializer for global variables (`global_ctor` or add to main)
-* [x] Fix undefined variable when returning `=> global`
-* [x] Fix `<:Self> > <:Self>`
-* [x] Print exactly decimals in decimal form
-* [x] Multiple output types
-* [x] Add constrains to generics
-* [x] Mapping of generic types while checking candidates
-* [x] Checking constraints in constructor
 ---
 ### Current task
-* [ ] Make inferring `Self` work
+* [ ] Implicit conversions from one type to another (dereference and etc)
 ---
+* [ ] Fix crash in diagnostics due-to wrong source file
 * [ ] Add better errors for inferred generics
 * [ ] Unify `Self` and `GenericType`
 * [ ] Unify `TraitType` in type checking with constraint generic type with random name
 * [ ] `Any` trait
 * [ ] Logic for printing decimals inside ppl
-* [ ] Implicit conversions from one type to another (dereference and etc)
 * [ ] Unsafe code marker
 * [ ] Check result of the program itself in `test_compiler_result`
 * [ ] Format strings
