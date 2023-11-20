@@ -1,0 +1,14 @@
+Error: semantics::no_function
+
+  × no operator `<:Integer> != <:Rational>`
+   ╭─[integer_not_eq_rational.ppl:1:1]
+ 1 │ 1 != 1.0
+   · ┬ ─┬ ─┬─
+   · │  │  ╰── <:Rational>
+   · │  ╰── for this operator
+   · ╰── <:Integer>
+   ╰────
+
+Advice:   ☞ candidate is not viable: expected `Self` type, got `Rational`
+
+Error:   × Self
