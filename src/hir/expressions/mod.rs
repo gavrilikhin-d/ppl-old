@@ -17,6 +17,9 @@ pub use member::*;
 mod constructor;
 pub use constructor::*;
 
+mod implicit_conversion;
+pub use implicit_conversion::*;
+
 use crate::{mutability::Mutable, syntax::Ranged};
 
 use super::Generic;
@@ -31,6 +34,7 @@ pub enum Expression {
     TypeReference(TypeReference),
     MemberReference(MemberReference),
     Constructor(Constructor),
+    ImplicitConversion(ImplicitConversion),
 }
 
 impl Expression {
@@ -54,6 +58,7 @@ impl Generic for Expression {
             Expression::TypeReference(t) => t.is_generic(),
             Expression::MemberReference(m) => m.is_generic(),
             Expression::Constructor(c) => c.is_generic(),
+            Expression::ImplicitConversion(i) => i.is_generic(),
         }
     }
 }

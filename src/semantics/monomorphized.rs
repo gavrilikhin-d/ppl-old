@@ -3,8 +3,9 @@ use std::{collections::HashMap, sync::Arc};
 use crate::{
     hir::{
         Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
-        FunctionDefinition, FunctionNamePart, Generic, If, Loop, MemberReference, Parameter,
-        Return, Specialize, Statement, Type, TypeReference, Typed, VariableReference, While,
+        FunctionDefinition, FunctionNamePart, Generic, If, ImplicitConversion, Loop,
+        MemberReference, Parameter, Return, Specialize, Statement, Type, TypeReference, Typed,
+        VariableReference, While,
     },
     named::Named,
     semantics::FunctionContext,
@@ -94,6 +95,16 @@ impl Monomorphized for While {
     }
 }
 
+impl Monomorphized for ImplicitConversion {
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        ImplicitConversion {
+            kind: self.kind.clone(),
+            ty: self.ty.clone(),
+            expression: Box::new(self.expression.monomorphized(context)),
+        }
+    }
+}
+
 impl Monomorphized for Expression {
     fn monomorphized(&self, context: &mut impl Context) -> Self {
         match self {
@@ -103,6 +114,7 @@ impl Monomorphized for Expression {
             Expression::Literal(_) => self.clone(),
             Expression::MemberReference(m) => m.monomorphized(context).into(),
             Expression::Constructor(c) => c.monomorphized(context).into(),
+            Expression::ImplicitConversion(c) => c.monomorphized(context).into(),
         }
     }
 }
