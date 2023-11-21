@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use crate::{
-    hir::{FunctionType, GenericType, SelfType, TraitDeclaration, Type, TypeDeclaration},
+    hir::{
+        FunctionType, GenericType, ImplicitConversionKind, SelfType, TraitDeclaration, Type,
+        TypeDeclaration,
+    },
     WithSourceLocation,
 };
 
@@ -221,23 +224,25 @@ pub struct ConversionRequest {
 
 impl ConversionRequest {
     /// Convert one type to another within context
-    pub fn within(self, context: &mut impl Context) -> Result<Type, NotConvertible> {
-        let convertible = self
-            .from
-            .value
-            .convertible_to(self.to.value.clone())
-            .within(context)?;
+    pub fn within(
+        self,
+        context: &mut impl Context,
+    ) -> Result<Option<ImplicitConversionKind>, NotConvertible> {
+        let from = self.from.value;
+        let to = self.to.value;
+
+        let convertible = from.convertible_to(to.clone()).within(context)?;
 
         if !convertible {
             return Err(TypeMismatch {
                 // TODO: use WithSourceLocation for TypeWithSpan
                 got: TypeWithSpan {
-                    ty: self.from.value.clone(),
+                    ty: from,
                     at: self.from.source_location.at.clone(),
                     source_file: self.from.source_location.source_file.clone(),
                 },
                 expected: TypeWithSpan {
-                    ty: self.to.value,
+                    ty: to,
                     at: self.to.source_location.at,
                     source_file: self.to.source_location.source_file,
                 },
@@ -245,6 +250,15 @@ impl ConversionRequest {
             .into());
         }
 
-        Ok(self.to.value)
+        if from.is_reference() == to.is_reference() {
+            return Ok(None);
+        }
+
+        if from.is_reference() {
+            return Ok(Some(ImplicitConversionKind::Dereference));
+        }
+
+        // to.is_reference() == true
+        Ok(Some(ImplicitConversionKind::Reference))
     }
 }

@@ -5,7 +5,8 @@ use std::sync::Arc;
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericType, Specialize, Type, TypeReference, Typed,
+    self, FunctionNamePart, Generic, GenericType, ImplicitConversion, ImplicitConversionKind,
+    Specialize, Type, TypeReference, Typed,
 };
 use crate::mutability::Mutable;
 use crate::named::Named;
@@ -206,7 +207,6 @@ impl ASTLowering for ast::Call {
             }
 
             let mut args = Vec::new();
-            let mut args_types = Vec::new();
             let mut failed = false;
             for (i, f_part) in f.name_parts().iter().enumerate() {
                 match f_part {
@@ -223,9 +223,33 @@ impl ASTLowering for ast::Call {
                             }))
                             .within(&mut candidate_context);
                         match conversion {
-                            Ok(ty) => {
-                                args_types.push(if ty.is_generic() { arg.ty() } else { ty });
-                                args.push(arg.clone());
+                            Ok(conversion) => {
+                                use ImplicitConversionKind::*;
+                                let arg = match conversion {
+                                    None => arg.clone(),
+                                    Some(Reference) => {
+                                        let ty = candidate_context
+                                            .builtin()
+                                            .types()
+                                            .reference_to(arg.ty());
+                                        ImplicitConversion {
+                                            kind: Reference,
+                                            ty,
+                                            expression: Box::new(arg.clone()),
+                                        }
+                                        .into()
+                                    }
+                                    Some(Dereference) => {
+                                        let ty = arg.ty().without_ref();
+                                        ImplicitConversion {
+                                            kind: Dereference,
+                                            ty,
+                                            expression: Box::new(arg.clone()),
+                                        }
+                                        .into()
+                                    }
+                                };
+                                args.push(arg);
                             }
                             Err(err) => {
                                 candidates_not_viable
@@ -239,7 +263,8 @@ impl ASTLowering for ast::Call {
             }
 
             if !failed {
-                let function = f.monomorphized(&mut candidate_context, args_types);
+                let function =
+                    f.monomorphized(&mut candidate_context, args.iter().map(|arg| arg.ty()));
                 let generic = if f.is_generic() { Some(f) } else { None };
                 return Ok(hir::Call {
                     range: self.range(),
@@ -426,7 +451,7 @@ impl ASTLowering for ast::Constructor {
                 .find(|(_, m)| m.name() == name.as_str())
             {
                 // FIXME: find in which file member type was declared
-                let ty = value
+                let conversion = value
                     .ty()
                     .at(value.range())
                     .convert_to(member.ty().at(member.name.range()))
@@ -440,9 +465,35 @@ impl ASTLowering for ast::Constructor {
                     .into());
                 }
 
+                use ImplicitConversionKind::*;
+                let value = match conversion {
+                    None => value.clone(),
+                    Some(Reference) => {
+                        let ty = constructor_context
+                            .builtin()
+                            .types()
+                            .reference_to(value.ty());
+                        ImplicitConversion {
+                            kind: Reference,
+                            ty,
+                            expression: Box::new(value.clone()),
+                        }
+                        .into()
+                    }
+                    Some(Dereference) => {
+                        let ty = value.ty().without_ref();
+                        ImplicitConversion {
+                            kind: Dereference,
+                            ty,
+                            expression: Box::new(value.clone()),
+                        }
+                        .into()
+                    }
+                };
+
                 if member.is_generic() {
                     members[index] = Arc::new(hir::Member {
-                        ty,
+                        ty: value.ty(),
                         ..members[index].as_ref().clone()
                     })
                 }
