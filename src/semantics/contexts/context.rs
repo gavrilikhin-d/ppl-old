@@ -3,9 +3,7 @@ use std::sync::Arc;
 use crate::{
     compilation::Compiler,
     hir::{Function, FunctionDeclaration, FunctionNamePart, Module, Type, Typed},
-    semantics::{AddDeclaration, Convert, FindDeclaration},
-    syntax::Ranged,
-    AddSourceLocation,
+    semantics::{AddDeclaration, ConvertibleTo, FindDeclaration},
 };
 
 use super::BuiltinContext;
@@ -74,10 +72,9 @@ pub trait Context: FindDeclaration + AddDeclaration {
                             .ty()
                             .map_self(self_type)
                             .clone()
-                            .at(a.range())
-                            .convert_to(b.ty().at(b.range()))
+                            .convertible_to(b.ty())
                             .within(self)
-                            .is_ok(),
+                            .is_ok_and(|converible| converible),
                         _ => false,
                     })
                     && trait_fn
@@ -85,10 +82,9 @@ pub trait Context: FindDeclaration + AddDeclaration {
                         .map_self(self_type)
                         .clone()
                         // TODO: real return type range
-                        .at(trait_fn.declaration().range())
-                        .convert_to(f.return_type().at(f.declaration().range()))
+                        .convertible_to(f.return_type())
                         .within(self)
-                        .is_ok()
+                        .is_ok_and(|convertible| convertible)
             })
             .cloned()
     }

@@ -5,13 +5,12 @@ use std::sync::Arc;
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericType, ImplicitConversion, ImplicitConversionKind,
-    Specialize, Type, TypeReference, Typed,
+    self, FunctionNamePart, Generic, GenericType, Specialize, Type, TypeReference, Typed,
 };
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
-use crate::{AddSourceLocation, ErrVec, SourceLocation};
+use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
 use super::{
     error::*, Context, Convert, Declare, GenericContext, ModuleContext, MonomorphizedWithArgs,
@@ -214,41 +213,20 @@ impl ASTLowering for ast::Call {
                     FunctionNamePart::Parameter(p) => {
                         let arg = args_cache[i].as_ref().unwrap();
 
-                        let conversion = arg
-                            .ty()
-                            .at(arg.range())
-                            .convert_to(p.ty().at(SourceLocation {
-                                at: p.name.range().into(),
-                                source_file: source_file.clone().map(Into::into),
-                            }))
-                            .within(&mut candidate_context);
-                        match conversion {
-                            Ok(conversion) => {
-                                use ImplicitConversionKind::*;
-                                let arg = match conversion {
-                                    None => arg.clone(),
-                                    Some(Reference) => {
-                                        let ty = candidate_context
-                                            .builtin()
-                                            .types()
-                                            .reference_to(arg.ty());
-                                        ImplicitConversion {
-                                            kind: Reference,
-                                            ty,
-                                            expression: Box::new(arg.clone()),
-                                        }
-                                        .into()
-                                    }
-                                    Some(Dereference) => {
-                                        let ty = arg.ty().without_ref();
-                                        ImplicitConversion {
-                                            kind: Dereference,
-                                            ty,
-                                            expression: Box::new(arg.clone()),
-                                        }
-                                        .into()
-                                    }
-                                };
+                        let arg = WithSourceLocation {
+                            value: arg.clone(),
+                            source_location: SourceLocation {
+                                source_file: None,
+                                at: arg.range().into(),
+                            },
+                        }
+                        .convert_to(p.ty().at(SourceLocation {
+                            at: p.name.range().into(),
+                            source_file: source_file.clone().map(Into::into),
+                        }))
+                        .within(&mut candidate_context);
+                        match arg {
+                            Ok(arg) => {
                                 args.push(arg);
                             }
                             Err(err) => {
@@ -450,12 +428,16 @@ impl ASTLowering for ast::Constructor {
                 .enumerate()
                 .find(|(_, m)| m.name() == name.as_str())
             {
-                // FIXME: find in which file member type was declared
-                let conversion = value
-                    .ty()
-                    .at(value.range())
-                    .convert_to(member.ty().at(member.name.range()))
-                    .within(&mut constructor_context)?;
+                let value = WithSourceLocation {
+                    value: value.clone(),
+                    source_location: SourceLocation {
+                        // FIXME: find in which file member type was declared
+                        source_file: None,
+                        at: value.range().into(),
+                    },
+                }
+                .convert_to(member.ty().at(member.name.range()))
+                .within(&mut constructor_context)?;
 
                 if let Some(prev) = initializers.iter().find(|i| i.index == index) {
                     return Err(MultipleInitialization {
@@ -464,32 +446,6 @@ impl ASTLowering for ast::Constructor {
                     }
                     .into());
                 }
-
-                use ImplicitConversionKind::*;
-                let value = match conversion {
-                    None => value.clone(),
-                    Some(Reference) => {
-                        let ty = constructor_context
-                            .builtin()
-                            .types()
-                            .reference_to(value.ty());
-                        ImplicitConversion {
-                            kind: Reference,
-                            ty,
-                            expression: Box::new(value.clone()),
-                        }
-                        .into()
-                    }
-                    Some(Dereference) => {
-                        let ty = value.ty().without_ref();
-                        ImplicitConversion {
-                            kind: Dereference,
-                            ty,
-                            expression: Box::new(value.clone()),
-                        }
-                        .into()
-                    }
-                };
 
                 if member.is_generic() {
                     members[index] = Arc::new(hir::Member {
