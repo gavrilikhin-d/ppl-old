@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use crate::{
-    hir::{FunctionType, GenericType, SelfType, TraitDeclaration, Type, TypeDeclaration},
+    hir::{
+        Expression, FunctionType, GenericType, ImplicitConversion, ImplicitConversionKind,
+        SelfType, TraitDeclaration, Type, TypeDeclaration, Typed,
+    },
     WithSourceLocation,
 };
 
@@ -30,7 +33,7 @@ pub struct ConvertibleToRequest<'s, S> {
 impl ConvertibleTo for Type {}
 impl ConvertibleToRequest<'_, Type> {
     /// Check if one type can be converted to another type within context
-    fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
+    pub fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
         let from = self.from.without_ref();
         let to = self.to.without_ref();
         match from {
@@ -46,7 +49,7 @@ impl ConvertibleToRequest<'_, Type> {
 impl ConvertibleTo for Arc<TypeDeclaration> {}
 impl ConvertibleToRequest<'_, Arc<TypeDeclaration>> {
     /// Check if struct type can be converted to another type within context
-    fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
+    pub fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
         let from = self.from;
         let to = self.to;
         Ok(match to {
@@ -109,7 +112,7 @@ impl ConvertibleToRequest<'_, Arc<TypeDeclaration>> {
 impl ConvertibleTo for Arc<TraitDeclaration> {}
 impl ConvertibleToRequest<'_, Arc<TraitDeclaration>> {
     /// Check if trait can be converted to another type within context
-    fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
+    pub fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
         let from = self.from;
         let to = self.to;
         Ok(match to {
@@ -132,7 +135,7 @@ impl ConvertibleToRequest<'_, Arc<TraitDeclaration>> {
 impl ConvertibleTo for GenericType {}
 impl ConvertibleToRequest<'_, GenericType> {
     /// Check if generic type can be converted to another type within context
-    fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
+    pub fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
         let from = self.from;
         let to = self.to;
         Ok(match to {
@@ -165,7 +168,7 @@ impl ConvertibleToRequest<'_, GenericType> {
 impl ConvertibleTo for FunctionType {}
 impl ConvertibleToRequest<'_, FunctionType> {
     /// Check if function type can be converted to another type within context
-    fn within(self, _context: &mut impl Context) -> Result<bool, NotImplemented> {
+    pub fn within(self, _context: &mut impl Context) -> Result<bool, NotImplemented> {
         let _from = self.from;
         let to = self.to;
         Ok(match to {
@@ -181,7 +184,7 @@ impl ConvertibleToRequest<'_, FunctionType> {
 impl ConvertibleTo for SelfType {}
 impl ConvertibleToRequest<'_, SelfType> {
     /// Check if self type can be converted to another type within context
-    fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
+    pub fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
         let from = self.from;
         let to = self.to;
         Ok(match to {
@@ -204,7 +207,7 @@ pub trait Convert {
     fn convert_to(&self, ty: WithSourceLocation<Type>) -> ConversionRequest;
 }
 
-impl Convert for WithSourceLocation<Type> {
+impl Convert for WithSourceLocation<Expression> {
     fn convert_to(&self, to: WithSourceLocation<Type>) -> ConversionRequest {
         ConversionRequest {
             from: self.clone(),
@@ -215,29 +218,28 @@ impl Convert for WithSourceLocation<Type> {
 
 /// Helper struct to perform check within context
 pub struct ConversionRequest {
-    from: WithSourceLocation<Type>,
+    from: WithSourceLocation<Expression>,
     to: WithSourceLocation<Type>,
 }
 
 impl ConversionRequest {
     /// Convert one type to another within context
-    pub fn within(self, context: &mut impl Context) -> Result<Type, NotConvertible> {
-        let convertible = self
-            .from
-            .value
-            .convertible_to(self.to.value.clone())
-            .within(context)?;
+    pub fn within(self, context: &mut impl Context) -> Result<Expression, NotConvertible> {
+        let from = self.from.value.ty();
+        let to = self.to.value;
+
+        let convertible = from.convertible_to(to.clone()).within(context)?;
 
         if !convertible {
             return Err(TypeMismatch {
                 // TODO: use WithSourceLocation for TypeWithSpan
                 got: TypeWithSpan {
-                    ty: self.from.value.clone(),
+                    ty: from,
                     at: self.from.source_location.at.clone(),
                     source_file: self.from.source_location.source_file.clone(),
                 },
                 expected: TypeWithSpan {
-                    ty: self.to.value,
+                    ty: to,
                     at: self.to.source_location.at,
                     source_file: self.to.source_location.source_file,
                 },
@@ -245,6 +247,27 @@ impl ConversionRequest {
             .into());
         }
 
-        Ok(self.to.value)
+        if from.is_reference() == to.is_reference() {
+            return Ok(self.from.value);
+        }
+
+        if from.is_reference() {
+            let ty = from.without_ref();
+            return Ok(ImplicitConversion {
+                kind: ImplicitConversionKind::Dereference,
+                ty,
+                expression: Box::new(self.from.value),
+            }
+            .into());
+        }
+
+        // to.is_reference() == true
+        let ty = context.builtin().types().reference_to(from);
+        Ok(ImplicitConversion {
+            kind: ImplicitConversionKind::Reference,
+            ty,
+            expression: Box::new(self.from.value),
+        }
+        .into())
     }
 }

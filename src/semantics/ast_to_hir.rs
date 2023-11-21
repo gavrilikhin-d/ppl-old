@@ -10,7 +10,7 @@ use crate::hir::{
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
-use crate::{AddSourceLocation, ErrVec, SourceLocation};
+use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
 use super::{
     error::*, Context, Convert, Declare, GenericContext, ModuleContext, MonomorphizedWithArgs,
@@ -206,7 +206,6 @@ impl ASTLowering for ast::Call {
             }
 
             let mut args = Vec::new();
-            let mut args_types = Vec::new();
             let mut failed = false;
             for (i, f_part) in f.name_parts().iter().enumerate() {
                 match f_part {
@@ -214,18 +213,21 @@ impl ASTLowering for ast::Call {
                     FunctionNamePart::Parameter(p) => {
                         let arg = args_cache[i].as_ref().unwrap();
 
-                        let conversion = arg
-                            .ty()
-                            .at(arg.range())
-                            .convert_to(p.ty().at(SourceLocation {
-                                at: p.name.range().into(),
-                                source_file: source_file.clone().map(Into::into),
-                            }))
-                            .within(&mut candidate_context);
-                        match conversion {
-                            Ok(ty) => {
-                                args_types.push(if ty.is_generic() { arg.ty() } else { ty });
-                                args.push(arg.clone());
+                        let arg = WithSourceLocation {
+                            value: arg.clone(),
+                            source_location: SourceLocation {
+                                source_file: None,
+                                at: arg.range().into(),
+                            },
+                        }
+                        .convert_to(p.ty().at(SourceLocation {
+                            at: p.name.range().into(),
+                            source_file: source_file.clone().map(Into::into),
+                        }))
+                        .within(&mut candidate_context);
+                        match arg {
+                            Ok(arg) => {
+                                args.push(arg);
                             }
                             Err(err) => {
                                 candidates_not_viable
@@ -239,7 +241,8 @@ impl ASTLowering for ast::Call {
             }
 
             if !failed {
-                let function = f.monomorphized(&mut candidate_context, args_types);
+                let function =
+                    f.monomorphized(&mut candidate_context, args.iter().map(|arg| arg.ty()));
                 let generic = if f.is_generic() { Some(f) } else { None };
                 return Ok(hir::Call {
                     range: self.range(),
@@ -425,12 +428,16 @@ impl ASTLowering for ast::Constructor {
                 .enumerate()
                 .find(|(_, m)| m.name() == name.as_str())
             {
-                // FIXME: find in which file member type was declared
-                let ty = value
-                    .ty()
-                    .at(value.range())
-                    .convert_to(member.ty().at(member.name.range()))
-                    .within(&mut constructor_context)?;
+                let value = WithSourceLocation {
+                    value: value.clone(),
+                    source_location: SourceLocation {
+                        // FIXME: find in which file member type was declared
+                        source_file: None,
+                        at: value.range().into(),
+                    },
+                }
+                .convert_to(member.ty().at(member.name.range()))
+                .within(&mut constructor_context)?;
 
                 if let Some(prev) = initializers.iter().find(|i| i.index == index) {
                     return Err(MultipleInitialization {
@@ -442,7 +449,7 @@ impl ASTLowering for ast::Constructor {
 
                 if member.is_generic() {
                     members[index] = Arc::new(hir::Member {
-                        ty,
+                        ty: value.ty(),
                         ..members[index].as_ref().clone()
                     })
                 }
