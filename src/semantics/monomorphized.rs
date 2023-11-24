@@ -168,6 +168,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
             return self.clone();
         }
 
+        // TODO: use context mapping for it
         let mut generics_map: HashMap<Type, Type> = HashMap::new();
 
         let mut arg = args.into_iter();
