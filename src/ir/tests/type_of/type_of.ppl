@@ -1,0 +1,2 @@
+let ty = `type` of 1
+println ty
