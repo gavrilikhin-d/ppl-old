@@ -221,7 +221,7 @@ fn<T> <ty: Type<T>> as String => ty.name
 fn<T> size of <ty: Type<T>> => ty.size
 
 /// Get type of a value
-fn<T> `type` of <:T> => Type<T>
+fn<T> `type` of <:T> => T
 //=================================
 
 //=================================
