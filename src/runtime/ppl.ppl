@@ -259,7 +259,7 @@ fn<T> read <ty: Type<T>> at <address: MemoryAddress> -> Reference<T>
 type ReferenceMut<T>
 
 /// Get reference to a mutable value
-fn<T> & <ref: ReferenceMut<T>> => ref
+fn<T> reference to mutable <ref: ReferenceMut<T>> => ref
 //=================================
 
 //=================================
@@ -270,7 +270,7 @@ fn<T> & <ref: ReferenceMut<T>> => ref
 type Reference<T>
 
 /// Get reference to a value
-fn<T> & <ref: Reference<T>> => ref
+fn<T> reference to <ref: Reference<T>> => ref
 //=================================
 
 //=================================

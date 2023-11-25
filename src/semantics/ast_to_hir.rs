@@ -13,8 +13,7 @@ use crate::syntax::Ranged;
 use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
 use super::{
-    error::*, Context, Convert, Declare, GenericContext, Implicit, ModuleContext,
-    MonomorphizedWithArgs,
+    error::*, Context, Convert, Declare, GenericContext, ModuleContext, MonomorphizedWithArgs,
 };
 use crate::ast::{self, CallNamePart, FnKind, If};
 
