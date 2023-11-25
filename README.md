@@ -23,10 +23,10 @@
 * Documentation
 
 * [x] Implicit conversions from one type to another (dereference and etc)
+* [x] Fix non-instantiated generic functions (`fn<T> foo <:T> => 1` & `let n = foo 1`; `& <:Reference<Bool>>`)
 ---
 ### Current task
 ---
-* [ ] Fix non-instantiated generic functions (`fn<T> foo <:T> => 1` & `let n = foo 1`)
 * [ ] Fix crash in diagnostics due-to wrong source file
 * [ ] Add better errors for inferred generics
 * [ ] Unify `Self` and `GenericType`

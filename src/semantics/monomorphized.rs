@@ -11,7 +11,7 @@ use crate::{
     semantics::FunctionContext,
 };
 
-use super::{AddDeclaration, Context, FindDeclaration};
+use super::Context;
 
 /// Trait to get monomorphized version of statements
 pub trait Monomorphized {
@@ -168,6 +168,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
             return self.clone();
         }
 
+        // TODO: use context mapping for it
         let mut generics_map: HashMap<Type, Type> = HashMap::new();
 
         let mut arg = args.into_iter();
@@ -253,10 +254,6 @@ impl MonomorphizedWithArgs for Arc<FunctionDefinition> {
             .collect();
 
         let f = Arc::new(FunctionDefinition { declaration, body });
-
-        if context.function_with_name(&f.name()).is_none() {
-            context.add_function(f.clone().into());
-        }
 
         f
     }

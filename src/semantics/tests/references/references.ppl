@@ -1,5 +1,4 @@
-// let n = size of Integer
-let n = 8
+let n = size of Integer
 let address = allocate n bytes
 let value = read Integer at address
 print value
