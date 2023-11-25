@@ -3,9 +3,9 @@ use std::{collections::HashMap, sync::Arc};
 use crate::{
     hir::{
         Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
-        FunctionDefinition, FunctionNamePart, Generic, If, ImplicitConversion, Loop,
-        MemberReference, Parameter, Return, Specialize, Statement, Type, TypeReference, Typed,
-        VariableReference, While,
+        FunctionDefinition, FunctionNamePart, Generic, If, ImplicitConversion, Initializer, Loop,
+        Member, MemberReference, Parameter, Return, Specialize, Statement, Type, TypeDeclaration,
+        TypeReference, Typed, VariableReference, While,
     },
     named::Named,
     semantics::FunctionContext,
@@ -120,9 +120,70 @@ impl Monomorphized for Expression {
 }
 
 impl Monomorphized for Constructor {
-    fn monomorphized(&self, _context: &mut impl Context) -> Self {
-        // TODO: real monomorphization
-        self.clone()
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        Constructor {
+            ty: self.ty.monomorphized(context),
+            initializers: self.initializers.monomorphized(context),
+            rbrace: self.rbrace,
+        }
+    }
+}
+
+impl Monomorphized for Initializer {
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        Initializer {
+            member: self.member.monomorphized(context),
+            value: self.value.monomorphized(context),
+            ..self.clone()
+        }
+    }
+}
+
+impl Monomorphized for TypeReference {
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        TypeReference {
+            referenced_type: self.referenced_type.monomorphized(context),
+            ..self.clone()
+        }
+    }
+}
+
+impl Monomorphized for Type {
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        match self {
+            Type::Class(c) => c.monomorphized(context).into(),
+            Type::Function(_) => todo!(),
+            Type::Generic(_) | Type::SelfType(_) | Type::Trait(_) => {
+                context.get_specialized(self.clone()).unwrap()
+            }
+        }
+    }
+}
+
+impl Monomorphized for Arc<TypeDeclaration> {
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        if !self.is_generic() {
+            return self.clone();
+        }
+
+        Arc::new(TypeDeclaration {
+            generic_parameters: self.generic_parameters.monomorphized(context),
+            members: self.members.monomorphized(context),
+            ..self.as_ref().clone()
+        })
+    }
+}
+
+impl Monomorphized for Arc<Member> {
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        if !self.is_generic() {
+            return self.clone();
+        }
+
+        Arc::new(Member {
+            ty: self.ty.monomorphized(context),
+            ..self.as_ref().clone()
+        })
     }
 }
 
