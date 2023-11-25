@@ -627,11 +627,9 @@ impl ASTLowering for ast::Assignment {
             .into());
         }
 
-        let target = target.dereference();
-
         let value = self.value.lower_to_hir_within_context(context)?;
         let value = value
-            .convert_to(target.ty().at(target.range()))
+            .convert_to(target.ty().without_ref().at(target.range()))
             .within(context)?;
 
         Ok(hir::Assignment { target, value })

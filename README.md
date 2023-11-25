@@ -32,7 +32,8 @@
 * [ ] Replace type references with constructors only after monomorphization
 * [ ] Reject lowercase names for types
 * [ ] Rebinding references
-* [ ] `lowering_to_hir_within_context` -> `to_hir`
+* [ ] `lowering_to_hir_within_context` -> `to_hir` and `to_ir`
+* [ ] Fix `let y = &x; y`
 * [ ] Remove need for escaping `type` in `type of <:T>`
 * [ ] Fix crash in diagnostics due-to wrong source file
 * [ ] Add better errors for inferred generics
