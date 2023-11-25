@@ -502,7 +502,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
             .iter()
             .zip(self.function.parameters().map(|p| p.ty()))
             .filter_map(|(arg, p)| {
-                if !p.is_reference() {
+                if !p.is_any_reference() {
                     arg.lower_to_ir(context)
                 } else {
                     arg.lower_to_ir_without_load(context)

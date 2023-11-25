@@ -5,6 +5,9 @@ use crate::{
         Expression, FunctionType, GenericType, ImplicitConversion, ImplicitConversionKind,
         SelfType, TraitDeclaration, Type, TypeDeclaration, Typed,
     },
+    mutability::Mutable,
+    semantics::error::ReferenceMutToImmutable,
+    syntax::Ranged,
     WithSourceLocation,
 };
 
@@ -247,11 +250,18 @@ impl ConversionRequest {
             .into());
         }
 
-        if from.is_reference() == to.is_reference() {
+        if from.is_immutable() && to.is_mutable() {
+            return Err(ReferenceMutToImmutable {
+                at: self.from.value.range().into(),
+            }
+            .into());
+        }
+
+        if from.is_any_reference() == to.is_any_reference() {
             return Ok(self.from.value);
         }
 
-        if from.is_reference() {
+        if from.is_any_reference() {
             let ty = from.without_ref();
             return Ok(ImplicitConversion {
                 kind: ImplicitConversionKind::Dereference,
@@ -261,8 +271,12 @@ impl ConversionRequest {
             .into());
         }
 
-        // to.is_reference() == true
-        let ty = context.builtin().types().reference_to(from);
+        // to.is_any_reference() == true
+        let ty = if to.is_immutable() {
+            context.builtin().types().reference_to(from)
+        } else {
+            context.builtin().types().reference_mut_to(from)
+        };
         Ok(ImplicitConversion {
             kind: ImplicitConversionKind::Reference,
             ty,

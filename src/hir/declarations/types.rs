@@ -2,6 +2,7 @@ use std::{borrow::Cow, fmt::Display, str::FromStr, sync::Arc};
 
 use crate::{
     hir::{Basename, Generic, Type, Typed},
+    mutability::Mutable,
     named::Named,
     syntax::StringWithOffset,
     AddSourceLocation,
@@ -49,6 +50,7 @@ pub enum BuiltinClass {
     Rational,
     String,
     Reference,
+    ReferenceMut,
 }
 
 impl BuiltinClass {
@@ -58,7 +60,7 @@ impl BuiltinClass {
         match self {
             None => 0,
             Bool => 1,
-            Integer | Rational | String | Reference => POINTER_SIZE,
+            Integer | Rational | String | Reference | ReferenceMut => POINTER_SIZE,
         }
     }
 }
@@ -75,6 +77,7 @@ impl FromStr for BuiltinClass {
             "Rational" => Rational,
             "String" => String,
             "Reference" => Reference,
+            "ReferenceMut" => ReferenceMut,
             _ => return Err(format!("Invalid builtin type `{s}`")),
         })
     }
@@ -136,9 +139,12 @@ impl TypeDeclaration {
         self.builtin == Some(BuiltinClass::String)
     }
 
-    /// Is this a builtin `Reference` type?
-    pub fn is_reference(&self) -> bool {
-        self.builtin == Some(BuiltinClass::Reference)
+    /// Is this a builtin `Reference` or `ReferenceMut` type?
+    pub fn is_any_reference(&self) -> bool {
+        matches!(
+            self.builtin,
+            Some(BuiltinClass::Reference | BuiltinClass::ReferenceMut)
+        )
     }
 
     /// Is this an opaque type?
@@ -202,6 +208,15 @@ impl Named for TypeDeclaration {
                 .join(", ")
         )
         .into()
+    }
+}
+
+impl Mutable for TypeDeclaration {
+    fn is_mutable(&self) -> bool {
+        match self.builtin {
+            Some(BuiltinClass::ReferenceMut) => true,
+            _ => false,
+        }
     }
 }
 

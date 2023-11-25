@@ -50,7 +50,7 @@ fn print_value(result: *const c_void, ty: Type) {
                             println!("true");
                         }
                     }
-                    Reference => {
+                    Reference | ReferenceMut => {
                         let result = result.cast::<*const c_void>();
                         let ty = ty.without_ref();
                         print_value(unsafe { *result }, ty);

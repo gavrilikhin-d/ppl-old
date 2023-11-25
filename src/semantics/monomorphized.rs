@@ -184,7 +184,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
                     }
 
                     let param_ty = param.ty();
-                    if param_ty.is_reference() && !arg_ty.is_reference() {
+                    if param_ty.is_any_reference() && !arg_ty.is_any_reference() {
                         arg_ty = context.builtin().types().reference_to(arg_ty);
                     }
 

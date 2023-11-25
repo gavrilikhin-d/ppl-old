@@ -70,6 +70,19 @@ impl BuiltinTypes<'_> {
             .specialize_parameters(std::iter::once(ty))
             .into()
     }
+
+    /// Get builtin type for `ReferenceMut<T>`
+    pub fn reference_mut(&self) -> Type {
+        self.get_type("ReferenceMut")
+    }
+
+    /// Get `ReferenceMut<T>` for this type
+    pub fn reference_mut_to(&self, ty: Type) -> Type {
+        self.reference_mut()
+            .as_class()
+            .specialize_parameters(std::iter::once(ty))
+            .into()
+    }
 }
 
 #[cfg(test)]

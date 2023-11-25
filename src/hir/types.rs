@@ -7,7 +7,9 @@ use std::{
 
 use crate::{mutability::Mutable, named::Named, syntax::StringWithOffset, AddSourceLocation};
 
-use super::{Basename, Generic, Member, TraitDeclaration, TypeDeclaration, TypeReference};
+use super::{
+    Basename, BuiltinClass, Generic, Member, TraitDeclaration, TypeDeclaration, TypeReference,
+};
 use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
 
@@ -194,7 +196,7 @@ impl Type {
 
     /// Get this type without reference
     pub fn without_ref(&self) -> Type {
-        if !self.is_reference() {
+        if !self.is_any_reference() {
             return self.clone();
         }
 
@@ -273,10 +275,10 @@ impl Type {
         }
     }
 
-    /// Is this a builtin `Reference` type?
-    pub fn is_reference(&self) -> bool {
+    /// Is this a builtin `Reference` or `ReferenceMut` type?
+    pub fn is_any_reference(&self) -> bool {
         match self {
-            Type::Class(c) => c.is_reference(),
+            Type::Class(c) => c.is_any_reference(),
             _ => false,
         }
     }
@@ -331,7 +333,10 @@ impl Named for Type {
 
 impl Mutable for Type {
     fn is_mutable(&self) -> bool {
-        false
+        match self {
+            Type::Class(c) => c.is_mutable(),
+            _ => false,
+        }
     }
 }
 
