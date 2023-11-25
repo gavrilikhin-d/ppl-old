@@ -11,7 +11,7 @@ use crate::{
     semantics::FunctionContext,
 };
 
-use super::Context;
+use super::{Context, ReplaceWithTypeInfo};
 
 /// Trait to get monomorphized version of statements
 pub trait Monomorphized {
@@ -110,7 +110,7 @@ impl Monomorphized for Expression {
         match self {
             Expression::Call(c) => c.monomorphized(context).into(),
             Expression::VariableReference(var) => var.monomorphized(context).into(),
-            Expression::TypeReference(_) => todo!(),
+            Expression::TypeReference(ty) => ty.monomorphized(context).into(),
             Expression::Literal(_) => self.clone(),
             Expression::MemberReference(m) => m.monomorphized(context).into(),
             Expression::Constructor(c) => c.monomorphized(context).into(),
