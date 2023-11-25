@@ -13,7 +13,8 @@ use crate::syntax::Ranged;
 use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
 use super::{
-    error::*, Context, Convert, Declare, GenericContext, ModuleContext, MonomorphizedWithArgs,
+    error::*, Context, Convert, Declare, GenericContext, Implicit, ModuleContext,
+    MonomorphizedWithArgs,
 };
 use crate::ast::{self, CallNamePart, FnKind, If};
 
@@ -626,24 +627,12 @@ impl ASTLowering for ast::Assignment {
             .into());
         }
 
-        let value = self.value.lower_to_hir_within_context(context)?;
-        if target.ty() != value.ty() {
-            return Err(TypeMismatch {
-                got: TypeWithSpan {
-                    ty: value.ty(),
-                    at: self.value.range().into(),
-                    source_file: None,
-                },
+        let target = target.dereference();
 
-                expected: TypeWithSpan {
-                    ty: target.ty(),
-                    at: self.target.range().into(),
-                    // FIXME: find where variable was declared
-                    source_file: None,
-                },
-            }
-            .into());
-        }
+        let value = self.value.lower_to_hir_within_context(context)?;
+        let value = value
+            .convert_to(target.ty().at(target.range()))
+            .within(context)?;
 
         Ok(hir::Assignment { target, value })
     }
