@@ -227,9 +227,17 @@ impl Type {
 
     /// Is this a builtin type?
     pub fn is_builtin(&self) -> bool {
-        match self.without_ref() {
+        match self {
             Type::Class(c) => c.is_builtin(),
             _ => false,
+        }
+    }
+
+    /// Get builtin class tag for this type
+    pub fn builtin(&self) -> Option<BuiltinClass> {
+        match self {
+            Type::Class(c) => c.builtin.clone(),
+            _ => None,
         }
     }
 
