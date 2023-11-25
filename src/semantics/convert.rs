@@ -250,7 +250,7 @@ impl ConversionRequest {
             .into());
         }
 
-        if from.is_immutable() && to.is_mutable() {
+        if self.from.value.is_immutable() && to.is_mutable() {
             return Err(ReferenceMutToImmutable {
                 at: self.from.value.range().into(),
             }
