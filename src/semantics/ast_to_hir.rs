@@ -905,6 +905,10 @@ pub trait ReplaceWithTypeInfo {
 
 impl ReplaceWithTypeInfo for TypeReference {
     fn replace_with_type_info(&self, context: &impl Context) -> hir::Expression {
+        if self.is_generic() {
+            return self.clone().into();
+        }
+
         hir::Constructor {
             ty: hir::TypeReference {
                 span: self.range(),

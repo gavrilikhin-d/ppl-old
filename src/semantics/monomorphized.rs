@@ -110,7 +110,10 @@ impl Monomorphized for Expression {
         match self {
             Expression::Call(c) => c.monomorphized(context).into(),
             Expression::VariableReference(var) => var.monomorphized(context).into(),
-            Expression::TypeReference(ty) => ty.monomorphized(context).into(),
+            Expression::TypeReference(ty) => ty
+                .monomorphized(context)
+                .replace_with_type_info(context)
+                .into(),
             Expression::Literal(_) => self.clone(),
             Expression::MemberReference(m) => m.monomorphized(context).into(),
             Expression::Constructor(c) => c.monomorphized(context).into(),
@@ -141,8 +144,10 @@ impl Monomorphized for Initializer {
 
 impl Monomorphized for TypeReference {
     fn monomorphized(&self, context: &mut impl Context) -> Self {
+        let referenced_type = self.referenced_type.monomorphized(context);
         TypeReference {
-            referenced_type: self.referenced_type.monomorphized(context),
+            referenced_type: referenced_type.clone(),
+            type_for_type: context.builtin().types().type_of(referenced_type),
             ..self.clone()
         }
     }
