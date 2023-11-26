@@ -20,6 +20,18 @@ pub struct Initializer {
     pub value: Expression,
 }
 
+impl Display for Initializer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let member = self.member.name();
+        let value = self.value.to_string();
+        if member != value {
+            write!(f, "{}: {}", member, value)
+        } else {
+            write!(f, "{}", member)
+        }
+    }
+}
+
 impl Ranged for Initializer {
     fn start(&self) -> usize {
         self.span.start
@@ -48,11 +60,20 @@ pub struct Constructor {
 
 impl Display for Constructor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut builder = f.debug_struct(&self.ty().name());
-        for initializer in &self.initializers {
-            builder.field(&initializer.member.name(), &initializer.value);
-        }
-        builder.finish()
+        let indent = "\t".repeat(f.width().unwrap_or(0));
+        write!(f, "{indent}")?;
+
+        write!(f, "{} {{ ", self.ty().name())?;
+        write!(
+            f,
+            "{}",
+            self.initializers
+                .iter()
+                .map(|initializer| initializer.to_string())
+                .collect::<Vec<_>>()
+                .join(", ")
+        )?;
+        write!(f, " }}")
     }
 }
 
