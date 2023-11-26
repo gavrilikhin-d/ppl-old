@@ -372,8 +372,14 @@ impl Monomorphized for MemberReference {
 
 impl Monomorphized for Module {
     fn monomorphized(self, context: &mut impl Context) -> Self {
+        let statements = self.statements.monomorphized(context);
+        let mut variables = self.variables;
+        variables.values_mut().for_each(|v| {
+            *v = v.clone().monomorphized(context);
+        });
         Module {
-            statements: self.statements.monomorphized(context),
+            variables,
+            statements,
             ..self
         }
     }
