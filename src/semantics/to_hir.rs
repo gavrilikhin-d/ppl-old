@@ -17,56 +17,45 @@ use super::{
 };
 use crate::ast::{self, CallNamePart, FnKind, If};
 
-/// Lower AST inside some context
-pub trait ASTLowering {
+/// Lower to HIR inside some context
+pub trait ToHIR {
     type Error = Error;
     type HIR;
 
-    /// Lower AST to HIR within some context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error>;
+    /// Lower to HIR within some context
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error>;
 
-    /// Lower AST to HIR
-    fn lower_to_hir(&self) -> Result<Self::HIR, Self::Error> {
+    /// Lower to HIR without context
+    fn to_hir_without_context(&self) -> Result<Self::HIR, Self::Error> {
         let mut compiler = Compiler::new();
         let mut context = ModuleContext::new(&mut compiler);
-        self.lower_to_hir_within_context(&mut context)
+        self.to_hir(&mut context)
     }
 }
 
-impl ASTLowering for ast::Statement {
+impl ToHIR for ast::Statement {
     type HIR = hir::Statement;
 
     /// Lower [`ast::Statement`] to [`hir::Statement`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(match self {
-            ast::Statement::Declaration(decl) => decl.lower_to_hir_within_context(context)?.into(),
-            ast::Statement::Assignment(assign) => {
-                assign.lower_to_hir_within_context(context)?.into()
-            }
-            ast::Statement::Expression(expr) => expr.lower_to_hir_within_context(context)?.into(),
-            ast::Statement::Return(ret) => ret.lower_to_hir_within_context(context)?.into(),
-            ast::Statement::If(stmt) => stmt.lower_to_hir_within_context(context)?.into(),
-            ast::Statement::Loop(stmt) => stmt.lower_to_hir_within_context(context)?.into(),
-            ast::Statement::While(stmt) => stmt.lower_to_hir_within_context(context)?.into(),
-            ast::Statement::Use(u) => u.lower_to_hir_within_context(context)?.into(),
+            ast::Statement::Declaration(decl) => decl.to_hir(context)?.into(),
+            ast::Statement::Assignment(assign) => assign.to_hir(context)?.into(),
+            ast::Statement::Expression(expr) => expr.to_hir(context)?.into(),
+            ast::Statement::Return(ret) => ret.to_hir(context)?.into(),
+            ast::Statement::If(stmt) => stmt.to_hir(context)?.into(),
+            ast::Statement::Loop(stmt) => stmt.to_hir(context)?.into(),
+            ast::Statement::While(stmt) => stmt.to_hir(context)?.into(),
+            ast::Statement::Use(u) => u.to_hir(context)?.into(),
         })
     }
 }
 
-impl ASTLowering for ast::Literal {
+impl ToHIR for ast::Literal {
     type HIR = hir::Literal;
 
     /// Lower [`ast::Literal`] to [`hir::Literal`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(match self {
             ast::Literal::None { offset } => hir::Literal::None {
                 offset: *offset,
@@ -96,14 +85,11 @@ impl ASTLowering for ast::Literal {
     }
 }
 
-impl ASTLowering for ast::VariableReference {
+impl ToHIR for ast::VariableReference {
     type HIR = hir::VariableReference;
 
     /// Lower [`ast::VariableReference`] to [`hir::VariableReference`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         let var = context.find_variable(&self.name);
         if var.is_none() {
             return Err(UndefinedVariable {
@@ -120,20 +106,17 @@ impl ASTLowering for ast::VariableReference {
     }
 }
 
-impl ASTLowering for ast::Call {
+impl ToHIR for ast::Call {
     type HIR = hir::Call;
 
     /// Lower [`ast::Call`] to [`hir::Call`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         let args_cache: Vec<Option<hir::Expression>> = self
             .name_parts
             .iter()
             .map(|part| match part {
                 CallNamePart::Argument(a) => Ok::<_, Error>(Some(
-                    a.lower_to_hir_within_context(context)?
+                    a.to_hir(context)?
                 )),
                 CallNamePart::Text(t) => {
                     if let Some(var) = context.find_variable(t) {
@@ -278,29 +261,23 @@ impl ASTLowering for ast::Call {
     }
 }
 
-impl ASTLowering for ast::Tuple {
+impl ToHIR for ast::Tuple {
     type HIR = hir::Expression;
 
     /// Lower [`ast::Tuple`] to [`hir::Expression`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         if self.expressions.len() == 1 {
-            return self.expressions[0].lower_to_hir_within_context(context);
+            return self.expressions[0].to_hir(context);
         }
         todo!("real tuples")
     }
 }
 
-impl ASTLowering for ast::TypeReference {
+impl ToHIR for ast::TypeReference {
     type HIR = hir::TypeReference;
 
     /// Lower [`ast::TypeReference`] to [`hir::TypeReference`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         let ty = context.find_type(&self.name);
         if ty.is_none() {
             return Err(UnknownType {
@@ -314,7 +291,7 @@ impl ASTLowering for ast::TypeReference {
         let generics: Vec<_> = self
             .generic_parameters
             .iter()
-            .map(|p| p.lower_to_hir_within_context(context))
+            .map(|p| p.to_hir(context))
             .try_collect()?;
 
         let generics_mapping = HashMap::from_iter(
@@ -335,15 +312,12 @@ impl ASTLowering for ast::TypeReference {
     }
 }
 
-impl ASTLowering for ast::MemberReference {
+impl ToHIR for ast::MemberReference {
     type HIR = hir::MemberReference;
 
     /// Lower [`ast::MemberReference`] to [`hir::MemberReference`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
-        let base = self.base.lower_to_hir_within_context(context)?;
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
+        let base = self.base.to_hir(context)?;
         if let Some((index, member)) = base
             .ty()
             .members()
@@ -369,15 +343,12 @@ impl ASTLowering for ast::MemberReference {
     }
 }
 
-impl ASTLowering for ast::Constructor {
+impl ToHIR for ast::Constructor {
     type HIR = hir::Constructor;
 
     /// Lower [`ast::Constructor`] to [`hir::Constructor`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
-        let mut ty = self.ty.lower_to_hir_within_context(context)?;
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
+        let mut ty = self.ty.to_hir(context)?;
         let generic_ty: Arc<hir::TypeDeclaration> =
             ty.referenced_type
                 .clone()
@@ -405,9 +376,7 @@ impl ASTLowering for ast::Constructor {
                 ast::Expression::VariableReference(var) => var.name.clone(),
                 _ => unreachable!(),
             });
-            let value = init
-                .value
-                .lower_to_hir_within_context(&mut constructor_context)?;
+            let value = init.value.to_hir(&mut constructor_context)?;
 
             if let Some((index, member)) = ty
                 .referenced_type
@@ -490,27 +459,21 @@ impl ASTLowering for ast::Constructor {
     }
 }
 
-impl ASTLowering for ast::Expression {
+impl ToHIR for ast::Expression {
     type HIR = hir::Expression;
 
     /// Lower [`ast::Expression`] to [`hir::Expression`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(match self {
-            ast::Expression::Literal(l) => l.lower_to_hir_within_context(context)?.into(),
-            ast::Expression::VariableReference(var) => {
-                var.lower_to_hir_within_context(context)?.into()
+            ast::Expression::Literal(l) => l.to_hir(context)?.into(),
+            ast::Expression::VariableReference(var) => var.to_hir(context)?.into(),
+            ast::Expression::Call(call) => call.to_hir(context)?.into(),
+            ast::Expression::Tuple(t) => t.to_hir(context)?.into(),
+            ast::Expression::TypeReference(t) => {
+                t.to_hir(context)?.replace_with_type_info(context).into()
             }
-            ast::Expression::Call(call) => call.lower_to_hir_within_context(context)?.into(),
-            ast::Expression::Tuple(t) => t.lower_to_hir_within_context(context)?.into(),
-            ast::Expression::TypeReference(t) => t
-                .lower_to_hir_within_context(context)?
-                .replace_with_type_info(context)
-                .into(),
-            ast::Expression::MemberReference(m) => m.lower_to_hir_within_context(context)?.into(),
-            ast::Expression::Constructor(c) => c.lower_to_hir_within_context(context)?.into(),
+            ast::Expression::MemberReference(m) => m.to_hir(context)?.into(),
+            ast::Expression::Constructor(c) => c.to_hir(context)?.into(),
         })
     }
 }
@@ -523,7 +486,7 @@ trait Condition {
 
 impl Condition for ast::Expression {
     fn lower_condition_to_hir(&self, context: &mut impl Context) -> Result<hir::Expression, Error> {
-        let condition = self.lower_to_hir_within_context(context)?;
+        let condition = self.to_hir(context)?;
         if !condition.ty().is_bool() {
             return Err(ConditionTypeMismatch {
                 got: condition.ty(),
@@ -536,48 +499,36 @@ impl Condition for ast::Expression {
     }
 }
 
-impl ASTLowering for ast::Member {
+impl ToHIR for ast::Member {
     type HIR = Arc<hir::Member>;
 
     /// Lower [`ast::Member`] to [`hir::Member`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(Arc::new(hir::Member {
             name: self.name.clone(),
-            ty: self
-                .ty
-                .lower_to_hir_within_context(context)?
-                .referenced_type,
+            ty: self.ty.to_hir(context)?.referenced_type,
         }))
     }
 }
 
-impl ASTLowering for ast::Parameter {
+impl ToHIR for ast::Parameter {
     type HIR = Arc<hir::Parameter>;
 
     /// Lower [`ast::Parameter`] to [`hir::Parameter`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(Arc::new(hir::Parameter {
             name: self.name.clone(),
-            ty: self.ty.lower_to_hir_within_context(context)?,
+            ty: self.ty.to_hir(context)?,
             range: self.less..self.greater + 1,
         }))
     }
 }
 
-impl ASTLowering for ast::Annotation {
+impl ToHIR for ast::Annotation {
     type HIR = hir::Annotation;
 
     /// Lower [`ast::Annotation`] to [`hir::Annotation`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        _context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, _context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         // TODO: define annotations in code
         match self.name.as_str() {
             "mangle_as" => {
@@ -598,15 +549,12 @@ impl ASTLowering for ast::Annotation {
     }
 }
 
-impl ASTLowering for ast::Assignment {
+impl ToHIR for ast::Assignment {
     type HIR = hir::Assignment;
 
     /// Lower [`ast::Assignment`] to [`hir::Assignment`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
-        let target = self.target.lower_to_hir_within_context(context)?;
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
+        let target = self.target.to_hir(context)?;
         if target.is_immutable() {
             return Err(AssignmentToImmutable {
                 at: self.target.range().into(),
@@ -614,7 +562,7 @@ impl ASTLowering for ast::Assignment {
             .into());
         }
 
-        let value = self.value.lower_to_hir_within_context(context)?;
+        let value = self.value.to_hir(context)?;
         let value = value
             .convert_to(target.ty().without_ref().at(target.range()))
             .within(context)?;
@@ -623,18 +571,15 @@ impl ASTLowering for ast::Assignment {
     }
 }
 
-impl ASTLowering for ast::Return {
+impl ToHIR for ast::Return {
     type HIR = hir::Return;
 
     /// Lower [`ast::Return`] to [`hir::Return`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         let value = self
             .value
             .as_ref()
-            .map(|expr| expr.lower_to_hir_within_context(context))
+            .map(|expr| expr.to_hir(context))
             .transpose()?;
 
         if let Some(f) = context.function() {
@@ -667,20 +612,17 @@ impl ASTLowering for ast::Return {
     }
 }
 
-impl ASTLowering for If {
+impl ToHIR for If {
     type HIR = hir::If;
 
     /// Lower [`ast::If`] to [`hir::If`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(hir::If {
             condition: self.condition.lower_condition_to_hir(context)?,
             body: self
                 .body
                 .iter()
-                .map(|stmt| stmt.lower_to_hir_within_context(context))
+                .map(|stmt| stmt.to_hir(context))
                 .try_collect()?,
             else_ifs: self
                 .else_ifs
@@ -691,7 +633,7 @@ impl ASTLowering for If {
                         body: else_if
                             .body
                             .iter()
-                            .map(|stmt| stmt.lower_to_hir_within_context(context))
+                            .map(|stmt| stmt.to_hir(context))
                             .try_collect()?,
                     })
                 })
@@ -699,57 +641,48 @@ impl ASTLowering for If {
             else_block: self
                 .else_block
                 .iter()
-                .map(|stmt| stmt.lower_to_hir_within_context(context))
+                .map(|stmt| stmt.to_hir(context))
                 .try_collect()?,
         })
     }
 }
 
-impl ASTLowering for ast::Loop {
+impl ToHIR for ast::Loop {
     type HIR = hir::Loop;
 
     /// Lower [`ast::Loop`] to [`hir::Loop`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(hir::Loop {
             body: self
                 .body
                 .iter()
-                .map(|stmt| stmt.lower_to_hir_within_context(context))
+                .map(|stmt| stmt.to_hir(context))
                 .try_collect()?,
         })
     }
 }
 
-impl ASTLowering for ast::While {
+impl ToHIR for ast::While {
     type HIR = hir::While;
 
     /// Lower [`ast::While`] to [`hir::While`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(hir::While {
             condition: self.condition.lower_condition_to_hir(context)?,
             body: self
                 .body
                 .iter()
-                .map(|stmt| stmt.lower_to_hir_within_context(context))
+                .map(|stmt| stmt.to_hir(context))
                 .try_collect()?,
         })
     }
 }
 
-impl ASTLowering for ast::Use {
+impl ToHIR for ast::Use {
     type HIR = hir::Use;
 
     /// Lower [`ast::Use`] to [`hir::Use`] within lowering context
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         if self.path.len() != 2 {
             panic!("Currently only module.declaration_name usage is supported");
         }
@@ -785,7 +718,7 @@ impl ASTLowering for ast::Use {
     }
 }
 
-impl ASTLowering for ast::Module {
+impl ToHIR for ast::Module {
     type HIR = hir::Module;
     type Error = ErrVec<Error>;
 
@@ -800,10 +733,7 @@ impl ASTLowering for ast::Module {
     /// 3. Traits
     /// 4. Functions & Global variables (in the order they are declared)
     /// 5. Rest of statements
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         use ast::Declaration as D;
         use ast::Statement as S;
 
@@ -814,7 +744,7 @@ impl ASTLowering for ast::Module {
             .iter()
             .filter(|s| matches!(s, ast::Statement::Use(_)))
             .for_each(|stmt: &S| {
-                let res = stmt.lower_to_hir_within_context(context);
+                let res = stmt.to_hir(context);
                 match res {
                     Ok(stmt) => context.module_mut().statements.push(stmt),
                     Err(err) => errors.push(err),
@@ -835,7 +765,7 @@ impl ASTLowering for ast::Module {
 
         // TODO: find a way to reuse this above
         let mut define = |stmt: &S| {
-            let res = stmt.lower_to_hir_within_context(context);
+            let res = stmt.to_hir(context);
             match res {
                 Ok(stmt) => context.module_mut().statements.push(stmt),
                 Err(err) => errors.push(err),
@@ -936,36 +866,28 @@ impl ReplaceWithTypeInfo for TypeReference {
     }
 }
 
-impl ASTLowering for ast::GenericParameter {
+impl ToHIR for ast::GenericParameter {
     type HIR = Type;
     type Error = Error;
 
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(GenericType {
             name: self.name.clone(),
             constraint: self
                 .constraint
                 .as_ref()
-                .map(|ty| ty.lower_to_hir_within_context(context))
+                .map(|ty| ty.to_hir(context))
                 .transpose()?,
         }
         .into())
     }
 }
 
-impl<T: ASTLowering> ASTLowering for Vec<T> {
+impl<T: ToHIR> ToHIR for Vec<T> {
     type HIR = Vec<T::HIR>;
     type Error = T::Error;
 
-    fn lower_to_hir_within_context(
-        &self,
-        context: &mut impl Context,
-    ) -> Result<Self::HIR, Self::Error> {
-        self.iter()
-            .map(|t| t.lower_to_hir_within_context(context))
-            .try_collect()
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
+        self.iter().map(|t| t.to_hir(context)).try_collect()
     }
 }

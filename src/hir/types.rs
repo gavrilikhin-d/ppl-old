@@ -359,7 +359,7 @@ mod tests {
         ast,
         hir::{GenericType, SpecializeParameters, Type, TypeDeclaration},
         named::Named,
-        semantics::ASTLowering,
+        semantics::ToHIR,
     };
 
     /// Get type declaration from source
@@ -367,7 +367,7 @@ mod tests {
         source
             .parse::<ast::TypeDeclaration>()
             .unwrap()
-            .lower_to_hir()
+            .to_hir_without_context()
             .unwrap()
     }
 

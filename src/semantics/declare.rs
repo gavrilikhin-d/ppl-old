@@ -11,7 +11,7 @@ use crate::{
 
 use super::{
     error::{CantDeduceReturnType, Error, ReturnTypeMismatch},
-    ASTLowering, Context, FunctionContext, GenericContext, TraitContext,
+    Context, FunctionContext, GenericContext, ToHIR, TraitContext,
 };
 
 /// Trait to pre-declare something
@@ -36,9 +36,7 @@ impl Declare for ast::FunctionDeclaration {
 
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
         // TODO: check for collision
-        let generic_parameters: Vec<Type> = self
-            .generic_parameters
-            .lower_to_hir_within_context(context)?;
+        let generic_parameters: Vec<Type> = self.generic_parameters.to_hir(context)?;
 
         let mut generic_context = GenericContext {
             parent: context,
@@ -51,16 +49,13 @@ impl Declare for ast::FunctionDeclaration {
             match part {
                 ast::FunctionNamePart::Text(t) => name_parts.push(t.clone().into()),
                 ast::FunctionNamePart::Parameter(p) => {
-                    name_parts.push(p.lower_to_hir_within_context(&mut generic_context)?.into())
+                    name_parts.push(p.to_hir(&mut generic_context)?.into())
                 }
             }
         }
 
         let return_type = match &self.return_type {
-            Some(ty) => {
-                ty.lower_to_hir_within_context(&mut generic_context)?
-                    .referenced_type
-            }
+            Some(ty) => ty.to_hir(&mut generic_context)?.referenced_type,
             None => generic_context.builtin().types().none(),
         };
 
@@ -70,7 +65,7 @@ impl Declare for ast::FunctionDeclaration {
         let annotations = self
             .annotations
             .iter()
-            .map(|a| a.lower_to_hir_within_context(context))
+            .map(|a| a.to_hir(context))
             .collect::<Result<Vec<_>, _>>()?;
         let mangled_name = annotations.iter().find_map(|a| match a {
             hir::Annotation::MangleAs(name) => Some(name.clone()),
@@ -107,7 +102,7 @@ impl Declare for ast::FunctionDeclaration {
 
         let mut body = Vec::new();
         for stmt in &self.body {
-            body.push(stmt.lower_to_hir_within_context(&mut f_context)?);
+            body.push(stmt.to_hir(&mut f_context)?);
         }
 
         if self.implicit_return {
@@ -200,7 +195,7 @@ impl Declare for ast::TraitDeclaration {
             };
 
             for f in &self.functions {
-                error = f.lower_to_hir_within_context(&mut context).err();
+                error = f.to_hir(&mut context).err();
                 if error.is_some() {
                     break;
                 }
@@ -227,7 +222,7 @@ impl Declare for ast::TypeDeclaration {
         let annotations = self
             .annotations
             .iter()
-            .map(|a| a.lower_to_hir_within_context(context))
+            .map(|a| a.to_hir(context))
             .collect::<Result<Vec<_>, _>>()?;
         let is_builtin = annotations
             .iter()
@@ -240,9 +235,7 @@ impl Declare for ast::TypeDeclaration {
         };
 
         // TODO: check for collisions, etc
-        let generic_parameters: Vec<Type> = self
-            .generic_parameters
-            .lower_to_hir_within_context(context)?;
+        let generic_parameters: Vec<Type> = self.generic_parameters.to_hir(context)?;
 
         // TODO: recursive types
         let ty = Arc::new(hir::TypeDeclaration {
@@ -274,7 +267,7 @@ impl Declare for ast::TypeDeclaration {
             members: self
                 .members
                 .iter()
-                .map(|m| m.lower_to_hir_within_context(&mut generic_context))
+                .map(|m| m.to_hir(&mut generic_context))
                 .try_collect()?,
             ..(*declaration).clone()
         });
@@ -293,7 +286,7 @@ impl Declare for ast::VariableDeclaration {
         // TODO: don't define value right away
         let var = Arc::new(hir::VariableDeclaration {
             name: self.name.clone(),
-            initializer: self.initializer.lower_to_hir_within_context(context)?,
+            initializer: self.initializer.to_hir(context)?,
             mutability: self.mutability.clone(),
         });
 
@@ -309,7 +302,7 @@ impl Declare for ast::VariableDeclaration {
     ) -> Result<Self::Definition, Error> {
         let var = Arc::new(hir::VariableDeclaration {
             name: self.name.clone(),
-            initializer: self.initializer.lower_to_hir_within_context(context)?,
+            initializer: self.initializer.to_hir(context)?,
             mutability: self.mutability.clone(),
         });
 
@@ -362,10 +355,10 @@ impl Declare for ast::Declaration {
     }
 }
 
-impl<D: Declare> ASTLowering for D {
+impl<D: Declare> ToHIR for D {
     type HIR = D::Definition;
 
-    fn lower_to_hir_within_context(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
+    fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Error> {
         self.define(self.declare(context)?, context)
     }
 }
