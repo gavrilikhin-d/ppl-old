@@ -105,7 +105,7 @@ impl Compiler {
             miette::Report::from(e)
                 .with_source_code(miette::NamedSource::new(path.to_string_lossy(), content))
         })?;
-        debug!(target: "hir", "{:#?}", context.module);
+        debug!(target: "hir", "{:#}", context.module);
 
         let module = Arc::new(context.module);
         self.modules.insert(name.to_string(), module.clone());

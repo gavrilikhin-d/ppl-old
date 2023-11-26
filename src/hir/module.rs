@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::collections::BTreeMap;
+use std::fmt::Display;
 
 use derive_more::From;
 use miette::NamedSource;
@@ -58,6 +59,15 @@ pub struct Module {
 
     /// Statements in this module
     pub statements: Vec<Statement>,
+}
+
+impl Display for Module {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for statement in &self.statements {
+            writeln!(f, "{}", statement)?;
+        }
+        Ok(())
+    }
 }
 
 impl Module {

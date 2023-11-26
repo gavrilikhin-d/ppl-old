@@ -3,7 +3,7 @@ use std::fmt::Display;
 use std::ops::Range;
 use std::sync::Arc;
 
-use derive_more::{From, TryInto};
+use derive_more::{Display, From, TryInto};
 
 use crate::hir::{FunctionType, Generic, Statement, Type, TypeReference, Typed};
 use crate::mutability::Mutable;
@@ -294,6 +294,16 @@ pub struct FunctionDefinition {
     pub body: Vec<Statement>,
 }
 
+impl Display for FunctionDefinition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "{}:", self.declaration)?;
+        for statement in &self.body {
+            writeln!(f, "\t{}", statement)?;
+        }
+        Ok(())
+    }
+}
+
 impl FunctionDefinition {
     /// Get name parts of function
     pub fn name_parts(&self) -> &[FunctionNamePart] {
@@ -340,7 +350,7 @@ impl Named for FunctionDefinition {
 }
 
 /// Function definition or declaration
-#[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
+#[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Function {
     Declaration(Arc<FunctionDeclaration>),
     Definition(Arc<FunctionDefinition>),
