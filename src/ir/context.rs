@@ -7,7 +7,7 @@ use crate::{
     named::Named,
 };
 
-use super::{Functions, LocalHIRLowering, Types};
+use super::{Functions, ToIR, Types};
 
 /// Trait for common context methods
 pub trait Context<'llvm> {
@@ -150,7 +150,7 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
         let block = self.llvm().append_basic_block(self.function, name);
         self.builder.position_at_end(block);
         for stmt in statements {
-            stmt.lower_local_to_ir(self);
+            stmt.to_ir(self);
         }
 
         let last_block = self.function.get_last_basic_block().unwrap();

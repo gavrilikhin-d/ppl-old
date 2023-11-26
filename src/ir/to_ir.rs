@@ -22,14 +22,6 @@ pub trait GlobalToIR<'llvm> {
     fn global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR;
 }
 
-/// Trait for lowering HIR for local declarations to IR within function context
-pub trait LocalHIRLowering<'llvm, 'm> {
-    type IR;
-
-    /// Lower HIR for local declaration to IR within function context
-    fn lower_local_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR;
-}
-
 /// Trait for lowering HIR to IR within function context
 pub trait ToIR<'llvm, 'm> {
     type IR;
@@ -85,14 +77,14 @@ impl<'llvm> GlobalToIR<'llvm> for Declaration {
     }
 }
 
-impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Declaration {
+impl<'llvm, 'm> ToIR<'llvm, 'm> for Declaration {
     type IR = ();
 
     /// Lower local [`Declaration`] to LLVM IR
-    fn lower_local_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         match self {
             Declaration::Variable(var) => {
-                var.lower_local_to_ir(context);
+                var.to_ir(context);
             }
             Declaration::Type(ty) => {
                 if !ty.is_generic() {
@@ -101,7 +93,7 @@ impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Declaration {
             }
             Declaration::Function(f) => {
                 if !f.is_generic() {
-                    f.lower_local_to_ir(context);
+                    f.to_ir(context);
                 }
             }
             // Traits have no effect on ir
@@ -179,11 +171,11 @@ impl<'llvm> GlobalToIR<'llvm> for Arc<VariableDeclaration> {
     }
 }
 
-impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Arc<VariableDeclaration> {
+impl<'llvm, 'm> ToIR<'llvm, 'm> for Arc<VariableDeclaration> {
     type IR = inkwell::values::PointerValue<'llvm>;
 
     /// Lower local [`VariableDeclaration`] to LLVM IR
-    fn lower_local_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         let ty = self
             .ty()
             .lower_to_ir(context)
@@ -264,11 +256,11 @@ impl<'llvm> GlobalToIR<'llvm> for FunctionDeclaration {
     }
 }
 
-impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for FunctionDeclaration {
+impl<'llvm, 'm> ToIR<'llvm, 'm> for FunctionDeclaration {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     /// Lower local [`FunctionDeclaration`] to LLVM IR
-    fn lower_local_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         // TODO: limit function visibility, capture variables, etc.
         self.declare_global(context.module_context)
     }
@@ -296,12 +288,12 @@ impl<'llvm> GlobalToIR<'llvm> for FunctionDefinition {
     }
 }
 
-impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for FunctionDefinition {
+impl<'llvm, 'm> ToIR<'llvm, 'm> for FunctionDefinition {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     /// Lower local [`FunctionDefinition`] to LLVM IR
-    fn lower_local_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        let f = self.declaration.lower_local_to_ir(context);
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+        let f = self.declaration.to_ir(context);
 
         self.emit_body(context.module_context);
 
@@ -343,7 +335,7 @@ impl<'llvm> EmitBody<'llvm> for FunctionDefinition {
                     .build_store(alloca, f.get_nth_param(i as u32).unwrap());
             }
             for stmt in &self.body {
-                stmt.lower_local_to_ir(&mut f_context);
+                stmt.to_ir(&mut f_context);
             }
         }
     }
@@ -361,14 +353,14 @@ impl<'llvm> GlobalToIR<'llvm> for Function {
     }
 }
 
-impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Function {
+impl<'llvm, 'm> ToIR<'llvm, 'm> for Function {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     /// Lower local [`Function`] to LLVM IR
-    fn lower_local_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         match self {
-            Function::Declaration(decl) => decl.lower_local_to_ir(context),
-            Function::Definition(def) => def.lower_local_to_ir(context),
+            Function::Declaration(decl) => decl.to_ir(context),
+            Function::Definition(def) => def.to_ir(context),
         }
     }
 }
@@ -493,7 +485,7 @@ impl<'llvm, 'm> ToIR<'llvm, 'm> for Call {
                         .declaration()
                         .declare_global(context.module_context)
                 } else {
-                    self.function.lower_local_to_ir(context)
+                    self.function.to_ir(context)
                 }
             });
 
@@ -709,7 +701,7 @@ impl<'llvm> GlobalToIR<'llvm> for Statement {
                 );
 
                 let mut context = FunctionContext::new(context, function);
-                self.lower_local_to_ir(&mut context);
+                self.to_ir(&mut context);
             }
 
             Statement::Expression(expr) => {
@@ -734,13 +726,13 @@ impl<'llvm> GlobalToIR<'llvm> for Statement {
     }
 }
 
-impl<'llvm, 'm> LocalHIRLowering<'llvm, 'm> for Statement {
+impl<'llvm, 'm> ToIR<'llvm, 'm> for Statement {
     type IR = ();
 
     /// Lower local [`Statement`] to LLVM IR
-    fn lower_local_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         match self {
-            Statement::Declaration(d) => d.lower_local_to_ir(context),
+            Statement::Declaration(d) => d.to_ir(context),
             Statement::Assignment(a) => {
                 a.to_ir(context);
             }
@@ -928,7 +920,7 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
             .iter()
             .filter(|s| !matches!(s, Statement::Declaration(_)))
         {
-            statement.lower_local_to_ir(&mut fn_context);
+            statement.to_ir(&mut fn_context);
         }
 
         let blocks = main.get_basic_blocks();
