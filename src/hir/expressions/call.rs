@@ -1,6 +1,7 @@
 use crate::hir::{Expression, Function, Generic, Type, Typed};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
+use std::fmt::Display;
 use std::ops::Range;
 
 /// AST for function call
@@ -16,6 +17,21 @@ pub struct Call {
 
     /// Arguments to the function call
     pub args: Vec<Expression>,
+}
+
+impl Display for Call {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}({})",
+            self.function.mangled_name(),
+            self.args
+                .iter()
+                .map(|a| a.to_string())
+                .collect::<Vec<_>>()
+                .join(", ")
+        )
+    }
 }
 
 impl Ranged for Call {

@@ -22,11 +22,13 @@ pub use implicit_conversion::*;
 
 use crate::{mutability::Mutable, syntax::Ranged};
 
+use derive_more::Display;
+
 use super::Generic;
 
 /// Any PPL expression
 #[enum_dispatch(Ranged, Mutable, Typed)]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, Display, PartialEq, Eq, Clone)]
 pub enum Expression {
     Literal(Literal),
     VariableReference(VariableReference),
