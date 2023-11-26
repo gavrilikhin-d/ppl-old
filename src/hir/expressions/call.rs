@@ -1,5 +1,6 @@
 use crate::hir::{Expression, Function, Generic, Type, Typed};
 use crate::mutability::Mutable;
+use crate::named::Named;
 use crate::syntax::Ranged;
 use std::fmt::Display;
 use std::ops::Range;
@@ -24,7 +25,7 @@ impl Display for Call {
         write!(
             f,
             "`{}`({})",
-            self.function.mangled_name(),
+            self.function.name(),
             self.args
                 .iter()
                 .map(|a| a.to_string())
