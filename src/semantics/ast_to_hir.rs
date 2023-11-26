@@ -191,19 +191,7 @@ impl ASTLowering for ast::Call {
                 .map(|m| m.source_file())
                 .cloned();
 
-            let mut candidate_context = GenericContext {
-                generic_parameters: f.declaration().generic_types.clone(),
-                generics_mapping: HashMap::new(),
-                parent: context,
-            };
-
-            if let Some(ty) = f
-                .parameters()
-                .map(|p| p.ty())
-                .find(|ty| matches!(ty, Type::SelfType(_)))
-            {
-                candidate_context.generic_parameters.push(ty);
-            }
+            let mut candidate_context = GenericContext::for_fn(&f.declaration(), context);
 
             let mut args = Vec::new();
             let mut failed = false;
