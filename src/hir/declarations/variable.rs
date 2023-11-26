@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::fmt::Display;
 
 use crate::hir::{Expression, Generic, Type, Typed};
 use crate::mutability::{Mutability, Mutable};
@@ -15,6 +16,24 @@ pub struct VariableDeclaration {
 
     /// Mutability of variable
     pub mutability: Mutability,
+}
+
+impl Display for VariableDeclaration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let indent = "\t".repeat(f.width().unwrap_or(0));
+        write!(f, "{indent}")?;
+        write!(
+            f,
+            "let {}{} = {}",
+            if self.mutability == Mutability::Mutable {
+                "mut "
+            } else {
+                ""
+            },
+            self.name,
+            self.initializer
+        )
+    }
 }
 
 impl Named for VariableDeclaration {

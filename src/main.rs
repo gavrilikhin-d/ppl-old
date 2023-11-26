@@ -81,7 +81,7 @@ fn process_single_statement<'llvm>(
     debug!(target: "ast", "{:#?}", ast);
 
     let hir = ast.to_hir(ast_lowering_context)?;
-    debug!(target: "hir", "{:#?}", hir);
+    debug!(target: "hir", "{:#}", hir);
 
     let module = llvm.create_module("main");
     let mut context = ir::ModuleContext::new(module);

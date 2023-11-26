@@ -185,7 +185,24 @@ impl Basename for TypeDeclaration {
 
 impl Display for TypeDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.name())
+        if f.alternate() {
+            let indent = f.width().unwrap_or(0);
+            write!(f, "{}", "\t".repeat(indent))?;
+
+            write!(f, "type {}", self.name())?;
+            if self.members.is_empty() {
+                return Ok(());
+            }
+
+            writeln!(f, ":")?;
+            for member in &self.members {
+                write!(f, "{}", "\t".repeat(indent + 1))?;
+                writeln!(f, "{}: {}", member.name, member.ty)?;
+            }
+        } else {
+            write!(f, "{}", self.name())?;
+        }
+        Ok(())
     }
 }
 

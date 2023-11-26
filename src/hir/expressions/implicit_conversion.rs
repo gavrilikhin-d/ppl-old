@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::hir::{Generic, Type, Typed};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
@@ -21,6 +23,15 @@ pub struct ImplicitConversion {
     pub ty: Type,
     /// Expression to convert
     pub expression: Box<Expression>,
+}
+
+impl Display for ImplicitConversion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.kind {
+            ImplicitConversionKind::Reference => write!(f, "&({})", self.expression),
+            ImplicitConversionKind::Dereference => write!(f, "*({})", self.expression),
+        }
+    }
 }
 
 impl Ranged for ImplicitConversion {

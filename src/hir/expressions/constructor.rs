@@ -1,6 +1,8 @@
 use crate::hir::{Generic, Member, Type, Typed};
 use crate::mutability::Mutable;
+use crate::named::Named;
 use crate::syntax::Ranged;
+use std::fmt::Display;
 use std::ops::Range;
 use std::sync::Arc;
 
@@ -16,6 +18,18 @@ pub struct Initializer {
     pub member: Arc<Member>,
     /// Value to initialize with
     pub value: Expression,
+}
+
+impl Display for Initializer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let member = self.member.name();
+        let value = self.value.to_string();
+        if member != value {
+            write!(f, "{}: {}", member, value)
+        } else {
+            write!(f, "{}", member)
+        }
+    }
 }
 
 impl Ranged for Initializer {
@@ -42,6 +56,25 @@ pub struct Constructor {
     pub initializers: Vec<Initializer>,
     /// Location of rbrace
     pub rbrace: usize,
+}
+
+impl Display for Constructor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let indent = "\t".repeat(f.width().unwrap_or(0));
+        write!(f, "{indent}")?;
+
+        write!(f, "{} {{ ", self.ty().name())?;
+        write!(
+            f,
+            "{}",
+            self.initializers
+                .iter()
+                .map(|initializer| initializer.to_string())
+                .collect::<Vec<_>>()
+                .join(", ")
+        )?;
+        write!(f, " }}")
+    }
 }
 
 impl Mutable for Constructor {

@@ -14,10 +14,12 @@ use derive_more::{From, TryInto};
 
 use std::{borrow::Cow, sync::Arc};
 
+use derive_more::Display;
+
 use crate::named::Named;
 
 /// Any PPL declaration
-#[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
+#[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Declaration {
     Variable(Arc<VariableDeclaration>),
     Type(Arc<TypeDeclaration>),

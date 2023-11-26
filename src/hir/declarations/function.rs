@@ -3,7 +3,7 @@ use std::fmt::Display;
 use std::ops::Range;
 use std::sync::Arc;
 
-use derive_more::{From, TryInto};
+use derive_more::{Display, From, TryInto};
 
 use crate::hir::{FunctionType, Generic, Statement, Type, TypeReference, Typed};
 use crate::mutability::Mutable;
@@ -189,6 +189,9 @@ impl Typed for FunctionDeclaration {
 
 impl Display for FunctionDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let indent = "\t".repeat(f.width().unwrap_or(0));
+        write!(f, "{indent}")?;
+
         let generics = if self.generic_types.is_empty() {
             String::new()
         } else {
@@ -294,6 +297,22 @@ pub struct FunctionDefinition {
     pub body: Vec<Statement>,
 }
 
+impl Display for FunctionDefinition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let indent = f.width().unwrap_or(0);
+        let new_indent = indent + 1;
+
+        let indent = "\t".repeat(indent);
+        write!(f, "{indent}")?;
+
+        writeln!(f, "{}:", self.declaration)?;
+        for statement in &self.body {
+            writeln!(f, "{statement:#new_indent$}")?;
+        }
+        Ok(())
+    }
+}
+
 impl FunctionDefinition {
     /// Get name parts of function
     pub fn name_parts(&self) -> &[FunctionNamePart] {
@@ -340,7 +359,7 @@ impl Named for FunctionDefinition {
 }
 
 /// Function definition or declaration
-#[derive(Debug, PartialEq, Eq, Clone, From, TryInto)]
+#[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Function {
     Declaration(Arc<FunctionDeclaration>),
     Definition(Arc<FunctionDefinition>),

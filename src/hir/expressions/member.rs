@@ -1,6 +1,8 @@
 use crate::hir::{Generic, Member, Type, Typed};
 use crate::mutability::Mutable;
+use crate::named::Named;
 use crate::syntax::Ranged;
+use std::fmt::Display;
 use std::sync::Arc;
 
 use super::Expression;
@@ -16,6 +18,12 @@ pub struct MemberReference {
     pub member: Arc<Member>,
     /// Index of referenced member
     pub index: usize,
+}
+
+impl Display for MemberReference {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}.{}", self.base, self.member.name())
+    }
 }
 
 impl Mutable for MemberReference {

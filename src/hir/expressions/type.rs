@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::hir::{Generic, Type, Typed};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
@@ -11,6 +13,13 @@ pub struct TypeReference {
     pub referenced_type: Type,
     /// Type of the reference itself
     pub type_for_type: Type,
+}
+
+impl Display for TypeReference {
+    /// Display type reference
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.referenced_type)
+    }
 }
 
 impl Generic for TypeReference {

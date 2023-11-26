@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{fmt::Display, sync::Arc};
 
 use derive_more::From;
 
@@ -22,4 +22,21 @@ pub struct Use {
     pub path: Vec<StringWithOffset>,
     /// Item, imported by use statement
     pub imported_item: ImportedItem,
+}
+
+impl Display for Use {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let indent = "\t".repeat(f.width().unwrap_or(0));
+        write!(f, "{indent}")?;
+
+        write!(
+            f,
+            "use {}",
+            self.path
+                .iter()
+                .map(|p| p.as_str())
+                .collect::<Vec<_>>()
+                .join(".")
+        )
+    }
 }

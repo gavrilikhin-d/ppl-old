@@ -5,6 +5,7 @@ use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
 use std::borrow::Cow;
+use std::fmt::Display;
 use std::sync::Arc;
 
 /// Parameter or variable declaration
@@ -69,6 +70,13 @@ pub struct VariableReference {
     pub span: std::ops::Range<usize>,
     /// Referenced variable name
     pub variable: ParameterOrVariable,
+}
+
+impl Display for VariableReference {
+    /// Display variable reference
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.variable.name())
+    }
 }
 
 impl Mutable for VariableReference {
