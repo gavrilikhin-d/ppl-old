@@ -28,6 +28,8 @@
 ### Current task
 * [ ] Fix `type of <:T>`
 ---
+* [ ] Replace calls to trait functions with calls to specialized functions
+* [ ] Run monomorphization from the top of the module
 * [ ] Make `monomorphized` to take `Self`
 * [ ] Replace type references with constructors only after monomorphization
 * [ ] Reject lowercase names for types
