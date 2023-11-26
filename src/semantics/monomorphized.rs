@@ -6,8 +6,8 @@ use crate::{
     hir::{
         Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
         FunctionDefinition, FunctionNamePart, Generic, If, ImplicitConversion, Initializer, Loop,
-        Member, MemberReference, Parameter, Return, Specialize, Statement, Type, TypeDeclaration,
-        TypeReference, Typed, VariableReference, While,
+        Member, MemberReference, Module, Parameter, Return, Specialize, Statement, Type,
+        TypeDeclaration, TypeReference, Typed, VariableReference, While,
     },
     named::Named,
     semantics::FunctionContext,
@@ -364,6 +364,15 @@ impl Monomorphized for MemberReference {
         MemberReference {
             base,
             member,
+            ..self
+        }
+    }
+}
+
+impl Monomorphized for Module {
+    fn monomorphized(self, context: &mut impl Context) -> Self {
+        Module {
+            statements: self.statements.monomorphized(context),
             ..self
         }
     }

@@ -12,7 +12,7 @@ use crate::named::Named;
 use crate::syntax::Ranged;
 use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
-use super::{error::*, Context, Convert, Declare, GenericContext, ModuleContext, Monomorphized};
+use super::{error::*, Context, Convert, Declare, GenericContext, ModuleContext};
 use crate::ast::{self, CallNamePart, FnKind, If};
 
 /// Lower to HIR inside some context
