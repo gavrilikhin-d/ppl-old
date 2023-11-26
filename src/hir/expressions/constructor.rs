@@ -1,6 +1,8 @@
 use crate::hir::{Generic, Member, Type, Typed};
 use crate::mutability::Mutable;
+use crate::named::Named;
 use crate::syntax::Ranged;
+use std::fmt::Display;
 use std::ops::Range;
 use std::sync::Arc;
 
@@ -42,6 +44,16 @@ pub struct Constructor {
     pub initializers: Vec<Initializer>,
     /// Location of rbrace
     pub rbrace: usize,
+}
+
+impl Display for Constructor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut builder = f.debug_struct(&self.ty().name());
+        for initializer in &self.initializers {
+            builder.field(&initializer.member.name(), &initializer.value);
+        }
+        builder.finish()
+    }
 }
 
 impl Mutable for Constructor {
