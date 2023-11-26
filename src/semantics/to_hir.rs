@@ -219,21 +219,19 @@ impl ToHIR for ast::Call {
                 } else {
                     None
                 };
-                let function = if f.is_generic() {
-                    let f =
-                        f.monomorphized(&mut candidate_context, args.iter().map(|arg| arg.ty()));
-                    debug!(target: "monomorphized", "\n{:#}", f);
-                    f
-                } else {
-                    f
-                };
+                let function =
+                    f.monomorphized(&mut candidate_context, args.iter().map(|arg| arg.ty()));
 
-                return Ok(hir::Call {
+                let call = hir::Call {
                     range: self.range(),
                     function,
                     generic,
                     args,
-                });
+                };
+                if call.generic.is_some() {
+                    debug!(target: "monomorphized", "{call}\n{function:#}", function = call.function);
+                }
+                return Ok(call);
             }
         }
 
