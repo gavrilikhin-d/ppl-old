@@ -59,6 +59,9 @@ impl Declare for ast::FunctionDeclaration {
             None => generic_context.builtin().types().none(),
         };
 
+        // Copy generic parameters from generic context, as we may have added new parameters
+        let generic_parameters = generic_context.generic_parameters.clone();
+
         drop(generic_context);
 
         // TODO: error if invalid annotation
@@ -79,6 +82,8 @@ impl Declare for ast::FunctionDeclaration {
                 .with_mangled_name(mangled_name)
                 .with_return_type(return_type),
         );
+
+        println!("{f}");
 
         context.add_function(f.clone().into());
 

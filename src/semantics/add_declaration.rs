@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use crate::hir::{Function, TraitDeclaration, Type, TypeDeclaration, VariableDeclaration};
+use crate::hir::{
+    Function, GenericType, TraitDeclaration, Type, TypeDeclaration, TypeReference,
+    VariableDeclaration,
+};
 
 pub trait AddDeclaration {
     /// Get parent context
@@ -34,5 +37,12 @@ pub trait AddDeclaration {
         self.parent_mut()
             .map(|p| p.map_generic(generic, concrete))
             .flatten()
+    }
+
+    /// Generate a new unique generic type for trait
+    fn new_generic_for_trait(&mut self, ty: TypeReference) -> GenericType {
+        self.parent_mut()
+            .map(|p| p.new_generic_for_trait(ty))
+            .unwrap()
     }
 }

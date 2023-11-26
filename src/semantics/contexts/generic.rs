@@ -53,17 +53,6 @@ impl<'p> GenericContext<'p> {
         }
         name.to_string()
     }
-
-    /// Create a new generic for a trait
-    pub fn new_generic_for_trait(&mut self, ty: TypeReference) -> GenericType {
-        let generic = GenericType {
-            name: self.new_unique_name().into(),
-            generated: true,
-            constraint: Some(ty),
-        };
-        self.generic_parameters.push(generic.clone().into());
-        generic
-    }
 }
 
 impl FindDeclarationHere for GenericContext<'_> {
@@ -105,6 +94,16 @@ impl AddDeclaration for GenericContext<'_> {
         }
 
         self.generics_mapping.insert(generic, concrete)
+    }
+
+    fn new_generic_for_trait(&mut self, ty: TypeReference) -> GenericType {
+        let generic = GenericType {
+            name: self.new_unique_name().into(),
+            generated: true,
+            constraint: Some(ty),
+        };
+        self.generic_parameters.push(generic.clone().into());
+        generic
     }
 }
 
