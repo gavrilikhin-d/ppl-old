@@ -147,7 +147,19 @@ impl Named for GenericType {
 
 impl Display for GenericType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.name())
+        write!(
+            f,
+            "{}{}",
+            self.name(),
+            self.constraint
+                .as_ref()
+                .map(|c| if f.sign_plus() {
+                    format!(": {}", c.referenced_type)
+                } else {
+                    "".to_string()
+                })
+                .unwrap_or_default()
+        )
     }
 }
 
