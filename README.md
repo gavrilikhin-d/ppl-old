@@ -31,6 +31,7 @@
 ### Current task
 * [ ] Fix `type of <:T>`
 ---
+* [ ] Don't define variables right away, when declaring them
 * [ ] Still return declarations even if they have errors, so there is no `undefined_*` errors later
 * [ ] Generic types shouldn't be replaced, but rather constrained (e.g `T: Integer`)
 * [ ] Replace calls to trait functions with calls to specialized functions
