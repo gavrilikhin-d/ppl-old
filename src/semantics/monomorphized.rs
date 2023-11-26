@@ -1,5 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
+use log::debug;
+
 use crate::{
     hir::{
         Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
@@ -199,14 +201,20 @@ impl Monomorphized for Arc<Member> {
 
 impl Monomorphized for Call {
     fn monomorphized(self, context: &mut impl Context) -> Self {
+        if !self.is_generic() {
+            return self;
+        }
+
         let args = self.args.monomorphized(context);
-        Call {
+        let call = Call {
             function: self
                 .function
                 .monomorphized(context, args.iter().map(|arg| arg.ty())),
             args,
             ..self
-        }
+        };
+        debug!(target: "monomorphized", "{call}\n{function:#}", function = call.function);
+        call
     }
 }
 
