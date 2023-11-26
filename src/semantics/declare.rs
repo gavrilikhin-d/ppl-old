@@ -83,8 +83,6 @@ impl Declare for ast::FunctionDeclaration {
                 .with_return_type(return_type),
         );
 
-        println!("{f}");
-
         context.add_function(f.clone().into());
 
         Ok(f)
