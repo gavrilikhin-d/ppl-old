@@ -24,13 +24,14 @@ impl Display for VariableDeclaration {
         write!(f, "{indent}")?;
         write!(
             f,
-            "let {}{} = {}",
+            "let {}{}: {} = {}",
             if self.mutability == Mutability::Mutable {
                 "mut "
             } else {
                 ""
             },
             self.name,
+            self.ty(),
             self.initializer
         )
     }
