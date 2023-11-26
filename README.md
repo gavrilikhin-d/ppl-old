@@ -31,6 +31,7 @@
 ### Current task
 * [ ] Fix `type of <:T>`
 ---
+* [ ] Generic types shouldn't be replaced, but rather constrained (e.g `T: Integer`)
 * [ ] Replace calls to trait functions with calls to specialized functions
 * [ ] Run monomorphization from the top of the module
 * [ ] Replace type references with constructors only after monomorphization
