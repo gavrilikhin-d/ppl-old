@@ -212,9 +212,13 @@ impl ToHIR for ast::Call {
             }
 
             if !failed {
+                let generic = if f.is_generic() {
+                    Some(f.clone())
+                } else {
+                    None
+                };
                 let function =
                     f.monomorphized(&mut candidate_context, args.iter().map(|arg| arg.ty()));
-                let generic = if f.is_generic() { Some(f) } else { None };
                 return Ok(hir::Call {
                     range: self.range(),
                     function,

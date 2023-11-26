@@ -26,13 +26,13 @@
 * [x] Fix non-instantiated generic functions (`fn<T> foo <:T> => 1` & `let n = foo 1`; `& <:Reference<Bool>>`)
 * [x] Rework specialized system and type conversions checks. Add reason, why conversion fails
 * [x] Unify `TraitType` in type checking with constraint generic type with random name
+* [x] Make `monomorphized` to take `Self`
 ---
 ### Current task
 * [ ] Fix `type of <:T>`
 ---
 * [ ] Replace calls to trait functions with calls to specialized functions
 * [ ] Run monomorphization from the top of the module
-* [ ] Make `monomorphized` to take `Self`
 * [ ] Replace type references with constructors only after monomorphization
 * [ ] Reject lowercase names for types
 * [ ] Rebinding references
