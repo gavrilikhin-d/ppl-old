@@ -26,6 +26,9 @@ pub struct Use {
 
 impl Display for Use {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let indent = "\t".repeat(f.width().unwrap_or(0));
+        write!(f, "{indent}")?;
+
         write!(
             f,
             "use {}",
