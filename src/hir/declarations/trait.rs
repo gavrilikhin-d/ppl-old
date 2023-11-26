@@ -36,7 +36,15 @@ impl Named for TraitDeclaration {
 
 impl Display for TraitDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.name())
+        if f.alternate() {
+            writeln!(f, "trait {}:", self.name())?;
+            for function in self.functions.values() {
+                writeln!(f, "\t{:#}", function)?;
+            }
+        } else {
+            write!(f, "{}", self.name())?;
+        }
+        Ok(())
     }
 }
 
