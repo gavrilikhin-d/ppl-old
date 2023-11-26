@@ -2,6 +2,8 @@ use core::panic;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use log::debug;
+
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
@@ -217,8 +219,15 @@ impl ToHIR for ast::Call {
                 } else {
                     None
                 };
-                let function =
-                    f.monomorphized(&mut candidate_context, args.iter().map(|arg| arg.ty()));
+                let function = if f.is_generic() {
+                    let f =
+                        f.monomorphized(&mut candidate_context, args.iter().map(|arg| arg.ty()));
+                    debug!(target: "monomorphized", "\n{:#}", f);
+                    f
+                } else {
+                    f
+                };
+
                 return Ok(hir::Call {
                     range: self.range(),
                     function,
