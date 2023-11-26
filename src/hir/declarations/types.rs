@@ -226,7 +226,7 @@ mod tests {
     use crate::ast;
     use crate::compilation::Compiler;
     use crate::hir::{GenericType, Member, Type};
-    use crate::semantics::{ASTLowering, ModuleContext};
+    use crate::semantics::{ModuleContext, ToHIR};
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -234,7 +234,7 @@ mod tests {
         let type_decl = "type x"
             .parse::<ast::TypeDeclaration>()
             .unwrap()
-            .lower_to_hir()
+            .to_hir_without_context()
             .unwrap();
 
         assert_eq!(
@@ -254,7 +254,7 @@ mod tests {
         let type_decl = "type Point<U>:\n\tx: U"
             .parse::<ast::TypeDeclaration>()
             .unwrap()
-            .lower_to_hir()
+            .to_hir_without_context()
             .unwrap();
 
         assert_eq!(
@@ -287,7 +287,7 @@ mod tests {
         let type_decl = include_str!("../../../examples/point.ppl")
             .parse::<ast::TypeDeclaration>()
             .unwrap()
-            .lower_to_hir_within_context(&mut context)
+            .to_hir(&mut context)
             .unwrap();
 
         let integer: Type = compiler

@@ -445,7 +445,7 @@ mod tests {
             Function, FunctionDeclaration, FunctionDefinition, GenericType, Parameter, Return,
             Statement, TypeReference, VariableReference,
         },
-        semantics::ASTLowering,
+        semantics::ToHIR,
         syntax::StringWithOffset,
     };
 
@@ -456,7 +456,7 @@ mod tests {
         let ast = "fn<T> <x: T> -> T => x"
             .parse::<ast::FunctionDeclaration>()
             .unwrap();
-        let hir = ast.lower_to_hir().unwrap();
+        let hir = ast.to_hir_without_context().unwrap();
         assert_matches!(hir, Function::Definition(_));
 
         let hir: Arc<FunctionDefinition> = hir.try_into().unwrap();

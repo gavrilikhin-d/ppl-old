@@ -8,7 +8,7 @@ use std::{
 use crate::{
     ast,
     hir::Module,
-    semantics::{ASTLowering, ModuleContext},
+    semantics::{ModuleContext, ToHIR},
     SourceFile,
 };
 use log::debug;
@@ -101,7 +101,7 @@ impl Compiler {
             module,
             compiler: self,
         };
-        ast.lower_to_hir_within_context(&mut context).map_err(|e| {
+        ast.to_hir(&mut context).map_err(|e| {
             miette::Report::from(e)
                 .with_source_code(miette::NamedSource::new(path.to_string_lossy(), content))
         })?;

@@ -1,5 +1,5 @@
-mod ast_to_hir;
-pub use ast_to_hir::*;
+mod to_hir;
+pub use to_hir::*;
 
 mod contexts;
 pub use contexts::*;

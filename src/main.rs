@@ -13,8 +13,8 @@ use ppl::compilation::Compiler;
 use ppl::driver::commands::compile::OutputType;
 use ppl::driver::{self, Execute};
 use ppl::hir::{self, Type, Typed};
-use ppl::ir::GlobalHIRLowering;
-use ppl::semantics::{ASTLowering, ModuleContext};
+use ppl::ir::ToIR;
+use ppl::semantics::{ModuleContext, ToHIR};
 use ppl::syntax::{InteractiveLexer, Lexer, Parse};
 use ppl::{ast::*, SourceFile};
 use ppl::{ir, Reporter};
@@ -80,12 +80,12 @@ fn process_single_statement<'llvm>(
     let ast = Statement::parse(parse_context)?;
     debug!(target: "ast", "{:#?}", ast);
 
-    let hir = ast.lower_to_hir_within_context(ast_lowering_context)?;
+    let hir = ast.to_hir(ast_lowering_context)?;
     debug!(target: "hir", "{:#?}", hir);
 
     let module = llvm.create_module("main");
     let mut context = ir::ModuleContext::new(module);
-    hir.lower_global_to_ir(&mut context);
+    hir.to_ir(&mut context);
 
     let module = &context.module;
 

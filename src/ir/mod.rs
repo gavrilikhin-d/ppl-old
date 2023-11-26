@@ -1,5 +1,5 @@
-mod hir_to_ir;
-pub use hir_to_ir::*;
+mod to_ir;
+pub use to_ir::*;
 
 mod types;
 pub use types::*;
