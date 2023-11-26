@@ -6,6 +6,7 @@ test_compilation_result!(constraints_in_constructor);
 test_compilation_result!(generics);
 test_compilation_result!(integer_not_eq_rational);
 test_compilation_result!(missing_fields);
+test_compilation_result!(monomorphize);
 test_compilation_result!(multiple_errors);
 test_compilation_result!(multiple_initialization);
 test_compilation_result!(non_class_constructor);
