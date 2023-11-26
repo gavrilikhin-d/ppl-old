@@ -24,6 +24,8 @@
 
 * [x] Implicit conversions from one type to another (dereference and etc)
 * [x] Fix non-instantiated generic functions (`fn<T> foo <:T> => 1` & `let n = foo 1`; `& <:Reference<Bool>>`)
+* [x] Rework specialized system and type conversions checks. Add reason, why conversion fails
+* [x] Unify `TraitType` in type checking with constraint generic type with random name
 ---
 ### Current task
 * [ ] Fix `type of <:T>`
@@ -40,7 +42,6 @@
 * [ ] Fix crash in diagnostics due-to wrong source file
 * [ ] Add better errors for inferred generics
 * [ ] Unify `Self` and `GenericType`
-* [ ] Unify `TraitType` in type checking with constraint generic type with random name
 * [ ] `Any` trait
 * [ ] Logic for printing decimals inside ppl
 * [ ] Unsafe code marker
@@ -51,13 +52,11 @@
 * [ ] Allow newlines inside parentheses
 * [ ] Allow tabs before comments for members
 * [ ] Add `assert` and `panic`
-* [ ] Rework specialized system and type conversions checks. Add reason, why conversion fails
 * [ ] Fix bus error (caused by llvm 16 [issue](https://github.com/llvm/llvm-project/issues/60432))
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors (like `Error: <Type>`)
 * [ ] More functions to stdlib
 * [ ] Check compiler errors in repl too
-* [ ] Add more checks for compiler
 * [ ] Make statements to return `None` type for convenience
 * [ ] Make `if` to be an expression?
 * [ ] Add `HashMap` type
