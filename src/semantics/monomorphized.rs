@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use log::debug;
 
@@ -150,9 +150,25 @@ impl Monomorphized for Expression {
 
 impl Monomorphized for Constructor {
     fn monomorphized(self, context: &mut impl Context) -> Self {
+        if !self.is_generic() {
+            return self;
+        }
+
+        let mut context = GenericContext {
+            generic_parameters: self
+                .ty
+                .referenced_type
+                .generics()
+                .into_iter()
+                .cloned()
+                .collect(),
+            generics_mapping: HashMap::new(),
+            parent: context,
+        };
+        let initializers = self.initializers.monomorphized(&mut context);
         Constructor {
-            ty: self.ty.monomorphized(context),
-            initializers: self.initializers.monomorphized(context),
+            ty: self.ty.monomorphized(&mut context),
+            initializers,
             rbrace: self.rbrace,
         }
     }
