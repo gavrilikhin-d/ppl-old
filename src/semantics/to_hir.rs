@@ -2,8 +2,6 @@ use core::panic;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use log::debug;
-
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
@@ -14,9 +12,7 @@ use crate::named::Named;
 use crate::syntax::Ranged;
 use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
-use super::{
-    error::*, Context, Convert, Declare, GenericContext, ModuleContext, MonomorphizedWithArgs,
-};
+use super::{error::*, Context, Convert, Declare, GenericContext, ModuleContext, Monomorphized};
 use crate::ast::{self, CallNamePart, FnKind, If};
 
 /// Lower to HIR inside some context
@@ -219,19 +215,13 @@ impl ToHIR for ast::Call {
                 } else {
                     None
                 };
-                let function =
-                    f.monomorphized(&mut candidate_context, args.iter().map(|arg| arg.ty()));
 
-                let call = hir::Call {
+                return Ok(hir::Call {
                     range: self.range(),
-                    function,
+                    function: f,
                     generic,
                     args,
-                };
-                if call.generic.is_some() {
-                    debug!(target: "monomorphized", "{call}\n{function:#}", function = call.function);
-                }
-                return Ok(call);
+                });
             }
         }
 
