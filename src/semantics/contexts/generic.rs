@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    hir::{FunctionDeclaration, Type, Typed},
+    hir::{FunctionDeclaration, GenericType, Type, TypeReference, Typed},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
 };
@@ -38,6 +38,20 @@ impl<'p> GenericContext<'p> {
         }
 
         return candidate_context;
+    }
+
+    /// Generate a new unique name for generic parameter
+    pub fn new_unique_name(&mut self) -> String {
+        const ALPHABET: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        assert!(self.generic_parameters.len() < ALPHABET.len());
+
+        let mut i = ALPHABET.find('T').unwrap();
+        let mut name = &ALPHABET[i..i + 1];
+        while self.generic_parameters.iter().any(|p| p.name() == name) {
+            i = (i + 1) % ALPHABET.len();
+            name = &ALPHABET[i..i + 1];
+        }
+        name.to_string()
     }
 }
 
@@ -80,6 +94,16 @@ impl AddDeclaration for GenericContext<'_> {
         }
 
         self.generics_mapping.insert(generic, concrete)
+    }
+
+    fn new_generic_for_trait(&mut self, ty: TypeReference) -> GenericType {
+        let generic = GenericType {
+            name: self.new_unique_name().into(),
+            generated: true,
+            constraint: Some(ty),
+        };
+        self.generic_parameters.push(generic.clone().into());
+        generic
     }
 }
 

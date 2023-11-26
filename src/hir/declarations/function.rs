@@ -196,7 +196,7 @@ impl Display for FunctionDeclaration {
                 "<{}>",
                 self.generic_types
                     .iter()
-                    .map(|g| g.name())
+                    .map(|ty| format!("{ty:+}"))
                     .collect::<Vec<_>>()
                     .join(", ")
             )
@@ -463,6 +463,7 @@ mod tests {
 
         let ty = GenericType {
             name: StringWithOffset::from("T").at(3),
+            generated: false,
             constraint: None,
         };
         let param = Parameter {

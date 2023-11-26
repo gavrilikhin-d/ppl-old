@@ -516,9 +516,21 @@ impl ToHIR for ast::Parameter {
 
     /// Lower [`ast::Parameter`] to [`hir::Parameter`] within lowering context
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
+        let ty = self.ty.to_hir(context)?;
+        let ty = if matches!(ty.referenced_type, Type::Trait(_)) {
+            let span = ty.span.clone();
+            let referenced_type: Type = context.new_generic_for_trait(ty).into();
+            TypeReference {
+                span,
+                referenced_type: referenced_type.clone(),
+                type_for_type: context.builtin().types().type_of(referenced_type),
+            }
+        } else {
+            ty
+        };
         Ok(Arc::new(hir::Parameter {
             name: self.name.clone(),
-            ty: self.ty.to_hir(context)?,
+            ty,
             range: self.less..self.greater + 1,
         }))
     }
@@ -873,6 +885,7 @@ impl ToHIR for ast::GenericParameter {
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(GenericType {
             name: self.name.clone(),
+            generated: false,
             constraint: self
                 .constraint
                 .as_ref()
