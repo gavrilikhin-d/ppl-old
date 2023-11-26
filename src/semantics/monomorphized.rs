@@ -4,10 +4,11 @@ use log::debug;
 
 use crate::{
     hir::{
-        Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
-        FunctionDefinition, FunctionNamePart, Generic, If, ImplicitConversion, Initializer, Loop,
-        Member, MemberReference, Module, Parameter, Return, Specialize, Statement, Type,
-        TypeDeclaration, TypeReference, Typed, VariableReference, While,
+        Assignment, Call, Constructor, Declaration, ElseIf, Expression, Function,
+        FunctionDeclaration, FunctionDefinition, FunctionNamePart, Generic, If, ImplicitConversion,
+        Initializer, Loop, Member, MemberReference, Module, Parameter, Return, Specialize,
+        Statement, Type, TypeDeclaration, TypeReference, Typed, VariableDeclaration,
+        VariableReference, While,
     },
     named::Named,
     semantics::FunctionContext,
@@ -38,10 +39,31 @@ impl Monomorphized for Statement {
             Statement::Loop(l) => l.monomorphized(context).into(),
             Statement::While(l) => l.monomorphized(context).into(),
             Statement::Return(ret) => ret.monomorphized(context).into(),
-
-            // Declarations only monomorphized when referenced
-            Statement::Declaration(_) | Statement::Use(_) => self,
+            Statement::Declaration(d) => d.monomorphized(context).into(),
+            Statement::Use(_) => self,
         }
+    }
+}
+
+impl Monomorphized for Declaration {
+    fn monomorphized(self, context: &mut impl Context) -> Self {
+        match self {
+            Declaration::Variable(v) => v.monomorphized(context).into(),
+            _ => self,
+        }
+    }
+}
+
+impl Monomorphized for Arc<VariableDeclaration> {
+    fn monomorphized(self, context: &mut impl Context) -> Self {
+        if !self.is_generic() {
+            return self;
+        }
+
+        Arc::new(VariableDeclaration {
+            initializer: self.initializer.clone().monomorphized(context),
+            ..self.as_ref().clone()
+        })
     }
 }
 
