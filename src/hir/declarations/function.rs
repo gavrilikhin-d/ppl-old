@@ -49,8 +49,8 @@ impl Typed for Parameter {
 }
 
 impl Mutable for Parameter {
-    fn is_immutable(&self) -> bool {
-        true
+    fn is_mutable(&self) -> bool {
+        self.ty.is_mutable()
     }
 }
 

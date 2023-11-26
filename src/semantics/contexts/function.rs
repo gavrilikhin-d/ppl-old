@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use crate::{
     hir::{
-        Function, FunctionDeclaration, ParameterOrVariable, TraitDeclaration, TypeDeclaration,
-        VariableDeclaration,
+        Function, FunctionDeclaration, ParameterOrVariable, TraitDeclaration, Type,
+        TypeDeclaration, VariableDeclaration,
     },
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
@@ -36,6 +36,14 @@ impl FindDeclarationHere for FunctionContext<'_> {
                     .find(|p| p.name() == name)
                     .map(|p| p.into())
             })
+    }
+
+    fn find_type_here(&self, name: &str) -> Option<Type> {
+        self.function
+            .generic_types
+            .iter()
+            .find(|p| p.name() == name)
+            .cloned()
     }
 }
 

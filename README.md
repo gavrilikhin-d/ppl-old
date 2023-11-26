@@ -26,7 +26,17 @@
 * [x] Fix non-instantiated generic functions (`fn<T> foo <:T> => 1` & `let n = foo 1`; `& <:Reference<Bool>>`)
 ---
 ### Current task
+* [ ] Fix `type of <:T>`
 ---
+* [ ] Replace calls to trait functions with calls to specialized functions
+* [ ] Run monomorphization from the top of the module
+* [ ] Make `monomorphized` to take `Self`
+* [ ] Replace type references with constructors only after monomorphization
+* [ ] Reject lowercase names for types
+* [ ] Rebinding references
+* [ ] `lowering_to_hir_within_context` -> `to_hir` and `to_ir`
+* [ ] Fix `let y = &x; y`
+* [ ] Remove need for escaping `type` in `type of <:T>`
 * [ ] Fix crash in diagnostics due-to wrong source file
 * [ ] Add better errors for inferred generics
 * [ ] Unify `Self` and `GenericType`

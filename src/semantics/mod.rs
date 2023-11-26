@@ -24,5 +24,8 @@ pub use implements::*;
 mod convert;
 pub use convert::*;
 
+mod implicit;
+pub use implicit::*;
+
 #[cfg(test)]
 mod tests;

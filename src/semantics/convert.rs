@@ -2,15 +2,18 @@ use std::sync::Arc;
 
 use crate::{
     hir::{
-        Expression, FunctionType, GenericType, ImplicitConversion, ImplicitConversionKind,
-        SelfType, TraitDeclaration, Type, TypeDeclaration, Typed,
+        Expression, FunctionType, GenericType, SelfType, TraitDeclaration, Type, TypeDeclaration,
+        Typed,
     },
-    WithSourceLocation,
+    mutability::Mutable,
+    semantics::error::ReferenceMutToImmutable,
+    syntax::Ranged,
+    SourceLocation, WithSourceLocation,
 };
 
 use super::{
     error::{NotConvertible, NotImplemented, TypeMismatch, TypeWithSpan},
-    Context, Implements,
+    Context, Implements, Implicit,
 };
 
 /// Trait to check if one type is convertible to another
@@ -216,6 +219,19 @@ impl Convert for WithSourceLocation<Expression> {
     }
 }
 
+impl Convert for Expression {
+    fn convert_to(&self, ty: WithSourceLocation<Type>) -> ConversionRequest {
+        WithSourceLocation {
+            value: self.clone(),
+            source_location: SourceLocation {
+                source_file: None,
+                at: self.range().into(),
+            },
+        }
+        .convert_to(ty)
+    }
+}
+
 /// Helper struct to perform check within context
 pub struct ConversionRequest {
     from: WithSourceLocation<Expression>,
@@ -247,27 +263,26 @@ impl ConversionRequest {
             .into());
         }
 
-        if from.is_reference() == to.is_reference() {
-            return Ok(self.from.value);
-        }
-
-        if from.is_reference() {
-            let ty = from.without_ref();
-            return Ok(ImplicitConversion {
-                kind: ImplicitConversionKind::Dereference,
-                ty,
-                expression: Box::new(self.from.value),
+        if self.from.value.is_immutable() && to.is_mutable() {
+            return Err(ReferenceMutToImmutable {
+                at: self.from.value.range().into(),
             }
             .into());
         }
 
-        // to.is_reference() == true
-        let ty = context.builtin().types().reference_to(from);
-        Ok(ImplicitConversion {
-            kind: ImplicitConversionKind::Reference,
-            ty,
-            expression: Box::new(self.from.value),
+        if from.is_any_reference() == to.is_any_reference() {
+            return Ok(self.from.value);
         }
-        .into())
+
+        if from.is_any_reference() {
+            return Ok(self.from.value.dereference());
+        }
+
+        // to.is_any_reference() == true
+        Ok(if to.is_immutable() {
+            self.from.value.reference(context)
+        } else {
+            self.from.value.reference_mut(context)
+        })
     }
 }

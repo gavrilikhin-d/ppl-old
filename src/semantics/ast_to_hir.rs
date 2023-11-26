@@ -191,19 +191,7 @@ impl ASTLowering for ast::Call {
                 .map(|m| m.source_file())
                 .cloned();
 
-            let mut candidate_context = GenericContext {
-                generic_parameters: f.declaration().generic_types.clone(),
-                generics_mapping: HashMap::new(),
-                parent: context,
-            };
-
-            if let Some(ty) = f
-                .parameters()
-                .map(|p| p.ty())
-                .find(|ty| matches!(ty, Type::SelfType(_)))
-            {
-                candidate_context.generic_parameters.push(ty);
-            }
+            let mut candidate_context = GenericContext::for_fn(&f.declaration(), context);
 
             let mut args = Vec::new();
             let mut failed = false;
@@ -627,23 +615,9 @@ impl ASTLowering for ast::Assignment {
         }
 
         let value = self.value.lower_to_hir_within_context(context)?;
-        if target.ty() != value.ty() {
-            return Err(TypeMismatch {
-                got: TypeWithSpan {
-                    ty: value.ty(),
-                    at: self.value.range().into(),
-                    source_file: None,
-                },
-
-                expected: TypeWithSpan {
-                    ty: target.ty(),
-                    at: self.target.range().into(),
-                    // FIXME: find where variable was declared
-                    source_file: None,
-                },
-            }
-            .into());
-        }
+        let value = value
+            .convert_to(target.ty().without_ref().at(target.range()))
+            .within(context)?;
 
         Ok(hir::Assignment { target, value })
     }
@@ -919,6 +893,10 @@ pub trait ReplaceWithTypeInfo {
 
 impl ReplaceWithTypeInfo for TypeReference {
     fn replace_with_type_info(&self, context: &impl Context) -> hir::Expression {
+        if self.is_generic() {
+            return self.clone().into();
+        }
+
         hir::Constructor {
             ty: hir::TypeReference {
                 span: self.range(),

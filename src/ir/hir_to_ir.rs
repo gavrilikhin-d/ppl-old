@@ -502,7 +502,7 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Call {
             .iter()
             .zip(self.function.parameters().map(|p| p.ty()))
             .filter_map(|(arg, p)| {
-                if !p.is_reference() {
+                if !p.is_any_reference() {
                     arg.lower_to_ir(context)
                 } else {
                     arg.lower_to_ir_without_load(context)
@@ -672,7 +672,11 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Assignment {
 
     /// Lower [`Assignment`] to LLVM IR
     fn lower_to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        let target = self.target.lower_to_ir_without_load(context);
+        let target = if self.target.ty().is_any_reference() {
+            self.target.lower_to_ir(context)
+        } else {
+            self.target.lower_to_ir_without_load(context)
+        };
         let value = self.value.lower_to_ir(context);
 
         if target.is_none() {

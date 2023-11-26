@@ -3,15 +3,15 @@ use std::{collections::HashMap, sync::Arc};
 use crate::{
     hir::{
         Assignment, Call, Constructor, ElseIf, Expression, Function, FunctionDeclaration,
-        FunctionDefinition, FunctionNamePart, Generic, If, ImplicitConversion, Loop,
-        MemberReference, Parameter, Return, Specialize, Statement, Type, TypeReference, Typed,
-        VariableReference, While,
+        FunctionDefinition, FunctionNamePart, Generic, If, ImplicitConversion, Initializer, Loop,
+        Member, MemberReference, Parameter, Return, Specialize, Statement, Type, TypeDeclaration,
+        TypeReference, Typed, VariableReference, While,
     },
     named::Named,
     semantics::FunctionContext,
 };
 
-use super::Context;
+use super::{Context, ReplaceWithTypeInfo};
 
 /// Trait to get monomorphized version of statements
 pub trait Monomorphized {
@@ -110,7 +110,10 @@ impl Monomorphized for Expression {
         match self {
             Expression::Call(c) => c.monomorphized(context).into(),
             Expression::VariableReference(var) => var.monomorphized(context).into(),
-            Expression::TypeReference(_) => todo!(),
+            Expression::TypeReference(ty) => ty
+                .monomorphized(context)
+                .replace_with_type_info(context)
+                .into(),
             Expression::Literal(_) => self.clone(),
             Expression::MemberReference(m) => m.monomorphized(context).into(),
             Expression::Constructor(c) => c.monomorphized(context).into(),
@@ -120,9 +123,72 @@ impl Monomorphized for Expression {
 }
 
 impl Monomorphized for Constructor {
-    fn monomorphized(&self, _context: &mut impl Context) -> Self {
-        // TODO: real monomorphization
-        self.clone()
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        Constructor {
+            ty: self.ty.monomorphized(context),
+            initializers: self.initializers.monomorphized(context),
+            rbrace: self.rbrace,
+        }
+    }
+}
+
+impl Monomorphized for Initializer {
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        Initializer {
+            member: self.member.monomorphized(context),
+            value: self.value.monomorphized(context),
+            ..self.clone()
+        }
+    }
+}
+
+impl Monomorphized for TypeReference {
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        let referenced_type = self.referenced_type.monomorphized(context);
+        TypeReference {
+            referenced_type: referenced_type.clone(),
+            type_for_type: context.builtin().types().type_of(referenced_type),
+            ..self.clone()
+        }
+    }
+}
+
+impl Monomorphized for Type {
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        match self {
+            Type::Class(c) => c.monomorphized(context).into(),
+            Type::Function(_) => todo!(),
+            Type::Generic(_) | Type::SelfType(_) | Type::Trait(_) => {
+                context.get_specialized(self.clone()).unwrap()
+            }
+        }
+    }
+}
+
+impl Monomorphized for Arc<TypeDeclaration> {
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        if !self.is_generic() {
+            return self.clone();
+        }
+
+        Arc::new(TypeDeclaration {
+            generic_parameters: self.generic_parameters.monomorphized(context),
+            members: self.members.monomorphized(context),
+            ..self.as_ref().clone()
+        })
+    }
+}
+
+impl Monomorphized for Arc<Member> {
+    fn monomorphized(&self, context: &mut impl Context) -> Self {
+        if !self.is_generic() {
+            return self.clone();
+        }
+
+        Arc::new(Member {
+            ty: self.ty.monomorphized(context),
+            ..self.as_ref().clone()
+        })
     }
 }
 
@@ -184,7 +250,7 @@ impl MonomorphizedWithArgs for Arc<FunctionDeclaration> {
                     }
 
                     let param_ty = param.ty();
-                    if param_ty.is_reference() && !arg_ty.is_reference() {
+                    if param_ty.is_any_reference() && !arg_ty.is_any_reference() {
                         arg_ty = context.builtin().types().reference_to(arg_ty);
                     }
 

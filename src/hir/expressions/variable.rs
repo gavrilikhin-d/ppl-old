@@ -74,7 +74,7 @@ pub struct VariableReference {
 impl Mutable for VariableReference {
     /// Check if referenced variable is mutable
     fn is_mutable(&self) -> bool {
-        self.variable.is_mutable()
+        self.variable.is_mutable() || self.variable.ty().is_mutable()
     }
 }
 

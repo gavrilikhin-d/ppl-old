@@ -219,6 +219,9 @@ fn<T> <ty: Type<T>> as String => ty.name
 
 /// Size of a type in bytes
 fn<T> size of <ty: Type<T>> => ty.size
+
+/// Get type of a value
+fn<T> `type` of <:T> => T
 //=================================
 
 //=================================
@@ -249,6 +252,17 @@ fn<T> read <ty: Type<T>> at <address: MemoryAddress> -> Reference<T>
 //=================================
 
 //=================================
+//          ReferenceMut
+//=================================
+/// Reference to a mutable value
+@builtin
+type ReferenceMut<T>
+
+/// Get reference to a mutable value
+fn<T> reference to mutable <ref: ReferenceMut<T>> => ref
+//=================================
+
+//=================================
 //          Reference
 //=================================
 /// Reference to a value
@@ -256,7 +270,7 @@ fn<T> read <ty: Type<T>> at <address: MemoryAddress> -> Reference<T>
 type Reference<T>
 
 /// Get reference to a value
-fn<T> & <ref: Reference<T>> => ref
+fn<T> reference to <ref: Reference<T>> => ref
 //=================================
 
 //=================================

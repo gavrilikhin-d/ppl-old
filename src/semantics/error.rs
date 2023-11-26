@@ -411,6 +411,15 @@ impl Diagnostic for NotImplemented {
     }
 }
 
+/// Diagnostic for trying to take mutable reference to immutable data
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("can't take mutable reference to immutable data")]
+#[diagnostic(code(semantics::reference_mut_to_immutable))]
+pub struct ReferenceMutToImmutable {
+    #[label("This value is immutable")]
+    pub at: SourceSpan,
+}
+
 /// Diagnostic for not convertible types
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 pub enum NotConvertible {
@@ -420,6 +429,9 @@ pub enum NotConvertible {
     #[error(transparent)]
     #[diagnostic(transparent)]
     NotImplemented(#[from] NotImplemented),
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    ReferenceMutToImmutable(#[from] ReferenceMutToImmutable),
 }
 
 /// Helper macro to create error enumeration

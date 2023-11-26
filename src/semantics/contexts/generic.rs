@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    hir::Type,
+    hir::{FunctionDeclaration, Type, Typed},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
 };
@@ -18,6 +18,27 @@ pub struct GenericContext<'p> {
 
     /// Parent context for this function
     pub parent: &'p mut dyn Context,
+}
+
+impl<'p> GenericContext<'p> {
+    /// Create generic context for function
+    pub fn for_fn(f: &FunctionDeclaration, parent: &'p mut impl Context) -> Self {
+        let mut candidate_context = GenericContext {
+            generic_parameters: f.generic_types.clone(),
+            generics_mapping: HashMap::new(),
+            parent,
+        };
+
+        if let Some(ty) = f
+            .parameters()
+            .map(|p| p.ty())
+            .find(|ty| matches!(ty, Type::SelfType(_)))
+        {
+            candidate_context.generic_parameters.push(ty);
+        }
+
+        return candidate_context;
+    }
 }
 
 impl FindDeclarationHere for GenericContext<'_> {
