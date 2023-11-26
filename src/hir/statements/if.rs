@@ -25,20 +25,28 @@ pub struct If {
 
 impl Display for If {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let indent = f.width().unwrap_or(0);
+        let new_indent = indent + 1;
+
+        let indent = "\t".repeat(indent);
+
+        write!(f, "{indent}")?;
         writeln!(f, "if {}:", self.condition)?;
         for statement in &self.body {
-            writeln!(f, "\t{}", statement)?;
+            writeln!(f, "{statement:#new_indent$}")?;
         }
         for else_if in &self.else_ifs {
+            write!(f, "{indent}")?;
             writeln!(f, "else if {}:", else_if.condition)?;
             for statement in &else_if.body {
-                writeln!(f, "\t{}", statement)?;
+                writeln!(f, "{statement:#new_indent$}")?;
             }
         }
         if !self.else_block.is_empty() {
+            write!(f, "{indent}")?;
             writeln!(f, "else:")?;
             for statement in &self.else_block {
-                writeln!(f, "\t{}", statement)?;
+                writeln!(f, "{statement:#new_indent$}")?;
             }
         }
         Ok(())
