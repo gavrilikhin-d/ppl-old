@@ -64,7 +64,7 @@ pub struct Module {
 impl Display for Module {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for statement in &self.statements {
-            writeln!(f, "{}", statement)?;
+            writeln!(f, "{:#}", statement)?;
         }
         Ok(())
     }
