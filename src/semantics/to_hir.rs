@@ -873,6 +873,7 @@ impl ToHIR for ast::GenericParameter {
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(GenericType {
             name: self.name.clone(),
+            generated: false,
             constraint: self
                 .constraint
                 .as_ref()

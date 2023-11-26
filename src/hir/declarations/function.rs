@@ -463,6 +463,7 @@ mod tests {
 
         let ty = GenericType {
             name: StringWithOffset::from("T").at(3),
+            generated: false,
             constraint: None,
         };
         let param = Parameter {

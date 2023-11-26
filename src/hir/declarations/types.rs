@@ -264,6 +264,7 @@ mod tests {
                 specialization_of: None,
                 generic_parameters: vec![GenericType {
                     name: StringWithOffset::from("U").at(11),
+                    generated: false,
                     constraint: None
                 }
                 .into()],
@@ -272,6 +273,7 @@ mod tests {
                     name: StringWithOffset::from("x").at(16),
                     ty: GenericType {
                         name: StringWithOffset::from("U").at(11),
+                        generated: false,
                         constraint: None,
                     }
                     .into(),
