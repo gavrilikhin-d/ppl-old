@@ -161,7 +161,10 @@ impl Monomorphized for Type {
             Type::Class(c) => c.monomorphized(context).into(),
             Type::Function(_) => todo!(),
             Type::Generic(_) | Type::SelfType(_) | Type::Trait(_) => {
-                context.get_specialized(self).unwrap()
+                let name = self.name().to_string();
+                context
+                    .get_specialized(self)
+                    .expect(&format!("No specialization for `{name}`"))
             }
         }
     }
