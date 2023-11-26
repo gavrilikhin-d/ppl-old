@@ -13,7 +13,7 @@ use ppl::compilation::Compiler;
 use ppl::driver::commands::compile::OutputType;
 use ppl::driver::{self, Execute};
 use ppl::hir::{self, Type, Typed};
-use ppl::ir::GlobalHIRLowering;
+use ppl::ir::GlobalToIR;
 use ppl::semantics::{ModuleContext, ToHIR};
 use ppl::syntax::{InteractiveLexer, Lexer, Parse};
 use ppl::{ast::*, SourceFile};
@@ -85,7 +85,7 @@ fn process_single_statement<'llvm>(
 
     let module = llvm.create_module("main");
     let mut context = ir::ModuleContext::new(module);
-    hir.lower_global_to_ir(&mut context);
+    hir.global_to_ir(&mut context);
 
     let module = &context.module;
 

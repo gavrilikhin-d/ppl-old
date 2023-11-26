@@ -15,11 +15,11 @@ use super::FunctionContext;
 use super::ModuleContext;
 
 /// Trait for lowering HIR for global declarations to IR within module context
-pub trait GlobalHIRLowering<'llvm> {
+pub trait GlobalToIR<'llvm> {
     type IR;
 
     /// Lower HIR for global declaration to IR within module context
-    fn lower_global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR;
+    fn global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR;
 }
 
 /// Trait for lowering HIR for local declarations to IR within function context
@@ -60,14 +60,14 @@ impl<'llvm> HIRTypesLowering<'llvm> for Type {
     }
 }
 
-impl<'llvm> GlobalHIRLowering<'llvm> for Declaration {
+impl<'llvm> GlobalToIR<'llvm> for Declaration {
     type IR = ();
 
     /// Lower global [`Declaration`] to LLVM IR
-    fn lower_global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+    fn global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
         match self {
             Declaration::Variable(var) => {
-                var.lower_global_to_ir(context);
+                var.global_to_ir(context);
             }
             Declaration::Type(ty) => {
                 if !ty.is_generic() {
@@ -76,7 +76,7 @@ impl<'llvm> GlobalHIRLowering<'llvm> for Declaration {
             }
             Declaration::Function(f) => {
                 if !f.is_generic() {
-                    f.lower_global_to_ir(context);
+                    f.global_to_ir(context);
                 }
             }
             // Traits have no effect on ir
@@ -140,11 +140,11 @@ impl<'llvm> DeclareGlobal<'llvm> for VariableDeclaration {
     }
 }
 
-impl<'llvm> GlobalHIRLowering<'llvm> for Arc<VariableDeclaration> {
+impl<'llvm> GlobalToIR<'llvm> for Arc<VariableDeclaration> {
     type IR = Option<inkwell::values::GlobalValue<'llvm>>;
 
     /// Lower global [`VariableDeclaration`] to LLVM IR
-    fn lower_global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+    fn global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
         let global = self.declare_global(context);
         if global.is_none() {
             return None;
@@ -255,11 +255,11 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionDeclaration {
     }
 }
 
-impl<'llvm> GlobalHIRLowering<'llvm> for FunctionDeclaration {
+impl<'llvm> GlobalToIR<'llvm> for FunctionDeclaration {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     /// Lower global [`FunctionDeclaration`] to LLVM IR
-    fn lower_global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+    fn global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
         self.declare_global(context)
     }
 }
@@ -283,12 +283,12 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionDefinition {
     }
 }
 
-impl<'llvm> GlobalHIRLowering<'llvm> for FunctionDefinition {
+impl<'llvm> GlobalToIR<'llvm> for FunctionDefinition {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     /// Lower global [`FunctionDefinition`] to LLVM IR
-    fn lower_global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
-        let f = self.declaration.lower_global_to_ir(context);
+    fn global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+        let f = self.declaration.global_to_ir(context);
 
         self.emit_body(context);
 
@@ -349,14 +349,14 @@ impl<'llvm> EmitBody<'llvm> for FunctionDefinition {
     }
 }
 
-impl<'llvm> GlobalHIRLowering<'llvm> for Function {
+impl<'llvm> GlobalToIR<'llvm> for Function {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     /// Lower global [`Function`] to LLVM IR
-    fn lower_global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+    fn global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
         match self {
-            Function::Declaration(decl) => decl.lower_global_to_ir(context),
-            Function::Definition(def) => def.lower_global_to_ir(context),
+            Function::Declaration(decl) => decl.global_to_ir(context),
+            Function::Definition(def) => def.global_to_ir(context),
         }
     }
 }
@@ -690,13 +690,13 @@ impl<'llvm, 'm> HIRLoweringWithinFunctionContext<'llvm, 'm> for Assignment {
     }
 }
 
-impl<'llvm> GlobalHIRLowering<'llvm> for Statement {
+impl<'llvm> GlobalToIR<'llvm> for Statement {
     type IR = ();
 
     /// Lower global [`Statement`] to LLVM IR
-    fn lower_global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+    fn global_to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
         match self {
-            Statement::Declaration(d) => d.lower_global_to_ir(context),
+            Statement::Declaration(d) => d.global_to_ir(context),
 
             Statement::Assignment(_)
             | Statement::If(_)
@@ -926,7 +926,7 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
             .iter()
             .filter(|s| matches!(s, Statement::Declaration(_)))
         {
-            statement.lower_global_to_ir(&mut context);
+            statement.global_to_ir(&mut context);
         }
 
         let main =
