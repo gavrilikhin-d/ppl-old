@@ -37,9 +37,15 @@ impl Named for TraitDeclaration {
 impl Display for TraitDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if f.alternate() {
+            let indent = f.width().unwrap_or(0);
+            let new_indent = indent + 1;
+
+            let indent = "\t".repeat(indent);
+            write!(f, "{indent}")?;
+
             writeln!(f, "trait {}:", self.name())?;
             for function in self.functions.values() {
-                writeln!(f, "\t{:#}", function)?;
+                writeln!(f, "{function:#new_indent$}")?;
             }
         } else {
             write!(f, "{}", self.name())?;
