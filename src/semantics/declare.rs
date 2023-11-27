@@ -11,7 +11,7 @@ use crate::{
 
 use super::{
     error::{CantDeduceReturnType, Error, ReturnTypeMismatch},
-    Context, FunctionContext, GenericContext, ToHIR, TraitContext,
+    Context, FunctionContext, GenericContext, Monomorphized, ToHIR, TraitContext,
 };
 
 /// Trait to pre-declare something
@@ -289,7 +289,7 @@ impl Declare for ast::VariableDeclaration {
         // TODO: don't define value right away
         let var = Arc::new(hir::VariableDeclaration {
             name: self.name.clone(),
-            initializer: self.initializer.to_hir(context)?,
+            initializer: self.initializer.to_hir(context)?.monomorphized(context),
             mutability: self.mutability.clone(),
         });
 
@@ -305,7 +305,7 @@ impl Declare for ast::VariableDeclaration {
     ) -> Result<Self::Definition, Error> {
         let var = Arc::new(hir::VariableDeclaration {
             name: self.name.clone(),
-            initializer: self.initializer.to_hir(context)?,
+            initializer: self.initializer.to_hir(context)?.monomorphized(context),
             mutability: self.mutability.clone(),
         });
 

@@ -14,7 +14,7 @@ use ppl::driver::commands::compile::OutputType;
 use ppl::driver::{self, Execute};
 use ppl::hir::{self, Type, Typed};
 use ppl::ir::ToIR;
-use ppl::semantics::{ModuleContext, ToHIR};
+use ppl::semantics::{ModuleContext, Monomorphized, ToHIR};
 use ppl::syntax::{InteractiveLexer, Lexer, Parse};
 use ppl::{ast::*, SourceFile};
 use ppl::{ir, Reporter};
@@ -81,6 +81,7 @@ fn process_single_statement<'llvm>(
     debug!(target: "ast", "{:#?}", ast);
 
     let hir = ast.to_hir(ast_lowering_context)?;
+    let hir = hir.monomorphized(ast_lowering_context);
     debug!(target: "hir", "{:#}", hir);
 
     let module = llvm.create_module("main");

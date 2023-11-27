@@ -101,13 +101,13 @@ impl Compiler {
             module,
             compiler: self,
         };
-        ast.to_hir(&mut context).map_err(|e| {
+        let hir = ast.to_hir(&mut context).map_err(|e| {
             miette::Report::from(e)
                 .with_source_code(miette::NamedSource::new(path.to_string_lossy(), content))
         })?;
-        debug!(target: "hir", "{:#}", context.module);
+        debug!(target: "hir", "{:#}", hir);
 
-        let module = Arc::new(context.module);
+        let module = Arc::new(hir);
         self.modules.insert(name.to_string(), module.clone());
         Ok(module)
     }

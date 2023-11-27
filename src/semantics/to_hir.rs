@@ -12,10 +12,9 @@ use crate::named::Named;
 use crate::syntax::Ranged;
 use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
-use super::{
-    error::*, Context, Convert, Declare, GenericContext, ModuleContext, MonomorphizedWithArgs,
-};
+use super::{error::*, Context, Convert, Declare, GenericContext, ModuleContext};
 use crate::ast::{self, CallNamePart, FnKind, If};
+use crate::semantics::monomorphized::Monomorphized;
 
 /// Lower to HIR inside some context
 pub trait ToHIR {
@@ -212,15 +211,19 @@ impl ToHIR for ast::Call {
             }
 
             if !failed {
-                let function =
-                    f.monomorphized(&mut candidate_context, args.iter().map(|arg| arg.ty()));
-                let generic = if f.is_generic() { Some(f) } else { None };
+                let generic = if f.is_generic() {
+                    Some(f.clone())
+                } else {
+                    None
+                };
+
                 return Ok(hir::Call {
                     range: self.range(),
-                    function,
+                    function: f,
                     generic,
                     args,
-                });
+                }
+                .monomorphized(context));
             }
         }
 
@@ -738,59 +741,91 @@ impl ToHIR for ast::Module {
     ///
     /// # Order
     ///
-    /// Lowering happens in 2 passes: `declaration`` and `definition`
-    ///
     /// 1. Use statements
-    /// 2. Types
-    /// 3. Traits
-    /// 4. Functions & Global variables (in the order they are declared)
-    /// 5. Rest of statements
+    /// 2. Declare Types & Traits
+    /// 3. Define Types
+    /// 4. Declare Functions & Global variables
+    /// 5. Define Traits
+    /// 6. Define Functions & Global
+    /// 7. Rest of statements
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         use ast::Declaration as D;
         use ast::Statement as S;
 
         let mut errors = Vec::new();
 
+        macro_rules! define {
+            () => {
+                |stmt: &S| {
+                    let res = stmt.to_hir(context);
+                    match res {
+                        Ok(stmt) => {
+                            let stmt = stmt.monomorphized(context);
+                            context.module_mut().statements.push(stmt)
+                        }
+                        Err(err) => errors.push(err),
+                    }
+                }
+            };
+        }
+
         // Import things first
         self.statements
             .iter()
             .filter(|s| matches!(s, ast::Statement::Use(_)))
-            .for_each(|stmt: &S| {
-                let res = stmt.to_hir(context);
-                match res {
-                    Ok(stmt) => context.module_mut().statements.push(stmt),
-                    Err(err) => errors.push(err),
+            .for_each(define!());
+
+        macro_rules! declare {
+            () => {
+                |stmt: &S| {
+                    let decl: &D = match stmt {
+                        S::Declaration(d) => d,
+                        _ => return,
+                    };
+
+                    let res = decl.declare(context);
+                    if let Err(err) = res {
+                        errors.push(err);
+                    }
                 }
-            });
-
-        for_each_declaration_in_order(&self.statements, |stmt: &S| {
-            let decl: &D = match stmt {
-                S::Declaration(d) => d,
-                _ => return,
             };
+        }
 
-            let res = decl.declare(context);
-            if let Err(err) = res {
-                errors.push(err);
-            }
-        });
+        // Declare Types & Traits
+        self.statements
+            .iter()
+            .filter(|s| matches!(s, S::Declaration(D::Type(_) | D::Trait(_))))
+            .for_each(declare!());
 
-        // TODO: find a way to reuse this above
-        let mut define = |stmt: &S| {
-            let res = stmt.to_hir(context);
-            match res {
-                Ok(stmt) => context.module_mut().statements.push(stmt),
-                Err(err) => errors.push(err),
-            }
-        };
+        // Define Types
+        self.statements
+            .iter()
+            .filter(|s| matches!(s, S::Declaration(D::Type(_))))
+            .for_each(define!());
 
-        for_each_declaration_in_order(&self.statements, &mut define);
+        // Declare Functions & Global variables
+        self.statements
+            .iter()
+            .filter(|s| matches!(s, S::Declaration(D::Function(_) | D::Variable(_))))
+            .for_each(declare!());
+
+        // Define Traits
+        self.statements
+            .iter()
+            .filter(|s| matches!(s, S::Declaration(D::Trait(_))))
+            .for_each(define!());
+
+        // Define Functions & Global variables
+        self.statements
+            .iter()
+            .filter(|s| matches!(s, S::Declaration(D::Function(_) | D::Variable(_))))
+            .for_each(define!());
 
         // Add rest of statements
         self.statements
             .iter()
             .filter(|s| !matches!(s, S::Use(_) | S::Declaration(_)))
-            .for_each(&mut define);
+            .for_each(define!());
 
         if !errors.is_empty() {
             return Err(errors.into());
@@ -798,33 +833,6 @@ impl ToHIR for ast::Module {
 
         Ok(context.module().clone())
     }
-}
-
-/// Run some function for each decl in order:
-/// 1. Types
-/// 2. Traits
-/// 3. Function & Global variables
-fn for_each_declaration_in_order(stmts: &[ast::Statement], mut f: impl FnMut(&ast::Statement)) {
-    use ast::Declaration as D;
-    use ast::Statement as S;
-
-    // First for types
-    stmts
-        .iter()
-        .filter(|s| matches!(s, S::Declaration(D::Type(_))))
-        .for_each(&mut f);
-
-    // Then for traits
-    stmts
-        .iter()
-        .filter(|s| matches!(s, S::Declaration(D::Trait(_))))
-        .for_each(&mut f);
-
-    // Then for functions & global variables
-    stmts
-        .iter()
-        .filter(|s| matches!(s, S::Declaration(D::Function(_) | D::Variable(_))))
-        .for_each(&mut f);
 }
 
 /// Trait to replace [`TypeReference`] with type info
