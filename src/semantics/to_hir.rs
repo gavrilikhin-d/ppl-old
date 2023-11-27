@@ -14,6 +14,7 @@ use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
 use super::{error::*, Context, Convert, Declare, GenericContext, ModuleContext};
 use crate::ast::{self, CallNamePart, FnKind, If};
+use crate::semantics::monomorphized::Monomorphized;
 
 /// Lower to HIR inside some context
 pub trait ToHIR {
@@ -757,7 +758,10 @@ impl ToHIR for ast::Module {
                 |stmt: &S| {
                     let res = stmt.to_hir(context);
                     match res {
-                        Ok(stmt) => context.module_mut().statements.push(stmt),
+                        Ok(stmt) => {
+                            let stmt = stmt.monomorphized(context);
+                            context.module_mut().statements.push(stmt)
+                        }
                         Err(err) => errors.push(err),
                     }
                 }

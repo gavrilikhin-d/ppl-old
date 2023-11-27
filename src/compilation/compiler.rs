@@ -8,7 +8,7 @@ use std::{
 use crate::{
     ast,
     hir::Module,
-    semantics::{ModuleContext, Monomorphized, ToHIR},
+    semantics::{ModuleContext, ToHIR},
     SourceFile,
 };
 use log::debug;
@@ -105,7 +105,6 @@ impl Compiler {
             miette::Report::from(e)
                 .with_source_code(miette::NamedSource::new(path.to_string_lossy(), content))
         })?;
-        let hir = hir.monomorphized(&mut context);
         debug!(target: "hir", "{:#}", hir);
 
         let module = Arc::new(hir);
