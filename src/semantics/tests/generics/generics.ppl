@@ -3,7 +3,8 @@ type Point<T>:
 
 fn<T> x of <p: Point<T>> => p.x
 
-(x of Point { x: 0, y: 0 }) == 0
+let x = x of Point { x: 0, y: 0 }
+x == 0
 
 fn<T> id <x: T> => x
 
