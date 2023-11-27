@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use log::debug;
+use log::trace;
 
 use crate::{
     hir::{
@@ -10,7 +10,6 @@ use crate::{
         Statement, Type, TypeDeclaration, TypeReference, Typed, VariableDeclaration,
         VariableReference, While,
     },
-    named::Named,
     semantics::{ConvertibleTo, GenericContext},
 };
 
@@ -56,6 +55,8 @@ impl Monomorphized for Declaration {
 
 impl Monomorphized for Arc<VariableDeclaration> {
     fn monomorphized(self, context: &mut impl Context) -> Self {
+        trace!(target: "monomorphizing", "{}", self);
+
         if !self.is_generic() {
             return self;
         }
@@ -150,6 +151,8 @@ impl Monomorphized for Expression {
 
 impl Monomorphized for Constructor {
     fn monomorphized(self, context: &mut impl Context) -> Self {
+        trace!(target: "monomorphizing", "{}", self);
+
         if !self.is_generic() {
             return self;
         }
@@ -186,6 +189,7 @@ impl Monomorphized for Initializer {
 
 impl Monomorphized for TypeReference {
     fn monomorphized(self, context: &mut impl Context) -> Self {
+        trace!(target: "monomorphizing", "{}", self);
         let referenced_type = self.referenced_type.monomorphized(context);
         TypeReference {
             referenced_type: referenced_type.clone(),
@@ -201,10 +205,7 @@ impl Monomorphized for Type {
             Type::Class(c) => c.monomorphized(context).into(),
             Type::Function(_) => todo!(),
             Type::Generic(_) | Type::SelfType(_) | Type::Trait(_) => {
-                let name = self.name().to_string();
-                context
-                    .get_specialized(self)
-                    .expect(&format!("No specialization for `{name}`"))
+                context.get_specialized(self.clone()).unwrap_or(self)
             }
         }
     }
@@ -212,6 +213,7 @@ impl Monomorphized for Type {
 
 impl Monomorphized for Arc<TypeDeclaration> {
     fn monomorphized(self, context: &mut impl Context) -> Self {
+        trace!(target: "monomorphizing", "\n{}", self);
         if !self.is_generic() {
             return self;
         }
@@ -239,6 +241,7 @@ impl Monomorphized for Arc<Member> {
 
 impl Monomorphized for Call {
     fn monomorphized(self, context: &mut impl Context) -> Self {
+        trace!(target: "monomorphizing", "{}", self);
         if !self.is_generic() {
             return self;
         }
@@ -254,18 +257,17 @@ impl Monomorphized for Call {
                 arg.convertible_to(p).within(&mut context).unwrap();
             });
 
-        let call = Call {
+        Call {
             function: self.function.monomorphized(&mut context),
             args,
             ..self
-        };
-        debug!(target: "monomorphized", "{call}\n{function:#}", function = call.function);
-        call
+        }
     }
 }
 
 impl Monomorphized for VariableReference {
     fn monomorphized(self, context: &mut impl Context) -> Self {
+        trace!(target: "monomorphizing", "{}", self);
         if !self.is_generic() {
             return self;
         }
@@ -301,6 +303,7 @@ impl Monomorphized for Function {
 
 impl Monomorphized for Arc<FunctionDeclaration> {
     fn monomorphized(self, context: &mut impl Context) -> Self {
+        trace!(target: "monomorphizing", "{}", self);
         if !self.is_generic() {
             return self;
         }
@@ -320,6 +323,7 @@ impl Monomorphized for Arc<FunctionDeclaration> {
 
 impl Monomorphized for Arc<FunctionDefinition> {
     fn monomorphized(self, context: &mut impl Context) -> Self {
+        trace!(target: "monomorphizing", "\n{}", self);
         if !self.is_generic() {
             return self;
         }
@@ -355,6 +359,8 @@ impl Monomorphized for Arc<Parameter> {
 
 impl Monomorphized for MemberReference {
     fn monomorphized(self, context: &mut impl Context) -> Self {
+        trace!(target: "monomorphizing", "{}", self);
+
         if !self.is_generic() {
             return self;
         }
@@ -372,6 +378,8 @@ impl Monomorphized for MemberReference {
 
 impl Monomorphized for Module {
     fn monomorphized(self, context: &mut impl Context) -> Self {
+        trace!(target: "monomorphizing", "{}", context.module().source_file().name());
+
         let statements = self.statements.monomorphized(context);
         let mut variables = self.variables;
         variables.values_mut().for_each(|v| {
