@@ -222,7 +222,8 @@ impl ToHIR for ast::Call {
                     function: f,
                     generic,
                     args,
-                });
+                }
+                .monomorphized(context));
             }
         }
 
