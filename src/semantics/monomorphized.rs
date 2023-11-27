@@ -310,10 +310,17 @@ impl Monomorphized for Arc<FunctionDeclaration> {
 
         let generic_types = self.generic_types.clone().monomorphized(context);
         let name_parts = self.name_parts.clone().monomorphized(context);
+        let name = Function::build_name(&name_parts);
         let return_type = self.return_type.clone().monomorphized(context);
         let f = FunctionDeclaration::build()
             .with_generic_types(generic_types)
-            .with_mangled_name(self.mangled_name.clone())
+            .with_mangled_name(
+                context
+                    .function_with_name(&name)
+                    .map(|f| f.declaration().mangled_name.clone())
+                    .flatten()
+                    .or_else(|| self.mangled_name.clone()),
+            )
             .with_name(name_parts)
             .with_return_type(return_type);
 
