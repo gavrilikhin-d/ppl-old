@@ -31,6 +31,8 @@
 ### Current task
 * [ ] Fix `type of <:T>`
 ---
+* [ ] Add tracing to compiler
+* [ ] Need to search for variables at monomorphization, because the type of the variable can be changed (eg. `let y = reference to x; println y`)
 * [ ] Don't define variables right away, when declaring them
 * [ ] Still return declarations even if they have errors, so there is no `undefined_*` errors later
 * [ ] Generic types shouldn't be replaced, but rather constrained (e.g `T: Integer`)
