@@ -8,6 +8,7 @@ use std::{
 use crate::{
     ast,
     hir::Module,
+    named::Named,
     semantics::{ModuleContext, ToHIR},
     SourceFile,
 };
@@ -47,7 +48,10 @@ impl Compiler {
     ///
     /// Builtin module is the first module compiled
     pub fn builtin_module(&self) -> Option<&Module> {
-        self.modules.first_key_value().map(|(_, m)| m.as_ref())
+        self.modules.first_key_value().map(|(_, m)| {
+            debug_assert!(m.name() == "ppl", "Wrong module used as builtin");
+            m.as_ref()
+        })
     }
 
     /// Return compiler with root directory set to `root`
