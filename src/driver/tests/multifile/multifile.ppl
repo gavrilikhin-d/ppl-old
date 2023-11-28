@@ -1,3 +1,3 @@
-use greet.*
+use greet.`greet <:String>`
 
 greet "World"

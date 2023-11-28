@@ -1,4 +1,6 @@
-use std::{collections::BTreeMap, sync::Arc};
+use std::sync::Arc;
+
+use indexmap::IndexMap;
 
 use crate::{
     ast::CallNamePart,
@@ -35,9 +37,9 @@ pub trait FindDeclarationHere {
     }
 
     /// Get all functions with same name format
-    fn functions_with_format_here(&self, format: &str) -> BTreeMap<Name, Function> {
+    fn functions_with_format_here(&self, format: &str) -> IndexMap<Name, Function> {
         let _ = format;
-        BTreeMap::new()
+        IndexMap::new()
     }
 
     /// Get all traits implemented for `ty` here
@@ -85,7 +87,7 @@ pub trait FindDeclaration: FindDeclarationHere {
     }
 
     /// Get all functions with same name format
-    fn functions_with_format(&self, format: &str) -> BTreeMap<Name, Function> {
+    fn functions_with_format(&self, format: &str) -> IndexMap<Name, Function> {
         self.functions_with_format_here(format)
             .into_iter()
             .chain(
@@ -185,7 +187,7 @@ impl FindDeclarationHere for Module {
         self.functions.values().find_map(|fs| fs.get(name).cloned())
     }
 
-    fn functions_with_format_here(&self, format: &str) -> BTreeMap<Name, Function> {
+    fn functions_with_format_here(&self, format: &str) -> IndexMap<Name, Function> {
         self.functions.get(format).cloned().unwrap_or_default()
     }
 
@@ -222,7 +224,7 @@ impl<M: AsRef<Module>> FindDeclarationHere for M {
         self.as_ref().function_with_name_here(name)
     }
 
-    fn functions_with_format_here(&self, format: &str) -> BTreeMap<Name, Function> {
+    fn functions_with_format_here(&self, format: &str) -> IndexMap<Name, Function> {
         self.as_ref().functions_with_format_here(format)
     }
 

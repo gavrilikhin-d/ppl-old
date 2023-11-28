@@ -1,9 +1,10 @@
 use std::{
-    collections::BTreeMap,
     fs,
     path::{Path, PathBuf},
     sync::Arc,
 };
+
+use indexmap::IndexMap;
 
 use crate::{
     ast,
@@ -18,7 +19,7 @@ use miette::miette;
 /// Struct that compiles and caches modules
 pub struct Compiler {
     /// Cache of compiled modules
-    pub modules: BTreeMap<String, Arc<Module>>,
+    pub modules: IndexMap<String, Arc<Module>>,
     /// Root directory of the compiler
     pub root: PathBuf,
 }
@@ -39,7 +40,7 @@ impl Compiler {
     /// The first module to be added will be interpreted as builtin
     pub fn without_builtin() -> Self {
         Self {
-            modules: BTreeMap::new(),
+            modules: IndexMap::new(),
             root: "".into(),
         }
     }
@@ -48,7 +49,7 @@ impl Compiler {
     ///
     /// Builtin module is the first module compiled
     pub fn builtin_module(&self) -> Option<&Module> {
-        self.modules.first_key_value().map(|(_, m)| {
+        self.modules.values().next().map(|m| {
             debug_assert!(m.name() == "ppl", "Wrong module used as builtin");
             m.as_ref()
         })

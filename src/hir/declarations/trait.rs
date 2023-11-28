@@ -1,10 +1,11 @@
 use std::{
     borrow::Cow,
-    collections::BTreeMap,
     fmt::Display,
     hash::{Hash, Hasher},
     sync::Arc,
 };
+
+use indexmap::IndexMap;
 
 use crate::{named::Named, syntax::StringWithOffset, AddSourceLocation};
 
@@ -16,7 +17,7 @@ pub struct TraitDeclaration {
     /// Trait's name
     pub name: StringWithOffset,
     /// Associated functions
-    pub functions: BTreeMap<String, Function>,
+    pub functions: IndexMap<String, Function>,
 }
 
 impl TraitDeclaration {

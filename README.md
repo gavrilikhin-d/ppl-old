@@ -73,4 +73,4 @@
 * [ ] Add all `c` types
 
 ## Important Implementation Details
-* Use `BTreeMap` instead of `HashMap` to guarantee order of errors
+* Use `IndexMap` instead of `HashMap` to guarantee order of declarations
