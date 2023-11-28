@@ -118,7 +118,11 @@ impl Module {
 
 impl Named for Module {
     fn name(&self) -> Cow<'_, str> {
-        self.source_file.name().into()
+        self.source_file
+            .path()
+            .file_stem()
+            .unwrap()
+            .to_string_lossy()
     }
 }
 
