@@ -6,6 +6,9 @@ pub use lexer::*;
 
 pub mod error;
 
+mod identifier;
+pub use identifier::*;
+
 mod with_offset;
 pub use with_offset::*;
 
