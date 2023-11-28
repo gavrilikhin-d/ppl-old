@@ -723,7 +723,11 @@ impl ToHIR for ast::Use {
             context.module_mut().insert_function(f.clone());
             f.clone().into()
         } else {
-            todo!("Can't resolve imported name")
+            return Err(UnresolvedImport {
+                name: name.to_string(),
+                at: self.path.last().unwrap().range().into(),
+            }
+            .into());
         };
 
         Ok(hir::Use {
