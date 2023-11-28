@@ -233,7 +233,7 @@ mod tests {
             FunctionDeclaration, GenericParameter, Parameter, Statement, TypeReference,
             VariableReference,
         },
-        syntax::StringWithOffset,
+        syntax::Identifier,
     };
 
     use pretty_assertions::assert_eq;

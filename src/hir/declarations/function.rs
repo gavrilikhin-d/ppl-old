@@ -465,7 +465,7 @@ mod tests {
             Statement, TypeReference, VariableReference,
         },
         semantics::ToHIR,
-        syntax::StringWithOffset,
+        syntax::Identifier,
     };
 
     use pretty_assertions::assert_eq;
