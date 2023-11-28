@@ -4,7 +4,7 @@ use std::path::Path;
 use crate::compilation::Compiler;
 use crate::ir::HIRModuleLowering;
 use crate::named::Named;
-use log::debug;
+use log::{debug, trace};
 use miette::miette;
 use tempdir::TempDir;
 
@@ -70,6 +70,8 @@ impl Execute for Compile {
         let temp_dir = TempDir::new("ppl").unwrap();
 
         let bitcode = temp_dir.path().join(filename).with_extension("bc");
+        trace!(target: "steps", "generating bitcode for {} => {}", module.source_file().path().to_string_lossy(), bitcode.display());
+
         ir.write_bitcode_to_path(&bitcode);
         if output_type == OutputType::Bitcode {
             std::fs::copy(bitcode, output_file.with_extension("bc")).unwrap();
@@ -85,6 +87,7 @@ impl Execute for Compile {
                 let ir = m.lower_to_ir(&llvm);
                 let filename = m.name().to_string();
                 let bitcode = temp_dir.path().join(filename).with_extension("bc");
+                trace!(target: "steps", "generating bitcode for {} => {}", m.source_file().path().to_string_lossy(), bitcode.display());
                 ir.write_bitcode_to_path(&bitcode);
                 bitcode.to_string_lossy().to_string()
             })
