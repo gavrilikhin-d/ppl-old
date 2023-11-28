@@ -11,7 +11,7 @@ use crate::{
     semantics::{ModuleContext, ToHIR},
     SourceFile,
 };
-use log::debug;
+use log::{debug, trace};
 use miette::miette;
 
 /// Struct that compiles and caches modules
@@ -90,13 +90,15 @@ impl Compiler {
             .cloned()
             .ok_or_else(|| miette!("Module `{name}` not found. Tried {:#?}", variants))?;
 
+        trace!(target: "steps", "Parsing `{}`", path.display());
         let ast = ast::Module::from_file(&path)?;
-        debug!(target: "ast", "{:#?}", ast);
+        debug!(target: &format!("{name}-ast"), "\n{:#?}", ast);
 
         let module = Module::new(SourceFile::with_path(&path).unwrap());
 
         let content = fs::read_to_string(&path).map_err(|e| miette!("{path:?}: {e}"))?;
 
+        trace!(target: "steps", "Lowering to hir `{}`", path.display());
         let mut context = ModuleContext {
             module,
             compiler: self,
@@ -105,7 +107,7 @@ impl Compiler {
             miette::Report::from(e)
                 .with_source_code(miette::NamedSource::new(path.to_string_lossy(), content))
         })?;
-        debug!(target: "hir", "{:#}", hir);
+        debug!(target: &format!("{name}-hir"), "\n{:#}", hir);
 
         let module = Arc::new(hir);
         self.modules.insert(name.to_string(), module.clone());
