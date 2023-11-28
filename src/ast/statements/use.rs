@@ -37,14 +37,7 @@ impl Parse for Use {
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
         let offset = context.lexer.consume(Token::Use)?.start();
 
-        let mut path = Vec::new();
-        loop {
-            path.push(context.consume_id()?);
-
-            if context.lexer.consume(Token::Dot).is_err() {
-                break;
-            }
-        }
+        let path = context.parse_separated(|context| context.consume_id(), Token::Dot);
 
         Ok(Use { offset, path })
     }
