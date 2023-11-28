@@ -92,7 +92,7 @@ impl ToHIR for ast::VariableReference {
         let var = context.find_variable(&self.name);
         if var.is_none() {
             return Err(UndefinedVariable {
-                name: self.name.clone().into(),
+                name: self.name.clone().to_string(),
                 at: self.name.range().into(),
             }
             .into());
@@ -284,7 +284,7 @@ impl ToHIR for ast::TypeReference {
         let ty = context.find_type(&self.name);
         if ty.is_none() {
             return Err(UnknownType {
-                name: self.name.clone().into(),
+                name: self.name.clone().to_string(),
                 at: self.name.range().into(),
             }
             .into());
@@ -336,7 +336,7 @@ impl ToHIR for ast::MemberReference {
             })
         } else {
             Err(NoMember {
-                name: self.name.clone().into(),
+                name: self.name.clone().to_string(),
                 at: self.name.range().into(),
                 ty: base.ty(),
                 base_span: base.range().into(),
@@ -422,7 +422,7 @@ impl ToHIR for ast::Constructor {
                 });
             } else {
                 return Err(NoMember {
-                    name: name.clone().into(),
+                    name: name.clone().to_string(),
                     at: name.range().into(),
                     ty: ty.referenced_type.clone(),
                     base_span: self.ty.range().into(),

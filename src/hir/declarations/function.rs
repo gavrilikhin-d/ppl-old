@@ -8,13 +8,13 @@ use derive_more::{Display, From, TryInto};
 use crate::hir::{FunctionType, Generic, Statement, Type, TypeReference, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
-use crate::syntax::{Ranged, StringWithOffset};
+use crate::syntax::{Identifier, Ranged, StringWithOffset};
 
 /// Declaration of a function parameter
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Parameter {
     /// Type's name
-    pub name: StringWithOffset,
+    pub name: Identifier,
     /// Type of parameter
     pub ty: TypeReference,
     /// Range of the whole parameter
@@ -57,7 +57,7 @@ impl Mutable for Parameter {
 /// Part of a function name
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum FunctionNamePart {
-    Text(StringWithOffset),
+    Text(Identifier),
     Parameter(Arc<Parameter>),
 }
 
@@ -481,12 +481,12 @@ mod tests {
         let hir: Arc<FunctionDefinition> = hir.try_into().unwrap();
 
         let ty = GenericType {
-            name: StringWithOffset::from("T").at(3),
+            name: Identifier::from("T").at(3),
             generated: false,
             constraint: None,
         };
         let param = Parameter {
-            name: StringWithOffset::from("x").at(7),
+            name: Identifier::from("x").at(7),
             ty: TypeReference {
                 referenced_type: ty.clone().into(),
                 span: 10..11,

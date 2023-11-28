@@ -4,13 +4,13 @@ use ast_derive::AST;
 use crate::ast::Expression;
 use crate::mutability::{Mutability, Mutable};
 use crate::syntax::error::{MissingVariableName, ParseError};
-use crate::syntax::{Context, Lexer, Parse, StartsHere, StringWithOffset, Token};
+use crate::syntax::{Context, Identifier, Lexer, Parse, StartsHere, StringWithOffset, Token};
 
 /// Declaration of the variable
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct VariableDeclaration {
     /// Name of variable
-    pub name: StringWithOffset,
+    pub name: Identifier,
     /// Initializer for variable
     pub initializer: Expression,
 
@@ -71,7 +71,7 @@ fn test_variable_declaration() {
     assert_eq!(
         var,
         VariableDeclaration {
-            name: StringWithOffset::from("x").at(4),
+            name: Identifier::from("x").at(4),
             initializer: Literal::Integer {
                 offset: 8,
                 value: "1".to_string()
@@ -85,7 +85,7 @@ fn test_variable_declaration() {
     assert_eq!(
         var,
         VariableDeclaration {
-            name: StringWithOffset::from("x").at(8),
+            name: Identifier::from("x").at(8),
             initializer: Literal::Integer {
                 offset: 12,
                 value: "1".to_string()

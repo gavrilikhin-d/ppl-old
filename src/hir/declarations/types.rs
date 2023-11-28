@@ -4,7 +4,7 @@ use crate::{
     hir::{Basename, Generic, Type, Typed},
     mutability::Mutable,
     named::Named,
-    syntax::StringWithOffset,
+    syntax::{Identifier, StringWithOffset},
     AddSourceLocation,
 };
 
@@ -12,7 +12,7 @@ use crate::{
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Member {
     /// Member's name
-    pub name: StringWithOffset,
+    pub name: Identifier,
     /// Member's type
     pub ty: Type,
 }
@@ -87,7 +87,7 @@ impl FromStr for BuiltinClass {
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct TypeDeclaration {
     /// Type's name
-    pub basename: StringWithOffset,
+    pub basename: Identifier,
     /// Base generic type, if this is a specialization
     pub specialization_of: Option<Arc<TypeDeclaration>>,
     /// Generic parameters of type
@@ -257,7 +257,7 @@ mod tests {
         assert_eq!(
             *type_decl,
             TypeDeclaration {
-                basename: StringWithOffset::from("x").at(5),
+                basename: Identifier::from("x").at(5),
                 specialization_of: None,
                 generic_parameters: vec![],
                 builtin: None,
@@ -277,19 +277,19 @@ mod tests {
         assert_eq!(
             *type_decl,
             TypeDeclaration {
-                basename: StringWithOffset::from("Point").at(5),
+                basename: Identifier::from("Point").at(5),
                 specialization_of: None,
                 generic_parameters: vec![GenericType {
-                    name: StringWithOffset::from("U").at(11),
+                    name: Identifier::from("U").at(11),
                     generated: false,
                     constraint: None
                 }
                 .into()],
                 builtin: None,
                 members: vec![Arc::new(Member {
-                    name: StringWithOffset::from("x").at(16),
+                    name: Identifier::from("x").at(16),
                     ty: GenericType {
-                        name: StringWithOffset::from("U").at(11),
+                        name: Identifier::from("U").at(11),
                         generated: false,
                         constraint: None,
                     }
@@ -321,17 +321,17 @@ mod tests {
         assert_eq!(
             *type_decl,
             TypeDeclaration {
-                basename: StringWithOffset::from("Point").at(5),
+                basename: Identifier::from("Point").at(5),
                 specialization_of: None,
                 generic_parameters: vec![],
                 builtin: None,
                 members: vec![
                     Arc::new(Member {
-                        name: StringWithOffset::from("x").at(13),
+                        name: Identifier::from("x").at(13),
                         ty: integer.clone(),
                     }),
                     Arc::new(Member {
-                        name: StringWithOffset::from("y").at(16),
+                        name: Identifier::from("y").at(16),
                         ty: integer,
                     }),
                 ],

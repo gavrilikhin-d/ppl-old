@@ -7,14 +7,21 @@ use derive_more::{From, TryInto};
 use super::{parse_binary_expression, Expression};
 
 use crate::syntax::{
-    error::ParseError, Context, Lexer, Parse, Ranged, StartsHere, StringWithOffset, Token,
+    error::ParseError, Context, Identifier, Lexer, Parse, Ranged, StartsHere, StringWithOffset,
+    Token,
 };
 
 /// Cell of function
 #[derive(Debug, PartialEq, Eq, AST, Clone, From, TryInto)]
 pub enum CallNamePart {
-    Text(StringWithOffset),
+    Text(Identifier),
     Argument(Expression),
+}
+
+impl From<StringWithOffset> for CallNamePart {
+    fn from(string: StringWithOffset) -> Self {
+        CallNamePart::Text(string.into())
+    }
 }
 
 impl Ranged for CallNamePart {

@@ -2,7 +2,7 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
-use crate::syntax::{Context, Ranged, StartsHere, StringWithOffset};
+use crate::syntax::{Context, Identifier, Ranged, StartsHere};
 
 /// AST for use statement
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -10,7 +10,7 @@ pub struct Use {
     /// Offset of "use" keyword
     pub offset: usize,
     /// Path to introduce to current module
-    pub path: Vec<StringWithOffset>,
+    pub path: Vec<Identifier>,
 }
 
 impl Ranged for Use {

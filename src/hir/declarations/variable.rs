@@ -4,13 +4,13 @@ use std::fmt::Display;
 use crate::hir::{Expression, Generic, Type, Typed};
 use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
-use crate::syntax::StringWithOffset;
+use crate::syntax::{Identifier, StringWithOffset};
 
 /// Declaration of a variable
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VariableDeclaration {
     /// Variable's name
-    pub name: StringWithOffset,
+    pub name: Identifier,
     /// Initializer for variable
     pub initializer: Expression,
 

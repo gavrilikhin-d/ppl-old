@@ -7,7 +7,11 @@ use std::{
 
 use indexmap::IndexMap;
 
-use crate::{named::Named, syntax::StringWithOffset, AddSourceLocation};
+use crate::{
+    named::Named,
+    syntax::{Identifier, StringWithOffset},
+    AddSourceLocation,
+};
 
 use super::Function;
 
@@ -15,7 +19,7 @@ use super::Function;
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct TraitDeclaration {
     /// Trait's name
-    pub name: StringWithOffset,
+    pub name: Identifier,
     /// Associated functions
     pub functions: IndexMap<String, Function>,
 }
