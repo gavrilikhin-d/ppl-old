@@ -3,7 +3,8 @@ use std::path::Path;
 
 use crate::compilation::Compiler;
 use crate::ir::HIRModuleLowering;
-use log::debug;
+use crate::named::Named;
+use log::{debug, trace};
 use miette::miette;
 use tempdir::TempDir;
 
@@ -69,12 +70,29 @@ impl Execute for Compile {
         let temp_dir = TempDir::new("ppl").unwrap();
 
         let bitcode = temp_dir.path().join(filename).with_extension("bc");
+        trace!(target: "steps", "generating bitcode for {} => {}", module.source_file().path().to_string_lossy(), bitcode.display());
+
         ir.write_bitcode_to_path(&bitcode);
         if output_type == OutputType::Bitcode {
             std::fs::copy(bitcode, output_file.with_extension("bc")).unwrap();
             return Ok(());
         }
-        let bitcode = bitcode.to_str().unwrap();
+
+        let bitcodes: Vec<_> = compiler
+            .modules
+            .values()
+            .filter(|m| m.name() != name && m.name() != "ppl")
+            .map(|m| {
+                let llvm = inkwell::context::Context::create();
+                let ir = m.lower_to_ir(&llvm);
+                let filename = m.name().to_string();
+                let bitcode = temp_dir.path().join(filename).with_extension("bc");
+                trace!(target: "steps", "generating bitcode for {} => {}", m.source_file().path().to_string_lossy(), bitcode.display());
+                ir.write_bitcode_to_path(&bitcode);
+                bitcode.to_string_lossy().to_string()
+            })
+            .chain(std::iter::once(bitcode.to_string_lossy().to_string()))
+            .collect();
 
         let mut clang = std::process::Command::new("clang");
         let lib_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/debug/deps");
@@ -96,7 +114,7 @@ impl Execute for Compile {
             "-lruntime",
             if !self.no_core { "-lppl" } else { "" },
         ])
-        .arg(bitcode)
+        .args(&bitcodes)
         .args(&["-o", output_file.to_str().unwrap()])
         .arg("-Wno-override-module")
         .status()

@@ -6,3 +6,6 @@ pub use execute::Execute;
 
 pub use cli::commands;
 pub use cli::Command;
+
+#[cfg(test)]
+mod tests;

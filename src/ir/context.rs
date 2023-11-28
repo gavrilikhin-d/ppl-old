@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use indexmap::IndexMap;
 
 use inkwell::basic_block::BasicBlock;
 
@@ -88,9 +88,9 @@ pub struct FunctionContext<'llvm, 'm> {
     /// Builder for current function
     pub builder: inkwell::builder::Builder<'llvm>,
     /// Parameters of this function
-    pub parameters: BTreeMap<String, inkwell::values::PointerValue<'llvm>>,
+    pub parameters: IndexMap<String, inkwell::values::PointerValue<'llvm>>,
     /// Local variables
-    pub variables: BTreeMap<String, inkwell::values::PointerValue<'llvm>>,
+    pub variables: IndexMap<String, inkwell::values::PointerValue<'llvm>>,
 }
 
 impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
@@ -109,8 +109,8 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
             module_context,
             function,
             builder,
-            parameters: BTreeMap::new(),
-            variables: BTreeMap::new(),
+            parameters: IndexMap::new(),
+            variables: IndexMap::new(),
         }
     }
 

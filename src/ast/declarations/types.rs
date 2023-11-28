@@ -3,30 +3,25 @@ use ast_derive::AST;
 
 use crate::{
     ast::{Annotation, TypeReference},
-    syntax::{error::ParseError, Context, Lexer, Parse, StartsHere, StringWithOffset, Token},
+    syntax::{
+        error::ParseError, Context, Identifier, Lexer, Parse, StartsHere, Token,
+    },
 };
 
 /// Member of type
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Member {
     /// Name of member
-    pub name: StringWithOffset,
+    pub name: Identifier,
     /// Type of member
     pub ty: TypeReference,
 }
 
 /// Parse single or multiple members, if they are separated by comma
 pub fn parse_members(context: &mut Context<impl Lexer>) -> Result<Vec<Member>, ParseError> {
-    let mut names = Vec::new();
-    loop {
-        names.push(context.consume_id()?);
+    let names = context.parse_comma_separated(|context| context.consume_id());
 
-        if context.lexer.consume(Token::Colon).is_ok() {
-            break;
-        }
-
-        context.lexer.consume(Token::Comma)?;
-    }
+    context.lexer.consume(Token::Colon)?;
 
     let ty = TypeReference::parse(context)?;
 
@@ -45,7 +40,7 @@ pub fn parse_members(context: &mut Context<impl Lexer>) -> Result<Vec<Member>, P
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct GenericParameter {
     /// Name of a generic parameter
-    pub name: StringWithOffset,
+    pub name: Identifier,
     /// Constraint for a generic parameter
     pub constraint: Option<TypeReference>,
 }
@@ -55,7 +50,7 @@ impl Parse for GenericParameter {
 
     /// Parse generic parameter using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        let name = context.lexer.consume(Token::Id)?;
+        let name = context.consume_id()?;
 
         let constraint = if context.lexer.consume(Token::Colon).is_ok() {
             Some(TypeReference::parse(context)?)
@@ -73,7 +68,7 @@ pub struct TypeDeclaration {
     /// Annotations for type
     pub annotations: Vec<Annotation>,
     /// Name of type
-    pub name: StringWithOffset,
+    pub name: Identifier,
     /// Generic parameters of type
     pub generic_parameters: Vec<GenericParameter>,
     /// Members of type
@@ -94,7 +89,7 @@ impl Parse for TypeDeclaration {
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
         context.lexer.consume(Token::Type)?;
 
-        let name = context.lexer.consume(Token::Id)?;
+        let name = context.consume_id()?;
 
         let mut generic_parameters = Vec::new();
         if context.lexer.consume(Token::Less).is_ok() {
@@ -134,7 +129,7 @@ mod tests {
             type_decl,
             TypeDeclaration {
                 annotations: vec![],
-                name: StringWithOffset::from("x").at(5),
+                name: Identifier::from("x").at(5),
                 generic_parameters: vec![],
                 members: vec![],
             }
@@ -148,15 +143,15 @@ mod tests {
             type_decl,
             TypeDeclaration {
                 annotations: vec![],
-                name: StringWithOffset::from("Point").at(5),
+                name: Identifier::from("Point").at(5),
                 generic_parameters: vec![GenericParameter {
-                    name: StringWithOffset::from("U").at(11),
+                    name: Identifier::from("U").at(11),
                     constraint: None,
                 }],
                 members: vec![Member {
-                    name: StringWithOffset::from("x").at(16),
+                    name: Identifier::from("x").at(16),
                     ty: TypeReference {
-                        name: StringWithOffset::from("U").at(18),
+                        name: Identifier::from("U").at(18),
                         generic_parameters: Vec::new(),
                     },
                 },],
@@ -170,18 +165,18 @@ mod tests {
             type_decl,
             TypeDeclaration {
                 annotations: vec![],
-                name: StringWithOffset::from("Point").at(5),
+                name: Identifier::from("Point").at(5),
                 generic_parameters: vec![GenericParameter {
-                    name: StringWithOffset::from("U").at(11),
+                    name: Identifier::from("U").at(11),
                     constraint: Some(TypeReference {
-                        name: StringWithOffset::from("A").at(14),
+                        name: Identifier::from("A").at(14),
                         generic_parameters: Vec::new()
                     })
                 }],
                 members: vec![Member {
-                    name: StringWithOffset::from("x").at(19),
+                    name: Identifier::from("x").at(19),
                     ty: TypeReference {
-                        name: StringWithOffset::from("U").at(21),
+                        name: Identifier::from("U").at(21),
                         generic_parameters: Vec::new(),
                     },
                 },],
@@ -196,22 +191,22 @@ mod tests {
             .unwrap();
 
         let ty = TypeReference {
-            name: StringWithOffset::from("Integer").at(19),
+            name: Identifier::from("Integer").at(19),
             generic_parameters: Vec::new(),
         };
         assert_eq!(
             type_decl,
             TypeDeclaration {
                 annotations: vec![],
-                name: StringWithOffset::from("Point").at(5),
+                name: Identifier::from("Point").at(5),
                 generic_parameters: vec![],
                 members: vec![
                     Member {
-                        name: StringWithOffset::from("x").at(13),
+                        name: Identifier::from("x").at(13),
                         ty: ty.clone(),
                     },
                     Member {
-                        name: StringWithOffset::from("y").at(16),
+                        name: Identifier::from("y").at(16),
                         ty: ty.clone(),
                     },
                 ],

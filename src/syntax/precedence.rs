@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use indexmap::IndexMap;
 
 /// Associativity of operators
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -23,7 +23,7 @@ pub struct PrecedenceGroups {
     /// Precedence groups
     groups: Vec<PrecedenceGroup>,
     /// Mapping of operators to group
-    operators_mapping: BTreeMap<Operator, GroupIndex>,
+    operators_mapping: IndexMap<Operator, GroupIndex>,
 }
 
 impl PrecedenceGroups {

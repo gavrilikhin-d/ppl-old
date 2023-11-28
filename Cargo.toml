@@ -23,6 +23,7 @@ log = "0.4.20"
 pretty_assertions = "1.4.0"
 unescaper = "0.1.2"
 tempdir = "0.3.7"
+indexmap = "2.1.0"
 
 [build-dependencies]
 clap = { version = "4.4.4", features = ["derive"] }

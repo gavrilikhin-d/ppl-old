@@ -1,5 +1,5 @@
+use indexmap::IndexMap;
 use std::borrow::Cow;
-use std::collections::BTreeMap;
 use std::fmt::Display;
 
 use derive_more::From;
@@ -49,13 +49,13 @@ pub struct Module {
     pub source_file: SourceFile,
 
     /// Variables, visible in this module
-    pub variables: BTreeMap<Name, Arc<VariableDeclaration>>,
+    pub variables: IndexMap<Name, Arc<VariableDeclaration>>,
 
     /// Types, visible in this module
-    pub types: BTreeMap<Name, ClassOrTrait>,
+    pub types: IndexMap<Name, ClassOrTrait>,
 
     /// Functions, visible in this module
-    pub functions: BTreeMap<Format, BTreeMap<Name, Function>>,
+    pub functions: IndexMap<Format, IndexMap<Name, Function>>,
 
     /// Statements in this module
     pub statements: Vec<Statement>,
@@ -75,9 +75,9 @@ impl Module {
     pub fn new(source_file: SourceFile) -> Self {
         Self {
             source_file,
-            variables: BTreeMap::new(),
-            types: BTreeMap::new(),
-            functions: BTreeMap::new(),
+            variables: IndexMap::new(),
+            types: IndexMap::new(),
+            functions: IndexMap::new(),
             statements: vec![],
         }
     }
@@ -92,7 +92,7 @@ impl Module {
         let set = self
             .functions
             .entry(function.name_format().to_string())
-            .or_insert_with(BTreeMap::new);
+            .or_insert_with(IndexMap::new);
         set.insert(function.name().to_string(), function.into());
     }
 
@@ -118,7 +118,11 @@ impl Module {
 
 impl Named for Module {
     fn name(&self) -> Cow<'_, str> {
-        self.source_file.name().into()
+        self.source_file
+            .path()
+            .file_stem()
+            .unwrap()
+            .to_string_lossy()
     }
 }
 

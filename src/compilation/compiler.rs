@@ -1,23 +1,25 @@
 use std::{
-    collections::BTreeMap,
     fs,
     path::{Path, PathBuf},
     sync::Arc,
 };
 
+use indexmap::IndexMap;
+
 use crate::{
     ast,
     hir::Module,
+    named::Named,
     semantics::{ModuleContext, ToHIR},
     SourceFile,
 };
-use log::debug;
+use log::{debug, trace};
 use miette::miette;
 
 /// Struct that compiles and caches modules
 pub struct Compiler {
     /// Cache of compiled modules
-    pub modules: BTreeMap<String, Arc<Module>>,
+    pub modules: IndexMap<String, Arc<Module>>,
     /// Root directory of the compiler
     pub root: PathBuf,
 }
@@ -38,7 +40,7 @@ impl Compiler {
     /// The first module to be added will be interpreted as builtin
     pub fn without_builtin() -> Self {
         Self {
-            modules: BTreeMap::new(),
+            modules: IndexMap::new(),
             root: "".into(),
         }
     }
@@ -47,7 +49,10 @@ impl Compiler {
     ///
     /// Builtin module is the first module compiled
     pub fn builtin_module(&self) -> Option<&Module> {
-        self.modules.first_key_value().map(|(_, m)| m.as_ref())
+        self.modules.values().next().map(|m| {
+            debug_assert!(m.name() == "ppl", "Wrong module used as builtin");
+            m.as_ref()
+        })
     }
 
     /// Return compiler with root directory set to `root`
@@ -90,13 +95,15 @@ impl Compiler {
             .cloned()
             .ok_or_else(|| miette!("Module `{name}` not found. Tried {:#?}", variants))?;
 
+        trace!(target: "steps", "Parsing `{}`", path.display());
         let ast = ast::Module::from_file(&path)?;
-        debug!(target: "ast", "{:#?}", ast);
+        debug!(target: &format!("{name}-ast"), "\n{:#?}", ast);
 
         let module = Module::new(SourceFile::with_path(&path).unwrap());
 
         let content = fs::read_to_string(&path).map_err(|e| miette!("{path:?}: {e}"))?;
 
+        trace!(target: "steps", "Lowering to hir `{}`", path.display());
         let mut context = ModuleContext {
             module,
             compiler: self,
@@ -105,7 +112,7 @@ impl Compiler {
             miette::Report::from(e)
                 .with_source_code(miette::NamedSource::new(path.to_string_lossy(), content))
         })?;
-        debug!(target: "hir", "{:#}", hir);
+        debug!(target: &format!("{name}-hir"), "\n{:#}", hir);
 
         let module = Arc::new(hir);
         self.modules.insert(name.to_string(), module.clone());

@@ -1,7 +1,9 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{error::ParseError, Context, Lexer, Parse, Ranged, StringWithOffset, Token};
+use crate::syntax::{
+    error::ParseError, Context, Identifier, Lexer, Parse, Ranged, Token,
+};
 
 use super::{Expression, TypeReference, VariableReference};
 
@@ -9,7 +11,7 @@ use super::{Expression, TypeReference, VariableReference};
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct Initializer {
     /// Name of member
-    pub name: Option<StringWithOffset>,
+    pub name: Option<Identifier>,
     /// Value to initialize with
     pub value: Expression,
 }
@@ -118,7 +120,7 @@ mod tests {
             res,
             Constructor {
                 ty: TypeReference {
-                    name: StringWithOffset::from("Empty"),
+                    name: Identifier::from("Empty"),
                     generic_parameters: Vec::new(),
                 },
                 lbrace: 6,
@@ -135,7 +137,7 @@ mod tests {
             res,
             Constructor {
                 ty: TypeReference {
-                    name: StringWithOffset::from("Point"),
+                    name: Identifier::from("Point"),
                     generic_parameters: Vec::new(),
                 },
                 lbrace: 6,
@@ -143,14 +145,14 @@ mod tests {
                     Initializer {
                         name: None,
                         value: VariableReference {
-                            name: StringWithOffset::from("x").at(7)
+                            name: Identifier::from("x").at(7)
                         }
                         .into(),
                     },
                     Initializer {
                         name: None,
                         value: VariableReference {
-                            name: StringWithOffset::from("y").at(10)
+                            name: Identifier::from("y").at(10)
                         }
                         .into(),
                     },
@@ -167,13 +169,13 @@ mod tests {
             res,
             Constructor {
                 ty: TypeReference {
-                    name: StringWithOffset::from("Point"),
+                    name: Identifier::from("Point"),
                     generic_parameters: Vec::new(),
                 },
                 lbrace: 6,
                 initializers: vec![
                     Initializer {
-                        name: StringWithOffset::from("x").at(7).into(),
+                        name: Identifier::from("x").at(7).into(),
                         value: Literal::Integer {
                             offset: 10,
                             value: "0".to_string()
@@ -181,7 +183,7 @@ mod tests {
                         .into()
                     },
                     Initializer {
-                        name: StringWithOffset::from("y").at(13).into(),
+                        name: Identifier::from("y").at(13).into(),
                         value: Literal::Integer {
                             offset: 16,
                             value: "0".to_string()

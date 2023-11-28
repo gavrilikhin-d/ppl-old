@@ -4,7 +4,7 @@ use derive_more::From;
 
 use crate::{
     hir::{ClassOrTrait, Function, VariableDeclaration},
-    syntax::StringWithOffset,
+    syntax::{Identifier},
 };
 
 /// Item, imported by use statement
@@ -19,7 +19,7 @@ pub enum ImportedItem {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Use {
     /// Path to item
-    pub path: Vec<StringWithOffset>,
+    pub path: Vec<Identifier>,
     /// Item, imported by use statement
     pub imported_item: ImportedItem,
 }

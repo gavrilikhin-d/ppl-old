@@ -1,7 +1,6 @@
-use std::{
-    collections::{BTreeMap, HashMap},
-    sync::Arc,
-};
+use std::{collections::HashMap, sync::Arc};
+
+use indexmap::IndexMap;
 
 use crate::{
     ast,
@@ -156,7 +155,7 @@ impl Declare for ast::TraitDeclaration {
             let mut context = TraitContext {
                 tr: hir::TraitDeclaration {
                     name: self.name.clone(),
-                    functions: BTreeMap::new(),
+                    functions: IndexMap::new(),
                 },
                 trait_weak: trait_weak.clone(),
                 parent: context,
@@ -191,7 +190,7 @@ impl Declare for ast::TraitDeclaration {
             let mut context = TraitContext {
                 tr: hir::TraitDeclaration {
                     name: self.name.clone(),
-                    functions: BTreeMap::new(),
+                    functions: IndexMap::new(),
                 },
                 trait_weak: trait_weak.clone(),
                 parent: context,

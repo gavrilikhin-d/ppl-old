@@ -434,6 +434,18 @@ pub enum NotConvertible {
     ReferenceMutToImmutable(#[from] ReferenceMutToImmutable),
 }
 
+/// Diagnostic for unresolved import
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("unresolved import of `{name}`")]
+#[diagnostic(code(semantics::unresolved_import))]
+pub struct UnresolvedImport {
+    /// Name of the unresolved item
+    pub name: String,
+    /// Location of the unresolved item
+    #[label("No such item im module")]
+    pub at: SourceSpan,
+}
+
 /// Helper macro to create error enumeration
 macro_rules! error_enum {
 	($($name:ident),*) => {
@@ -466,5 +478,6 @@ error_enum!(
     MissingFields,
     NonClassConstructor,
     NotImplemented,
-    NotConvertible
+    NotConvertible,
+    UnresolvedImport
 );

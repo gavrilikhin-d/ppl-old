@@ -1,6 +1,6 @@
 use super::{
     error::{LexerError, ParseError},
-    PrecedenceGroups, StringWithOffset, Token,
+    Identifier, PrecedenceGroups, StringWithOffset, Token,
 };
 
 /// Context for parsing
@@ -21,9 +21,9 @@ impl<Lexer: super::Lexer> Context<Lexer> {
     }
 
     /// Consume id or escaped id
-    pub fn consume_id(&mut self) -> Result<StringWithOffset, LexerError> {
+    pub fn consume_id(&mut self) -> Result<Identifier, LexerError> {
         self.lexer.consume_one_of(&[Token::Id, Token::EscapedId])?;
-        Ok(self.lexer.string_with_offset())
+        Ok(self.lexer.string_with_offset().into())
     }
 
     /// Parse block of items

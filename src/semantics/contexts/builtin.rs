@@ -1,4 +1,7 @@
-use crate::hir::{Module, SpecializeParameters, Type};
+use crate::{
+    hir::{Module, SpecializeParameters, Type},
+    named::Named,
+};
 
 /// Helper struct to get builtin things
 pub struct BuiltinContext<'m> {
@@ -40,6 +43,7 @@ macro_rules! builtin_types {
 impl BuiltinTypes<'_> {
     /// Get builtin type by name
     fn get_type(&self, name: &str) -> Type {
+        debug_assert!(self.module.name() == "ppl", "Wrong module used as builtin");
         self.module
             .types
             .get(name)

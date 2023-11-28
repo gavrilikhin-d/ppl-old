@@ -2,14 +2,14 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use crate::syntax::{
-    error::ParseError, Context, Lexer, Parse, Ranged, StartsHere, StringWithOffset, Token,
+    error::ParseError, Context, Identifier, Lexer, Parse, Ranged, StartsHere, Token,
 };
 
 /// AST for type reference
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct TypeReference {
     /// Referenced type name
-    pub name: StringWithOffset,
+    pub name: Identifier,
     /// Generic parameters
     pub generic_parameters: Vec<TypeReference>,
 }
@@ -19,8 +19,14 @@ impl StartsHere for TypeReference {
     fn starts_here(context: &mut Context<impl Lexer>) -> bool {
         context
             .lexer
-            .try_match(Token::Id)
-            .is_ok_and(|t| t.as_str().chars().nth(0).is_some_and(|c| c.is_uppercase()))
+            .try_match_one_of(&[Token::Id, Token::EscapedId])
+            .is_ok_and(|_| {
+                Identifier::from(context.lexer.peek_string_with_offset())
+                    .as_str()
+                    .chars()
+                    .nth(0)
+                    .is_some_and(|c| c.is_uppercase())
+            })
     }
 }
 
@@ -29,7 +35,7 @@ impl Parse for TypeReference {
 
     /// Parse type reference using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        let name = context.lexer.consume(Token::Id)?;
+        let name = context.consume_id()?;
 
         let mut generic_parameters = Vec::new();
         if context.lexer.consume(Token::Less).is_ok() {
@@ -72,7 +78,7 @@ mod tests {
         assert_eq!(
             res,
             Ok(TypeReference {
-                name: StringWithOffset::from("Foo"),
+                name: Identifier::from("Foo"),
                 generic_parameters: Vec::new(),
             })
         );
@@ -86,14 +92,14 @@ mod tests {
         assert_eq!(
             res,
             Ok(TypeReference {
-                name: StringWithOffset::from("Foo").at(0),
+                name: Identifier::from("Foo").at(0),
                 generic_parameters: vec![
                     TypeReference {
-                        name: StringWithOffset::from("Bar").at(4),
+                        name: Identifier::from("Bar").at(4),
                         generic_parameters: Vec::new(),
                     },
                     TypeReference {
-                        name: StringWithOffset::from("Baz").at(9),
+                        name: Identifier::from("Baz").at(9),
                         generic_parameters: Vec::new(),
                     },
                 ],
@@ -109,11 +115,11 @@ mod tests {
         assert_eq!(
             res,
             Ok(TypeReference {
-                name: StringWithOffset::from("Foo").at(0),
+                name: Identifier::from("Foo").at(0),
                 generic_parameters: vec![TypeReference {
-                    name: StringWithOffset::from("Bar").at(4),
+                    name: Identifier::from("Bar").at(4),
                     generic_parameters: [TypeReference {
-                        name: StringWithOffset::from("Baz").at(8),
+                        name: Identifier::from("Baz").at(8),
                         generic_parameters: Vec::new(),
                     }]
                     .into(),

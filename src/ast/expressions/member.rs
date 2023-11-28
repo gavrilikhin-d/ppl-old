@@ -1,7 +1,9 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{error::ParseError, Context, Lexer, Parse, Ranged, StringWithOffset, Token};
+use crate::syntax::{
+    error::ParseError, Context, Identifier, Lexer, Parse, Ranged, Token,
+};
 
 use super::{parse_atomic_expression, Expression};
 
@@ -11,7 +13,7 @@ pub struct MemberReference {
     /// Base expression
     pub base: Box<Expression>,
     /// Referenced member name
-    pub name: StringWithOffset,
+    pub name: Identifier,
 }
 
 impl MemberReference {
@@ -66,10 +68,10 @@ mod tests {
         assert_eq!(
             m,
             MemberReference {
-                name: StringWithOffset::from("x").at(6),
+                name: Identifier::from("x").at(6),
                 base: Box::new(
                     VariableReference {
-                        name: StringWithOffset::from("point"),
+                        name: Identifier::from("point"),
                     }
                     .into()
                 ),
@@ -83,13 +85,13 @@ mod tests {
         assert_eq!(
             m,
             MemberReference {
-                name: StringWithOffset::from("name").at(7),
+                name: Identifier::from("name").at(7),
                 base: Box::new(
                     MemberReference {
-                        name: StringWithOffset::from("ty").at(4),
+                        name: Identifier::from("ty").at(4),
                         base: Box::new(
                             VariableReference {
-                                name: StringWithOffset::from("var"),
+                                name: Identifier::from("var"),
                             }
                             .into()
                         ),
