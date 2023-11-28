@@ -7,11 +7,7 @@ use std::{
 
 use indexmap::IndexMap;
 
-use crate::{
-    named::Named,
-    syntax::{Identifier, StringWithOffset},
-    AddSourceLocation,
-};
+use crate::{named::Named, syntax::Identifier, AddSourceLocation};
 
 use super::Function;
 

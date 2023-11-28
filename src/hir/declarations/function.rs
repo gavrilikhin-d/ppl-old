@@ -8,7 +8,7 @@ use derive_more::{Display, From, TryInto};
 use crate::hir::{FunctionType, Generic, Statement, Type, TypeReference, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
-use crate::syntax::{Identifier, Ranged, StringWithOffset};
+use crate::syntax::{Identifier, Ranged};
 
 /// Declaration of a function parameter
 #[derive(Debug, PartialEq, Eq, Clone)]

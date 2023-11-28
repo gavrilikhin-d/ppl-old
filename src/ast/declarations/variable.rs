@@ -4,7 +4,7 @@ use ast_derive::AST;
 use crate::ast::Expression;
 use crate::mutability::{Mutability, Mutable};
 use crate::syntax::error::{MissingVariableName, ParseError};
-use crate::syntax::{Context, Identifier, Lexer, Parse, StartsHere, StringWithOffset, Token};
+use crate::syntax::{Context, Identifier, Lexer, Parse, StartsHere, Token};
 
 /// Declaration of the variable
 #[derive(Debug, PartialEq, Eq, AST, Clone)]

@@ -4,7 +4,7 @@ use ast_derive::AST;
 use crate::{
     ast::{Annotation, TypeReference},
     syntax::{
-        error::ParseError, Context, Identifier, Lexer, Parse, StartsHere, StringWithOffset, Token,
+        error::ParseError, Context, Identifier, Lexer, Parse, StartsHere, Token,
     },
 };
 

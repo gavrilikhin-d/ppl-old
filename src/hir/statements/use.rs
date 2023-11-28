@@ -4,7 +4,7 @@ use derive_more::From;
 
 use crate::{
     hir::{ClassOrTrait, Function, VariableDeclaration},
-    syntax::{Identifier, StringWithOffset},
+    syntax::{Identifier},
 };
 
 /// Item, imported by use statement

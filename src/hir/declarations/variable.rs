@@ -4,7 +4,7 @@ use std::fmt::Display;
 use crate::hir::{Expression, Generic, Type, Typed};
 use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
-use crate::syntax::{Identifier, StringWithOffset};
+use crate::syntax::Identifier;
 
 /// Declaration of a variable
 #[derive(Debug, PartialEq, Eq, Clone)]

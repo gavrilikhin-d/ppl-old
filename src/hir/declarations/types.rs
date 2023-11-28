@@ -4,7 +4,7 @@ use crate::{
     hir::{Basename, Generic, Type, Typed},
     mutability::Mutable,
     named::Named,
-    syntax::{Identifier, StringWithOffset},
+    syntax::{Identifier},
     AddSourceLocation,
 };
 

@@ -8,7 +8,7 @@ use std::{
 use crate::{
     mutability::Mutable,
     named::Named,
-    syntax::{Identifier, StringWithOffset},
+    syntax::{Identifier},
     AddSourceLocation,
 };
 

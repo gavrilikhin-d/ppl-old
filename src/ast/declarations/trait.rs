@@ -2,7 +2,7 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use crate::syntax::{
-    error::ParseError, Context, Identifier, Lexer, Parse, StartsHere, StringWithOffset, Token,
+    error::ParseError, Context, Identifier, Lexer, Parse, StartsHere, Token,
 };
 
 use super::FunctionDeclaration;
