@@ -247,6 +247,9 @@ fn <address: MemoryAddress> as String -> String
 @mangle_as("allocate_n_bytes")
 fn allocate <n: Integer> bytes -> MemoryAddress
 
+/// Allocate memory for `n` elements of type `T`
+fn<T> allocate <n: Integer> <:Type<T>> => allocate n * (size of T) bytes
+
 /// Free previously allocated memory
 @mangle_as("free_memory")
 fn free <address: MemoryAddress>
@@ -294,7 +297,7 @@ fn sleep <ms: Integer> ms
 type Array<T>:
     /// Number of elements in array
 	size: Integer
-    /// Size of allocated memory in bytes
+    /// Size of allocated memory in elements
 	capacity: Integer
     /// Address of first allocated element
 	data: MemoryAddress
