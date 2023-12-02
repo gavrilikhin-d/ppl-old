@@ -303,7 +303,10 @@ type Array<T>:
 	data: MemoryAddress
 
 /// Create an empty array
-fn<T> <:Type<T>>[] => Array<T> { size: 0, capacity: 0, data: allocate 0 bytes }
+fn<T> <:Type<T>>[] -> Array<T>:
+	let capacity = 8
+	let data = allocate capacity T
+	return Array<T> { size: 0, capacity, data }
 
 // TODO: errors, if out of borders
 /// Get i-th element of an array
