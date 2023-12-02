@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use log::{debug, trace};
 
@@ -166,20 +166,9 @@ impl Monomorphized for Constructor {
         let from = self.to_string();
         trace!(target: "monomorphizing", "{from}");
 
-        let mut context = GenericContext {
-            generic_parameters: self
-                .ty
-                .referenced_type
-                .generics()
-                .into_iter()
-                .cloned()
-                .collect(),
-            generics_mapping: HashMap::new(),
-            parent: context,
-        };
-        let initializers = self.initializers.monomorphized(&mut context);
+        let initializers = self.initializers.monomorphized(context);
         let res = Constructor {
-            ty: self.ty.monomorphized(&mut context),
+            ty: self.ty.monomorphized(context),
             initializers,
             rbrace: self.rbrace,
         };
