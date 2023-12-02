@@ -55,9 +55,6 @@ fn print_value(result: *const c_void, ty: Type) {
                         let ty = ty.without_ref();
                         print_value(unsafe { *result }, ty);
                     }
-                    Array => {
-                        println!("<object of type `{}`>", ty)
-                    }
                 }
             } else {
                 // TODO: implement proper printing for user-defined classes through `as String`

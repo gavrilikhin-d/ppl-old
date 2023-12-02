@@ -51,7 +51,6 @@ pub enum BuiltinClass {
     String,
     Reference,
     ReferenceMut,
-    Array,
 }
 
 impl BuiltinClass {
@@ -61,7 +60,7 @@ impl BuiltinClass {
         match self {
             None => 0,
             Bool => 1,
-            Integer | Rational | String | Reference | ReferenceMut | Array => POINTER_SIZE,
+            Integer | Rational | String | Reference | ReferenceMut => POINTER_SIZE,
         }
     }
 }
@@ -79,7 +78,6 @@ impl FromStr for BuiltinClass {
             "String" => String,
             "Reference" => Reference,
             "ReferenceMut" => ReferenceMut,
-            "Array" => Array,
             _ => return Err(format!("Invalid builtin type `{s}`")),
         })
     }

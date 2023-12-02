@@ -284,8 +284,16 @@ fn sleep <ms: Integer> ms
 //=================================
 //             Array
 //=================================
-@builtin
-type Array<T>
+/// Array of values
+type Array<T>:
+    /// Number of elements in array
+	size: Integer
+    /// Size of allocated memory in bytes
+	capacity: Integer
+    /// Address of first allocated element
+	data: MemoryAddress
+
+fn<T> <:Type<T>>[] => Array<T> { size: 0, capacity: 0, data: allocate 0 bytes }
 
 fn<T> <:Array<T>> [ <:Integer> ] => "not implemented"
 //=================================
