@@ -88,6 +88,14 @@ pub enum Token {
     #[token(">")]
     Greater,
 
+    /// '[' token
+    #[token("[")]
+    LBracket,
+
+    /// ']' token
+    #[token("]")]
+    RBracket,
+
     /// "fn" token
     #[token("fn")]
     Fn,
