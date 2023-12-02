@@ -121,8 +121,8 @@ impl Named for Module {
         self.source_file
             .path()
             .file_stem()
-            .unwrap()
-            .to_string_lossy()
+            .map(|path| path.to_string_lossy())
+            .unwrap_or_else(|| self.source_file.name().into())
     }
 }
 
