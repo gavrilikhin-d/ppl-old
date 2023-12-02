@@ -251,9 +251,10 @@ fn allocate <n: Integer> bytes -> MemoryAddress
 @mangle_as("free_memory")
 fn free <address: MemoryAddress>
 
-/// Read value of specific type at memory address
+// TODO: use `@` instead of `at`
+/// Value of specific type at memory address
 @mangle_as("read_memory")
-fn<T> read <ty: Type<T>> at <address: MemoryAddress> -> Reference<T>
+fn<T> <ty: Type<T>> at <address: MemoryAddress> -> ReferenceMut<T>
 //=================================
 
 //=================================
