@@ -299,7 +299,12 @@ type Array<T>:
     /// Address of first allocated element
 	data: MemoryAddress
 
+/// Create an empty array
 fn<T> <:Type<T>>[] => Array<T> { size: 0, capacity: 0, data: allocate 0 bytes }
 
-fn<T> <:Array<T>> [ <:Integer> ] => "not implemented"
+// TODO: errors, if out of borders
+/// Get i-th element of an array
+fn<T> <array: Array<T>> [ <i: Integer> ] -> ReferenceMut<T>:
+	let address = array.data + i * (size of T)
+	return T at address
 //=================================
