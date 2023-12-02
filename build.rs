@@ -29,15 +29,10 @@ fn compile_builtin_module() -> Result<(), Error> {
     }
 
     let status = std::process::Command::new(ppl)
-        .args(&[
-            "compile",
-            "src/runtime/ppl.ppl",
-            "--emit",
-            "dynamic-library",
-            "--output-dir",
-            "target/debug/deps",
-            "--no-core",
-        ])
+        .args(&["compile", "src/runtime/ppl.ppl"])
+        .args(&["--emit", "dynamic-library"])
+        .args(&["--output-dir", "target/debug/deps"])
+        .arg("--no-core")
         .status()?;
 
     assert!(status.success());
