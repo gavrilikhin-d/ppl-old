@@ -234,6 +234,11 @@ type MemoryAddress:
 /// Interpret and integer as memory address
 fn <value: Integer> as MemoryAddress => MemoryAddress { value }
 
+/// Get another memory address by adding offset to this one
+fn <address: MemoryAddress> + <offset: Integer> -> MemoryAddress:
+	let value = address.value + offset
+	return MemoryAddress { value }
+
 /// Convert `MemoryAddress` to `String`
 @mangle_as("memory_address_as_string")
 fn <address: MemoryAddress> as String -> String
