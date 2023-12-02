@@ -96,14 +96,19 @@ impl Parse for FunctionNamePart {
             Token::EscapedId,
             Token::Less,
             Token::Greater,
+            Token::LBracket,
+            Token::RBracket,
             Token::Operator(OperatorKind::Prefix),
             Token::Operator(OperatorKind::Infix),
             Token::Operator(OperatorKind::Postfix),
         ])?;
         match token {
-            Token::Id | Token::EscapedId | Token::Greater | Token::Operator(_) => {
-                Ok(context.lexer.string_with_offset().into())
-            }
+            Token::Id
+            | Token::EscapedId
+            | Token::Greater
+            | Token::LBracket
+            | Token::RBracket
+            | Token::Operator(_) => Ok(context.lexer.string_with_offset().into()),
             Token::Less => {
                 // '<' here is an operator
                 if context.lexer.peek() == Some(Token::Less) {
