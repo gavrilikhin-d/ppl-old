@@ -280,3 +280,12 @@ fn<T> reference to <ref: Reference<T>> => ref
 @mangle_as("sleep_ms")
 fn sleep <ms: Integer> ms
 //=================================
+
+//=================================
+//             Array
+//=================================
+@builtin
+type Array<T>
+
+fn<T> <:Array<T>> [ <:Integer> ] => "not implemented"
+//=================================
