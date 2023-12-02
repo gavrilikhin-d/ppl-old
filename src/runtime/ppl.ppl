@@ -308,6 +308,23 @@ fn<T> <:Type<T>>[] -> Array<T>:
 	let data = allocate capacity T
 	return Array<T> { size: 0, capacity, data }
 
+fn<T> push <x: T> to <array: ReferenceMut<Array<T>>>:
+	if array.size == array.capacity:
+		let new_capacity = array.capacity * 2
+		let new_data = allocate new_capacity T
+		let mut i = 0
+		while i < array.size:
+			let value = T at (new_data + i)
+			value = array[i]
+			i = i + 1
+		free array.data
+		array.data = new_data
+		array.capacity = new_capacity
+
+	let value = T at (array.data + array.size)
+	value = x
+	array.size = array.size + 1
+
 // TODO: errors, if out of borders
 /// Get i-th element of an array
 fn<T> <array: Array<T>> [ <i: Integer> ] -> ReferenceMut<T>:
