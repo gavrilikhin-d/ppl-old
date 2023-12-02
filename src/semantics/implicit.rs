@@ -16,7 +16,7 @@ pub trait Implicit {
 
 impl Implicit for Expression {
     fn dereference(self) -> Self {
-        if !self.is_reference() {
+        if !self.ty().is_any_reference() {
             return self;
         }
 

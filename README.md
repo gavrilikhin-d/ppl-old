@@ -34,6 +34,7 @@
 ### Current task
 * [ ] Fix `type of <:T>`
 ---
+* [ ] `VariableReference` and `MemberReference` should have reference types
 * [ ] Split builtin module into several files
 * [ ] Support `use module.*` and `use module.{a, b, submodule.c}`
 * [ ] Add tracing to compiler
