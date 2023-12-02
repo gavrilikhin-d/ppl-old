@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use crate::{
     hir::{FunctionDeclaration, GenericType, Type, TypeReference, Typed},
@@ -52,6 +52,33 @@ impl<'p> GenericContext<'p> {
             name = &ALPHABET[i..i + 1];
         }
         name.to_string()
+    }
+}
+
+impl Display for GenericContext<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "GenericContext:")?;
+        writeln!(
+            f,
+            "\tfor types: [{}]",
+            self.generic_parameters
+                .iter()
+                .map(|p| p.name())
+                .collect::<Vec<_>>()
+                .join(", ")
+        )?;
+        if !self.generics_mapping.is_empty() {
+            writeln!(
+                f,
+                "\tmappings: {:?}",
+                self.generics_mapping
+                    .iter()
+                    .map(|(k, v)| format!("{k} -> {v}"))
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            )?;
+        }
+        Ok(())
     }
 }
 

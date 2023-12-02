@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{fmt::Display, sync::Arc};
 
 use crate::{
     compilation::Compiler,
@@ -9,7 +9,7 @@ use crate::{
 use super::BuiltinContext;
 
 /// Trait for various AST lowering contexts
-pub trait Context: FindDeclaration + AddDeclaration {
+pub trait Context: FindDeclaration + AddDeclaration + Display {
     /// Get parent context
     fn parent(&self) -> Option<&dyn Context> {
         None
@@ -87,5 +87,25 @@ pub trait Context: FindDeclaration + AddDeclaration {
                         .is_ok_and(|convertible| convertible)
             })
             .cloned()
+    }
+
+    /// Debug function to print hierarchy of contexts
+    fn print_contexts_hierarchy(&self)
+    where
+        Self: Sized,
+    {
+        println!("Contexts hierarchy:");
+
+        let mut i = 0;
+        let mut current = self as &dyn Context;
+        loop {
+            println!("{i}) {current}");
+            if let Some(parent) = Context::parent(current) {
+                current = parent;
+                i += 1;
+            } else {
+                return;
+            }
+        }
     }
 }

@@ -1,4 +1,7 @@
-use std::sync::{Arc, Weak};
+use std::{
+    fmt::Display,
+    sync::{Arc, Weak},
+};
 
 use crate::{
     hir::{Function, SelfType, TraitDeclaration, Type, TypeDeclaration, VariableDeclaration},
@@ -18,6 +21,13 @@ pub struct TraitContext<'p> {
 
     /// Parent context for this function
     pub parent: &'p mut dyn Context,
+}
+
+impl Display for TraitContext<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "TraitContext:")?;
+        writeln!(f, "\tfor trait: {}", self.tr.name())
+    }
 }
 
 impl FindDeclarationHere for TraitContext<'_> {

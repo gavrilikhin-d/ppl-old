@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{fmt::Display, sync::Arc};
 
 use crate::{
     compilation::Compiler,
@@ -15,6 +15,13 @@ pub struct ModuleContext<'c> {
     pub module: Module,
     /// Compiler for modules
     pub compiler: &'c mut Compiler,
+}
+
+impl Display for ModuleContext<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "ModuleContext:")?;
+        writeln!(f, "\tfor module: {}", self.module.name())
+    }
 }
 
 impl<'c> ModuleContext<'c> {
