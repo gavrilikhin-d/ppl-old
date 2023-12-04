@@ -133,7 +133,7 @@ impl Monomorphized for ImplicitConversion {
     fn monomorphized(self, context: &mut impl Context) -> Self {
         ImplicitConversion {
             kind: self.kind.clone(),
-            ty: self.ty.clone(),
+            ty: self.ty.monomorphized(context),
             expression: Box::new(self.expression.monomorphized(context)),
         }
     }
@@ -388,8 +388,8 @@ impl Monomorphized for Arc<FunctionDefinition> {
 
         let res = Arc::new(FunctionDefinition { declaration, body });
 
-        debug!(target: "monomorphized-from", "{from}");
-        debug!(target: "monomorphized-to", "{res}");
+        debug!(target: "monomorphized-from", "\n{from}");
+        debug!(target: "monomorphized-to", "\n{res}");
 
         res
     }
