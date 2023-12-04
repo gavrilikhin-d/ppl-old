@@ -66,7 +66,11 @@ impl Display for FunctionNamePart {
         match self {
             FunctionNamePart::Text(text) => write!(f, "{}", text),
             FunctionNamePart::Parameter(parameter) => {
-                write!(f, "<{}: {}>", parameter.name, parameter.ty.referenced_type)
+                if parameter.name.is_empty() {
+                    write!(f, "<:{}>", parameter.ty.referenced_type)
+                } else {
+                    write!(f, "<{}: {}>", parameter.name, parameter.ty.referenced_type)
+                }
             }
         }
     }

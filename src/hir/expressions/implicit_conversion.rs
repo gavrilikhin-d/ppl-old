@@ -27,10 +27,12 @@ pub struct ImplicitConversion {
 
 impl Display for ImplicitConversion {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.kind {
-            ImplicitConversionKind::Reference => write!(f, "&({})", self.expression),
-            ImplicitConversionKind::Dereference => write!(f, "*({})", self.expression),
-        }
+        use ImplicitConversionKind::*;
+        let op = match self.kind {
+            Reference => '&',
+            Dereference => '*',
+        };
+        write!(f, "({op}{expr}:{ty})", expr = self.expression, ty = self.ty)
     }
 }
 
