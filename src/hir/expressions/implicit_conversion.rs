@@ -32,7 +32,12 @@ impl Display for ImplicitConversion {
             Reference => '&',
             Dereference => '*',
         };
-        write!(f, "({op}{expr}:{ty})", expr = self.expression, ty = self.ty)
+        write!(
+            f,
+            "({op}{expr:#}:{ty})",
+            expr = self.expression,
+            ty = self.ty
+        )
     }
 }
 
