@@ -547,24 +547,15 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for MemberReference 
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for ImplicitConversion {
-    type IR = Option<inkwell::values::BasicValueEnum<'llvm>>;
-
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for ImplicitConversion {
+    fn lower_to_ir_without_load(
+        &self,
+        context: &mut FunctionContext<'llvm, 'm>,
+    ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
         use ImplicitConversionKind::*;
         match self.kind {
             Reference => self.expression.lower_to_ir_without_load(context),
-            Dereference => {
-                let reference = self.expression.to_ir(context);
-                if reference.is_none() {
-                    return None;
-                }
-                let reference = reference.unwrap().into_pointer_value();
-
-                let ty = self.ty.to_ir(context);
-                let ty = ty.try_into_basic_type().unwrap();
-                Some(context.builder.build_load(ty, reference, ""))
-            }
+            Dereference => self.expression.to_ir(context),
         }
     }
 }
@@ -592,7 +583,7 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
             }
             Expression::MemberReference(m) => m.lower_to_ir_without_load(context),
             Expression::Constructor(c) => Some(c.to_ir(context).into()),
-            Expression::ImplicitConversion(i) => i.to_ir(context),
+            Expression::ImplicitConversion(i) => i.lower_to_ir_without_load(context),
         }
     }
 }
