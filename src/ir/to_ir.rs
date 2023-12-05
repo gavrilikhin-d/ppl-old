@@ -3,6 +3,7 @@ use std::sync::Arc;
 use inkwell::types::BasicMetadataTypeEnum;
 
 use inkwell::values::BasicMetadataValueEnum;
+use log::trace;
 use log::{debug, log_enabled, Level::Debug};
 
 use super::inkwell::*;
@@ -99,6 +100,8 @@ impl<'llvm> DeclareGlobal<'llvm> for VariableDeclaration {
 
     /// Declare global variable without defining it
     fn declare_global(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+        trace!(target: "to_ir-declare", "{self}");
+
         if self.ty().is_none() {
             return None;
         }
@@ -121,6 +124,8 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Arc<VariableDeclaration> {
 
     /// Lower global [`VariableDeclaration`] to LLVM IR
     fn to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+        trace!(target: "to_ir", "{self}");
+
         let global = self.declare_global(context);
         if global.is_none() {
             return None;
@@ -160,6 +165,8 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Arc<VariableDeclarat
 
     /// Lower local [`VariableDeclaration`] to LLVM IR
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+        trace!(target: "to_ir", "{self}");
+
         let ty = self
             .ty()
             .to_ir(context)
@@ -183,6 +190,8 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for TypeDeclaration {
 
     /// Lower [`TypeDeclaration`] to LLVM IR
     fn to_ir(&self, context: &mut C) -> Self::IR {
+        trace!(target: "to_ir", "\n{self:#}");
+
         if self.is_none() {
             return context.types().none().into();
         } else if self.is_bool() {
@@ -215,6 +224,7 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionDeclaration {
 
     /// Declare global function without defining it
     fn declare_global(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+        trace!(target: "to_ir-declare", "{self}");
         let ty = match self.ty() {
             Type::Function(f) => {
                 let parameters = f
@@ -236,6 +246,7 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for FunctionDeclaration {
 
     /// Lower global [`FunctionDeclaration`] to LLVM IR
     fn to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+        trace!(target: "to_ir", "{self}");
         self.declare_global(context)
     }
 }
@@ -245,6 +256,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for FunctionDeclaration 
 
     /// Lower local [`FunctionDeclaration`] to LLVM IR
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+        trace!(target: "to_ir", "{self}");
         // TODO: limit function visibility, capture variables, etc.
         self.declare_global(context.module_context)
     }
@@ -264,6 +276,8 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for FunctionDefinition {
 
     /// Lower global [`FunctionDefinition`] to LLVM IR
     fn to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+        trace!(target: "to_ir", "\n{self}");
+
         let f = self.declaration.to_ir(context);
 
         self.emit_body(context);
@@ -277,6 +291,8 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for FunctionDefinition {
 
     /// Lower local [`FunctionDefinition`] to LLVM IR
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+        trace!(target: "to_ir", "{self}");
+
         let f = self.declaration.to_ir(context);
 
         self.emit_body(context.module_context);
@@ -455,6 +471,8 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Call {
 
     /// Lower [`Call`] to LLVM IR
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+        trace!(target: "to_ir", "{self}");
+
         let function = context
             .functions()
             .get(&self.function.mangled_name())
