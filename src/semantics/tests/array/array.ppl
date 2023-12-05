@@ -1,0 +1,3 @@
+let mut arr = Integer[]
+push 1 to arr
+println (arr[0])

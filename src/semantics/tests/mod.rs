@@ -1,5 +1,6 @@
 use crate::test_compilation_result;
 
+test_compilation_result!(array);
 test_compilation_result!(candidate_not_viable);
 test_compilation_result!(constraints);
 test_compilation_result!(constraints_in_constructor);
