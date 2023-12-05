@@ -6,11 +6,11 @@ use crate::{
     hir::{
         Assignment, Call, Constructor, Declaration, ElseIf, Expression, Function,
         FunctionDeclaration, FunctionDefinition, FunctionNamePart, Generic, If, ImplicitConversion,
-        Initializer, Loop, Member, MemberReference, Module, Parameter, ParameterOrVariable, Return,
-        Statement, Type, TypeDeclaration, TypeReference, Typed, VariableDeclaration,
-        VariableReference, While,
+        ImplicitConversionKind, Initializer, Loop, Member, MemberReference, Module, Parameter,
+        ParameterOrVariable, Return, Statement, Type, TypeDeclaration, TypeReference, Typed,
+        VariableDeclaration, VariableReference, While,
     },
-    semantics::{ConvertibleTo, GenericContext},
+    semantics::{ConvertibleTo, GenericContext, Implicit},
 };
 
 use super::{Context, ReplaceWithTypeInfo};
@@ -131,10 +131,11 @@ impl Monomorphized for While {
 
 impl Monomorphized for ImplicitConversion {
     fn monomorphized(self, context: &mut impl Context) -> Self {
-        ImplicitConversion {
-            kind: self.kind.clone(),
-            ty: self.ty.monomorphized(context),
-            expression: Box::new(self.expression.monomorphized(context)),
+        let expression = Box::new(self.expression.monomorphized(context));
+        use ImplicitConversionKind::*;
+        match self.kind {
+            Reference => expression.reference(context).try_into().unwrap(),
+            Dereference => expression.dereference().try_into().unwrap(),
         }
     }
 }
