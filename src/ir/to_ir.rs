@@ -283,7 +283,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for FunctionDefinition {
 
     /// Lower local [`FunctionDefinition`] to LLVM IR
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        trace!(target: "to_ir", "{self}");
+        trace!(target: "to_ir", "\n{self}");
 
         let f = self.declaration.to_ir(context);
 
