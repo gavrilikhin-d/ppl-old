@@ -39,6 +39,14 @@ impl Parse for CallNamePart {
 
     /// Parse function call cell using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
+        if context
+            .lexer
+            .consume_one_of(&[Token::LBracket, Token::RBracket])
+            .is_ok()
+        {
+            return Ok(context.lexer.string_with_offset().into());
+        }
+
         let expr = parse_binary_expression(context)?;
         Ok(match expr {
             Expression::VariableReference(var) => var.name.into(),

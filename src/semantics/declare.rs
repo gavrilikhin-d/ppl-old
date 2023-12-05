@@ -10,7 +10,7 @@ use crate::{
 
 use super::{
     error::{CantDeduceReturnType, Error, ReturnTypeMismatch},
-    Context, FunctionContext, GenericContext, Monomorphized, ToHIR, TraitContext,
+    Context, ConvertibleTo, FunctionContext, GenericContext, Monomorphized, ToHIR, TraitContext,
 };
 
 /// Trait to pre-declare something
@@ -119,20 +119,23 @@ impl Declare for ast::FunctionDeclaration {
                         at: self.name_parts.range().into(),
                     }
                     .into());
-                } else {
-                    unsafe {
-                        (*Arc::as_ptr(&declaration).cast_mut()).return_type = expr.ty().clone();
-                    }
                 }
-            } else {
-                if expr.ty() != return_type {
-                    return Err(ReturnTypeMismatch {
-                        expected: return_type.clone(),
-                        got: expr.ty(),
-                        got_span: expr.range().into(),
-                    }
-                    .into());
+
+                unsafe {
+                    (*Arc::as_ptr(&declaration).cast_mut()).return_type = expr.ty().clone();
                 }
+            } else if !expr
+                .ty()
+                .convertible_to(return_type.clone())
+                .within(context)
+                .is_ok_and(|convertible| convertible)
+            {
+                return Err(ReturnTypeMismatch {
+                    expected: return_type.clone(),
+                    got: expr.ty(),
+                    got_span: expr.range().into(),
+                }
+                .into());
             }
             body = vec![hir::Return { value: Some(expr) }.into()];
         }

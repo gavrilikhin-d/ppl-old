@@ -22,7 +22,9 @@ pub struct MemberReference {
 
 impl Display for MemberReference {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}.{}", self.base, self.member.name())
+        let base = &self.base;
+        let name = self.member.name();
+        write!(f, "{base}.{name}")
     }
 }
 

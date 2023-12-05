@@ -57,4 +57,20 @@ Error:   × Rational
    · ─┬─
    ·  ╰── this has `Rational` type
    ╰────
+Advice:   ☞ candidate is not viable: expected `MemoryAddress` type, got `Rational`
+
+Error:   × MemoryAddress
+     ╭─[ppl.ppl:238:5]
+ 237 │ /// Get another memory address by adding offset to this one
+ 238 │ fn <address: MemoryAddress> + <offset: Integer> -> MemoryAddress:
+     ·     ───┬───
+     ·        ╰── this has `MemoryAddress` type
+ 239 │     let value = address.value + offset
+     ╰────
+Error:   × Rational
+   ╭─[candidate_not_viable.ppl:1:1]
+ 1 │ 0.1 + 2
+   · ─┬─
+   ·  ╰── this has `Rational` type
+   ╰────
 

@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::{
     hir::{Module, SpecializeParameters, Type},
     named::Named,
@@ -7,6 +9,12 @@ use crate::{
 pub struct BuiltinContext<'m> {
     /// Builtin module
     pub module: &'m Module,
+}
+
+impl Display for BuiltinContext<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "BuiltinContext")
+    }
 }
 
 impl<'m> BuiltinContext<'m> {

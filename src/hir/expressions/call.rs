@@ -1,6 +1,5 @@
-use crate::hir::{Expression, Function, Generic, Type, Typed};
+use crate::hir::{Expression, Function, FunctionNamePart, Generic, Type, Typed};
 use crate::mutability::Mutable;
-use crate::named::Named;
 use crate::syntax::Ranged;
 use std::fmt::Display;
 use std::ops::Range;
@@ -22,15 +21,20 @@ pub struct Call {
 
 impl Display for Call {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut arg = self.args.iter();
+
         write!(
             f,
-            "`{}`({})",
-            self.function.name(),
-            self.args
+            "{}",
+            self.function
+                .name_parts()
                 .iter()
-                .map(|a| a.to_string())
+                .map(|part| match part {
+                    FunctionNamePart::Text(text) => text.to_string(),
+                    FunctionNamePart::Parameter(_) => arg.next().unwrap().to_string(),
+                })
                 .collect::<Vec<_>>()
-                .join(", ")
+                .join(" ")
         )
     }
 }

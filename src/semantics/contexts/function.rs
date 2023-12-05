@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{fmt::Display, sync::Arc};
 
 use crate::{
     hir::{
@@ -21,6 +21,13 @@ pub struct FunctionContext<'p> {
 
     /// Parent context for this function
     pub parent: &'p mut dyn Context,
+}
+
+impl Display for FunctionContext<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "FunctionContext")?;
+        writeln!(f, "\tfor function: {}", self.function.name())
+    }
 }
 
 impl FindDeclarationHere for FunctionContext<'_> {

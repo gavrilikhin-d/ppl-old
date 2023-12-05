@@ -1,0 +1,6 @@
+type Point:
+	x, y: Integer
+
+fn x of <p: Reference<Point>> => p.x
+
+println (x of Point { x: 1, y: 2})

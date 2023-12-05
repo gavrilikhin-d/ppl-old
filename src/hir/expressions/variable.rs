@@ -75,7 +75,13 @@ pub struct VariableReference {
 impl Display for VariableReference {
     /// Display variable reference
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.variable.name())
+        let name = self.variable.name();
+        let ty = self.variable.ty();
+        if f.alternate() {
+            write!(f, "{name}")
+        } else {
+            write!(f, "({name}:{ty})")
+        }
     }
 }
 

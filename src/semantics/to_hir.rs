@@ -12,7 +12,9 @@ use crate::named::Named;
 use crate::syntax::Ranged;
 use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
-use super::{error::*, Context, Convert, Declare, GenericContext, ModuleContext};
+use super::{
+    error::*, Context, Convert, ConvertibleTo, Declare, GenericContext, Implicit, ModuleContext,
+};
 use crate::ast::{self, CallNamePart, FnKind, If};
 use crate::semantics::monomorphized::Monomorphized;
 
@@ -323,11 +325,13 @@ impl ToHIR for ast::MemberReference {
         let base = self.base.to_hir(context)?;
         if let Some((index, member)) = base
             .ty()
+            .without_ref()
             .members()
             .iter()
             .enumerate()
             .find(|(_, m)| m.name() == self.name.as_str())
         {
+            let base = base.dereference();
             Ok(hir::MemberReference {
                 span: self.range().into(),
                 base: Box::new(base),
@@ -600,7 +604,12 @@ impl ToHIR for ast::Return {
         if let Some(f) = context.function() {
             let return_type = f.return_type.clone();
             if let Some(value) = &value {
-                if value.ty() != return_type {
+                if !value
+                    .ty()
+                    .convertible_to(return_type.clone())
+                    .within(context)
+                    .is_ok_and(|convertible| convertible)
+                {
                     return Err(ReturnTypeMismatch {
                         got: value.ty(),
                         got_span: value.range().into(),

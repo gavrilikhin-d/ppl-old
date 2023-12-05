@@ -234,6 +234,11 @@ type MemoryAddress:
 /// Interpret and integer as memory address
 fn <value: Integer> as MemoryAddress => MemoryAddress { value }
 
+/// Get another memory address by adding offset to this one
+fn <address: MemoryAddress> + <offset: Integer> -> MemoryAddress:
+	let value = address.value + offset
+	return MemoryAddress { value }
+
 /// Convert `MemoryAddress` to `String`
 @mangle_as("memory_address_as_string")
 fn <address: MemoryAddress> as String -> String
@@ -242,13 +247,17 @@ fn <address: MemoryAddress> as String -> String
 @mangle_as("allocate_n_bytes")
 fn allocate <n: Integer> bytes -> MemoryAddress
 
+/// Allocate memory for `n` elements of type `T`
+fn<T> allocate <n: Integer> <:Type<T>> => allocate n * (size of T) bytes
+
 /// Free previously allocated memory
 @mangle_as("free_memory")
 fn free <address: MemoryAddress>
 
-/// Read value of specific type at memory address
+// TODO: use `@` instead of `at`
+/// Value of specific type at memory address
 @mangle_as("read_memory")
-fn<T> read <ty: Type<T>> at <address: MemoryAddress> -> Reference<T>
+fn<T> <ty: Type<T>> at <address: MemoryAddress> -> ReferenceMut<T>
 //=================================
 
 //=================================
@@ -279,4 +288,46 @@ fn<T> reference to <ref: Reference<T>> => ref
 /// Force this thread to sleep for at least `ms` milliseconds
 @mangle_as("sleep_ms")
 fn sleep <ms: Integer> ms
+//=================================
+
+//=================================
+//             Array
+//=================================
+/// Array of values
+type Array<T>:
+    /// Number of elements in array
+	size: Integer
+    /// Size of allocated memory in elements
+	capacity: Integer
+    /// Address of first allocated element
+	data: MemoryAddress
+
+/// Create an empty array
+fn<T> <:Type<T>>[] -> Array<T>:
+	let capacity = 8
+	let data = allocate capacity T
+	return Array<T> { size: 0, capacity, data }
+
+fn<T> push <x: T> to <array: ReferenceMut<Array<T>>>:
+	if array.size == array.capacity:
+		let new_capacity = array.capacity * 2
+		let new_data = allocate new_capacity T
+		let mut i = 0
+		while i < array.size:
+			let value = T at (new_data + i)
+			value = array[i]
+			i = i + 1
+		free array.data
+		array.data = new_data
+		array.capacity = new_capacity
+
+	let value = T at (array.data + array.size)
+	value = x
+	array.size = array.size + 1
+
+// TODO: errors, if out of borders
+/// Get i-th element of an array
+fn<T> <array: Array<T>> [ <i: Integer> ] -> ReferenceMut<T>:
+	let address = array.data + i * (size of T)
+	return T at address
 //=================================
