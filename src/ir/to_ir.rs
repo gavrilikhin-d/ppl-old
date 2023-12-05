@@ -100,8 +100,6 @@ impl<'llvm> DeclareGlobal<'llvm> for VariableDeclaration {
 
     /// Declare global variable without defining it
     fn declare_global(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
-        trace!(target: "to_ir-declare", "{self}");
-
         if self.ty().is_none() {
             return None;
         }
@@ -124,8 +122,6 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Arc<VariableDeclaration> {
 
     /// Lower global [`VariableDeclaration`] to LLVM IR
     fn to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
-        trace!(target: "to_ir", "{self}");
-
         let global = self.declare_global(context);
         if global.is_none() {
             return None;
@@ -165,8 +161,6 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Arc<VariableDeclarat
 
     /// Lower local [`VariableDeclaration`] to LLVM IR
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        trace!(target: "to_ir", "{self}");
-
         let ty = self
             .ty()
             .to_ir(context)
@@ -190,8 +184,6 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for TypeDeclaration {
 
     /// Lower [`TypeDeclaration`] to LLVM IR
     fn to_ir(&self, context: &mut C) -> Self::IR {
-        trace!(target: "to_ir", "\n{self:#}");
-
         if self.is_none() {
             return context.types().none().into();
         } else if self.is_bool() {
