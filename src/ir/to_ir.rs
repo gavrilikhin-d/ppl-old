@@ -474,6 +474,12 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Call {
                         .declaration()
                         .declare_global(context.module_context)
                 } else {
+                    debug_assert!(
+                        self.function.declaration().mangled_name.is_some()
+                            || matches!(self.function, Function::Definition(_)),
+                        "Generic function has no definition: {}",
+                        self.function
+                    );
                     self.function.to_ir(context)
                 }
             });
