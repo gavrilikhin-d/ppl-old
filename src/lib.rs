@@ -4,7 +4,6 @@
 #![feature(associated_type_defaults)]
 #![feature(lazy_cell)]
 #![feature(assert_matches)]
-#![feature(trait_upcasting)]
 
 pub mod mutability;
 pub mod named;
