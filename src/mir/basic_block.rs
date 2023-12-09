@@ -5,6 +5,8 @@ use crate::{
     mir::body::Body,
 };
 
+use super::{constant::Constant, local::LocalID};
+
 pub struct BasicBlock {
     pub terminator: Terminator,
 }
@@ -21,9 +23,27 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for BasicBlock {
 
 pub struct BasicBlockID(pub usize);
 
+pub enum Operand {
+    Copy(LocalID),
+    Move(LocalID),
+    Constant(Constant),
+}
+
 pub enum Terminator {
     Return,
-    GoTo { target: BasicBlockID },
+    GoTo {
+        target: BasicBlockID,
+    },
+    Switch {
+        operand: Operand,
+        cases: Vec<SwitchCase>,
+        default: Option<BasicBlockID>,
+    },
+}
+
+pub struct SwitchCase {
+    pub value: Constant,
+    pub target: BasicBlockID,
 }
 
 impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Terminator {
@@ -65,6 +85,13 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Terminator {
                     .clone();
 
                 context.builder.build_unconditional_branch(bb)
+            }
+            Switch {
+                operand,
+                cases,
+                default,
+            } => {
+                todo!()
             }
         }
     }
