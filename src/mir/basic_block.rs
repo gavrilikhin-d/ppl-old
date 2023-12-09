@@ -5,9 +5,10 @@ use crate::{
     mir::body::Body,
 };
 
-use super::{constant::Constant, local::LocalID};
+use super::{constant::Constant, local::LocalID, operand::Operand, statement::Statement};
 
 pub struct BasicBlock {
+    pub statements: Vec<Statement>,
     pub terminator: Terminator,
 }
 
@@ -22,12 +23,6 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for BasicBlock {
 }
 
 pub struct BasicBlockID(pub usize);
-
-pub enum Operand {
-    Copy(LocalID),
-    Move(LocalID),
-    Constant(Constant),
-}
 
 pub enum Terminator {
     Return,

@@ -28,11 +28,13 @@ fn test_body() {
     let body = Body {
         basic_blocks: vec![
             BasicBlock {
+                statements: vec![],
                 terminator: Terminator::GoTo {
                     target: BasicBlockID(1),
                 },
             },
             BasicBlock {
+                statements: vec![],
                 terminator: Terminator::Return,
             },
         ],
@@ -63,6 +65,7 @@ fn return_value() {
     use Type::*;
     let body = Body {
         basic_blocks: vec![BasicBlock {
+            statements: vec![],
             terminator: Terminator::Return,
         }],
         ret: Local { ty: I(32) },
