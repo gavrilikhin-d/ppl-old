@@ -9,6 +9,10 @@ pub struct Body {
     pub locals: Vec<Local>,
 }
 
+impl Body {
+    pub const RETURN_VALUE_NAME: &'static str = "_0";
+}
+
 impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Body {
     type IR = inkwell::values::FunctionValue<'llvm>;
 

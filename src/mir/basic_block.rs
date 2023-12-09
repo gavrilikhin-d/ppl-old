@@ -1,6 +1,9 @@
-use inkwell::values::InstructionValue;
+use inkwell::values::{AnyValue, BasicValueEnum, InstructionValue};
 
-use crate::ir::{FunctionContext, ToIR};
+use crate::{
+    ir::{FunctionContext, ToIR},
+    mir::body::Body,
+};
 
 pub struct BasicBlock {
     pub terminator: Terminator,
@@ -28,7 +31,31 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Terminator {
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         use Terminator::*;
         match self {
-            Return => context.builder.build_return(None),
+            Return => {
+                let ret = context
+                    .function
+                    .get_first_basic_block()
+                    .map(|bb| {
+                        bb.get_first_instruction()
+                            .filter(|i| {
+                                i.get_name().map(|n| n.to_str().unwrap())
+                                    == Some(Body::RETURN_VALUE_NAME)
+                            })
+                            .map(|i| i.as_any_value_enum().into_pointer_value())
+                    })
+                    .flatten()
+                    .map(|ret| {
+                        context.builder.build_load(
+                            context.function.get_type().get_return_type().unwrap(),
+                            ret,
+                            "",
+                        )
+                    });
+
+                context
+                    .builder
+                    .build_return(ret.as_ref().map(|ret| ret as _))
+            }
             GoTo { target } => {
                 let bb = context
                     .function
