@@ -1,4 +1,4 @@
-use inkwell::values::InstructionValue;
+use inkwell::values::{InstructionValue, IntValue};
 
 use crate::ir::{FunctionContext, ToIR};
 
@@ -38,7 +38,7 @@ pub enum Terminator {
     Switch {
         operand: Operand,
         cases: Vec<SwitchCase>,
-        default: Option<BasicBlockID>,
+        default: BasicBlockID,
     },
 }
 
@@ -65,8 +65,27 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Terminator {
 
                 context.builder.build_unconditional_branch(bb)
             }
-            Switch { .. } => {
-                todo!()
+            Switch {
+                operand,
+                cases,
+                default,
+            } => {
+                // TODO: create tags or use any other method to match non-integer values
+                let value: IntValue<'_> = operand.to_ir(context).unwrap().try_into().unwrap();
+
+                let else_block = context.bb(*default);
+
+                let cases: Vec<_> = cases
+                    .iter()
+                    .map(|case| {
+                        let value: IntValue<'_> =
+                            case.value.to_ir(context).unwrap().try_into().unwrap();
+                        let target = context.bb(case.target);
+                        (value, target)
+                    })
+                    .collect();
+
+                context.builder.build_switch(value, else_block, &cases)
             }
         }
     }

@@ -20,6 +20,18 @@ impl Constant {
     }
 }
 
+impl From<bool> for Constant {
+    fn from(value: bool) -> Self {
+        Constant::Bool(value)
+    }
+}
+
+impl From<i32> for Constant {
+    fn from(value: i32) -> Self {
+        Constant::i32(value)
+    }
+}
+
 impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Constant {
     type IR = Option<BasicValueEnum<'llvm>>;
 

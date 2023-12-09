@@ -4,14 +4,17 @@ use crate::ir::{FunctionContext, ToIR};
 
 use super::{constant::Constant, local::LocalID};
 
-use derive_more::From;
-
-#[derive(PartialEq, Eq, Clone, Copy, From)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub enum Operand {
     Copy(LocalID),
     Move(LocalID),
-    #[from]
     Constant(Constant),
+}
+
+impl<T: Into<Constant>> From<T> for Operand {
+    fn from(value: T) -> Self {
+        Operand::Constant(value.into())
+    }
 }
 
 impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Operand {
