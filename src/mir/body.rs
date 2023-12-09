@@ -1,3 +1,5 @@
+use inkwell::types::BasicTypeEnum;
+
 use crate::ir::{Context, FunctionContext, ToIR};
 
 use super::{basic_block::BasicBlock, local::Local};
@@ -11,10 +13,12 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Body {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        for (i, _) in self.locals.iter().enumerate() {
-            let ty = context.types().i64();
-            let name = format!("_{i}");
-            context.builder.build_alloca(ty, &name);
+        for (i, local) in self.locals.iter().enumerate() {
+            let ty = local.ty.to_ir(context);
+            if let Ok(ty) = BasicTypeEnum::try_from(ty) {
+                let name = format!("_{i}");
+                context.builder.build_alloca(ty, &name);
+            }
         }
 
         for i in 0..self.basic_blocks.len() {

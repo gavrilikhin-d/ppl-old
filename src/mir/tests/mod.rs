@@ -7,6 +7,7 @@ use crate::{
         basic_block::{BasicBlock, BasicBlockID, Terminator},
         body::Body,
         local::Local,
+        ty::Type,
     },
 };
 
@@ -16,12 +17,14 @@ fn test_body() {
     let module = llvm.create_module("test");
     let mut context = ModuleContext::new(module);
 
-    let test =
-        context
-            .module
-            .add_function("test", context.llvm().void_type().fn_type(&[], false), None);
+    let test = context.module.add_function(
+        "test",
+        context.llvm().void_type().fn_type(&[], false),
+        Option::None,
+    );
     let mut context = FunctionContext::new(&mut context, test);
 
+    use Type::*;
     let body = Body {
         basic_blocks: vec![
             BasicBlock {
@@ -33,7 +36,7 @@ fn test_body() {
                 terminator: Terminator::Return,
             },
         ],
-        locals: vec![Local {}, Local {}, Local {}],
+        locals: vec![Local { ty: None }, Local { ty: Bool }, Local { ty: I(32) }],
     };
 
     let f = body.to_ir(&mut context);
