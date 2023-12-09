@@ -24,6 +24,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Body {
 
 #[cfg(test)]
 mod test {
+    use inkwell::values::AnyValue;
     use pretty_assertions::assert_eq;
 
     use super::*;
@@ -47,6 +48,15 @@ mod test {
         };
 
         let f = body.to_ir(&mut context);
-        f.print_to_stderr();
+        let ir = f.print_to_string().to_string();
+        let expected = r#"
+define void @test() {
+  %_0 = alloca i64, align 8
+  %_1 = alloca i64, align 8
+  %_2 = alloca i64, align 8
+  ret void
+}
+"#;
+        assert_eq!(ir, expected.trim_start());
     }
 }
