@@ -6,7 +6,9 @@ use crate::{
     mir::{
         basic_block::{BasicBlock, BasicBlockID, Terminator},
         body::Body,
-        local::Local,
+        constant::Constant,
+        local::{Local, LocalID},
+        statement::Statement,
         ty::Type,
     },
 };
@@ -76,5 +78,39 @@ fn return_value() {
     let f = body.to_ir(&mut context);
     let ir = f.print_to_string().to_string();
     let expected = include_str!("return_value.ll");
+    assert_eq!(ir, expected);
+}
+
+#[test]
+fn assign() {
+    let llvm = inkwell::context::Context::create();
+    let module = llvm.create_module("test");
+    let mut context = ModuleContext::new(module);
+
+    let test = context.module.add_function(
+        "assign",
+        context.llvm().i32_type().fn_type(&[], false),
+        Option::None,
+    );
+    let mut context = FunctionContext::new(&mut context, test);
+
+    use Statement::*;
+    use Type::*;
+    let body = Body {
+        basic_blocks: vec![BasicBlock {
+            statements: vec![Assign {
+                lhs: LocalID::FOR_RETURN_VALUE,
+                rhs: Constant::i32(1).into(),
+            }],
+            terminator: Terminator::Return,
+        }],
+        ret: Local { ty: I(32) },
+        args: vec![],
+        variables: vec![],
+    };
+
+    let f = body.to_ir(&mut context);
+    let ir = f.print_to_string().to_string();
+    let expected = include_str!("assign.ll");
     assert_eq!(ir, expected);
 }

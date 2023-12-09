@@ -2,12 +2,22 @@ use inkwell::values::BasicValueEnum;
 
 use crate::ir::{Context, FunctionContext, ToIR};
 
+use super::ty::IntegerType;
+
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum Constant {
     None,
     Bool(bool),
-    I { bits: u32, value: u64 },
-    U { bits: u32, value: u64 },
+    Integer { value: u64, ty: IntegerType },
+}
+
+impl Constant {
+    pub fn i32(value: i32) -> Self {
+        Constant::Integer {
+            value: value as _,
+            ty: IntegerType::I(32),
+        }
+    }
 }
 
 impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Constant {
@@ -18,15 +28,10 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Constant {
         Some(match self {
             None => return Option::None,
             Bool(b) => context.llvm().bool_type().const_int(*b as _, false).into(),
-            I { bits, value } => context
+            Integer { value, ty } => context
                 .llvm()
-                .custom_width_int_type(*bits)
-                .const_int(*value, true)
-                .into(),
-            U { bits, value } => context
-                .llvm()
-                .custom_width_int_type(*bits)
-                .const_int(*value, false)
+                .custom_width_int_type(ty.bits())
+                .const_int(*value, ty.signed())
                 .into(),
         })
     }

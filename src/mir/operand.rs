@@ -4,10 +4,13 @@ use crate::ir::{FunctionContext, ToIR};
 
 use super::{constant::Constant, local::LocalID};
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+use derive_more::From;
+
+#[derive(PartialEq, Eq, Clone, Copy, From)]
 pub enum Operand {
     Copy(LocalID),
     Move(LocalID),
+    #[from]
     Constant(Constant),
 }
 
