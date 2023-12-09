@@ -6,18 +6,26 @@ use super::{basic_block::BasicBlock, local::Local};
 
 pub struct Body {
     pub basic_blocks: Vec<BasicBlock>,
-    pub locals: Vec<Local>,
+    pub ret: Local,
+    pub args: Vec<Local>,
+    pub variables: Vec<Local>,
 }
 
 impl Body {
     pub const RETURN_VALUE_NAME: &'static str = "_0";
+
+    pub fn locals(&self) -> impl Iterator<Item = &Local> {
+        std::iter::once(&self.ret)
+            .chain(self.args.iter())
+            .chain(self.variables.iter())
+    }
 }
 
 impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Body {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        for (i, local) in self.locals.iter().enumerate() {
+        for (i, local) in self.locals().enumerate() {
             let ty = local.ty.to_ir(context);
             if let Ok(ty) = BasicTypeEnum::try_from(ty) {
                 let name = format!("_{i}");

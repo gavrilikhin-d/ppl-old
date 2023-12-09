@@ -1,4 +1,4 @@
-use inkwell::values::{AnyValue, BasicValueEnum, InstructionValue};
+use inkwell::values::{AnyValue, InstructionValue};
 
 use crate::{
     ir::{FunctionContext, ToIR},

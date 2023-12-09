@@ -36,7 +36,9 @@ fn test_body() {
                 terminator: Terminator::Return,
             },
         ],
-        locals: vec![Local { ty: None }, Local { ty: Bool }, Local { ty: I(32) }],
+        ret: Local { ty: None },
+        args: vec![],
+        variables: vec![Local { ty: Bool }, Local { ty: I(32) }],
     };
 
     let f = body.to_ir(&mut context);
@@ -63,7 +65,9 @@ fn return_value() {
         basic_blocks: vec![BasicBlock {
             terminator: Terminator::Return,
         }],
-        locals: vec![Local { ty: I(32) }],
+        ret: Local { ty: I(32) },
+        args: vec![],
+        variables: vec![],
     };
 
     let f = body.to_ir(&mut context);
