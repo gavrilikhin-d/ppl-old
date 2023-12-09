@@ -2,6 +2,7 @@ use crate::ir::{Context, FunctionContext, ToIR};
 
 use super::{basic_block::BasicBlock, local::Local};
 
+#[derive(Clone)]
 pub struct Body {
     pub basic_blocks: Vec<BasicBlock>,
     pub ret: Local,
@@ -23,6 +24,9 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Body {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+        // TODO: remove cloning
+        context.body = self.clone();
+
         for local in self.locals() {
             local.to_ir(context);
         }

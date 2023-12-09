@@ -11,6 +11,7 @@ use super::ty::Type;
 
 use derive_more::Into;
 
+#[derive(Clone)]
 pub struct Local {
     pub ty: Type,
 }

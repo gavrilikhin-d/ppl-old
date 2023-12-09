@@ -2,6 +2,7 @@ use inkwell::values::BasicValueEnum;
 
 use crate::ir::{Context, FunctionContext, ToIR};
 
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub enum Constant {
     None,
     Bool(bool),

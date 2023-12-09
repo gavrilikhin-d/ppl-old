@@ -4,6 +4,7 @@ use crate::ir::{FunctionContext, ToIR};
 
 use super::{local::LocalID, operand::Operand};
 
+#[derive(Clone)]
 pub enum Statement {
     Assign { lhs: LocalID, rhs: Operand },
 }

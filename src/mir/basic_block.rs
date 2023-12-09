@@ -4,6 +4,9 @@ use crate::ir::{FunctionContext, ToIR};
 
 use super::{constant::Constant, local::LocalID, operand::Operand, statement::Statement};
 
+use derive_more::Into;
+
+#[derive(Clone)]
 pub struct BasicBlock {
     pub statements: Vec<Statement>,
     pub terminator: Terminator,
@@ -23,8 +26,10 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for BasicBlock {
     }
 }
 
+#[derive(PartialEq, Eq, Clone, Copy, Into)]
 pub struct BasicBlockID(pub usize);
 
+#[derive(Clone)]
 pub enum Terminator {
     Return,
     GoTo {
@@ -37,6 +42,7 @@ pub enum Terminator {
     },
 }
 
+#[derive(Clone)]
 pub struct SwitchCase {
     pub value: Constant,
     pub target: BasicBlockID,

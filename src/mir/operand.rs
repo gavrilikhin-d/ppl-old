@@ -4,6 +4,7 @@ use crate::ir::{FunctionContext, ToIR};
 
 use super::{constant::Constant, local::LocalID};
 
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub enum Operand {
     Copy(LocalID),
     Move(LocalID),
