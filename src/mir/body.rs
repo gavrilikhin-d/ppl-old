@@ -1,6 +1,9 @@
 use crate::ir::{Context, FunctionContext, ToIR};
 
-use super::{basic_block::BasicBlock, local::Local};
+use super::{
+    basic_block::{BasicBlock, BasicBlockID},
+    local::Local,
+};
 
 #[derive(Clone)]
 pub struct Body {
@@ -36,16 +39,11 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Body {
             context.llvm().append_basic_block(context.function, &name);
         }
 
-        let bb0 = context.function.get_basic_blocks().get(1).unwrap().clone();
+        let bb0 = context.bb(BasicBlockID(0));
         context.builder.build_unconditional_branch(bb0);
 
         for (i, block) in self.basic_blocks.iter().enumerate() {
-            let bb = context
-                .function
-                .get_basic_blocks()
-                .get(i + 1)
-                .unwrap()
-                .clone();
+            let bb = context.bb(BasicBlockID(i));
             context.builder.position_at_end(bb);
             block.to_ir(context);
         }

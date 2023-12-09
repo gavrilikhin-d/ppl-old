@@ -61,12 +61,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Terminator {
                     .build_return(ret.as_ref().map(|ret| ret as _))
             }
             GoTo { target } => {
-                let bb = context
-                    .function
-                    .get_basic_blocks()
-                    .get(target.0 + 1)
-                    .unwrap()
-                    .clone();
+                let bb = context.bb(*target);
 
                 context.builder.build_unconditional_branch(bb)
             }
