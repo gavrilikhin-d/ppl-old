@@ -1,9 +1,6 @@
-use inkwell::values::{AnyValue, InstructionValue};
+use inkwell::values::InstructionValue;
 
-use crate::{
-    ir::{FunctionContext, ToIR},
-    mir::body::Body,
-};
+use crate::ir::{FunctionContext, ToIR};
 
 use super::{constant::Constant, local::LocalID, operand::Operand, statement::Statement};
 
@@ -16,6 +13,10 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for BasicBlock {
     type IR = inkwell::basic_block::BasicBlock<'llvm>;
 
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+        for statement in &self.statements {
+            statement.to_ir(context);
+        }
+
         self.terminator.to_ir(context);
 
         context.builder.get_insert_block().unwrap()
@@ -47,25 +48,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Terminator {
         use Terminator::*;
         match self {
             Return => {
-                let ret = context
-                    .function
-                    .get_first_basic_block()
-                    .map(|bb| {
-                        bb.get_first_instruction()
-                            .filter(|i| {
-                                i.get_name().map(|n| n.to_str().unwrap())
-                                    == Some(Body::RETURN_VALUE_NAME)
-                            })
-                            .map(|i| i.as_any_value_enum().into_pointer_value())
-                    })
-                    .flatten()
-                    .map(|ret| {
-                        context.builder.build_load(
-                            context.function.get_type().get_return_type().unwrap(),
-                            ret,
-                            "",
-                        )
-                    });
+                let ret = context.load(LocalID::FOR_RETURN_VALUE);
 
                 context
                     .builder
@@ -81,11 +64,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Terminator {
 
                 context.builder.build_unconditional_branch(bb)
             }
-            Switch {
-                operand,
-                cases,
-                default,
-            } => {
+            Switch { .. } => {
                 todo!()
             }
         }

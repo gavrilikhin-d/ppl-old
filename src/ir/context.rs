@@ -1,9 +1,14 @@
 use indexmap::IndexMap;
 
-use inkwell::basic_block::BasicBlock;
+use inkwell::{basic_block::BasicBlock, types::BasicTypeEnum, values::BasicValueEnum};
 
 use crate::{
     hir::{ParameterOrVariable, Statement},
+    mir::{
+        body::Body,
+        local::{Local, LocalID},
+        ty::Type,
+    },
     named::Named,
 };
 
@@ -91,6 +96,10 @@ pub struct FunctionContext<'llvm, 'm> {
     pub parameters: IndexMap<String, inkwell::values::PointerValue<'llvm>>,
     /// Local variables
     pub variables: IndexMap<String, inkwell::values::PointerValue<'llvm>>,
+    /// IR for return, args and local variables
+    pub locals: Vec<Option<inkwell::values::PointerValue<'llvm>>>,
+    /// MIR body of this function
+    pub body: Body,
 }
 
 impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
@@ -111,6 +120,13 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
             builder,
             parameters: IndexMap::new(),
             variables: IndexMap::new(),
+            locals: vec![],
+            body: Body {
+                basic_blocks: vec![],
+                ret: Local { ty: Type::None },
+                args: vec![],
+                variables: vec![],
+            },
         }
     }
 
@@ -161,6 +177,20 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
         self.builder.position_at_end(entry);
 
         block
+    }
+
+    /// Load local variable
+    pub fn load(&mut self, local: LocalID) -> Option<BasicValueEnum<'llvm>> {
+        let i: usize = local.into();
+        let local = self.locals[i];
+        if local.is_none() {
+            return None;
+        }
+        let local = local.unwrap();
+
+        let ty = self.body.locals().nth(i).unwrap().ty;
+        let ty: BasicTypeEnum = ty.to_ir(self).try_into().unwrap();
+        Some(self.builder.build_load(ty, local, ""))
     }
 }
 

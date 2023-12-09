@@ -1,5 +1,6 @@
 use crate::ir::{Context, ToIR};
 
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub enum Type {
     None,
     Bool,
