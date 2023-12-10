@@ -26,7 +26,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for BasicBlock {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Copy, Into)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Into)]
 pub struct BasicBlockID(pub usize);
 
 #[derive(Clone)]
@@ -40,6 +40,23 @@ pub enum Terminator {
         cases: Vec<SwitchCase>,
         default: BasicBlockID,
     },
+}
+
+impl Terminator {
+    /// Destinations of this terminator
+    pub fn destinations(&self) -> Vec<BasicBlockID> {
+        use Terminator::*;
+        match self {
+            Return => vec![],
+            GoTo { target } => vec![*target],
+            Switch { cases, default, .. } => Vec::from_iter(
+                cases
+                    .iter()
+                    .map(|case| case.target)
+                    .chain(std::iter::once(*default)),
+            ),
+        }
+    }
 }
 
 #[derive(Clone)]

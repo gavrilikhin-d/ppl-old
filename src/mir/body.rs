@@ -21,6 +21,22 @@ impl Body {
             .chain(self.args.iter())
             .chain(self.variables.iter())
     }
+
+    /// Edges of CFG in this body
+    pub fn edges(&self) -> Vec<(BasicBlockID, BasicBlockID)> {
+        self.basic_blocks
+            .iter()
+            .enumerate()
+            .flat_map(|(i, block)| {
+                let from = BasicBlockID(i);
+                block
+                    .terminator
+                    .destinations()
+                    .into_iter()
+                    .map(move |to| (from, to))
+            })
+            .collect()
+    }
 }
 
 impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Body {

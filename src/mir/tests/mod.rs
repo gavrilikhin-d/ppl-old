@@ -175,6 +175,17 @@ fn switch() {
         variables: vec![Local { ty: I(32) }],
     };
 
+    let edges = body.edges();
+    assert_eq!(
+        edges,
+        vec![
+            (BasicBlockID(0), BasicBlockID(2)),
+            (BasicBlockID(0), BasicBlockID(1)),
+            (BasicBlockID(1), BasicBlockID(3)),
+            (BasicBlockID(2), BasicBlockID(3))
+        ]
+    );
+
     let f = body.to_ir(&mut context);
     let ir = f.print_to_string().to_string();
     let expected = include_str!("switch.ll");
