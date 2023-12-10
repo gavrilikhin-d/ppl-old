@@ -5,6 +5,40 @@ use super::{
     local::Local,
 };
 
+/// Edge from one basic block to another
+#[derive(Debug, PartialEq, Eq)]
+pub struct Edge {
+    pub from: BasicBlockID,
+    pub to: BasicBlockID,
+}
+
+impl Edge {
+    /// Get reversed edge
+    pub fn reversed(self) -> Self {
+        Self {
+            from: self.to,
+            to: self.from,
+        }
+    }
+}
+
+impl From<(usize, usize)> for Edge {
+    fn from(value: (usize, usize)) -> Self {
+        let (from, to) = value;
+        Edge {
+            from: BasicBlockID(from),
+            to: BasicBlockID(to),
+        }
+    }
+}
+
+impl From<(BasicBlockID, BasicBlockID)> for Edge {
+    fn from(value: (BasicBlockID, BasicBlockID)) -> Self {
+        let (from, to) = value;
+        Edge { from, to }
+    }
+}
+
 #[derive(Clone)]
 pub struct Body {
     pub basic_blocks: Vec<BasicBlock>,
@@ -23,19 +57,25 @@ impl Body {
     }
 
     /// Edges of CFG in this body
-    pub fn edges(&self) -> Vec<(BasicBlockID, BasicBlockID)> {
-        self.basic_blocks
-            .iter()
-            .enumerate()
-            .flat_map(|(i, block)| {
-                let from = BasicBlockID(i);
-                block
-                    .terminator
-                    .destinations()
-                    .into_iter()
-                    .map(move |to| (from, to))
-            })
-            .collect()
+    pub fn edges(&self) -> impl Iterator<Item = Edge> + '_ {
+        self.basic_blocks.iter().enumerate().flat_map(|(i, block)| {
+            let from = BasicBlockID(i);
+            block
+                .terminator
+                .destinations()
+                .map(move |to| Edge { from, to })
+        })
+    }
+
+    /// Get edges from specified block
+    pub fn edges_from(&self, from: BasicBlockID) -> impl Iterator<Item = Edge> + '_ {
+        let block = &self.basic_blocks[from.0];
+        block.successors().map(move |to| Edge { from, to })
+    }
+
+    /// Get edges to specified block
+    pub fn edges_to(&self, to: BasicBlockID) -> impl Iterator<Item = Edge> + '_ {
+        self.edges().filter(move |e| e.to == to)
     }
 }
 

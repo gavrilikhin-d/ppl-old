@@ -12,6 +12,12 @@ pub struct BasicBlock {
     pub terminator: Terminator,
 }
 
+impl BasicBlock {
+    pub fn successors(&self) -> impl Iterator<Item = BasicBlockID> {
+        self.terminator.destinations()
+    }
+}
+
 impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for BasicBlock {
     type IR = inkwell::basic_block::BasicBlock<'llvm>;
 
@@ -44,7 +50,7 @@ pub enum Terminator {
 
 impl Terminator {
     /// Destinations of this terminator
-    pub fn destinations(&self) -> Vec<BasicBlockID> {
+    pub fn destinations(&self) -> impl Iterator<Item = BasicBlockID> {
         use Terminator::*;
         match self {
             Return => vec![],
@@ -56,6 +62,7 @@ impl Terminator {
                     .chain(std::iter::once(*default)),
             ),
         }
+        .into_iter()
     }
 }
 
