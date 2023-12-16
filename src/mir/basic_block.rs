@@ -6,6 +6,11 @@ use super::{constant::Constant, local::LocalID, operand::Operand, statement::Sta
 
 use derive_more::Into;
 
+pub struct BasicBlockWithID<'bb> {
+    pub id: BasicBlockID,
+    pub data: &'bb BasicBlock,
+}
+
 #[derive(Clone)]
 pub struct BasicBlock {
     pub statements: Vec<Statement>,
