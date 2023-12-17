@@ -4,7 +4,7 @@ use pretty_assertions::assert_eq;
 use crate::{
     ir::{Context, FunctionContext, ModuleContext, ToIR},
     mir::{
-        basic_block::{BasicBlock, BasicBlockID, SwitchCase, Terminator},
+        basic_block::{BasicBlock, BasicBlockData, SwitchCase, Terminator},
         body::Body,
         constant::Constant,
         local::{Local, LocalID},
@@ -33,13 +33,13 @@ fn test_body() {
     use Type::*;
     let body = Body {
         basic_blocks: vec![
-            BasicBlock {
+            BasicBlockData {
                 statements: vec![],
                 terminator: Terminator::GoTo {
-                    target: BasicBlockID(1),
+                    target: BasicBlock(1),
                 },
             },
-            BasicBlock {
+            BasicBlockData {
                 statements: vec![],
                 terminator: Terminator::Return,
             },
@@ -70,7 +70,7 @@ fn return_value() {
 
     use Type::*;
     let body = Body {
-        basic_blocks: vec![BasicBlock {
+        basic_blocks: vec![BasicBlockData {
             statements: vec![],
             terminator: Terminator::Return,
         }],
@@ -101,7 +101,7 @@ fn assign() {
     use Statement::*;
     use Type::*;
     let body = Body {
-        basic_blocks: vec![BasicBlock {
+        basic_blocks: vec![BasicBlockData {
             statements: vec![Assign {
                 lhs: LocalID::FOR_RETURN_VALUE.into(),
                 rhs: Constant::i32(1).into(),
@@ -136,7 +136,7 @@ fn switch() {
     use Type::*;
     let body = Body {
         basic_blocks: vec![
-            BasicBlock {
+            BasicBlockData {
                 statements: vec![Assign {
                     lhs: LocalID(1).into(),
                     rhs: 1.into(),
@@ -145,30 +145,30 @@ fn switch() {
                     operand: Operand::Move(LocalID(1)),
                     cases: vec![SwitchCase {
                         value: 3.into(),
-                        target: BasicBlockID(2),
+                        target: BasicBlock(2),
                     }],
-                    default: BasicBlockID(1),
+                    default: BasicBlock(1),
                 },
             },
-            BasicBlock {
+            BasicBlockData {
                 statements: vec![Assign {
                     lhs: LocalID::FOR_RETURN_VALUE.into(),
                     rhs: false.into(),
                 }],
                 terminator: Terminator::GoTo {
-                    target: BasicBlockID(3),
+                    target: BasicBlock(3),
                 },
             },
-            BasicBlock {
+            BasicBlockData {
                 statements: vec![Assign {
                     lhs: LocalID::FOR_RETURN_VALUE.into(),
                     rhs: true.into(),
                 }],
                 terminator: Terminator::GoTo {
-                    target: BasicBlockID(3),
+                    target: BasicBlock(3),
                 },
             },
-            BasicBlock {
+            BasicBlockData {
                 statements: vec![],
                 terminator: Terminator::Return,
             },
@@ -225,7 +225,7 @@ fn test_struct() {
     use Statement::*;
     use Type::*;
     let body = Body {
-        basic_blocks: vec![BasicBlock {
+        basic_blocks: vec![BasicBlockData {
             statements: vec![Assign {
                 lhs: Place {
                     local: LocalID(1),

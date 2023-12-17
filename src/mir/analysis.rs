@@ -3,7 +3,7 @@ use std::collections::{HashMap, VecDeque};
 use crate::mir::{basic_block::Terminator, body::Edge, operand::Operand, statement::Statement};
 
 use super::{
-    basic_block::{BasicBlockID, BasicBlockWithID},
+    basic_block::{BasicBlock, BasicBlockWithID},
     body::Body,
     local::LocalID,
 };

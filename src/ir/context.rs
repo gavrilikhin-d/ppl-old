@@ -5,7 +5,7 @@ use inkwell::{basic_block::BasicBlock, types::BasicTypeEnum, values::BasicValueE
 use crate::{
     hir::{ParameterOrVariable, Statement},
     mir::{
-        basic_block::BasicBlockID,
+        self,
         body::Body,
         local::{Local, LocalID},
         ty::Type,
@@ -195,7 +195,7 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
     }
 
     /// Get basic block by ID
-    pub fn bb(&mut self, id: BasicBlockID) -> BasicBlock<'llvm> {
+    pub fn bb(&mut self, id: mir::basic_block::BasicBlock) -> BasicBlock<'llvm> {
         self.function
             .get_basic_blocks()
             .get(id.0 + 1)

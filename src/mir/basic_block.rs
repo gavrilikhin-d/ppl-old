@@ -7,23 +7,23 @@ use super::{constant::Constant, local::LocalID, operand::Operand, statement::Sta
 use derive_more::Into;
 
 pub struct BasicBlockWithID<'bb> {
-    pub id: BasicBlockID,
-    pub data: &'bb BasicBlock,
+    pub id: BasicBlock,
+    pub data: &'bb BasicBlockData,
 }
 
 #[derive(Clone)]
-pub struct BasicBlock {
+pub struct BasicBlockData {
     pub statements: Vec<Statement>,
     pub terminator: Terminator,
 }
 
-impl BasicBlock {
-    pub fn successors(&self) -> impl Iterator<Item = BasicBlockID> {
+impl BasicBlockData {
+    pub fn successors(&self) -> impl Iterator<Item = BasicBlock> {
         self.terminator.destinations()
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for BasicBlock {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for BasicBlockData {
     type IR = inkwell::basic_block::BasicBlock<'llvm>;
 
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
@@ -38,24 +38,24 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for BasicBlock {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Into)]
-pub struct BasicBlockID(pub usize);
+pub struct BasicBlock(pub usize);
 
 #[derive(Clone)]
 pub enum Terminator {
     Return,
     GoTo {
-        target: BasicBlockID,
+        target: BasicBlock,
     },
     Switch {
         operand: Operand,
         cases: Vec<SwitchCase>,
-        default: BasicBlockID,
+        default: BasicBlock,
     },
 }
 
 impl Terminator {
     /// Destinations of this terminator
-    pub fn destinations(&self) -> impl Iterator<Item = BasicBlockID> {
+    pub fn destinations(&self) -> impl Iterator<Item = BasicBlock> {
         use Terminator::*;
         match self {
             Return => vec![],
@@ -74,7 +74,7 @@ impl Terminator {
 #[derive(Clone)]
 pub struct SwitchCase {
     pub value: Constant,
-    pub target: BasicBlockID,
+    pub target: BasicBlock,
 }
 
 impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Terminator {

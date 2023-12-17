@@ -1,15 +1,15 @@
 use crate::ir::{Context, FunctionContext, ToIR};
 
 use super::{
-    basic_block::{BasicBlock, BasicBlockID},
+    basic_block::{BasicBlock, BasicBlockData},
     local::Local,
 };
 
 /// Edge from one basic block to another
 #[derive(Debug, PartialEq, Eq)]
 pub struct Edge {
-    pub from: BasicBlockID,
-    pub to: BasicBlockID,
+    pub from: BasicBlock,
+    pub to: BasicBlock,
 }
 
 impl Edge {
@@ -26,14 +26,14 @@ impl From<(usize, usize)> for Edge {
     fn from(value: (usize, usize)) -> Self {
         let (from, to) = value;
         Edge {
-            from: BasicBlockID(from),
-            to: BasicBlockID(to),
+            from: BasicBlock(from),
+            to: BasicBlock(to),
         }
     }
 }
 
-impl From<(BasicBlockID, BasicBlockID)> for Edge {
-    fn from(value: (BasicBlockID, BasicBlockID)) -> Self {
+impl From<(BasicBlock, BasicBlock)> for Edge {
+    fn from(value: (BasicBlock, BasicBlock)) -> Self {
         let (from, to) = value;
         Edge { from, to }
     }
@@ -41,7 +41,7 @@ impl From<(BasicBlockID, BasicBlockID)> for Edge {
 
 #[derive(Clone)]
 pub struct Body {
-    pub basic_blocks: Vec<BasicBlock>,
+    pub basic_blocks: Vec<BasicBlockData>,
     pub ret: Local,
     pub args: Vec<Local>,
     pub variables: Vec<Local>,
@@ -59,7 +59,7 @@ impl Body {
     /// Edges of CFG in this body
     pub fn edges(&self) -> impl Iterator<Item = Edge> + '_ {
         self.basic_blocks.iter().enumerate().flat_map(|(i, block)| {
-            let from = BasicBlockID(i);
+            let from = BasicBlock(i);
             block
                 .terminator
                 .destinations()
@@ -68,13 +68,13 @@ impl Body {
     }
 
     /// Get edges from specified block
-    pub fn edges_from(&self, from: BasicBlockID) -> impl Iterator<Item = Edge> + '_ {
+    pub fn edges_from(&self, from: BasicBlock) -> impl Iterator<Item = Edge> + '_ {
         let block = &self.basic_blocks[from.0];
         block.successors().map(move |to| Edge { from, to })
     }
 
     /// Get edges to specified block
-    pub fn edges_to(&self, to: BasicBlockID) -> impl Iterator<Item = Edge> + '_ {
+    pub fn edges_to(&self, to: BasicBlock) -> impl Iterator<Item = Edge> + '_ {
         self.edges().filter(move |e| e.to == to)
     }
 }
@@ -95,11 +95,11 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Body {
             context.llvm().append_basic_block(context.function, &name);
         }
 
-        let bb0 = context.bb(BasicBlockID(0));
+        let bb0 = context.bb(BasicBlock(0));
         context.builder.build_unconditional_branch(bb0);
 
         for (i, block) in self.basic_blocks.iter().enumerate() {
-            let bb = context.bb(BasicBlockID(i));
+            let bb = context.bb(BasicBlock(i));
             context.builder.position_at_end(bb);
             block.to_ir(context);
         }
