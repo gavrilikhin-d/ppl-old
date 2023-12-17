@@ -37,7 +37,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Local {
 }
 
 /// ID of a local variable
-#[derive(PartialEq, Eq, Clone, Copy, Into, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Into, Hash)]
 pub struct LocalID(pub usize);
 
 impl LocalID {
