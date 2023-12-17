@@ -2,7 +2,7 @@ use crate::ir::{Context, FunctionContext, ToIR};
 
 use super::{
     basic_block::{BasicBlock, BasicBlockData},
-    local::LocalData,
+    local::{Local, LocalData},
 };
 
 /// Edge from one basic block to another
@@ -88,6 +88,14 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Body {
 
         for local in self.locals() {
             local.to_ir(context);
+        }
+
+        let mut param = context.function.get_param_iter();
+        for i in 0..self.args.len() {
+            let arg = Local::ArgOrVariable(i).to_ir(context);
+            if let Some(ptr) = arg {
+                context.builder.build_store(ptr, param.next().unwrap());
+            }
         }
 
         for i in 0..self.basic_blocks.len() {
