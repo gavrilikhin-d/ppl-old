@@ -6,7 +6,7 @@ use inkwell::{
 use crate::ir::{FunctionContext, ToIR};
 
 use super::{
-    local::LocalID,
+    local::Local,
     operand::Operand,
     package::{Package, CURRENT_PACKAGE},
     ty::{Field, Type},
@@ -14,12 +14,12 @@ use super::{
 
 #[derive(Clone)]
 pub struct Place {
-    pub local: LocalID,
+    pub local: Local,
     pub projections: Vec<Projection>,
 }
 
-impl From<LocalID> for Place {
-    fn from(value: LocalID) -> Self {
+impl From<Local> for Place {
+    fn from(value: Local) -> Self {
         Place {
             local: value,
             projections: vec![],

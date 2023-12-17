@@ -6,7 +6,7 @@ use crate::{
 use derive_more::{From, Into};
 
 use super::{
-    local::LocalID,
+    local::Local,
     package::{self, CURRENT_PACKAGE},
 };
 

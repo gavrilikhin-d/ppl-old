@@ -2,12 +2,12 @@ use inkwell::values::BasicValueEnum;
 
 use crate::ir::{FunctionContext, ToIR};
 
-use super::{constant::Constant, local::LocalID};
+use super::{constant::Constant, local::Local};
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum Operand {
-    Copy(LocalID),
-    Move(LocalID),
+    Copy(Local),
+    Move(Local),
     Constant(Constant),
 }
 

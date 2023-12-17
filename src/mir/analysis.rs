@@ -5,7 +5,7 @@ use crate::mir::{basic_block::Terminator, body::Edge, operand::Operand, statemen
 use super::{
     basic_block::{BasicBlock, BasicBlockWithID},
     body::Body,
-    local::LocalID,
+    local::Local,
 };
 
 /// A [partially ordered set][poset] that has a [least upper bound][lub] for any pair of elements

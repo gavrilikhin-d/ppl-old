@@ -38,20 +38,20 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for LocalData {
 
 /// ID of a local variable
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Into, Hash)]
-pub struct LocalID(pub usize);
+pub struct Local(pub usize);
 
-impl LocalID {
+impl Local {
     /// Local ID for the return value of a function.
     pub const FOR_RETURN_VALUE: Self = Self(0);
 }
 
-impl Named for LocalID {
+impl Named for Local {
     fn name(&self) -> Cow<'_, str> {
         format!("_{i}", i = self.0).into()
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for LocalID {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Local {
     type IR = Option<PointerValue<'llvm>>;
 
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {

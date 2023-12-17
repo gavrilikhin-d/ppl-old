@@ -7,7 +7,7 @@ use crate::{
     mir::{
         self,
         body::Body,
-        local::{LocalData, LocalID},
+        local::{Local, LocalData},
         ty::Type,
     },
     named::Named,
@@ -181,7 +181,7 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
     }
 
     /// Load local variable
-    pub fn load(&mut self, local: LocalID) -> Option<BasicValueEnum<'llvm>> {
+    pub fn load(&mut self, local: Local) -> Option<BasicValueEnum<'llvm>> {
         let i: usize = local.into();
         let local = self.locals[i];
         if local.is_none() {

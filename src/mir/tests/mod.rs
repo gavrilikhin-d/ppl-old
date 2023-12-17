@@ -7,7 +7,7 @@ use crate::{
         basic_block::{BasicBlock, BasicBlockData, SwitchCase, Terminator},
         body::Body,
         constant::Constant,
-        local::{LocalData, LocalID},
+        local::{Local, LocalData},
         operand::Operand,
         package::{Package, CURRENT_PACKAGE},
         statement::{Place, Projection, Statement},
@@ -103,7 +103,7 @@ fn assign() {
     let body = Body {
         basic_blocks: vec![BasicBlockData {
             statements: vec![Assign {
-                lhs: LocalID::FOR_RETURN_VALUE.into(),
+                lhs: Local::FOR_RETURN_VALUE.into(),
                 rhs: Constant::i32(1).into(),
             }],
             terminator: Terminator::Return,
@@ -138,11 +138,11 @@ fn switch() {
         basic_blocks: vec![
             BasicBlockData {
                 statements: vec![Assign {
-                    lhs: LocalID(1).into(),
+                    lhs: Local(1).into(),
                     rhs: 1.into(),
                 }],
                 terminator: Terminator::Switch {
-                    operand: Operand::Move(LocalID(1)),
+                    operand: Operand::Move(Local(1)),
                     cases: vec![SwitchCase {
                         value: 3.into(),
                         target: BasicBlock(2),
@@ -152,7 +152,7 @@ fn switch() {
             },
             BasicBlockData {
                 statements: vec![Assign {
-                    lhs: LocalID::FOR_RETURN_VALUE.into(),
+                    lhs: Local::FOR_RETURN_VALUE.into(),
                     rhs: false.into(),
                 }],
                 terminator: Terminator::GoTo {
@@ -161,7 +161,7 @@ fn switch() {
             },
             BasicBlockData {
                 statements: vec![Assign {
-                    lhs: LocalID::FOR_RETURN_VALUE.into(),
+                    lhs: Local::FOR_RETURN_VALUE.into(),
                     rhs: true.into(),
                 }],
                 terminator: Terminator::GoTo {
@@ -228,7 +228,7 @@ fn test_struct() {
         basic_blocks: vec![BasicBlockData {
             statements: vec![Assign {
                 lhs: Place {
-                    local: LocalID(1),
+                    local: Local(1),
                     projections: vec![
                         Projection::Field {
                             index: 0,

@@ -2,7 +2,7 @@ use inkwell::values::{InstructionValue, IntValue};
 
 use crate::ir::{FunctionContext, ToIR};
 
-use super::{constant::Constant, local::LocalID, operand::Operand, statement::Statement};
+use super::{constant::Constant, local::Local, operand::Operand, statement::Statement};
 
 use derive_more::Into;
 
@@ -83,7 +83,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Terminator {
         use Terminator::*;
         match self {
             Return => {
-                let ret = context.load(LocalID::FOR_RETURN_VALUE);
+                let ret = context.load(Local::FOR_RETURN_VALUE);
 
                 context
                     .builder
