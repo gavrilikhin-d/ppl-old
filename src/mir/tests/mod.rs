@@ -9,8 +9,8 @@ use crate::{
         constant::Constant,
         local::{Local, LocalData},
         operand::Operand,
-        package::{Package, CURRENT_PACKAGE},
-        statement::{Place, Projection, Statement},
+        package::{Function, FunctionData, Package, ParameterData, CURRENT_PACKAGE},
+        statement::{Place, Projection, RValue, Statement},
         ty::{Field, Struct, StructID, Type},
     },
 };
@@ -104,7 +104,7 @@ fn assign() {
         basic_blocks: vec![BasicBlockData {
             statements: vec![Assign {
                 lhs: Local::ReturnValue.into(),
-                rhs: Constant::i32(1).into(),
+                rhs: 1.into(),
             }],
             terminator: Terminator::Return,
         }],
@@ -220,6 +220,7 @@ fn test_struct() {
                 }],
             },
         ],
+        functions: vec![],
     });
 
     use Statement::*;
@@ -254,5 +255,62 @@ fn test_struct() {
     let f = body.to_ir(&mut context);
     let ir = context.module_context.module.print_to_string().to_string();
     let expected = include_str!("struct.ll");
+    assert_eq!(ir, expected);
+}
+
+#[test]
+fn call() {
+    let llvm = inkwell::context::Context::create();
+    let module = llvm.create_module("test");
+    let mut context = ModuleContext::new(module);
+
+    let test = context.module.add_function(
+        "call",
+        context.llvm().i32_type().fn_type(&[], false),
+        Option::None,
+    );
+    let mut context = FunctionContext::new(&mut context, test);
+
+    CURRENT_PACKAGE.with_borrow_mut(|package| {
+        package.functions.push(FunctionData {
+            name: "sum".to_string(),
+            parameters: vec![
+                ParameterData {
+                    name: "a".to_string(),
+                    ty: I(32),
+                },
+                ParameterData {
+                    name: "b".to_string(),
+                    ty: I(32),
+                },
+            ],
+            return_type: I(32),
+            body: Option::None,
+        })
+    });
+
+    use Statement::*;
+    use Type::*;
+    let body = Body {
+        basic_blocks: vec![BasicBlockData {
+            statements: vec![Assign {
+                lhs: Local::ReturnValue.into(),
+                rhs: RValue::Call {
+                    function: Function(0),
+                    args: vec![1.into(), 2.into()],
+                },
+            }],
+            terminator: Terminator::Return,
+        }],
+        ret: LocalData { ty: I(32) },
+        args: vec![],
+        variables: vec![],
+    };
+
+    let f = body.to_ir(&mut context);
+
+    context.module_context.module.strip_debug_info();
+    let ir = context.module_context.module.print_to_string().to_string();
+    let expected = include_str!("call.ll");
     assert_eq!(ir, expected);
 }

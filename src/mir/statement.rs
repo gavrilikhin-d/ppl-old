@@ -1,6 +1,6 @@
 use inkwell::{
     types::BasicTypeEnum,
-    values::{InstructionValue, PointerValue},
+    values::{BasicMetadataValueEnum, BasicValueEnum, InstructionValue, PointerValue},
 };
 
 use crate::ir::{FunctionContext, ToIR};
@@ -8,7 +8,7 @@ use crate::ir::{FunctionContext, ToIR};
 use super::{
     local::Local,
     operand::Operand,
-    package::{Package, CURRENT_PACKAGE},
+    package::{Function, Package, CURRENT_PACKAGE},
     ty::{Field, Type},
 };
 
@@ -64,8 +64,46 @@ pub enum Projection {
 }
 
 #[derive(Clone)]
+pub enum RValue {
+    Operand(Operand),
+    Call {
+        function: Function,
+        args: Vec<Operand>,
+    },
+}
+
+impl<T: Into<Operand>> From<T> for RValue {
+    fn from(value: T) -> Self {
+        Self::Operand(value.into())
+    }
+}
+
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for RValue {
+    type IR = Option<BasicValueEnum<'llvm>>;
+
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+        use RValue::*;
+        match self {
+            Operand(op) => op.to_ir(context),
+            Call { function, args } => {
+                let f = function.to_ir(context.module_context);
+                let args: Vec<BasicMetadataValueEnum> = args
+                    .iter()
+                    .filter_map(|arg| arg.to_ir(context).map(|arg| arg.into()))
+                    .collect();
+                context
+                    .builder
+                    .build_call(f, &args, "")
+                    .try_as_basic_value()
+                    .left()
+            }
+        }
+    }
+}
+
+#[derive(Clone)]
 pub enum Statement {
-    Assign { lhs: Place, rhs: Operand },
+    Assign { lhs: Place, rhs: RValue },
 }
 
 impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Statement {
