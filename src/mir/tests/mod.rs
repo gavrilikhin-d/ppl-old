@@ -10,7 +10,7 @@ use crate::{
         local::{Local, LocalID},
         operand::Operand,
         package::{Package, CURRENT_PACKAGE},
-        statement::Statement,
+        statement::{Place, Projection, Statement},
         ty::{Field, Struct, StructID, Type},
     },
 };
@@ -103,7 +103,7 @@ fn assign() {
     let body = Body {
         basic_blocks: vec![BasicBlock {
             statements: vec![Assign {
-                lhs: LocalID::FOR_RETURN_VALUE,
+                lhs: LocalID::FOR_RETURN_VALUE.into(),
                 rhs: Constant::i32(1).into(),
             }],
             terminator: Terminator::Return,
@@ -138,7 +138,7 @@ fn switch() {
         basic_blocks: vec![
             BasicBlock {
                 statements: vec![Assign {
-                    lhs: LocalID(1),
+                    lhs: LocalID(1).into(),
                     rhs: 1.into(),
                 }],
                 terminator: Terminator::Switch {
@@ -152,7 +152,7 @@ fn switch() {
             },
             BasicBlock {
                 statements: vec![Assign {
-                    lhs: LocalID::FOR_RETURN_VALUE,
+                    lhs: LocalID::FOR_RETURN_VALUE.into(),
                     rhs: false.into(),
                 }],
                 terminator: Terminator::GoTo {
@@ -161,7 +161,7 @@ fn switch() {
             },
             BasicBlock {
                 statements: vec![Assign {
-                    lhs: LocalID::FOR_RETURN_VALUE,
+                    lhs: LocalID::FOR_RETURN_VALUE.into(),
                     rhs: true.into(),
                 }],
                 terminator: Terminator::GoTo {
@@ -226,7 +226,22 @@ fn test_struct() {
     use Type::*;
     let body = Body {
         basic_blocks: vec![BasicBlock {
-            statements: vec![],
+            statements: vec![Assign {
+                lhs: Place {
+                    local: LocalID(1),
+                    projections: vec![
+                        Projection::Field {
+                            index: 0,
+                            ty: StructID(1).into(),
+                        },
+                        Projection::Field {
+                            index: 0,
+                            ty: I(32),
+                        },
+                    ],
+                },
+                rhs: 1.into(),
+            }],
             terminator: Terminator::Return,
         }],
         ret: Local { ty: I(32) },

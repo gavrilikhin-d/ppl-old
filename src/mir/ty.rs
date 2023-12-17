@@ -5,7 +5,10 @@ use crate::{
 
 use derive_more::{From, Into};
 
-use super::package::{self, CURRENT_PACKAGE};
+use super::{
+    local::LocalID,
+    package::{self, CURRENT_PACKAGE},
+};
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum IntegerType {
