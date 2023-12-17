@@ -12,11 +12,11 @@ use super::ty::Type;
 use derive_more::Into;
 
 #[derive(Clone)]
-pub struct Local {
+pub struct LocalData {
     pub ty: Type,
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Local {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for LocalData {
     type IR = Option<PointerValue<'llvm>>;
 
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {

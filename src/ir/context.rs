@@ -7,7 +7,7 @@ use crate::{
     mir::{
         self,
         body::Body,
-        local::{Local, LocalID},
+        local::{LocalData, LocalID},
         ty::Type,
     },
     named::Named,
@@ -124,7 +124,7 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
             locals: vec![],
             body: Body {
                 basic_blocks: vec![],
-                ret: Local { ty: Type::None },
+                ret: LocalData { ty: Type::None },
                 args: vec![],
                 variables: vec![],
             },

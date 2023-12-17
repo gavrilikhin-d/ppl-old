@@ -7,7 +7,7 @@ use crate::{
         basic_block::{BasicBlock, BasicBlockData, SwitchCase, Terminator},
         body::Body,
         constant::Constant,
-        local::{Local, LocalID},
+        local::{LocalData, LocalID},
         operand::Operand,
         package::{Package, CURRENT_PACKAGE},
         statement::{Place, Projection, Statement},
@@ -44,9 +44,9 @@ fn test_body() {
                 terminator: Terminator::Return,
             },
         ],
-        ret: Local { ty: None },
+        ret: LocalData { ty: None },
         args: vec![],
-        variables: vec![Local { ty: Bool }, Local { ty: I(32) }],
+        variables: vec![LocalData { ty: Bool }, LocalData { ty: I(32) }],
     };
 
     let f = body.to_ir(&mut context);
@@ -74,7 +74,7 @@ fn return_value() {
             statements: vec![],
             terminator: Terminator::Return,
         }],
-        ret: Local { ty: I(32) },
+        ret: LocalData { ty: I(32) },
         args: vec![],
         variables: vec![],
     };
@@ -108,7 +108,7 @@ fn assign() {
             }],
             terminator: Terminator::Return,
         }],
-        ret: Local { ty: I(32) },
+        ret: LocalData { ty: I(32) },
         args: vec![],
         variables: vec![],
     };
@@ -173,9 +173,9 @@ fn switch() {
                 terminator: Terminator::Return,
             },
         ],
-        ret: Local { ty: Bool },
+        ret: LocalData { ty: Bool },
         args: vec![],
-        variables: vec![Local { ty: I(32) }],
+        variables: vec![LocalData { ty: I(32) }],
     };
 
     let edges: Vec<_> = body.edges().collect();
@@ -244,9 +244,9 @@ fn test_struct() {
             }],
             terminator: Terminator::Return,
         }],
-        ret: Local { ty: I(32) },
+        ret: LocalData { ty: I(32) },
         args: vec![],
-        variables: vec![Local {
+        variables: vec![LocalData {
             ty: StructID(0).into(),
         }],
     };

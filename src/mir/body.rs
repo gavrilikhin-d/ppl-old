@@ -2,7 +2,7 @@ use crate::ir::{Context, FunctionContext, ToIR};
 
 use super::{
     basic_block::{BasicBlock, BasicBlockData},
-    local::Local,
+    local::LocalData,
 };
 
 /// Edge from one basic block to another
@@ -42,15 +42,15 @@ impl From<(BasicBlock, BasicBlock)> for Edge {
 #[derive(Clone)]
 pub struct Body {
     pub basic_blocks: Vec<BasicBlockData>,
-    pub ret: Local,
-    pub args: Vec<Local>,
-    pub variables: Vec<Local>,
+    pub ret: LocalData,
+    pub args: Vec<LocalData>,
+    pub variables: Vec<LocalData>,
 }
 
 impl Body {
     pub const RETURN_VALUE_NAME: &'static str = "_0";
 
-    pub fn locals(&self) -> impl Iterator<Item = &Local> {
+    pub fn locals(&self) -> impl Iterator<Item = &LocalData> {
         std::iter::once(&self.ret)
             .chain(self.args.iter())
             .chain(self.variables.iter())
