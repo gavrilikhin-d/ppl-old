@@ -9,10 +9,13 @@ use crate::{
         constant::Constant,
         local::{Local, LocalID},
         operand::Operand,
+        package::{Package, CURRENT_PACKAGE},
         statement::Statement,
-        ty::Type,
+        ty::{Field, Struct, StructID, Type},
     },
 };
+
+use super::ty;
 
 #[test]
 fn test_body() {
@@ -184,5 +187,57 @@ fn switch() {
     let f = body.to_ir(&mut context);
     let ir = f.print_to_string().to_string();
     let expected = include_str!("switch.ll");
+    assert_eq!(ir, expected);
+}
+
+#[test]
+fn test_struct() {
+    let llvm = inkwell::context::Context::create();
+    let module = llvm.create_module("test");
+    let mut context = ModuleContext::new(module);
+
+    let test = context.module.add_function(
+        "test",
+        context.llvm().i32_type().fn_type(&[], false),
+        Option::None,
+    );
+    let mut context = FunctionContext::new(&mut context, test);
+
+    CURRENT_PACKAGE.set(Package {
+        types: vec![
+            ty::Struct {
+                name: "Test".to_string(),
+                fields: vec![Field {
+                    name: "x".to_string(),
+                    ty: StructID(1).into(),
+                }],
+            },
+            ty::Struct {
+                name: "Inner".to_string(),
+                fields: vec![Field {
+                    name: "y".to_string(),
+                    ty: I(32),
+                }],
+            },
+        ],
+    });
+
+    use Statement::*;
+    use Type::*;
+    let body = Body {
+        basic_blocks: vec![BasicBlock {
+            statements: vec![],
+            terminator: Terminator::Return,
+        }],
+        ret: Local { ty: I(32) },
+        args: vec![],
+        variables: vec![Local {
+            ty: StructID(0).into(),
+        }],
+    };
+
+    let f = body.to_ir(&mut context);
+    let ir = context.module_context.module.print_to_string().to_string();
+    let expected = include_str!("struct.ll");
     assert_eq!(ir, expected);
 }

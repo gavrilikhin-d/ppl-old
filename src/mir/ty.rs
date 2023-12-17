@@ -1,4 +1,11 @@
-use crate::ir::{Context, ToIR};
+use crate::{
+    ir::{Context, ToIR},
+    named::Named,
+};
+
+use derive_more::{From, Into};
+
+use super::package::{self, CURRENT_PACKAGE};
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum IntegerType {
@@ -32,12 +39,14 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for IntegerType {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, Copy, From)]
 pub enum Type {
     None,
     Bool,
     I(u32),
     U(u32),
+    #[from]
+    Struct(StructID),
 }
 
 impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for Type {
@@ -50,6 +59,52 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for Type {
             None => llvm.void_type().into(),
             Bool => llvm.bool_type().into(),
             I(bits) | U(bits) => llvm.custom_width_int_type(*bits).into(),
+            Struct(s) => s.to_ir(context).into(),
         }
     }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Into)]
+pub struct StructID(pub usize);
+
+impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for StructID {
+    type IR = inkwell::types::StructType<'llvm>;
+
+    fn to_ir(&self, context: &mut C) -> Self::IR {
+        CURRENT_PACKAGE.with_borrow(|package| {
+            let ty = &package.types[self.0];
+            if let Some(ty) = context.llvm().get_struct_type(&ty.name) {
+                return ty;
+            }
+
+            ty.to_ir(context)
+        })
+    }
+}
+
+pub struct Struct {
+    pub name: String,
+    pub fields: Vec<Field>,
+}
+
+impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for Struct {
+    type IR = inkwell::types::StructType<'llvm>;
+
+    fn to_ir(&self, context: &mut C) -> Self::IR {
+        let ty = context.llvm().opaque_struct_type(&self.name);
+        ty.set_body(
+            self.fields
+                .iter()
+                .filter_map(|f| f.ty.to_ir(context).try_into().ok())
+                .collect::<Vec<_>>()
+                .as_slice(),
+            false,
+        );
+        ty
+    }
+}
+
+pub struct Field {
+    pub name: String,
+    pub ty: Type,
 }
