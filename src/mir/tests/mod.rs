@@ -253,6 +253,7 @@ fn test_struct() {
     };
 
     let f = body.to_ir(&mut context);
+    context.module_context.module.strip_debug_info();
     let ir = context.module_context.module.print_to_string().to_string();
     let expected = include_str!("struct.ll");
     assert_eq!(ir, expected);
