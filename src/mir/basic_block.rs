@@ -83,7 +83,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Terminator {
         use Terminator::*;
         match self {
             Return => {
-                let ret = context.load(Local::FOR_RETURN_VALUE);
+                let ret = context.load(Local::ReturnValue);
 
                 context
                     .builder

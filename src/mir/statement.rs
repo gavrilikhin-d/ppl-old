@@ -32,7 +32,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Place {
 
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         let mut base = self.local.to_ir(context);
-        let base_ty = context.body.locals().nth(self.local.0).unwrap().ty;
+        let base_ty = context.body.locals().nth(self.local.index()).unwrap().ty;
         let mut base_ty: BasicTypeEnum = base_ty.to_ir(context).try_into().unwrap();
 
         let mut proj = self.projections.iter();

@@ -182,7 +182,7 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
 
     /// Load local variable
     pub fn load(&mut self, local: Local) -> Option<BasicValueEnum<'llvm>> {
-        let i: usize = local.into();
+        let i = local.index();
         let local = self.locals[i];
         if local.is_none() {
             return None;

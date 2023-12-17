@@ -37,17 +37,25 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for LocalData {
 }
 
 /// ID of a local variable
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Into, Hash)]
-pub struct Local(pub usize);
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+pub enum Local {
+    ReturnValue,
+    ArgOrVariable(usize),
+}
 
 impl Local {
-    /// Local ID for the return value of a function.
-    pub const FOR_RETURN_VALUE: Self = Self(0);
+    pub fn index(&self) -> usize {
+        use Local::*;
+        match self {
+            ReturnValue => 0,
+            ArgOrVariable(i) => 1 + i,
+        }
+    }
 }
 
 impl Named for Local {
     fn name(&self) -> Cow<'_, str> {
-        format!("_{i}", i = self.0).into()
+        format!("_{i}", i = self.index()).into()
     }
 }
 
@@ -55,6 +63,6 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Local {
     type IR = Option<PointerValue<'llvm>>;
 
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        context.locals.get(self.0).unwrap().clone()
+        context.locals.get(self.index()).unwrap().clone()
     }
 }

@@ -103,7 +103,7 @@ fn assign() {
     let body = Body {
         basic_blocks: vec![BasicBlockData {
             statements: vec![Assign {
-                lhs: Local::FOR_RETURN_VALUE.into(),
+                lhs: Local::ReturnValue.into(),
                 rhs: Constant::i32(1).into(),
             }],
             terminator: Terminator::Return,
@@ -138,11 +138,11 @@ fn switch() {
         basic_blocks: vec![
             BasicBlockData {
                 statements: vec![Assign {
-                    lhs: Local(1).into(),
+                    lhs: Local::ArgOrVariable(0).into(),
                     rhs: 1.into(),
                 }],
                 terminator: Terminator::Switch {
-                    operand: Operand::Move(Local(1)),
+                    operand: Operand::Move(Local::ArgOrVariable(0)),
                     cases: vec![SwitchCase {
                         value: 3.into(),
                         target: BasicBlock(2),
@@ -152,7 +152,7 @@ fn switch() {
             },
             BasicBlockData {
                 statements: vec![Assign {
-                    lhs: Local::FOR_RETURN_VALUE.into(),
+                    lhs: Local::ReturnValue.into(),
                     rhs: false.into(),
                 }],
                 terminator: Terminator::GoTo {
@@ -161,7 +161,7 @@ fn switch() {
             },
             BasicBlockData {
                 statements: vec![Assign {
-                    lhs: Local::FOR_RETURN_VALUE.into(),
+                    lhs: Local::ReturnValue.into(),
                     rhs: true.into(),
                 }],
                 terminator: Terminator::GoTo {
@@ -228,7 +228,7 @@ fn test_struct() {
         basic_blocks: vec![BasicBlockData {
             statements: vec![Assign {
                 lhs: Place {
-                    local: Local(1),
+                    local: Local::ArgOrVariable(0),
                     projections: vec![
                         Projection::Field {
                             index: 0,
