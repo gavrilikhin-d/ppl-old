@@ -11,6 +11,33 @@ pub struct BasicBlockWithID<'bb> {
     pub data: &'bb BasicBlockData,
 }
 
+/// Builder for a basic block
+#[derive(Clone)]
+pub struct BasicBlockDataBuilder {
+    pub statements: Vec<Statement>,
+}
+
+impl BasicBlockDataBuilder {
+    /// Create a new builder
+    pub fn new() -> Self {
+        Self { statements: vec![] }
+    }
+
+    /// Add a statement to the basic block
+    pub fn add_statement(&mut self, statement: Statement) -> &mut Self {
+        self.statements.push(statement);
+        self
+    }
+
+    /// Terminate the basic block. This finalizes the building process
+    pub fn terminate(self, terminator: Terminator) -> BasicBlockData {
+        BasicBlockData {
+            statements: self.statements,
+            terminator,
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct BasicBlockData {
     pub statements: Vec<Statement>,
@@ -20,6 +47,11 @@ pub struct BasicBlockData {
 impl BasicBlockData {
     pub fn successors(&self) -> impl Iterator<Item = BasicBlock> {
         self.terminator.destinations()
+    }
+
+    /// Build new basic block data
+    pub fn build() -> BasicBlockDataBuilder {
+        BasicBlockDataBuilder::new()
     }
 }
 

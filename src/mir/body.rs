@@ -77,6 +77,11 @@ impl Body {
     pub fn edges_to(&self, to: BasicBlock) -> impl Iterator<Item = Edge> + '_ {
         self.edges().filter(move |e| e.to == to)
     }
+
+    /// ID of the basic block that will be added next
+    pub fn new_bb_id(&self) -> BasicBlock {
+        BasicBlock(self.basic_blocks.len())
+    }
 }
 
 impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Body {
