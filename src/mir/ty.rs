@@ -1,14 +1,8 @@
-use crate::{
-    ir::{Context, ToIR},
-    named::Named,
-};
+use crate::ir::{Context, ToIR};
 
 use derive_more::{From, Into};
 
-use super::{
-    local::Local,
-    package::{self, CURRENT_PACKAGE},
-};
+use super::package::CURRENT_PACKAGE;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum IntegerType {

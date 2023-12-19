@@ -5,12 +5,7 @@ use inkwell::{
 
 use crate::ir::{FunctionContext, ToIR};
 
-use super::{
-    local::Local,
-    operand::Operand,
-    package::{Function, Package, CURRENT_PACKAGE},
-    ty::{Field, Type},
-};
+use super::{local::Local, operand::Operand, package::Function, ty::Type};
 
 #[derive(Clone)]
 pub struct Place {

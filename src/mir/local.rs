@@ -9,8 +9,6 @@ use crate::{
 
 use super::ty::Type;
 
-use derive_more::Into;
-
 #[derive(Clone)]
 pub struct LocalData {
     pub ty: Type,
