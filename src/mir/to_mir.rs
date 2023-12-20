@@ -1,6 +1,14 @@
-use crate::{hir, mir::basic_block::BasicBlockData};
+use crate::{
+    hir,
+    mir::{
+        basic_block::BasicBlockData, local::LocalData, package::Function, statement::RValue,
+        ty::Type,
+    },
+};
 
-use super::{basic_block::Terminator, body::Body, constant::Constant, statement::Statement};
+use super::{
+    basic_block::Terminator, body::Body, constant::Constant, operand::Operand, statement::Statement,
+};
 
 /// Trait to lower to MIR
 pub trait ToMIR {
@@ -15,17 +23,17 @@ pub trait ToMIR {
 
 impl ToMIR for hir::Literal {
     type Context = Body;
-    type MIR = Constant;
+    type MIR = Operand;
 
     fn to_mir(&self, body: &mut Body) -> Self::MIR {
         use hir::Literal::*;
         match self {
-            None { .. } => Constant::None,
-            Bool { value, .. } => Constant::Bool(*value),
+            None { .. } => Constant::None.into(),
+            Bool { value, .. } => Constant::Bool(*value).into(),
 
-            Integer { .. } => todo!(),
-            Rational { .. } => todo!(),
-            String { .. } => todo!(),
+            Integer { .. } => Operand::Move(body.new_allocated_constant(todo!(), todo!())),
+            Rational { .. } => Operand::Move(body.new_allocated_constant(todo!(), todo!())),
+            String { .. } => Operand::Move(body.new_allocated_constant(todo!(), todo!())),
         }
     }
 }

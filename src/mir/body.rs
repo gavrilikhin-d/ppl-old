@@ -3,6 +3,8 @@ use crate::ir::{Context, FunctionContext, ToIR};
 use super::{
     basic_block::{BasicBlock, BasicBlockData},
     local::{Local, LocalData},
+    statement::{RValue, Statement},
+    ty::Type,
 };
 
 /// Edge from one basic block to another
@@ -81,6 +83,26 @@ impl Body {
     /// ID of the basic block that will be added next
     pub fn new_bb_id(&self) -> BasicBlock {
         BasicBlock(self.basic_blocks.len())
+    }
+
+    /// ID of the next variable that would be added
+    pub fn new_var_id(&self) -> Local {
+        Local::ArgOrVariable(1 + self.args.len() + self.variables.len())
+    }
+
+    /// Create new local variable
+    pub fn new_allocated_constant(&mut self, ty: Type, init: RValue) -> Local {
+        let local = self.new_var_id();
+        self.variables.push(LocalData { ty });
+        self.basic_blocks
+            .first_mut()
+            .unwrap()
+            .statements
+            .push(Statement::Assign {
+                lhs: local.into(),
+                rhs: init,
+            });
+        local
     }
 }
 
