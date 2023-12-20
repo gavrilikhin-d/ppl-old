@@ -1,10 +1,4 @@
-use crate::{
-    hir,
-    mir::{
-        basic_block::BasicBlockData, local::LocalData, package::Function, statement::RValue,
-        ty::Type,
-    },
-};
+use crate::{hir, mir::basic_block::BasicBlockData};
 
 use super::{
     basic_block::Terminator, body::Body, constant::Constant, operand::Operand, statement::Statement,

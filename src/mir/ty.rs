@@ -1,6 +1,7 @@
 use crate::ir::{Context, ToIR};
 
 use derive_more::{From, Into};
+use inkwell::{types::BasicTypeEnum, AddressSpace};
 
 use super::package::CURRENT_PACKAGE;
 
@@ -36,12 +37,13 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for IntegerType {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Copy, From)]
+#[derive(PartialEq, Eq, Clone, From)]
 pub enum Type {
     None,
     Bool,
     I(u32),
     U(u32),
+    Pointer(Box<Type>),
     #[from]
     Struct(StructID),
 }
@@ -56,6 +58,10 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for Type {
             None => llvm.void_type().into(),
             Bool => llvm.bool_type().into(),
             I(bits) | U(bits) => llvm.custom_width_int_type(*bits).into(),
+            Pointer(_) => {
+                // LLVM makes no difference between pointers
+                llvm.i8_type().ptr_type(AddressSpace::default()).into()
+            }
             Struct(s) => s.to_ir(context).into(),
         }
     }

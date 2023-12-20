@@ -189,7 +189,7 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
         }
         let local = local.unwrap();
 
-        let ty = self.body.locals().nth(i).unwrap().ty;
+        let ty = self.body.locals().nth(i).unwrap().ty.clone();
         let ty: BasicTypeEnum = ty.to_ir(self).try_into().unwrap();
         Some(self.builder.build_load(ty, local, ""))
     }
