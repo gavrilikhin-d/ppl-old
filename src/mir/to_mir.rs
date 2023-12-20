@@ -3,18 +3,21 @@ use crate::{hir, mir::basic_block::BasicBlockData};
 use super::{basic_block::Terminator, body::Body, constant::Constant, statement::Statement};
 
 /// Trait to lower to MIR
-pub trait ToMIR<C> {
+pub trait ToMIR {
+    /// Context required to lower to mir
+    type Context;
     /// Resulting MIR type
     type MIR;
 
     /// Lower this to MIR
-    fn to_mir(&self, context: C) -> Self::MIR;
+    fn to_mir(&self, context: &mut Self::Context) -> Self::MIR;
 }
 
-impl ToMIR<()> for hir::Literal {
+impl ToMIR for hir::Literal {
+    type Context = Body;
     type MIR = Constant;
 
-    fn to_mir(&self, _: ()) -> Self::MIR {
+    fn to_mir(&self, body: &mut Body) -> Self::MIR {
         use hir::Literal::*;
         match self {
             None { .. } => Constant::None,
@@ -27,7 +30,8 @@ impl ToMIR<()> for hir::Literal {
     }
 }
 
-impl ToMIR<&mut Body> for hir::Loop {
+impl ToMIR for hir::Loop {
+    type Context = Body;
     type MIR = ();
 
     fn to_mir(&self, body: &mut Body) -> Self::MIR {
@@ -44,7 +48,8 @@ impl ToMIR<&mut Body> for hir::Loop {
     }
 }
 
-impl ToMIR<&mut Body> for hir::Statement {
+impl ToMIR for hir::Statement {
+    type Context = Body;
     type MIR = Statement;
 
     fn to_mir(&self, body: &mut Body) -> Self::MIR {
