@@ -5,8 +5,8 @@ use indexmap::IndexMap;
 use crate::{
     ast::CallNamePart,
     hir::{
-        ClassOrTrait, Expression, Function, FunctionNamePart, Module, Name, ParameterOrVariable,
-        TraitDeclaration, Type, TypeDeclaration, Typed,
+        ClassDeclaration, ClassOrTrait, Expression, Function, FunctionNamePart, Module, Name,
+        ParameterOrVariable, TraitDeclaration, Type, Typed,
     },
 };
 
@@ -43,7 +43,7 @@ pub trait FindDeclarationHere {
     }
 
     /// Get all traits implemented for `ty` here
-    fn traits_for_here(&self, ty: Arc<TypeDeclaration>) -> Vec<Arc<TraitDeclaration>> {
+    fn traits_for_here(&self, ty: Arc<ClassDeclaration>) -> Vec<Arc<TraitDeclaration>> {
         let _ = ty;
         vec![]
     }
@@ -100,7 +100,7 @@ pub trait FindDeclaration: FindDeclarationHere {
     }
 
     /// Get all traits implemented for `ty`
-    fn traits_for(&self, ty: Arc<TypeDeclaration>) -> Vec<Arc<TraitDeclaration>> {
+    fn traits_for(&self, ty: Arc<ClassDeclaration>) -> Vec<Arc<TraitDeclaration>> {
         self.traits_for_here(ty.clone())
             .into_iter()
             .chain(
@@ -195,7 +195,7 @@ impl FindDeclarationHere for Module {
         self.functions_with_n_name_parts(n).cloned().collect()
     }
 
-    fn traits_for_here(&self, ty: Arc<TypeDeclaration>) -> Vec<Arc<TraitDeclaration>> {
+    fn traits_for_here(&self, ty: Arc<ClassDeclaration>) -> Vec<Arc<TraitDeclaration>> {
         // TODO: find only implemented traits
         let _ = ty;
         self.types
@@ -232,7 +232,7 @@ impl<M: AsRef<Module>> FindDeclarationHere for M {
         self.as_ref().functions_with_n_name_parts_here(n)
     }
 
-    fn traits_for_here(&self, ty: Arc<TypeDeclaration>) -> Vec<Arc<TraitDeclaration>> {
+    fn traits_for_here(&self, ty: Arc<ClassDeclaration>) -> Vec<Arc<TraitDeclaration>> {
         self.as_ref().traits_for_here(ty)
     }
 }

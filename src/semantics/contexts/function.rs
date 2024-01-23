@@ -2,8 +2,8 @@ use std::{fmt::Display, sync::Arc};
 
 use crate::{
     hir::{
-        Function, FunctionDeclaration, ParameterOrVariable, TraitDeclaration, Type,
-        TypeDeclaration, VariableDeclaration,
+        ClassDeclaration, Function, FunctionDeclaration, ParameterOrVariable, TraitDeclaration,
+        Type, VariableDeclaration,
     },
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
@@ -65,7 +65,7 @@ impl AddDeclaration for FunctionContext<'_> {
         Some(self.parent)
     }
 
-    fn add_type(&mut self, _ty: Arc<TypeDeclaration>) {
+    fn add_type(&mut self, _ty: Arc<ClassDeclaration>) {
         todo!("local types")
     }
 

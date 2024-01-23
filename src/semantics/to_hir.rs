@@ -116,9 +116,7 @@ impl ToHIR for ast::Call {
             .name_parts
             .iter()
             .map(|part| match part {
-                CallNamePart::Argument(a) => Ok::<_, Error>(Some(
-                    a.to_hir(context)?
-                )),
+                CallNamePart::Argument(a) => Ok::<_, Error>(Some(a.to_hir(context)?)),
                 CallNamePart::Text(t) => {
                     if let Some(var) = context.find_variable(t) {
                         return Ok(Some(
@@ -128,13 +126,16 @@ impl ToHIR for ast::Call {
                             }
                             .into(),
                         ));
-                    } else if t.as_str().chars().nth(0).is_some_and(|c| c.is_uppercase()) && let Some(ty) = context.find_type(t) {
+                    } else if t.as_str().chars().nth(0).is_some_and(|c| c.is_uppercase())
+                        && let Some(ty) = context.find_type(t)
+                    {
                         return Ok(Some(
                             hir::TypeReference {
                                 span: t.range().into(),
                                 referenced_type: ty.clone(),
-                                type_for_type: context.builtin().types().type_of(ty)
-                            }.into()
+                                type_for_type: context.builtin().types().type_of(ty),
+                            }
+                            .into(),
                         ));
                     }
                     Ok(None)
@@ -356,18 +357,18 @@ impl ToHIR for ast::Constructor {
     /// Lower [`ast::Constructor`] to [`hir::Constructor`] within lowering context
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         let mut ty = self.ty.to_hir(context)?;
-        let generic_ty: Arc<hir::TypeDeclaration> =
-            ty.referenced_type
-                .clone()
-                .try_into()
-                .map_err(|_| NonClassConstructor {
-                    ty: TypeWithSpan {
-                        at: self.ty.range().into(),
-                        ty: ty.referenced_type.clone(),
-                        // TODO: real source file
-                        source_file: None,
-                    },
-                })?;
+        let generic_ty: Arc<hir::ClassDeclaration> = ty
+            .referenced_type
+            .clone()
+            .try_into()
+            .map_err(|_| NonClassConstructor {
+                ty: TypeWithSpan {
+                    at: self.ty.range().into(),
+                    ty: ty.referenced_type.clone(),
+                    // TODO: real source file
+                    source_file: None,
+                },
+            })?;
 
         let mut members = ty.referenced_type.members().to_vec();
 

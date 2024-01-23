@@ -182,7 +182,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Arc<VariableDeclarat
     }
 }
 
-impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for TypeDeclaration {
+impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for ClassDeclaration {
     type IR = inkwell::types::AnyTypeEnum<'llvm>;
 
     /// Lower [`TypeDeclaration`] to LLVM IR
