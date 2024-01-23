@@ -156,7 +156,9 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
         let last_block = self.function.get_last_basic_block().unwrap();
         if last_block.get_terminator().is_none() && jump_to.is_some() {
             self.builder.position_at_end(last_block);
-            self.builder.build_unconditional_branch(jump_to.unwrap());
+            self.builder
+                .build_unconditional_branch(jump_to.unwrap())
+                .unwrap();
         }
         self.builder.position_at_end(entry);
 
@@ -172,7 +174,7 @@ impl Drop for FunctionContext<'_, '_> {
             .and_then(|b| b.get_terminator());
 
         if terminator.is_none() {
-            self.builder.build_return(None);
+            self.builder.build_return(None).unwrap();
         }
 
         if !self.function.verify(true) {

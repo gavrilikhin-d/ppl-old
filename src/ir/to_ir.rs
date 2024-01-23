@@ -147,10 +147,13 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Arc<VariableDeclaration> {
         );
         let mut f_context = FunctionContext::new(context, initialize);
         let value = self.initializer.to_ir(&mut f_context);
-        f_context.builder.build_store(
-            global.as_pointer_value(),
-            value.expect("initializer return None or Void"),
-        );
+        f_context
+            .builder
+            .build_store(
+                global.as_pointer_value(),
+                value.expect("initializer return None or Void"),
+            )
+            .unwrap();
 
         Some(global)
     }
@@ -170,8 +173,8 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Arc<VariableDeclarat
             .initializer
             .to_ir(context)
             .expect("initializer return None or Void");
-        let alloca = context.builder.build_alloca(ty, &self.name);
-        context.builder.build_store(alloca, value);
+        let alloca = context.builder.build_alloca(ty, &self.name).unwrap();
+        context.builder.build_store(alloca, value).unwrap();
         context
             .variables
             .insert(self.name.to_string(), alloca.clone());
@@ -313,13 +316,14 @@ impl<'llvm> EmitBody<'llvm> for FunctionDefinition {
                 .enumerate()
             {
                 let ty = p.ty().to_ir(&mut f_context).try_into_basic_type().unwrap();
-                let alloca = f_context.builder.build_alloca(ty, &p.name());
+                let alloca = f_context.builder.build_alloca(ty, &p.name()).unwrap();
                 f_context
                     .parameters
                     .insert(p.name().to_string(), alloca.clone());
                 f_context
                     .builder
-                    .build_store(alloca, f.get_nth_param(i as u32).unwrap());
+                    .build_store(alloca, f.get_nth_param(i as u32).unwrap())
+                    .unwrap();
             }
             for stmt in &self.body {
                 stmt.to_ir(&mut f_context);
@@ -374,6 +378,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Literal {
                                 &[context.types().i(64).const_int(value as u64, false).into()],
                                 "",
                             )
+                            .unwrap()
                             .try_as_basic_value()
                             .left()
                             .unwrap(),
@@ -382,7 +387,8 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Literal {
 
                 let str = context
                     .builder
-                    .build_global_string_ptr(&format!("{}", value), "");
+                    .build_global_string_ptr(&format!("{}", value), "")
+                    .unwrap();
                 context
                     .builder
                     .build_call(
@@ -390,6 +396,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Literal {
                         &[str.as_pointer_value().into()],
                         "",
                     )
+                    .unwrap()
                     .try_as_basic_value()
                     .left()
                     .unwrap()
@@ -397,7 +404,8 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Literal {
             Literal::Rational { value, .. } => {
                 let str = context
                     .builder
-                    .build_global_string_ptr(&format!("{}", value), "");
+                    .build_global_string_ptr(&format!("{}", value), "")
+                    .unwrap();
                 context
                     .builder
                     .build_call(
@@ -405,13 +413,14 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Literal {
                         &[str.as_pointer_value().into()],
                         "",
                     )
+                    .unwrap()
                     .try_as_basic_value()
                     .left()
                     .unwrap()
             }
             Literal::String { value, .. } => {
                 let value = unescaper::unescape(&value).unwrap_or_else(|_| value.clone());
-                let str = context.builder.build_global_string_ptr(&value, "");
+                let str = context.builder.build_global_string_ptr(&value, "").unwrap();
                 context
                     .builder
                     .build_call(
@@ -426,6 +435,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Literal {
                         ],
                         "",
                     )
+                    .unwrap()
                     .try_as_basic_value()
                     .left()
                     .unwrap()
@@ -498,7 +508,10 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Call {
             })
             .collect::<Vec<BasicMetadataValueEnum>>();
 
-        context.builder.build_call(function, &arguments, "")
+        context
+            .builder
+            .build_call(function, &arguments, "")
+            .unwrap()
     }
 }
 
@@ -512,7 +525,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Constructor {
             .to_ir(context)
             .try_into_basic_type()
             .expect("non-basic type constructor");
-        let alloca = context.builder.build_alloca(ty, "");
+        let alloca = context.builder.build_alloca(ty, "").unwrap();
 
         for init in self.initializers.iter().filter(|i| !i.value.ty().is_none()) {
             let field = context
@@ -525,7 +538,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Constructor {
                 )
                 .unwrap();
             let value = init.value.to_ir(context);
-            context.builder.build_store(field, value.unwrap());
+            context.builder.build_store(field, value.unwrap()).unwrap();
         }
 
         alloca
@@ -626,7 +639,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Expression {
                     return Some(ptr.into());
                 }
                 let ty = cl.to_ir(context).try_into_basic_type().unwrap();
-                return Some(context.builder.build_load(ty, ptr, ""));
+                return Some(context.builder.build_load(ty, ptr, "").unwrap());
             }
             ty if ty.is_generic() => unreachable!("Loading reference of generic type `{ty}`"),
             ty => unimplemented!("Load reference of type `{ty}`"),
@@ -650,10 +663,15 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Assignment {
             return None;
         }
 
-        Some(context.builder.build_store(
-            target.unwrap().into_pointer_value(),
-            value.expect("Assigning none"),
-        ))
+        Some(
+            context
+                .builder
+                .build_store(
+                    target.unwrap().into_pointer_value(),
+                    value.expect("Assigning none"),
+                )
+                .unwrap(),
+        )
     }
 }
 
@@ -687,7 +705,7 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Statement {
 
                 let value = expr.to_ir(&mut context);
                 if let Some(value) = value {
-                    context.builder.build_return(Some(&value));
+                    context.builder.build_return(Some(&value)).unwrap();
                 }
             }
             Statement::Return(_) => unreachable!("Return statement is not allowed in global scope"),
@@ -733,9 +751,9 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Return {
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         let value = self.value.as_ref().map(|expr| expr.to_ir(context));
         if let Some(Some(value)) = value {
-            context.builder.build_return(Some(&value));
+            context.builder.build_return(Some(&value)).unwrap();
         } else {
-            context.builder.build_return(None);
+            context.builder.build_return(None).unwrap();
         }
     }
 }
@@ -778,15 +796,19 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for If {
             context.builder.position_at_end(else_if_conditions[i]);
             let condition = else_if.condition.to_ir(context).unwrap().into_int_value();
             if i + 1 < else_if_conditions.len() {
-                context.builder.build_conditional_branch(
-                    condition,
-                    else_if_bodies[i],
-                    else_if_conditions[i + 1],
-                );
+                context
+                    .builder
+                    .build_conditional_branch(
+                        condition,
+                        else_if_bodies[i],
+                        else_if_conditions[i + 1],
+                    )
+                    .unwrap();
             } else {
                 context
                     .builder
-                    .build_conditional_branch(condition, else_if_bodies[i], last_block);
+                    .build_conditional_branch(condition, else_if_bodies[i], last_block)
+                    .unwrap();
             }
             else_if_bodies[i].move_after(else_if_conditions[i]).unwrap()
         }
@@ -797,18 +819,23 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for If {
         condition_block.move_after(entry_block).unwrap();
 
         context.builder.position_at_end(entry_block);
-        context.builder.build_unconditional_branch(condition_block);
+        context
+            .builder
+            .build_unconditional_branch(condition_block)
+            .unwrap();
 
         context.builder.position_at_end(condition_block);
         let condition = self.condition.to_ir(context).unwrap().into_int_value();
         if let Some(else_if) = else_if_conditions.first() {
             context
                 .builder
-                .build_conditional_branch(condition, if_true, *else_if);
+                .build_conditional_branch(condition, if_true, *else_if)
+                .unwrap();
         } else {
             context
                 .builder
-                .build_conditional_branch(condition, if_true, last_block);
+                .build_conditional_branch(condition, if_true, last_block)
+                .unwrap();
         }
 
         context.builder.position_at_end(merge_block);
@@ -822,11 +849,17 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Loop {
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         let loop_block = context.build_block("loop", &self.body, None);
 
-        context.builder.build_unconditional_branch(loop_block);
+        context
+            .builder
+            .build_unconditional_branch(loop_block)
+            .unwrap();
 
         if loop_block.get_terminator().is_none() {
             context.builder.position_at_end(loop_block);
-            context.builder.build_unconditional_branch(loop_block);
+            context
+                .builder
+                .build_unconditional_branch(loop_block)
+                .unwrap();
         }
     }
 }
@@ -840,7 +873,10 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for While {
             .llvm()
             .append_basic_block(context.function, "while.condition");
 
-        context.builder.build_unconditional_branch(condition_block);
+        context
+            .builder
+            .build_unconditional_branch(condition_block)
+            .unwrap();
 
         let loop_block = context.build_block("while.body", &self.body, Some(condition_block));
 
@@ -850,7 +886,8 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for While {
         let condition = self.condition.to_ir(context).unwrap().into_int_value();
         context
             .builder
-            .build_conditional_branch(condition, loop_block, merge_block);
+            .build_conditional_branch(condition, loop_block, merge_block)
+            .unwrap();
 
         context.builder.position_at_end(merge_block);
     }
@@ -899,29 +936,39 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         let main_is_empty = blocks.is_empty()
             || blocks.len() == 1 && blocks.last().unwrap().get_last_instruction().is_none();
 
-        if !main_is_empty && let Some(init) = fn_context.module_context.module.get_function("initialize") {
+        if !main_is_empty
+            && let Some(init) = fn_context.module_context.module.get_function("initialize")
+        {
             let past_last_index = (1..)
                 .find(|i| {
-                    fn_context.module_context.module
+                    fn_context
+                        .module_context
+                        .module
                         .get_function(&format!("initialize.{i}"))
                         .is_none()
                 })
                 .unwrap();
-            let inits = std::iter::once(init)
-                .chain((1..past_last_index).into_iter().map(|i| {
-                    fn_context.module_context.module
-                        .get_function(&format!("initialize.{i}"))
-                        .unwrap()
-                }));
+            let inits = std::iter::once(init).chain((1..past_last_index).into_iter().map(|i| {
+                fn_context
+                    .module_context
+                    .module
+                    .get_function(&format!("initialize.{i}"))
+                    .unwrap()
+            }));
 
             let first_block = main.get_first_basic_block().unwrap();
-            let init_block = fn_context.llvm().prepend_basic_block(first_block, "init_globals");
+            let init_block = fn_context
+                .llvm()
+                .prepend_basic_block(first_block, "init_globals");
             fn_context.builder.position_at_end(init_block);
 
             for init in inits {
-                fn_context.builder.build_call(init, &[], "");
+                fn_context.builder.build_call(init, &[], "").unwrap();
             }
-            fn_context.builder.build_unconditional_branch(first_block);
+            fn_context
+                .builder
+                .build_unconditional_branch(first_block)
+                .unwrap();
 
             let last_block = main.get_last_basic_block().unwrap();
             fn_context.builder.position_at_end(last_block);
