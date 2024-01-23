@@ -137,12 +137,11 @@ fn repl() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let lib_path = manifest_dir
         .join("target/debug/deps")
-        .join(OutputType::DynamicLibrary.named("ppl"))
-        .to_str()
-        .unwrap()
-        .to_string();
-    let error = inkwell::support::load_library_permanently(&lib_path);
-    assert!(!error, "Failed to load core library at: {}", &lib_path);
+        .join(OutputType::DynamicLibrary.named("ppl"));
+    inkwell::support::load_library_permanently(&lib_path).expect(&format!(
+        "Failed to load core library at: {}",
+        lib_path.display()
+    ));
 
     let prompt = Cell::new(Some(">>> "));
     let get_line = || -> String {
