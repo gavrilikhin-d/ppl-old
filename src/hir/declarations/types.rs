@@ -85,11 +85,11 @@ impl FromStr for BuiltinClass {
 
 /// Declaration of a type
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub struct TypeDeclaration {
+pub struct ClassDeclaration {
     /// Type's name
     pub basename: Identifier,
     /// Base generic type, if this is a specialization
-    pub specialization_of: Option<Arc<TypeDeclaration>>,
+    pub specialization_of: Option<Arc<ClassDeclaration>>,
     /// Generic parameters of type
     pub generic_parameters: Vec<Type>,
     /// Kind of a builtin type, if it is a builtin class
@@ -98,7 +98,7 @@ pub struct TypeDeclaration {
     pub members: Vec<Arc<Member>>,
 }
 
-impl TypeDeclaration {
+impl ClassDeclaration {
     /// Get member by name
     pub fn members(&self) -> &[Arc<Member>] {
         self.members.as_slice()
@@ -169,7 +169,7 @@ impl TypeDeclaration {
     }
 }
 
-impl Generic for TypeDeclaration {
+impl Generic for ClassDeclaration {
     /// Is this a generic type?
     fn is_generic(&self) -> bool {
         self.generic_parameters.iter().any(|p| p.is_generic())
@@ -177,13 +177,13 @@ impl Generic for TypeDeclaration {
     }
 }
 
-impl Basename for TypeDeclaration {
+impl Basename for ClassDeclaration {
     fn basename(&self) -> Cow<'_, str> {
         self.basename.as_str().into()
     }
 }
 
-impl Display for TypeDeclaration {
+impl Display for ClassDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if f.alternate() {
             let indent = f.width().unwrap_or(0);
@@ -206,9 +206,9 @@ impl Display for TypeDeclaration {
     }
 }
 
-impl AddSourceLocation for Arc<TypeDeclaration> {}
+impl AddSourceLocation for Arc<ClassDeclaration> {}
 
-impl Named for TypeDeclaration {
+impl Named for ClassDeclaration {
     /// Get name of type
     fn name(&self) -> Cow<'_, str> {
         if self.generic_parameters.is_empty() {
@@ -228,7 +228,7 @@ impl Named for TypeDeclaration {
     }
 }
 
-impl Mutable for TypeDeclaration {
+impl Mutable for ClassDeclaration {
     fn is_mutable(&self) -> bool {
         match self.builtin {
             Some(BuiltinClass::ReferenceMut) => true,
@@ -256,7 +256,7 @@ mod tests {
 
         assert_eq!(
             *type_decl,
-            TypeDeclaration {
+            ClassDeclaration {
                 basename: Identifier::from("x").at(5),
                 specialization_of: None,
                 generic_parameters: vec![],
@@ -276,7 +276,7 @@ mod tests {
 
         assert_eq!(
             *type_decl,
-            TypeDeclaration {
+            ClassDeclaration {
                 basename: Identifier::from("Point").at(5),
                 specialization_of: None,
                 generic_parameters: vec![GenericType {
@@ -320,7 +320,7 @@ mod tests {
 
         assert_eq!(
             *type_decl,
-            TypeDeclaration {
+            ClassDeclaration {
                 basename: Identifier::from("Point").at(5),
                 specialization_of: None,
                 generic_parameters: vec![],

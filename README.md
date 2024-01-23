@@ -30,10 +30,12 @@
 * [x] Multifile compilation and imports
 * [x] Need to search for variables at monomorphization, because the type of the variable can be changed (eg. `let y = reference to x; println y`)
 * [x] Replace type references with constructors only after monomorphization
+* [x] `lowering_to_hir_within_context` -> `to_hir` and `to_ir`
 ---
 ### Current task
-* [ ] Fix `type of <:T>`
+* [ ] Add all `c` types
 ---
+* [ ] Fix `type of <:T>`
 * [ ] Intern strings that are generated in IR
 * [ ] Intern type constructors that are generated in IR
 * [ ] `VariableReference` and `MemberReference` should have reference types
@@ -47,7 +49,6 @@
 * [ ] Run monomorphization from the top of the module
 * [ ] Reject lowercase names for types
 * [ ] Rebinding references
-* [ ] `lowering_to_hir_within_context` -> `to_hir` and `to_ir`
 * [ ] Fix `let y = &x; y`
 * [ ] Remove need for escaping `type` in `type of <:T>`
 * [ ] Fix crash in diagnostics due-to wrong source file
@@ -75,7 +76,6 @@
 * [ ] Explicit traits implementation
 * [ ] Functions as values
 * [ ] Add type unions `A | B`, `A & B`
-* [ ] Add all `c` types
 
 ## Important Implementation Details
 * Use `IndexMap` instead of `HashMap` to guarantee order of declarations

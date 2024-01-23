@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::hir::{
-    Function, GenericType, TraitDeclaration, Type, TypeDeclaration, TypeReference,
+    ClassDeclaration, Function, GenericType, TraitDeclaration, Type, TypeReference,
     VariableDeclaration,
 };
 
@@ -12,7 +12,7 @@ pub trait AddDeclaration {
     }
 
     /// Add type to context
-    fn add_type(&mut self, ty: Arc<TypeDeclaration>) {
+    fn add_type(&mut self, ty: Arc<ClassDeclaration>) {
         self.parent_mut().unwrap().add_type(ty)
     }
 

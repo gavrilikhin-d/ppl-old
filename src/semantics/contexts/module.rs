@@ -2,7 +2,7 @@ use std::{fmt::Display, sync::Arc};
 
 use crate::{
     compilation::Compiler,
-    hir::{Basename, Function, Module, TraitDeclaration, TypeDeclaration, VariableDeclaration},
+    hir::{Basename, ClassDeclaration, Function, Module, TraitDeclaration, VariableDeclaration},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration},
 };
@@ -46,7 +46,7 @@ impl FindDeclaration for ModuleContext<'_> {
 }
 
 impl AddDeclaration for ModuleContext<'_> {
-    fn add_type(&mut self, ty: Arc<TypeDeclaration>) {
+    fn add_type(&mut self, ty: Arc<ClassDeclaration>) {
         self.module
             .types
             .insert(ty.basename().to_string(), ty.into());

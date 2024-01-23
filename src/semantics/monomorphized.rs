@@ -4,11 +4,11 @@ use log::{debug, trace};
 
 use crate::{
     hir::{
-        Assignment, Call, Constructor, Declaration, ElseIf, Expression, Function,
+        Assignment, Call, ClassDeclaration, Constructor, Declaration, ElseIf, Expression, Function,
         FunctionDeclaration, FunctionDefinition, FunctionNamePart, Generic, If, ImplicitConversion,
         ImplicitConversionKind, Initializer, Loop, Member, MemberReference, Module, Parameter,
-        ParameterOrVariable, Return, Statement, Type, TypeDeclaration, TypeReference, Typed,
-        VariableDeclaration, VariableReference, While,
+        ParameterOrVariable, Return, Statement, Type, TypeReference, Typed, VariableDeclaration,
+        VariableReference, While,
     },
     semantics::{ConvertibleTo, GenericContext, Implicit},
 };
@@ -227,7 +227,7 @@ impl Monomorphized for Type {
     }
 }
 
-impl Monomorphized for Arc<TypeDeclaration> {
+impl Monomorphized for Arc<ClassDeclaration> {
     fn monomorphized(self, context: &mut impl Context) -> Self {
         if !self.is_generic() {
             trace!(target: "monomorphizing-skipped", "\n{self:#}");
@@ -237,7 +237,7 @@ impl Monomorphized for Arc<TypeDeclaration> {
         let from = format!("{:#}", self);
         trace!(target: "monomorphizing", "\n{from}");
 
-        let res = Arc::new(TypeDeclaration {
+        let res = Arc::new(ClassDeclaration {
             generic_parameters: self.generic_parameters.clone().monomorphized(context),
             members: self.members.clone().monomorphized(context),
             ..self.as_ref().clone()

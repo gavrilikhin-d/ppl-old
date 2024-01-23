@@ -5,15 +5,10 @@ use std::{
     sync::{Arc, Weak},
 };
 
-use crate::{
-    mutability::Mutable,
-    named::Named,
-    syntax::{Identifier},
-    AddSourceLocation,
-};
+use crate::{mutability::Mutable, named::Named, syntax::Identifier, AddSourceLocation};
 
 use super::{
-    Basename, BuiltinClass, Generic, Member, TraitDeclaration, TypeDeclaration, TypeReference,
+    Basename, BuiltinClass, ClassDeclaration, Generic, Member, TraitDeclaration, TypeReference,
 };
 use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
@@ -172,7 +167,7 @@ impl Display for GenericType {
 #[derive(Debug, Display, PartialEq, Eq, Hash, Clone, From, TryInto)]
 pub enum Type {
     /// User defined type
-    Class(Arc<TypeDeclaration>),
+    Class(Arc<ClassDeclaration>),
     /// User defined trait
     Trait(Arc<TraitDeclaration>),
     /// Self type and trait it represents
@@ -305,7 +300,7 @@ impl Type {
     /// Convert this to class type
     /// # Panics
     /// Panics if this is not a class type
-    pub fn as_class(self) -> Arc<TypeDeclaration> {
+    pub fn as_class(self) -> Arc<ClassDeclaration> {
         self.try_into().unwrap()
     }
 
@@ -376,13 +371,13 @@ mod tests {
 
     use crate::{
         ast,
-        hir::{GenericType, SpecializeParameters, Type, TypeDeclaration},
+        hir::{ClassDeclaration, GenericType, SpecializeParameters, Type},
         named::Named,
         semantics::ToHIR,
     };
 
     /// Get type declaration from source
-    fn type_decl(source: &str) -> Arc<TypeDeclaration> {
+    fn type_decl(source: &str) -> Arc<ClassDeclaration> {
         source
             .parse::<ast::TypeDeclaration>()
             .unwrap()
