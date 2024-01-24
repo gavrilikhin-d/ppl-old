@@ -22,7 +22,7 @@ pub trait AddDeclaration {
     }
 
     /// Add function to context
-    fn add_function(&mut self, f: Function) {
+    fn add_function(&mut self, f: Arc<Function>) {
         self.parent_mut().unwrap().add_function(f)
     }
 

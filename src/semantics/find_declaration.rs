@@ -25,19 +25,19 @@ pub trait FindDeclarationHere {
     }
 
     /// Get all visible functions without checking parent context
-    fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Function> {
+    fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Arc<Function>> {
         let _ = n;
         vec![]
     }
 
     /// Get function with same name without checking parent context
-    fn function_with_name_here(&self, name: &str) -> Option<Function> {
+    fn function_with_name_here(&self, name: &str) -> Option<Arc<Function>> {
         let _ = name;
         None
     }
 
     /// Get all functions with same name format
-    fn functions_with_format_here(&self, format: &str) -> IndexMap<Name, Function> {
+    fn functions_with_format_here(&self, format: &str) -> IndexMap<Name, Arc<Function>> {
         let _ = format;
         IndexMap::new()
     }
@@ -69,7 +69,7 @@ pub trait FindDeclaration: FindDeclarationHere {
     }
 
     /// Get all visible functions
-    fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
+    fn functions_with_n_name_parts(&self, n: usize) -> Vec<Arc<Function>> {
         self.functions_with_n_name_parts_here(n)
             .into_iter()
             .chain(
@@ -81,13 +81,13 @@ pub trait FindDeclaration: FindDeclarationHere {
     }
 
     /// Get function with same name
-    fn function_with_name(&self, name: &str) -> Option<Function> {
+    fn function_with_name(&self, name: &str) -> Option<Arc<Function>> {
         self.function_with_name_here(name)
             .or_else(|| self.parent().and_then(|p| p.function_with_name(name)))
     }
 
     /// Get all functions with same name format
-    fn functions_with_format(&self, format: &str) -> IndexMap<Name, Function> {
+    fn functions_with_format(&self, format: &str) -> IndexMap<Name, Arc<Function>> {
         self.functions_with_format_here(format)
             .into_iter()
             .chain(
@@ -122,7 +122,7 @@ pub trait FindDeclaration: FindDeclarationHere {
         &self,
         name_parts: &[CallNamePart],
         args_cache: &[Option<Expression>],
-    ) -> Vec<Function> {
+    ) -> Vec<Arc<Function>> {
         let mut functions = self.functions_with_n_name_parts(name_parts.len());
         // Add functions from traits
         functions.extend(
@@ -183,15 +183,15 @@ impl FindDeclarationHere for Module {
         self.variables.get(name).cloned().map(|v| v.into())
     }
 
-    fn function_with_name_here(&self, name: &str) -> Option<Function> {
+    fn function_with_name_here(&self, name: &str) -> Option<Arc<Function>> {
         self.functions.values().find_map(|fs| fs.get(name).cloned())
     }
 
-    fn functions_with_format_here(&self, format: &str) -> IndexMap<Name, Function> {
+    fn functions_with_format_here(&self, format: &str) -> IndexMap<Name, Arc<Function>> {
         self.functions.get(format).cloned().unwrap_or_default()
     }
 
-    fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Function> {
+    fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Arc<Function>> {
         self.functions_with_n_name_parts(n).cloned().collect()
     }
 
@@ -220,15 +220,15 @@ impl<M: AsRef<Module>> FindDeclarationHere for M {
         self.as_ref().find_variable_here(name)
     }
 
-    fn function_with_name_here(&self, name: &str) -> Option<Function> {
+    fn function_with_name_here(&self, name: &str) -> Option<Arc<Function>> {
         self.as_ref().function_with_name_here(name)
     }
 
-    fn functions_with_format_here(&self, format: &str) -> IndexMap<Name, Function> {
+    fn functions_with_format_here(&self, format: &str) -> IndexMap<Name, Arc<Function>> {
         self.as_ref().functions_with_format_here(format)
     }
 
-    fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Function> {
+    fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Arc<Function>> {
         self.as_ref().functions_with_n_name_parts_here(n)
     }
 

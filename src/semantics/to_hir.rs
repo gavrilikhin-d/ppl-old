@@ -176,7 +176,7 @@ impl ToHIR for ast::Call {
                 .map(|m| m.source_file())
                 .cloned();
 
-            let mut candidate_context = GenericContext::for_fn(&f.declaration(), context);
+            let mut candidate_context = GenericContext::for_fn(&f, context);
 
             let mut args = Vec::new();
             let mut failed = false;

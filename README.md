@@ -33,8 +33,9 @@
 * [x] `lowering_to_hir_within_context` -> `to_hir` and `to_ir`
 ---
 ### Current task
-* [ ] Add all `c` types
+* [ ] Fix definition of predeclared functions
 ---
+* [ ] Add all `c` types
 * [ ] Fix `type of <:T>`
 * [ ] Intern strings that are generated in IR
 * [ ] Intern type constructors that are generated in IR

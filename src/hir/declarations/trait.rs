@@ -17,12 +17,15 @@ pub struct TraitDeclaration {
     /// Trait's name
     pub name: Identifier,
     /// Associated functions
-    pub functions: IndexMap<String, Function>,
+    pub functions: IndexMap<String, Arc<Function>>,
 }
 
 impl TraitDeclaration {
     /// Iterate over all functions with `n` name parts
-    pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = &Function> + '_ {
+    pub fn functions_with_n_name_parts(
+        &self,
+        n: usize,
+    ) -> impl Iterator<Item = &Arc<Function>> + '_ {
         self.functions
             .values()
             .filter(move |f| f.name_parts().len() == n)

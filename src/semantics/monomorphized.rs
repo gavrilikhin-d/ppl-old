@@ -5,10 +5,9 @@ use log::{debug, trace};
 use crate::{
     hir::{
         Assignment, Call, ClassDeclaration, Constructor, Declaration, ElseIf, Expression, Function,
-        FunctionDeclaration, FunctionDefinition, FunctionNamePart, Generic, If, ImplicitConversion,
-        ImplicitConversionKind, Initializer, Loop, Member, MemberReference, Module, Parameter,
-        ParameterOrVariable, Return, Statement, Type, TypeReference, Typed, VariableDeclaration,
-        VariableReference, While,
+        FunctionNamePart, Generic, If, ImplicitConversion, ImplicitConversionKind, Initializer,
+        Loop, Member, MemberReference, Module, Parameter, ParameterOrVariable, Return, Statement,
+        Type, TypeReference, Typed, VariableDeclaration, VariableReference, While,
     },
     semantics::{ConvertibleTo, GenericContext, Implicit},
 };
@@ -274,7 +273,7 @@ impl Monomorphized for Call {
         trace!(target: "monomorphizing", "{from}");
         let args = self.args.monomorphized(context);
 
-        let mut context = GenericContext::for_fn(&self.function.declaration(), context);
+        let mut context = GenericContext::for_fn(&self.function, context);
 
         args.iter()
             .map(|arg| arg.ty())
@@ -326,20 +325,7 @@ impl Monomorphized for ParameterOrVariable {
     }
 }
 
-impl Monomorphized for Function {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
-        if !self.is_generic() {
-            return self;
-        }
-
-        match self {
-            Function::Declaration(d) => d.monomorphized(context).into(),
-            Function::Definition(d) => d.monomorphized(context).into(),
-        }
-    }
-}
-
-impl Monomorphized for Arc<FunctionDeclaration> {
+impl Monomorphized for Arc<Function> {
     fn monomorphized(self, context: &mut impl Context) -> Self {
         if !self.is_generic() {
             trace!(target: "monomorphizing-skipped", "{self}");
@@ -353,44 +339,24 @@ impl Monomorphized for Arc<FunctionDeclaration> {
         let name_parts = self.name_parts.clone().monomorphized(context);
         let name = Function::build_name(&name_parts);
         let return_type = self.return_type.clone().monomorphized(context);
-        let f = FunctionDeclaration::build()
+        let mut f = Function::build()
             .with_generic_types(generic_types)
             .with_mangled_name(
                 context
                     .function_with_name(&name)
-                    .map(|f| f.declaration().mangled_name.clone())
+                    .map(|f| f.mangled_name.clone())
                     .flatten()
                     .or_else(|| self.mangled_name.clone()),
             )
             .with_name(name_parts)
             .with_return_type(return_type);
 
+        f.body = self.body.clone().monomorphized(context);
+
         let res = Arc::new(f);
 
         debug!(target: "monomorphized-from", "{from}");
         debug!(target: "monomorphized-to", "{res}");
-
-        res
-    }
-}
-
-impl Monomorphized for Arc<FunctionDefinition> {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
-        if !self.is_generic() {
-            trace!(target: "monomorphizing-skipped", "\n{self}");
-            return self;
-        }
-
-        let from = self.to_string();
-        trace!(target: "monomorphizing", "\n{from}");
-
-        let declaration = self.declaration.clone().monomorphized(context);
-        let body = self.body.clone().monomorphized(context);
-
-        let res = Arc::new(FunctionDefinition { declaration, body });
-
-        debug!(target: "monomorphized-from", "\n{from}");
-        debug!(target: "monomorphized-to", "\n{res}");
 
         res
     }

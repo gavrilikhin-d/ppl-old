@@ -3,6 +3,7 @@ use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 use std::fmt::Display;
 use std::ops::Range;
+use std::sync::Arc;
 
 /// AST for function call
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -11,9 +12,9 @@ pub struct Call {
     pub range: Range<usize>,
 
     /// Called function
-    pub function: Function,
+    pub function: Arc<Function>,
     /// Generic version of called function
-    pub generic: Option<Function>,
+    pub generic: Option<Arc<Function>>,
 
     /// Arguments to the function call
     pub args: Vec<Expression>,
@@ -47,7 +48,7 @@ impl Ranged for Call {
 
 impl Typed for Call {
     fn ty(&self) -> Type {
-        self.function.return_type().clone()
+        self.function.return_type.clone()
     }
 }
 
