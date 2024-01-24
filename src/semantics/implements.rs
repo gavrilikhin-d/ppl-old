@@ -30,7 +30,7 @@ impl ImplementsCheck<'_, Arc<hir::ClassDeclaration>> {
             .functions
             .values()
             .filter(|f| {
-                matches!(f, hir::Function::Declaration(_))
+                f.is_definition()
                     && context
                         .find_implementation(&f, &Type::from(self.ty.clone()))
                         .is_none()

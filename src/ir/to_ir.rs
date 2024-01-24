@@ -214,7 +214,7 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for ClassDeclaration {
     }
 }
 
-impl<'llvm> DeclareGlobal<'llvm> for FunctionDeclaration {
+impl<'llvm> DeclareGlobal<'llvm> for Function {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     /// Declare global function without defining it
@@ -236,44 +236,14 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionDeclaration {
     }
 }
 
-impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for FunctionDeclaration {
+impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Function {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     /// Lower global [`FunctionDeclaration`] to LLVM IR
     fn to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
-        self.declare_global(context)
-    }
-}
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for FunctionDeclaration {
-    type IR = inkwell::values::FunctionValue<'llvm>;
-
-    /// Lower local [`FunctionDeclaration`] to LLVM IR
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        trace!(target: "to_ir", "{self}");
-        // TODO: limit function visibility, capture variables, etc.
-        self.declare_global(context.module_context)
-    }
-}
-
-impl<'llvm> DeclareGlobal<'llvm> for FunctionDefinition {
-    type IR = inkwell::values::FunctionValue<'llvm>;
-
-    /// Declare global function without defining it
-    fn declare_global(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
-        self.declaration.declare_global(context)
-    }
-}
-
-impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for FunctionDefinition {
-    type IR = inkwell::values::FunctionValue<'llvm>;
-
-    /// Lower global [`FunctionDefinition`] to LLVM IR
-    fn to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
-        trace!(target: "to_ir", "\n{self}");
-
-        let f = self.declaration.to_ir(context);
+        let f = self.declare_global(context);
 
         self.emit_body(context);
 
@@ -281,14 +251,14 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for FunctionDefinition {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for FunctionDefinition {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Function {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
-    /// Lower local [`FunctionDefinition`] to LLVM IR
+    /// Lower local [`FunctionDeclaration`] to LLVM IR
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        trace!(target: "to_ir", "\n{self}");
-
-        let f = self.declaration.to_ir(context);
+        trace!(target: "to_ir", "{self}");
+        // TODO: limit function visibility, capture variables, etc.
+        let f = self.declare_global(context.module_context);
 
         self.emit_body(context.module_context);
 
@@ -302,7 +272,7 @@ trait EmitBody<'llvm> {
     fn emit_body(&self, context: &mut ModuleContext<'llvm>);
 }
 
-impl<'llvm> EmitBody<'llvm> for FunctionDefinition {
+impl<'llvm> EmitBody<'llvm> for Function {
     fn emit_body(&self, context: &mut ModuleContext<'llvm>) {
         let f = context
             .functions()
@@ -328,30 +298,6 @@ impl<'llvm> EmitBody<'llvm> for FunctionDefinition {
             for stmt in &self.body {
                 stmt.to_ir(&mut f_context);
             }
-        }
-    }
-}
-
-impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Function {
-    type IR = inkwell::values::FunctionValue<'llvm>;
-
-    /// Lower global [`Function`] to LLVM IR
-    fn to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
-        match self {
-            Function::Declaration(decl) => decl.to_ir(context),
-            Function::Definition(def) => def.to_ir(context),
-        }
-    }
-}
-
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Function {
-    type IR = inkwell::values::FunctionValue<'llvm>;
-
-    /// Lower local [`Function`] to LLVM IR
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        match self {
-            Function::Declaration(decl) => decl.to_ir(context),
-            Function::Definition(def) => def.to_ir(context),
         }
     }
 }
@@ -480,13 +426,10 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Call {
             .get(&self.function.mangled_name())
             .unwrap_or_else(|| {
                 if self.generic.is_none() {
-                    self.function
-                        .declaration()
-                        .declare_global(context.module_context)
+                    self.function.declare_global(context.module_context)
                 } else {
                     debug_assert!(
-                        self.function.declaration().mangled_name.is_some()
-                            || matches!(self.function, Function::Definition(_)),
+                        self.function.mangled_name.is_some() || self.function.is_definition(),
                         "Generic function has no definition: {}",
                         self.function
                     );

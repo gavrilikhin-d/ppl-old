@@ -23,7 +23,7 @@ use crate::named::Named;
 pub enum Declaration {
     Variable(Arc<VariableDeclaration>),
     Type(Arc<ClassDeclaration>),
-    Function(Function),
+    Function(Arc<Function>),
     Trait(Arc<TraitDeclaration>),
 }
 

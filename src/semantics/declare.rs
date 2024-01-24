@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 
 use crate::{
     ast,
-    hir::{self, FunctionDefinition, Type, Typed},
+    hir::{self, Function, Type, Typed},
     syntax::Ranged,
 };
 
@@ -30,8 +30,8 @@ pub trait Declare {
 }
 
 impl Declare for ast::FunctionDeclaration {
-    type Declaration = Arc<hir::FunctionDeclaration>;
-    type Definition = hir::Function;
+    type Declaration = Arc<hir::Function>;
+    type Definition = Arc<hir::Function>;
 
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
         // TODO: check for collision
@@ -75,7 +75,7 @@ impl Declare for ast::FunctionDeclaration {
         });
 
         let f = Arc::new(
-            hir::FunctionDeclaration::build()
+            hir::Function::build()
                 .with_generic_types(generic_parameters)
                 .with_name(name_parts)
                 .with_mangled_name(mangled_name)
@@ -140,7 +140,10 @@ impl Declare for ast::FunctionDeclaration {
             body = vec![hir::Return { value: Some(expr) }.into()];
         }
 
-        let f = Arc::new(FunctionDefinition { declaration, body });
+        let f = Arc::new(Function {
+            body,
+            ..(declaration.as_ref().clone())
+        });
 
         context.add_function(f.clone().into());
 
@@ -323,9 +326,7 @@ impl Declare for ast::Declaration {
 
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
         match self {
-            ast::Declaration::Function(f) => f
-                .declare(context)
-                .map(|f| hir::Function::Declaration(f).into()),
+            ast::Declaration::Function(f) => f.declare(context).map(Into::into),
             ast::Declaration::Trait(t) => t.declare(context).map(Into::into),
             ast::Declaration::Type(t) => t.declare(context).map(Into::into),
             ast::Declaration::Variable(v) => v.declare(context).map(Into::into),
@@ -340,10 +341,7 @@ impl Declare for ast::Declaration {
         match self {
             ast::Declaration::Function(f) => f
                 .define(
-                    TryInto::<hir::Function>::try_into(declaration)
-                        .unwrap()
-                        .try_into()
-                        .unwrap(),
+                    TryInto::<Arc<hir::Function>>::try_into(declaration).unwrap(),
                     context,
                 )
                 .map(Into::into),

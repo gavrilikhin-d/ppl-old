@@ -3,7 +3,7 @@ use std::fmt::Display;
 use std::ops::Range;
 use std::sync::Arc;
 
-use derive_more::{Display, From, TryInto};
+use derive_more::From;
 
 use crate::hir::{FunctionType, Generic, Statement, Type, TypeReference, Typed};
 use crate::mutability::Mutable;
@@ -91,9 +91,9 @@ impl Ranged for FunctionNamePart {
     }
 }
 
-/// Declaration of a type
+/// Declaration (or definition) of a function
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct FunctionDeclaration {
+pub struct Function {
     /// Generic parameters of a function
     pub generic_types: Vec<Type>,
     /// Type's name
@@ -101,18 +101,21 @@ pub struct FunctionDeclaration {
     /// Type of returned value
     pub return_type: Type,
 
+    /// Optional body of a function
+    pub body: Vec<Statement>,
+
     /// Mangled name to use instead of default
     pub(crate) mangled_name: Option<String>,
     /// Cached format for name of function
-    name_format: String,
+    pub(crate) name_format: String,
     /// Cached name of function
-    name: String,
+    pub(crate) name: String,
 }
 
-impl FunctionDeclaration {
+impl Function {
     /// Create a new builder for a function declaration
-    pub fn build() -> FunctionDeclarationBuilder {
-        FunctionDeclarationBuilder::new()
+    pub fn build() -> FunctionBuilder {
+        FunctionBuilder::new()
     }
 
     /// Get name parts of function
@@ -149,9 +152,32 @@ impl FunctionDeclaration {
             .map(|n| n.into())
             .unwrap_or(self.name())
     }
+
+    /// Build function name from name parts
+    pub fn build_name(name_parts: &[FunctionNamePart]) -> String {
+        let mut name = String::new();
+        for (i, part) in name_parts.iter().enumerate() {
+            if i > 0 {
+                name.push_str(" ");
+            }
+
+            match part {
+                FunctionNamePart::Text(text) => name.push_str(&text),
+                FunctionNamePart::Parameter(p) => {
+                    name.push_str(format!("<:{}>", p.ty().name()).as_str())
+                }
+            }
+        }
+        name
+    }
+
+    /// Is this a definition of a function?
+    pub fn is_definition(&self) -> bool {
+        !self.body.is_empty()
+    }
 }
 
-impl Ranged for FunctionDeclaration {
+impl Ranged for Function {
     fn start(&self) -> usize {
         self.name_parts().first().unwrap().start()
     }
@@ -161,20 +187,20 @@ impl Ranged for FunctionDeclaration {
     }
 }
 
-impl Generic for FunctionDeclaration {
+impl Generic for Function {
     fn is_generic(&self) -> bool {
         self.parameters().any(|p| p.is_generic()) || self.return_type.is_generic()
     }
 }
 
-impl Named for FunctionDeclaration {
+impl Named for Function {
     /// Get name of function
     fn name(&self) -> Cow<'_, str> {
         self.name.as_str().into()
     }
 }
 
-impl Typed for FunctionDeclaration {
+impl Typed for Function {
     fn ty(&self) -> Type {
         FunctionType::build()
             .with_parameters(
@@ -191,7 +217,7 @@ impl Typed for FunctionDeclaration {
     }
 }
 
-impl Display for FunctionDeclaration {
+impl Display for Function {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let indent = "\t".repeat(f.width().unwrap_or(0));
         write!(f, "{indent}")?;
@@ -215,27 +241,40 @@ impl Display for FunctionDeclaration {
             .collect::<Vec<_>>()
             .join(" ");
         let return_type = self.return_type.name();
-        write!(f, "fn{generics} {name_parts} -> {return_type}")
+        write!(f, "fn{generics} {name_parts} -> {return_type}")?;
+
+        if self.body.is_empty() {
+            return Ok(());
+        }
+
+        let new_indent = f.width().unwrap_or(0) + 1;
+        for statement in &self.body {
+            writeln!(f, "{statement:#new_indent$}")?;
+        }
+        Ok(())
     }
 }
 
 /// Builder for a function declaration
-pub struct FunctionDeclarationBuilder {
+pub struct FunctionBuilder {
     /// Generic parameters of a function
     generic_types: Vec<Type>,
     /// Type's name
     name_parts: Vec<FunctionNamePart>,
     /// Mangled name of function
     mangled_name: Option<String>,
+    /// Body of a function
+    body: Vec<Statement>,
 }
 
-impl FunctionDeclarationBuilder {
-    /// Create a new builder for a function declaration
+impl FunctionBuilder {
+    /// Create a new builder for a function
     pub fn new() -> Self {
-        FunctionDeclarationBuilder {
+        FunctionBuilder {
             generic_types: Vec::new(),
             name_parts: Vec::new(),
             mangled_name: None,
+            body: vec![],
         }
     }
 
@@ -254,6 +293,17 @@ impl FunctionDeclarationBuilder {
     /// Set mangled name of function
     pub fn with_mangled_name(mut self, mangled_name: Option<String>) -> Self {
         self.mangled_name = mangled_name;
+        self
+    }
+
+    /// Set body of function
+    pub fn with_body(mut self, body: Vec<Statement>) -> Self {
+        self.body = body;
+        self
+    }
+
+    pub fn without_body(mut self) -> Self {
+        self.body = vec![];
         self
     }
 
@@ -278,195 +328,27 @@ impl FunctionDeclarationBuilder {
     }
 
     /// Set the return type of the function and return the declaration
-    pub fn with_return_type(self, return_type: Type) -> FunctionDeclaration {
+    pub fn with_return_type(self, return_type: Type) -> Function {
         let name_format = self.build_name_format();
         let name = self.build_name();
-        FunctionDeclaration {
+        Function {
             generic_types: self.generic_types,
             name_parts: self.name_parts,
             return_type,
             name_format,
             name,
             mangled_name: self.mangled_name,
-        }
-    }
-}
-
-/// Declaration of a type
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct FunctionDefinition {
-    /// Declaration of function
-    pub declaration: Arc<FunctionDeclaration>,
-    /// Body of function
-    pub body: Vec<Statement>,
-}
-
-impl Display for FunctionDefinition {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let indent = f.width().unwrap_or(0);
-        let new_indent = indent + 1;
-
-        let indent = "\t".repeat(indent);
-        write!(f, "{indent}")?;
-
-        writeln!(f, "{}:", self.declaration)?;
-        for statement in &self.body {
-            writeln!(f, "{statement:#new_indent$}")?;
-        }
-        Ok(())
-    }
-}
-
-impl FunctionDefinition {
-    /// Get name parts of function
-    pub fn name_parts(&self) -> &[FunctionNamePart] {
-        &self.declaration.name_parts
-    }
-
-    /// Get name format of function
-    pub fn name_format(&self) -> &str {
-        self.declaration.name_format()
-    }
-
-    /// Get iterator over function's parameters
-    pub fn parameters(&self) -> impl Iterator<Item = Arc<Parameter>> + '_ {
-        self.declaration.parameters()
-    }
-
-    /// Get mangled name of function
-    pub fn mangled_name(&self) -> Cow<'_, str> {
-        self.declaration.mangled_name()
-    }
-
-    /// Get return type of function
-    pub fn return_type(&self) -> Type {
-        self.declaration.return_type.clone()
-    }
-}
-
-impl Generic for FunctionDefinition {
-    fn is_generic(&self) -> bool {
-        self.declaration.is_generic()
-    }
-}
-
-impl Typed for FunctionDefinition {
-    fn ty(&self) -> Type {
-        self.declaration.ty()
-    }
-}
-
-impl Named for FunctionDefinition {
-    fn name(&self) -> Cow<'_, str> {
-        self.declaration.name()
-    }
-}
-
-/// Function definition or declaration
-#[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto)]
-pub enum Function {
-    Declaration(Arc<FunctionDeclaration>),
-    Definition(Arc<FunctionDefinition>),
-}
-
-impl Function {
-    /// Build function name from name parts
-    pub fn build_name(name_parts: &[FunctionNamePart]) -> String {
-        let mut name = String::new();
-        for (i, part) in name_parts.iter().enumerate() {
-            if i > 0 {
-                name.push_str(" ");
-            }
-
-            match part {
-                FunctionNamePart::Text(text) => name.push_str(&text),
-                FunctionNamePart::Parameter(p) => {
-                    name.push_str(format!("<:{}>", p.ty().name()).as_str())
-                }
-            }
-        }
-        name
-    }
-
-    /// Get name parts of function
-    pub fn name_parts(&self) -> &[FunctionNamePart] {
-        match self {
-            Function::Declaration(declaration) => declaration.name_parts(),
-            Function::Definition(definition) => definition.name_parts(),
-        }
-    }
-
-    /// Get name format of function
-    pub fn name_format(&self) -> &str {
-        match self {
-            Function::Declaration(declaration) => declaration.name_format(),
-            Function::Definition(definition) => definition.name_format(),
-        }
-    }
-
-    /// Get iterator over function's parameters
-    pub fn parameters(&self) -> impl Iterator<Item = Arc<Parameter>> + '_ {
-        match self {
-            Function::Declaration(declaration) => declaration.parameters(),
-            Function::Definition(definition) => definition.declaration.parameters(),
-        }
-    }
-
-    /// Get mangled name of function
-    pub fn mangled_name(&self) -> Cow<'_, str> {
-        match self {
-            Function::Declaration(declaration) => declaration.mangled_name(),
-            Function::Definition(definition) => definition.mangled_name(),
-        }
-    }
-
-    /// Get return type of function
-    pub fn return_type(&self) -> Type {
-        self.declaration().return_type.clone()
-    }
-
-    /// Get declaration of function
-    pub fn declaration(&self) -> Arc<FunctionDeclaration> {
-        match self {
-            Function::Declaration(declaration) => declaration.clone(),
-            Function::Definition(definition) => definition.declaration.clone(),
-        }
-    }
-}
-
-impl Generic for Function {
-    fn is_generic(&self) -> bool {
-        self.declaration().is_generic()
-    }
-}
-
-impl Typed for Function {
-    fn ty(&self) -> Type {
-        match self {
-            Function::Declaration(declaration) => declaration.ty(),
-            Function::Definition(definition) => definition.ty(),
-        }
-    }
-}
-
-impl Named for Function {
-    fn name(&self) -> Cow<'_, str> {
-        match self {
-            Function::Declaration(declaration) => declaration.name(),
-            Function::Definition(definition) => definition.name(),
+            body: self.body,
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::{assert_matches::assert_matches, sync::Arc};
-
     use crate::{
         ast,
         hir::{
-            Function, FunctionDeclaration, FunctionDefinition, GenericType, Parameter, Return,
-            Statement, TypeReference, VariableReference,
+            Function, GenericType, Parameter, Return, Statement, TypeReference, VariableReference,
         },
         semantics::ToHIR,
         syntax::Identifier,
@@ -480,9 +362,6 @@ mod tests {
             .parse::<ast::FunctionDeclaration>()
             .unwrap();
         let hir = ast.to_hir_without_context().unwrap();
-        assert_matches!(hir, Function::Definition(_));
-
-        let hir: Arc<FunctionDefinition> = hir.try_into().unwrap();
 
         let ty = GenericType {
             name: Identifier::from("T").at(3),
@@ -499,23 +378,20 @@ mod tests {
             range: 6..12,
         };
         assert_eq!(
-            *hir.declaration,
-            FunctionDeclaration::build()
+            *hir,
+            Function::build()
                 .with_generic_types(vec![ty.clone().into()])
                 .with_name(vec![param.clone().into()])
+                .with_body(vec![Statement::Return(Return {
+                    value: Some(
+                        VariableReference {
+                            span: 21..22,
+                            variable: param.into()
+                        }
+                        .into()
+                    )
+                })])
                 .with_return_type(ty.into())
         );
-        assert_eq!(
-            hir.body[0],
-            Statement::Return(Return {
-                value: Some(
-                    VariableReference {
-                        span: 21..22,
-                        variable: param.into()
-                    }
-                    .into()
-                )
-            })
-        )
     }
 }

@@ -2,8 +2,8 @@ use std::{fmt::Display, sync::Arc};
 
 use crate::{
     hir::{
-        ClassDeclaration, Function, FunctionDeclaration, ParameterOrVariable, TraitDeclaration,
-        Type, VariableDeclaration,
+        ClassDeclaration, Function, ParameterOrVariable, TraitDeclaration, Type,
+        VariableDeclaration,
     },
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
@@ -14,7 +14,7 @@ use super::Context;
 /// Context for lowering body of function
 pub struct FunctionContext<'p> {
     /// Function, which is being lowered
-    pub function: Arc<FunctionDeclaration>,
+    pub function: Arc<Function>,
 
     /// Local variables declared so far
     pub variables: Vec<Arc<VariableDeclaration>>,
@@ -73,7 +73,7 @@ impl AddDeclaration for FunctionContext<'_> {
         todo!("local traits")
     }
 
-    fn add_function(&mut self, f: Function) {
+    fn add_function(&mut self, f: Arc<Function>) {
         // TODO: local functions
         self.parent.add_function(f)
     }
@@ -92,7 +92,7 @@ impl Context for FunctionContext<'_> {
         Some(self.parent)
     }
 
-    fn function(&self) -> Option<Arc<FunctionDeclaration>> {
+    fn function(&self) -> Option<Arc<Function>> {
         Some(self.function.clone())
     }
 }

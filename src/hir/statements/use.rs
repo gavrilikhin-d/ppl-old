@@ -4,14 +4,14 @@ use derive_more::From;
 
 use crate::{
     hir::{ClassOrTrait, Function, VariableDeclaration},
-    syntax::{Identifier},
+    syntax::Identifier,
 };
 
 /// Item, imported by use statement
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum ImportedItem {
     ClassOrTrait(ClassOrTrait),
-    Function(Function),
+    Function(Arc<Function>),
     Variable(Arc<VariableDeclaration>),
 }
 

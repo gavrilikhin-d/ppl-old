@@ -393,7 +393,7 @@ pub struct NotImplemented {
     /// Trait, that is not implemented
     pub tr: Arc<TraitDeclaration>,
     /// Unimplemented functions
-    pub unimplemented: Vec<Function>,
+    pub unimplemented: Vec<Arc<Function>>,
 }
 
 impl Diagnostic for NotImplemented {
@@ -405,7 +405,7 @@ impl Diagnostic for NotImplemented {
         Some(Box::new(self.unimplemented.iter().map(|f| {
             miette::LabeledSpan::new_with_span(
                 Some("This required function isn't implemented".to_string()),
-                f.declaration().range(),
+                f.range(),
             )
         })))
     }
