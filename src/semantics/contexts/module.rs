@@ -2,7 +2,7 @@ use std::{fmt::Display, sync::Arc};
 
 use crate::{
     compilation::Compiler,
-    hir::{Basename, ClassDeclaration, Function, Module, TraitDeclaration, VariableDeclaration},
+    hir::{Basename, ClassDeclaration, Function, Module, TraitDeclaration, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration},
 };
@@ -60,7 +60,7 @@ impl AddDeclaration for ModuleContext<'_> {
         self.module.insert_function(f);
     }
 
-    fn add_variable(&mut self, v: Arc<VariableDeclaration>) {
+    fn add_variable(&mut self, v: Variable) {
         self.module.variables.insert(v.name().to_string(), v);
     }
 }

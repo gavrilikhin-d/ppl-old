@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    hir::{ClassDeclaration, Function, SelfType, TraitDeclaration, Type, VariableDeclaration},
+    hir::{ClassDeclaration, Function, SelfType, TraitDeclaration, Type, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
 };
@@ -77,7 +77,7 @@ impl AddDeclaration for TraitContext<'_> {
         self.tr.functions.insert(f.name().to_string(), f);
     }
 
-    fn add_variable(&mut self, _v: Arc<VariableDeclaration>) {
+    fn add_variable(&mut self, _v: Variable) {
         todo!("variables in traits")
     }
 }

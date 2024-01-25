@@ -176,6 +176,8 @@ pub enum Type {
     Generic(Box<GenericType>),
     /// Function type
     Function(FunctionType),
+    /// Type that compiler hasn't inferred yet
+    Unknown,
 }
 
 impl From<GenericType> for Type {
@@ -320,6 +322,7 @@ impl Generic for Type {
             Type::SelfType(_) | Type::Trait(_) | Type::Generic(_) => true,
             Type::Class(c) => c.is_generic(),
             Type::Function(f) => f.is_generic(),
+            Type::Unknown => unreachable!("Trying to check if not inferred type is generic"),
         }
     }
 }
@@ -341,6 +344,7 @@ impl Named for Type {
             Type::SelfType(s) => s.name(),
             Type::Function(f) => f.name(),
             Type::Generic(g) => g.name(),
+            Type::Unknown => "Unknown".into(),
         }
     }
 }

@@ -9,7 +9,7 @@ use crate::{
 };
 
 use super::{
-    error::{Error, ReturnTypeMismatch},
+    error::{CantDeduceReturnType, Error, ReturnTypeMismatch},
     Context, ConvertibleTo, FunctionContext, GenericContext, Monomorphized, ToHIR, TraitContext,
 };
 
@@ -55,6 +55,7 @@ impl Declare for ast::FunctionDeclaration {
 
         let return_type = match &self.return_type {
             Some(ty) => ty.to_hir(&mut generic_context)?.referenced_type,
+            None if self.implicit_return => Type::Unknown,
             None => generic_context.builtin().types().none(),
         };
 
@@ -111,6 +112,13 @@ impl Declare for ast::FunctionDeclaration {
             let return_type = f_context.function.read().unwrap().return_type.clone();
             let expr: hir::Expression = body.pop().unwrap().try_into().unwrap();
             if self.return_type.is_none() {
+                if expr.ty() == Type::Unknown {
+                    return Err(CantDeduceReturnType {
+                        at: self.name_parts.range().into(),
+                    }
+                    .into());
+                }
+
                 declaration.write().unwrap().return_type = expr.ty().clone();
             } else if !expr
                 .ty()
@@ -270,14 +278,14 @@ impl Declare for ast::TypeDeclaration {
 }
 
 impl Declare for ast::VariableDeclaration {
-    type Declaration = Arc<hir::VariableDeclaration>;
-    type Definition = Arc<hir::VariableDeclaration>;
+    type Declaration = hir::Variable;
+    type Definition = hir::Variable;
 
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
-        // TODO: don't define value right away
-        let var = Arc::new(hir::VariableDeclaration {
+        let var = hir::Variable::new(hir::VariableData {
             name: self.name.clone(),
-            initializer: self.initializer.to_hir(context)?.monomorphized(context),
+            ty: Type::Unknown,
+            initializer: None,
             mutability: self.mutability.clone(),
         });
 
@@ -288,18 +296,15 @@ impl Declare for ast::VariableDeclaration {
 
     fn define(
         &self,
-        _declaration: Self::Declaration,
+        declaration: Self::Declaration,
         context: &mut impl Context,
     ) -> Result<Self::Definition, Error> {
-        let var = Arc::new(hir::VariableDeclaration {
-            name: self.name.clone(),
-            initializer: self.initializer.to_hir(context)?.monomorphized(context),
-            mutability: self.mutability.clone(),
-        });
+        let initializer = self.initializer.to_hir(context)?.monomorphized(context);
 
-        context.add_variable(var.clone());
+        declaration.write().unwrap().ty = initializer.ty();
+        declaration.write().unwrap().initializer = Some(initializer);
 
-        Ok(var)
+        Ok(declaration)
     }
 }
 

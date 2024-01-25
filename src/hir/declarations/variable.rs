@@ -1,30 +1,95 @@
 use std::borrow::Cow;
 use std::fmt::Display;
+use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use crate::hir::{Expression, Generic, Type, Typed};
 use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
 use crate::syntax::Identifier;
 
-/// Declaration of a variable
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct VariableDeclaration {
-    /// Variable's name
-    pub name: Identifier,
-    /// Initializer for variable
-    pub initializer: Expression,
-
-    /// Mutability of variable
-    pub mutability: Mutability,
+/// Variable data holder
+#[derive(Debug, Clone)]
+pub struct Variable {
+    inner: Arc<RwLock<VariableData>>,
 }
 
-impl Display for VariableDeclaration {
+impl Variable {
+    /// Create a new variable from its data
+    pub fn new(data: VariableData) -> Self {
+        Self {
+            inner: Arc::new(RwLock::new(data)),
+        }
+    }
+
+    /// Lock variable for reading
+    pub fn read(&self) -> LockResult<RwLockReadGuard<'_, VariableData>> {
+        self.inner.read()
+    }
+
+    /// Lock variable for writing
+    pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, VariableData>> {
+        self.inner.write()
+    }
+}
+
+impl Display for Variable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.read().unwrap().fmt(f)
+    }
+}
+
+impl PartialEq for Variable {
+    fn eq(&self, other: &Self) -> bool {
+        *self.read().unwrap() == *other.read().unwrap()
+    }
+}
+
+impl Eq for Variable {}
+
+impl Named for Variable {
+    fn name(&self) -> Cow<'_, str> {
+        self.read().unwrap().name().to_string().into()
+    }
+}
+
+impl Generic for Variable {
+    fn is_generic(&self) -> bool {
+        self.read().unwrap().is_generic()
+    }
+}
+
+impl Typed for Variable {
+    fn ty(&self) -> Type {
+        self.read().unwrap().ty()
+    }
+}
+
+impl Mutable for Variable {
+    fn is_mutable(&self) -> bool {
+        self.read().unwrap().is_mutable()
+    }
+}
+
+/// Declaration of a variable
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct VariableData {
+    /// Mutability of variable
+    pub mutability: Mutability,
+    /// Variable's name
+    pub name: Identifier,
+    /// Type of variable
+    pub ty: Type,
+    /// Initializer for variable
+    pub initializer: Option<Expression>,
+}
+
+impl Display for VariableData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let indent = "\t".repeat(f.width().unwrap_or(0));
         write!(f, "{indent}")?;
         write!(
             f,
-            "let {}{}: {} = {}",
+            "let {}{}: {}{}",
             if self.mutability == Mutability::Mutable {
                 "mut "
             } else {
@@ -33,33 +98,35 @@ impl Display for VariableDeclaration {
             self.name,
             self.ty(),
             self.initializer
+                .as_ref()
+                .map_or("".to_string(), |i| format!(" = {i}"))
         )
     }
 }
 
-impl Named for VariableDeclaration {
+impl Named for VariableData {
     /// Get name of variable
     fn name(&self) -> Cow<'_, str> {
         self.name.as_str().into()
     }
 }
 
-impl Mutable for VariableDeclaration {
+impl Mutable for VariableData {
     /// Is variable declared as mutable?
     fn is_mutable(&self) -> bool {
         self.mutability.is_mutable()
     }
 }
 
-impl Typed for VariableDeclaration {
+impl Typed for VariableData {
     /// Get type of variable
     fn ty(&self) -> Type {
-        self.initializer.ty()
+        self.ty.clone()
     }
 }
 
-impl Generic for VariableDeclaration {
+impl Generic for VariableData {
     fn is_generic(&self) -> bool {
-        self.initializer.is_generic()
+        self.ty.is_generic()
     }
 }
