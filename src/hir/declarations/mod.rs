@@ -21,7 +21,7 @@ use crate::named::Named;
 /// Any PPL declaration
 #[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Declaration {
-    Variable(Arc<VariableDeclaration>),
+    Variable(Variable),
     Type(Arc<ClassDeclaration>),
     Function(Function),
     Trait(Arc<TraitDeclaration>),

@@ -214,6 +214,15 @@ impl ToHIR for ast::Call {
             }
 
             if !failed {
+                if f.read().unwrap().return_type == Type::Unknown {
+                    // TODO: specify that we can't deduce because it's called to early
+                    // TODO: try to reverse order in which we process function definitions
+                    return Err(CantDeduceType {
+                        at: self.range().into(),
+                    }
+                    .into());
+                }
+
                 let generic = if f.read().unwrap().is_generic() {
                     Some(f.clone())
                 } else {

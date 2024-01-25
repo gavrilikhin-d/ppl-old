@@ -1,6 +1,6 @@
 use derive_more::From;
 
-use crate::hir::{Generic, Parameter, Type, Typed, VariableDeclaration};
+use crate::hir::{Generic, Parameter, Type, Typed, Variable, VariableData};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
@@ -11,7 +11,7 @@ use std::sync::Arc;
 /// Parameter or variable declaration
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum ParameterOrVariable {
-    Variable(Arc<VariableDeclaration>),
+    Variable(Variable),
     Parameter(Arc<Parameter>),
 }
 
@@ -21,9 +21,9 @@ impl From<Parameter> for ParameterOrVariable {
     }
 }
 
-impl From<VariableDeclaration> for ParameterOrVariable {
-    fn from(variable: VariableDeclaration) -> Self {
-        Self::Variable(Arc::new(variable))
+impl From<VariableData> for ParameterOrVariable {
+    fn from(variable: VariableData) -> Self {
+        Self::Variable(Variable::new(variable))
     }
 }
 

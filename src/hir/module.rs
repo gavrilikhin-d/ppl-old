@@ -5,7 +5,7 @@ use std::fmt::Display;
 use derive_more::From;
 use miette::NamedSource;
 
-use crate::hir::{ClassDeclaration, Statement, VariableDeclaration};
+use crate::hir::{ClassDeclaration, Statement, Variable};
 use crate::named::Named;
 use crate::SourceFile;
 use std::sync::Arc;
@@ -49,7 +49,7 @@ pub struct Module {
     pub source_file: SourceFile,
 
     /// Variables, visible in this module
-    pub variables: IndexMap<Name, Arc<VariableDeclaration>>,
+    pub variables: IndexMap<Name, Variable>,
 
     /// Types, visible in this module
     pub types: IndexMap<Name, ClassOrTrait>,

@@ -67,6 +67,7 @@ fn print_value(result: *const c_void, ty: Type) {
             unreachable!("Self may not be returned as result of expression")
         }
         Type::Generic(_) => unreachable!("generic types may not be returned"),
+        Type::Unknown => unreachable!("Returning unknown type"),
     }
 }
 

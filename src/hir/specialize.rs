@@ -16,6 +16,7 @@ where
 impl Specialize for Type {
     fn specialize_with(self, mapping: &HashMap<Type, Type>) -> Self::Output {
         match self {
+            Type::Unknown => unreachable!("Trying to specialize not inferred type"),
             Type::Class(c) => c.specialize_with(mapping).into(),
             Type::Function(f) => f.specialize_with(mapping).into(),
             Type::Trait(_) | Type::SelfType(_) | Type::Generic(_) => {

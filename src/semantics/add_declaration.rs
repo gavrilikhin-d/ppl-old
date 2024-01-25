@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
 use crate::hir::{
-    ClassDeclaration, Function, GenericType, TraitDeclaration, Type, TypeReference,
-    VariableDeclaration,
+    ClassDeclaration, Function, GenericType, TraitDeclaration, Type, TypeReference, Variable,
 };
 
 pub trait AddDeclaration {
@@ -27,7 +26,7 @@ pub trait AddDeclaration {
     }
 
     /// Add variable to context
-    fn add_variable(&mut self, v: Arc<VariableDeclaration>) {
+    fn add_variable(&mut self, v: Variable) {
         self.parent_mut().unwrap().add_variable(v)
     }
 

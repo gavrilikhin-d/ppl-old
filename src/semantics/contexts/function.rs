@@ -1,10 +1,7 @@
 use std::{fmt::Display, sync::Arc};
 
 use crate::{
-    hir::{
-        ClassDeclaration, Function, ParameterOrVariable, TraitDeclaration, Type,
-        VariableDeclaration,
-    },
+    hir::{ClassDeclaration, Function, ParameterOrVariable, TraitDeclaration, Type, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
 };
@@ -17,7 +14,7 @@ pub struct FunctionContext<'p> {
     pub function: Function,
 
     /// Local variables declared so far
-    pub variables: Vec<Arc<VariableDeclaration>>,
+    pub variables: Vec<Variable>,
 
     /// Parent context for this function
     pub parent: &'p mut dyn Context,
@@ -82,7 +79,7 @@ impl AddDeclaration for FunctionContext<'_> {
         self.parent.add_function(f)
     }
 
-    fn add_variable(&mut self, v: Arc<VariableDeclaration>) {
+    fn add_variable(&mut self, v: Variable) {
         self.variables.push(v)
     }
 }

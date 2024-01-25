@@ -40,6 +40,9 @@ impl ConvertibleToRequest<'_, Type> {
         let from = self.from.without_ref();
         let to = self.to.without_ref();
         match from {
+            Type::Unknown => unreachable!(
+                "Trying to check if not inferred type is convertible to some other type"
+            ),
             Type::Class(c) => c.convertible_to(to).within(context),
             Type::Function(f) => f.convertible_to(to).within(context),
             Type::Generic(g) => g.convertible_to(to).within(context),
@@ -107,6 +110,7 @@ impl ConvertibleToRequest<'_, Arc<ClassDeclaration>> {
                 convertible
             }
             Type::Function(_) => false,
+            Type::Unknown => true,
         })
     }
 }
@@ -119,6 +123,7 @@ impl ConvertibleToRequest<'_, Arc<TraitDeclaration>> {
         let from = self.from;
         let to = self.to;
         Ok(match to {
+            Type::Unknown => true,
             Type::Class(_) => false,
             Type::Function(_) => false,
             Type::Generic(g) => {
@@ -142,6 +147,7 @@ impl ConvertibleToRequest<'_, GenericType> {
         let from = self.from;
         let to = self.to;
         Ok(match to {
+            Type::Unknown => true,
             Type::Class(_) => false,
             Type::Function(_) => false,
             Type::SelfType(_) | Type::Trait(_) => {
@@ -180,6 +186,7 @@ impl ConvertibleToRequest<'_, FunctionType> {
             Type::Generic(_) => false,
             Type::Trait(_) => false,
             Type::SelfType(_) => false,
+            Type::Unknown => true,
         })
     }
 }
@@ -200,6 +207,7 @@ impl ConvertibleToRequest<'_, SelfType> {
                 .unwrap()
                 .convertible_to(to)
                 .within(context)?,
+            Type::Unknown => true,
         })
     }
 }

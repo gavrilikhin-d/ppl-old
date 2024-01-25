@@ -12,6 +12,7 @@ test_compilation_result!(monomorphize);
 test_compilation_result!(multiple_errors);
 test_compilation_result!(multiple_initialization);
 test_compilation_result!(non_class_constructor);
+test_compilation_result!(predeclare_function);
 test_compilation_result!(predeclare_vars);
 test_compilation_result!(reference_mut);
 test_compilation_result!(references);

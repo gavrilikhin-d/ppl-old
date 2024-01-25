@@ -7,7 +7,7 @@ use crate::{
         Assignment, Call, ClassDeclaration, Constructor, Declaration, ElseIf, Expression, Function,
         FunctionData, FunctionNamePart, Generic, If, ImplicitConversion, ImplicitConversionKind,
         Initializer, Loop, Member, MemberReference, Module, Parameter, ParameterOrVariable, Return,
-        Statement, Type, TypeReference, Typed, VariableDeclaration, VariableReference, While,
+        Statement, Type, TypeReference, Typed, Variable, VariableData, VariableReference, While,
     },
     semantics::{ConvertibleTo, GenericContext, Implicit},
 };
@@ -52,7 +52,7 @@ impl Monomorphized for Declaration {
     }
 }
 
-impl Monomorphized for Arc<VariableDeclaration> {
+impl Monomorphized for Variable {
     fn monomorphized(self, context: &mut impl Context) -> Self {
         if !self.is_generic() {
             trace!(target: "monomorphizing-skipped", "{self}");
@@ -62,9 +62,15 @@ impl Monomorphized for Arc<VariableDeclaration> {
         let from = self.to_string();
         trace!(target: "monomorphizing", "{from}");
 
-        let res = Arc::new(VariableDeclaration {
-            initializer: self.initializer.clone().monomorphized(context),
-            ..self.as_ref().clone()
+        let res = Variable::new(VariableData {
+            ty: self.ty().clone().monomorphized(context),
+            initializer: self
+                .read()
+                .unwrap()
+                .initializer
+                .clone()
+                .map(|i| i.monomorphized(context)),
+            ..self.read().unwrap().clone()
         });
 
         debug!(target: "monomorphized-from", "{from}");
@@ -222,6 +228,7 @@ impl Monomorphized for Type {
             Type::Generic(_) | Type::SelfType(_) | Type::Trait(_) => {
                 context.get_specialized(self.clone()).unwrap_or(self)
             }
+            Type::Unknown => unreachable!("Trying to monomorphize not-inferred type"),
         }
     }
 }

@@ -1,9 +1,9 @@
-use std::{fmt::Display, sync::Arc};
+use std::fmt::Display;
 
 use derive_more::From;
 
 use crate::{
-    hir::{ClassOrTrait, Function, VariableDeclaration},
+    hir::{ClassOrTrait, Function, Variable},
     syntax::Identifier,
 };
 
@@ -12,7 +12,7 @@ use crate::{
 pub enum ImportedItem {
     ClassOrTrait(ClassOrTrait),
     Function(Function),
-    Variable(Arc<VariableDeclaration>),
+    Variable(Variable),
 }
 
 /// Use statement

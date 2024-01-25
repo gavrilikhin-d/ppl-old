@@ -292,6 +292,16 @@ pub struct CantDeduceReturnType {
     pub at: SourceSpan,
 }
 
+/// Diagnostic for types that compiler can't infer
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
+#[error("can't deduce type")]
+#[diagnostic(code(semantics::cant_deduce_type))]
+pub struct CantDeduceType {
+    /// Span of function
+    #[label("Can't deduce type of this")]
+    pub at: SourceSpan,
+}
+
 /// Diagnostic for missing members
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq)]
 #[error("no member `{name}` in `{ty}`")]
@@ -473,6 +483,7 @@ error_enum!(
     MissingReturnValue,
     ReturnTypeMismatch,
     CantDeduceReturnType,
+    CantDeduceType,
     NoMember,
     MultipleInitialization,
     MissingFields,

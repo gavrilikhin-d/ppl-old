@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use inkwell::types::BasicMetadataTypeEnum;
 
 use inkwell::values::BasicMetadataValueEnum;
@@ -33,6 +31,7 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for Type {
             Type::Trait(_) => unreachable!("Trait must not be lowered to IR"),
             Type::Generic(_) => unreachable!("Generic must not be lowered to IR"),
             Type::Function { .. } => unimplemented!("Function type lowering"),
+            Type::Unknown => unreachable!("Lowering not-inferred type"),
         }
     }
 }
@@ -97,7 +96,7 @@ trait DeclareGlobal<'llvm> {
     fn declare_global(&self, context: &mut ModuleContext<'llvm>) -> Self::IR;
 }
 
-impl<'llvm> DeclareGlobal<'llvm> for VariableDeclaration {
+impl<'llvm> DeclareGlobal<'llvm> for VariableData {
     type IR = Option<inkwell::values::GlobalValue<'llvm>>;
 
     /// Declare global variable without defining it
@@ -119,12 +118,12 @@ impl<'llvm> DeclareGlobal<'llvm> for VariableDeclaration {
     }
 }
 
-impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Arc<VariableDeclaration> {
+impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Variable {
     type IR = Option<inkwell::values::GlobalValue<'llvm>>;
 
     /// Lower global [`VariableDeclaration`] to LLVM IR
     fn to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
-        let global = self.declare_global(context);
+        let global = self.read().unwrap().declare_global(context);
         if global.is_none() {
             return None;
         }
@@ -148,7 +147,13 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Arc<VariableDeclaration> {
             None,
         );
         let mut f_context = FunctionContext::new(context, initialize);
-        let value = self.initializer.to_ir(&mut f_context);
+        let value = self
+            .read()
+            .unwrap()
+            .initializer
+            .as_ref()
+            .expect("Currently all variables have initializers")
+            .to_ir(&mut f_context);
         f_context
             .builder
             .build_store(
@@ -161,7 +166,7 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Arc<VariableDeclaration> {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Arc<VariableDeclaration> {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Variable {
     type IR = inkwell::values::PointerValue<'llvm>;
 
     /// Lower local [`VariableDeclaration`] to LLVM IR
@@ -172,14 +177,18 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Arc<VariableDeclarat
             .try_into_basic_type()
             .expect("non-basic type local variable");
         let value = self
+            .read()
+            .unwrap()
             .initializer
+            .as_ref()
+            .expect("Currently all variables have initializers")
             .to_ir(context)
             .expect("initializer return None or Void");
-        let alloca = context.builder.build_alloca(ty, &self.name).unwrap();
+        let alloca = context.builder.build_alloca(ty, &self.name()).unwrap();
         context.builder.build_store(alloca, value).unwrap();
         context
             .variables
-            .insert(self.name.to_string(), alloca.clone());
+            .insert(self.name().to_string(), alloca.clone());
         alloca
     }
 }
@@ -408,7 +417,9 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for VariableReference {
         match &self.variable {
             ParameterOrVariable::Parameter(p) => panic!("Parameter {:?} not found", p.name()),
             ParameterOrVariable::Variable(var) => Some(
-                var.declare_global(context.module_context)
+                var.read()
+                    .unwrap()
+                    .declare_global(context.module_context)
                     .unwrap()
                     .as_pointer_value(),
             ),
