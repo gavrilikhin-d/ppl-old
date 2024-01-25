@@ -1,5 +1,5 @@
 fn <x: Integer> plus two => sum x 2
 
-fn sum <x: Integer> <y: Integer> => x + y
+fn sum <x: Integer> <y: Integer> -> Integer => x + y
 
 2 plus two

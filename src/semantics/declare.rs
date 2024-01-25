@@ -328,10 +328,7 @@ impl Declare for ast::Declaration {
     ) -> Result<Self::Definition, Error> {
         match self {
             ast::Declaration::Function(f) => f
-                .define(
-                    TryInto::<hir::Function>::try_into(declaration).unwrap(),
-                    context,
-                )
+                .define(declaration.try_into().unwrap(), context)
                 .map(Into::into),
             ast::Declaration::Trait(t) => t
                 .define(declaration.try_into().unwrap(), context)
