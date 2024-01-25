@@ -1,8 +1,8 @@
-use std::{fmt::Display, sync::Arc};
+use std::fmt::Display;
 
 use crate::{
     compilation::Compiler,
-    hir::{Function, FunctionNamePart, Module, Type, Typed},
+    hir::{Function, FunctionData, FunctionNamePart, Module, Type, Typed},
     semantics::{AddDeclaration, ConvertibleTo, FindDeclaration},
 };
 
@@ -41,7 +41,7 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
     }
 
     /// Get current function
-    fn function(&self) -> Option<Arc<Function>> {
+    fn function(&self) -> Option<Function> {
         Context::parent(self).and_then(|p| p.function())
     }
 
@@ -52,11 +52,7 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
     }
 
     /// Find concrete function for trait function
-    fn find_implementation(
-        &mut self,
-        trait_fn: &Function,
-        self_type: &Type,
-    ) -> Option<Arc<Function>>
+    fn find_implementation(&mut self, trait_fn: &FunctionData, self_type: &Type) -> Option<Function>
     where
         Self: Sized,
     {
@@ -67,7 +63,7 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
                 trait_fn
                     .name_parts()
                     .iter()
-                    .zip(f.name_parts())
+                    .zip(f.read().unwrap().name_parts())
                     .all(|(a, b)| match (a, b) {
                         (FunctionNamePart::Text(a), FunctionNamePart::Text(b)) => {
                             a.as_str() == b.as_str()
@@ -86,7 +82,7 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
                         .map_self(self_type)
                         .clone()
                         // TODO: real return type range
-                        .convertible_to(f.return_type.clone())
+                        .convertible_to(f.read().unwrap().return_type.clone())
                         .within(self)
                         .is_ok_and(|convertible| convertible)
             })

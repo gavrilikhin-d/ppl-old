@@ -11,7 +11,7 @@ use crate::{
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum ImportedItem {
     ClassOrTrait(ClassOrTrait),
-    Function(Arc<Function>),
+    Function(Function),
     Variable(Arc<VariableDeclaration>),
 }
 

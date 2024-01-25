@@ -5,9 +5,9 @@ use log::{debug, trace};
 use crate::{
     hir::{
         Assignment, Call, ClassDeclaration, Constructor, Declaration, ElseIf, Expression, Function,
-        FunctionNamePart, Generic, If, ImplicitConversion, ImplicitConversionKind, Initializer,
-        Loop, Member, MemberReference, Module, Parameter, ParameterOrVariable, Return, Statement,
-        Type, TypeReference, Typed, VariableDeclaration, VariableReference, While,
+        FunctionData, FunctionNamePart, Generic, If, ImplicitConversion, ImplicitConversionKind,
+        Initializer, Loop, Member, MemberReference, Module, Parameter, ParameterOrVariable, Return,
+        Statement, Type, TypeReference, Typed, VariableDeclaration, VariableReference, While,
     },
     semantics::{ConvertibleTo, GenericContext, Implicit},
 };
@@ -273,11 +273,11 @@ impl Monomorphized for Call {
         trace!(target: "monomorphizing", "{from}");
         let args = self.args.monomorphized(context);
 
-        let mut context = GenericContext::for_fn(&self.function, context);
+        let mut context = GenericContext::for_fn(self.function.clone(), context);
 
         args.iter()
             .map(|arg| arg.ty())
-            .zip(self.function.parameters().map(|p| p.ty()))
+            .zip(self.function.read().unwrap().parameters().map(|p| p.ty()))
             .for_each(|(arg, p)| {
                 arg.convertible_to(p).within(&mut context).unwrap();
             });
@@ -325,40 +325,41 @@ impl Monomorphized for ParameterOrVariable {
     }
 }
 
-impl Monomorphized for Arc<Function> {
+impl Monomorphized for Function {
     fn monomorphized(self, context: &mut impl Context) -> Self {
-        if !self.is_generic() {
-            trace!(target: "monomorphizing-skipped", "{self}");
+        let this = self.read().unwrap();
+
+        if !this.is_generic() {
+            trace!(target: "monomorphizing-skipped", "{this}");
+            drop(this);
             return self;
         }
 
-        let from = self.to_string();
+        let from = this.to_string();
         trace!(target: "monomorphizing", "{from}");
 
-        let generic_types = self.generic_types.clone().monomorphized(context);
-        let name_parts = self.name_parts.clone().monomorphized(context);
-        let name = Function::build_name(&name_parts);
-        let return_type = self.return_type.clone().monomorphized(context);
-        let mut f = Function::build()
+        let generic_types = this.generic_types.clone().monomorphized(context);
+        let name_parts = this.name_parts.clone().monomorphized(context);
+        let name = FunctionData::build_name(&name_parts);
+        let return_type = this.return_type.clone().monomorphized(context);
+        let mut f = FunctionData::build()
             .with_generic_types(generic_types)
             .with_mangled_name(
                 context
                     .function_with_name(&name)
-                    .map(|f| f.mangled_name.clone())
+                    .map(|f| f.read().unwrap().mangled_name.clone())
                     .flatten()
-                    .or_else(|| self.mangled_name.clone()),
+                    .or_else(|| this.mangled_name.clone()),
             )
             .with_name(name_parts)
             .with_return_type(return_type);
 
-        f.body = self.body.clone().monomorphized(context);
-
-        let res = Arc::new(f);
+        f.body = this.body.clone().monomorphized(context);
 
         debug!(target: "monomorphized-from", "{from}");
-        debug!(target: "monomorphized-to", "{res}");
+        debug!(target: "monomorphized-to", "{f}");
 
-        res
+        Function::new(f)
     }
 }
 

@@ -17,18 +17,15 @@ pub struct TraitDeclaration {
     /// Trait's name
     pub name: Identifier,
     /// Associated functions
-    pub functions: IndexMap<String, Arc<Function>>,
+    pub functions: IndexMap<String, Function>,
 }
 
 impl TraitDeclaration {
     /// Iterate over all functions with `n` name parts
-    pub fn functions_with_n_name_parts(
-        &self,
-        n: usize,
-    ) -> impl Iterator<Item = &Arc<Function>> + '_ {
+    pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = &Function> + '_ {
         self.functions
             .values()
-            .filter(move |f| f.name_parts().len() == n)
+            .filter(move |f| f.read().unwrap().name_parts().len() == n)
     }
 }
 
@@ -49,6 +46,7 @@ impl Display for TraitDeclaration {
 
             writeln!(f, "trait {}:", self.name())?;
             for function in self.functions.values() {
+                let function = function.read().unwrap();
                 writeln!(f, "{function:#new_indent$}")?;
             }
         } else {

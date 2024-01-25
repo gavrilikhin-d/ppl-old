@@ -9,7 +9,7 @@ use crate::{
 };
 
 use super::{
-    error::{CantDeduceReturnType, Error, ReturnTypeMismatch},
+    error::{Error, ReturnTypeMismatch},
     Context, ConvertibleTo, FunctionContext, GenericContext, Monomorphized, ToHIR, TraitContext,
 };
 
@@ -30,8 +30,8 @@ pub trait Declare {
 }
 
 impl Declare for ast::FunctionDeclaration {
-    type Declaration = Arc<hir::Function>;
-    type Definition = Arc<hir::Function>;
+    type Declaration = Function;
+    type Definition = Function;
 
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
         // TODO: check for collision
@@ -74,15 +74,15 @@ impl Declare for ast::FunctionDeclaration {
             _ => None,
         });
 
-        let f = Arc::new(
-            hir::Function::build()
+        let f = Function::new(
+            hir::FunctionData::build()
                 .with_generic_types(generic_parameters)
                 .with_name(name_parts)
                 .with_mangled_name(mangled_name)
                 .with_return_type(return_type),
         );
 
-        context.add_function(f.clone().into());
+        context.add_function(f.clone());
 
         Ok(f)
     }
@@ -108,22 +108,10 @@ impl Declare for ast::FunctionDeclaration {
         }
 
         if self.implicit_return {
-            let return_type = f_context.function.return_type.clone();
+            let return_type = f_context.function.read().unwrap().return_type.clone();
             let expr: hir::Expression = body.pop().unwrap().try_into().unwrap();
             if self.return_type.is_none() {
-                // One reference is held by module
-                // Another reference is held by declaration itself
-                // Last reference is inside context
-                if Arc::strong_count(&declaration) > 3 {
-                    return Err(CantDeduceReturnType {
-                        at: self.name_parts.range().into(),
-                    }
-                    .into());
-                }
-
-                unsafe {
-                    (*Arc::as_ptr(&declaration).cast_mut()).return_type = expr.ty().clone();
-                }
+                declaration.write().unwrap().return_type = expr.ty().clone();
             } else if !expr
                 .ty()
                 .convertible_to(return_type.clone())
@@ -140,14 +128,9 @@ impl Declare for ast::FunctionDeclaration {
             body = vec![hir::Return { value: Some(expr) }.into()];
         }
 
-        let f = Arc::new(Function {
-            body,
-            ..(declaration.as_ref().clone())
-        });
+        declaration.write().unwrap().body = body;
 
-        context.add_function(f.clone().into());
-
-        Ok(f.into())
+        Ok(declaration)
     }
 }
 
@@ -341,7 +324,7 @@ impl Declare for ast::Declaration {
         match self {
             ast::Declaration::Function(f) => f
                 .define(
-                    TryInto::<Arc<hir::Function>>::try_into(declaration).unwrap(),
+                    TryInto::<hir::Function>::try_into(declaration).unwrap(),
                     context,
                 )
                 .map(Into::into),

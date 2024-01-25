@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::fmt::Display;
 use std::ops::Range;
-use std::sync::Arc;
+use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use derive_more::From;
 
@@ -91,9 +91,54 @@ impl Ranged for FunctionNamePart {
     }
 }
 
+/// Function data holder
+#[derive(Debug, Clone)]
+pub struct Function {
+    inner: Arc<RwLock<FunctionData>>,
+}
+
+impl Function {
+    /// Create a new function from its data
+    pub fn new(data: FunctionData) -> Self {
+        Function {
+            inner: Arc::new(RwLock::new(data)),
+        }
+    }
+
+    /// Lock function for reading
+    pub fn read(&self) -> LockResult<RwLockReadGuard<'_, FunctionData>> {
+        self.inner.read()
+    }
+
+    /// Lock function for writing
+    pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, FunctionData>> {
+        self.inner.write()
+    }
+}
+
+impl Display for Function {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.read().unwrap().fmt(f)
+    }
+}
+
+impl PartialEq for Function {
+    fn eq(&self, other: &Self) -> bool {
+        *self.read().unwrap() == *other.read().unwrap()
+    }
+}
+
+impl Eq for Function {}
+
+impl Named for Function {
+    fn name(&self) -> Cow<'_, str> {
+        self.read().unwrap().name().to_string().into()
+    }
+}
+
 /// Declaration (or definition) of a function
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct Function {
+pub struct FunctionData {
     /// Generic parameters of a function
     pub generic_types: Vec<Type>,
     /// Type's name
@@ -112,7 +157,7 @@ pub struct Function {
     pub(crate) name: String,
 }
 
-impl Function {
+impl FunctionData {
     /// Create a new builder for a function declaration
     pub fn build() -> FunctionBuilder {
         FunctionBuilder::new()
@@ -177,7 +222,7 @@ impl Function {
     }
 }
 
-impl Ranged for Function {
+impl Ranged for FunctionData {
     fn start(&self) -> usize {
         self.name_parts().first().unwrap().start()
     }
@@ -187,20 +232,20 @@ impl Ranged for Function {
     }
 }
 
-impl Generic for Function {
+impl Generic for FunctionData {
     fn is_generic(&self) -> bool {
         self.parameters().any(|p| p.is_generic()) || self.return_type.is_generic()
     }
 }
 
-impl Named for Function {
+impl Named for FunctionData {
     /// Get name of function
     fn name(&self) -> Cow<'_, str> {
         self.name.as_str().into()
     }
 }
 
-impl Typed for Function {
+impl Typed for FunctionData {
     fn ty(&self) -> Type {
         FunctionType::build()
             .with_parameters(
@@ -217,7 +262,7 @@ impl Typed for Function {
     }
 }
 
-impl Display for Function {
+impl Display for FunctionData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let indent = "\t".repeat(f.width().unwrap_or(0));
         write!(f, "{indent}")?;
@@ -324,14 +369,14 @@ impl FunctionBuilder {
 
     /// Build function's name
     fn build_name(&self) -> String {
-        Function::build_name(&self.name_parts)
+        FunctionData::build_name(&self.name_parts)
     }
 
     /// Set the return type of the function and return the declaration
-    pub fn with_return_type(self, return_type: Type) -> Function {
+    pub fn with_return_type(self, return_type: Type) -> FunctionData {
         let name_format = self.build_name_format();
         let name = self.build_name();
-        Function {
+        FunctionData {
             generic_types: self.generic_types,
             name_parts: self.name_parts,
             return_type,
@@ -348,7 +393,8 @@ mod tests {
     use crate::{
         ast,
         hir::{
-            Function, GenericType, Parameter, Return, Statement, TypeReference, VariableReference,
+            FunctionData, GenericType, Parameter, Return, Statement, TypeReference,
+            VariableReference,
         },
         semantics::ToHIR,
         syntax::Identifier,
@@ -373,13 +419,21 @@ mod tests {
             ty: TypeReference {
                 referenced_type: ty.clone().into(),
                 span: 10..11,
-                type_for_type: hir.parameters().next().unwrap().ty.type_for_type.clone(),
+                type_for_type: hir
+                    .read()
+                    .unwrap()
+                    .parameters()
+                    .next()
+                    .unwrap()
+                    .ty
+                    .type_for_type
+                    .clone(),
             },
             range: 6..12,
         };
         assert_eq!(
-            *hir,
-            Function::build()
+            *hir.read().unwrap(),
+            FunctionData::build()
                 .with_generic_types(vec![ty.clone().into()])
                 .with_name(vec![param.clone().into()])
                 .with_body(vec![Statement::Return(Return {
