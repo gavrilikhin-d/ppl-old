@@ -52,6 +52,7 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Declaration {
                 }
             }
             Declaration::Function(f) => {
+                let f = f.read().unwrap();
                 if !f.is_generic() {
                     f.to_ir(context);
                 }
@@ -77,6 +78,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Declaration {
                 }
             }
             Declaration::Function(f) => {
+                let f = f.read().unwrap();
                 if !f.is_generic() {
                     f.to_ir(context);
                 }
@@ -214,7 +216,7 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for ClassDeclaration {
     }
 }
 
-impl<'llvm> DeclareGlobal<'llvm> for Function {
+impl<'llvm> DeclareGlobal<'llvm> for FunctionData {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     /// Declare global function without defining it
@@ -236,7 +238,7 @@ impl<'llvm> DeclareGlobal<'llvm> for Function {
     }
 }
 
-impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Function {
+impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for FunctionData {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     /// Lower global [`FunctionDeclaration`] to LLVM IR
@@ -251,7 +253,7 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Function {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Function {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for FunctionData {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     /// Lower local [`FunctionDeclaration`] to LLVM IR
@@ -272,7 +274,7 @@ trait EmitBody<'llvm> {
     fn emit_body(&self, context: &mut ModuleContext<'llvm>);
 }
 
-impl<'llvm> EmitBody<'llvm> for Function {
+impl<'llvm> EmitBody<'llvm> for FunctionData {
     fn emit_body(&self, context: &mut ModuleContext<'llvm>) {
         let f = context
             .functions()
@@ -423,24 +425,28 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Call {
 
         let function = context
             .functions()
-            .get(&self.function.mangled_name())
+            .get(&self.function.read().unwrap().mangled_name())
             .unwrap_or_else(|| {
                 if self.generic.is_none() {
-                    self.function.declare_global(context.module_context)
+                    self.function
+                        .read()
+                        .unwrap()
+                        .declare_global(context.module_context)
                 } else {
                     debug_assert!(
-                        self.function.mangled_name.is_some() || self.function.is_definition(),
+                        self.function.read().unwrap().mangled_name.is_some()
+                            || self.function.read().unwrap().is_definition(),
                         "Generic function has no definition: {}",
-                        self.function
+                        self.function.read().unwrap()
                     );
-                    self.function.to_ir(context)
+                    self.function.read().unwrap().to_ir(context)
                 }
             });
 
         let arguments = self
             .args
             .iter()
-            .zip(self.function.parameters().map(|p| p.ty()))
+            .zip(self.function.read().unwrap().parameters().map(|p| p.ty()))
             .filter_map(|(arg, p)| {
                 if !p.is_any_reference() {
                     arg.to_ir(context)

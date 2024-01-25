@@ -44,11 +44,11 @@ impl FindDeclarationHere for TraitContext<'_> {
         )
     }
 
-    fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Arc<Function>> {
+    fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Function> {
         self.tr
             .functions
             .values()
-            .filter(move |f| f.name_parts().len() == n)
+            .filter(move |f| f.read().unwrap().name_parts().len() == n)
             .cloned()
             .collect()
     }
@@ -73,7 +73,7 @@ impl AddDeclaration for TraitContext<'_> {
         todo!("traits in traits?")
     }
 
-    fn add_function(&mut self, f: Arc<Function>) {
+    fn add_function(&mut self, f: Function) {
         self.tr.functions.insert(f.name().to_string(), f);
     }
 

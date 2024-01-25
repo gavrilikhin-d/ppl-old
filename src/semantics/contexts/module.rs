@@ -56,7 +56,7 @@ impl AddDeclaration for ModuleContext<'_> {
         self.module.types.insert(tr.name().to_string(), tr.into());
     }
 
-    fn add_function(&mut self, f: Arc<Function>) {
+    fn add_function(&mut self, f: Function) {
         self.module.insert_function(f);
     }
 

@@ -14,7 +14,7 @@ use super::Context;
 /// Context for lowering body of function
 pub struct FunctionContext<'p> {
     /// Function, which is being lowered
-    pub function: Arc<Function>,
+    pub function: Function,
 
     /// Local variables declared so far
     pub variables: Vec<Arc<VariableDeclaration>>,
@@ -39,6 +39,8 @@ impl FindDeclarationHere for FunctionContext<'_> {
             .map(|p| p.into())
             .or_else(|| {
                 self.function
+                    .read()
+                    .unwrap()
                     .parameters()
                     .find(|p| p.name() == name)
                     .map(|p| p.into())
@@ -47,6 +49,8 @@ impl FindDeclarationHere for FunctionContext<'_> {
 
     fn find_type_here(&self, name: &str) -> Option<Type> {
         self.function
+            .read()
+            .unwrap()
             .generic_types
             .iter()
             .find(|p| p.name() == name)
@@ -73,7 +77,7 @@ impl AddDeclaration for FunctionContext<'_> {
         todo!("local traits")
     }
 
-    fn add_function(&mut self, f: Arc<Function>) {
+    fn add_function(&mut self, f: Function) {
         // TODO: local functions
         self.parent.add_function(f)
     }
@@ -92,7 +96,7 @@ impl Context for FunctionContext<'_> {
         Some(self.parent)
     }
 
-    fn function(&self) -> Option<Arc<Function>> {
+    fn function(&self) -> Option<Function> {
         Some(self.function.clone())
     }
 }

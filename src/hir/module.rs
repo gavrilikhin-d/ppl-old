@@ -55,7 +55,7 @@ pub struct Module {
     pub types: IndexMap<Name, ClassOrTrait>,
 
     /// Functions, visible in this module
-    pub functions: IndexMap<Format, IndexMap<Name, Arc<Function>>>,
+    pub functions: IndexMap<Format, IndexMap<Name, Function>>,
 
     /// Statements in this module
     pub statements: Vec<Statement>,
@@ -88,34 +88,32 @@ impl Module {
     }
 
     /// Insert function to module
-    pub fn insert_function(&mut self, function: Arc<Function>) {
+    pub fn insert_function(&mut self, function: Function) {
         let set = self
             .functions
-            .entry(function.name_format().to_string())
+            .entry(function.read().unwrap().name_format().to_string())
             .or_insert_with(IndexMap::new);
         set.insert(function.name().to_string(), function.into());
     }
 
     /// Define previously declared function
-    pub fn define_function(&mut self, function: Arc<Function>) {
+    pub fn define_function(&mut self, function: Function) {
+        let format = function.read().unwrap().name_format().to_string();
         self.functions
-            .get_mut(function.name_format())
+            .get_mut(&format)
             .unwrap()
             .insert(function.name().to_string(), function.into());
     }
 
     /// Iterate all functions
-    pub fn iter_functions(&self) -> impl Iterator<Item = &Arc<Function>> + '_ {
+    pub fn iter_functions(&self) -> impl Iterator<Item = &Function> + '_ {
         self.functions.values().flat_map(|m| m.values())
     }
 
     /// Iterate over all functions with `n` name parts
-    pub fn functions_with_n_name_parts(
-        &self,
-        n: usize,
-    ) -> impl Iterator<Item = &Arc<Function>> + '_ {
+    pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = &Function> + '_ {
         self.iter_functions()
-            .filter(move |f| f.name_parts().len() == n)
+            .filter(move |f| f.read().unwrap().name_parts().len() == n)
     }
 }
 

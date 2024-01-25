@@ -176,11 +176,11 @@ impl ToHIR for ast::Call {
                 .map(|m| m.source_file())
                 .cloned();
 
-            let mut candidate_context = GenericContext::for_fn(&f, context);
+            let mut candidate_context = GenericContext::for_fn(f.clone(), context);
 
             let mut args = Vec::new();
             let mut failed = false;
-            for (i, f_part) in f.name_parts().iter().enumerate() {
+            for (i, f_part) in f.read().unwrap().name_parts().iter().enumerate() {
                 match f_part {
                     FunctionNamePart::Text(_) => continue,
                     FunctionNamePart::Parameter(p) => {
@@ -214,7 +214,7 @@ impl ToHIR for ast::Call {
             }
 
             if !failed {
-                let generic = if f.is_generic() {
+                let generic = if f.read().unwrap().is_generic() {
                     Some(f.clone())
                 } else {
                     None
@@ -603,7 +603,7 @@ impl ToHIR for ast::Return {
             .transpose()?;
 
         if let Some(f) = context.function() {
-            let return_type = f.return_type.clone();
+            let return_type = f.read().unwrap().return_type.clone();
             if let Some(value) = &value {
                 if !value
                     .ty()

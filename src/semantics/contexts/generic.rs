@@ -22,14 +22,16 @@ pub struct GenericContext<'p> {
 
 impl<'p> GenericContext<'p> {
     /// Create generic context for function
-    pub fn for_fn(f: &Function, parent: &'p mut impl Context) -> Self {
+    pub fn for_fn(f: Function, parent: &'p mut impl Context) -> Self {
         let mut candidate_context = GenericContext {
-            generic_parameters: f.generic_types.clone(),
+            generic_parameters: f.read().unwrap().generic_types.clone(),
             generics_mapping: HashMap::new(),
             parent,
         };
 
         if let Some(ty) = f
+            .read()
+            .unwrap()
             .parameters()
             .map(|p| p.ty())
             .find(|ty| matches!(ty, Type::SelfType(_)))
