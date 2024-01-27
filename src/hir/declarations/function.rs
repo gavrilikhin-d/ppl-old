@@ -264,6 +264,10 @@ impl Typed for FunctionData {
 
 impl Display for FunctionData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if !self.body.is_empty() {
+            writeln!(f, "")?;
+        }
+
         let indent = "\t".repeat(f.width().unwrap_or(0));
         write!(f, "{indent}")?;
 
@@ -292,6 +296,7 @@ impl Display for FunctionData {
             return Ok(());
         }
 
+        writeln!(f, ":")?;
         let new_indent = f.width().unwrap_or(0) + 1;
         for statement in &self.body {
             writeln!(f, "{statement:#new_indent$}")?;
