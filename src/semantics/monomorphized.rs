@@ -363,6 +363,29 @@ impl Monomorphized for Function {
 
         f.body = this.body.clone().monomorphized(context);
 
+        let ty_for_self =
+            this.name_parts()
+                .iter()
+                .zip(f.name_parts())
+                .find_map(|parts| match parts {
+                    (
+                        FunctionNamePart::Parameter(original),
+                        FunctionNamePart::Parameter(mapped),
+                    ) => match original.ty() {
+                        Type::SelfType(_) if !mapped.ty().is_generic() => Some(mapped.ty()),
+                        _ => None,
+                    },
+                    _ => None,
+                });
+
+        // Find real implementation of trait function after monomorphization
+        if !f.is_definition()
+            && let Some(ty_for_self) = ty_for_self
+            && let Some(real_impl) = context.find_implementation(&this, &ty_for_self)
+        {
+            f = real_impl.monomorphized(context).read().unwrap().clone();
+        }
+
         debug!(target: "monomorphized-from", "{from}");
         debug!(target: "monomorphized-to", "{f}");
 
