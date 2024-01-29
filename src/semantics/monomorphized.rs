@@ -383,7 +383,20 @@ impl Monomorphized for Function {
             && let Some(ty_for_self) = ty_for_self
             && let Some(real_impl) = context.find_implementation(&this, &ty_for_self)
         {
-            f = real_impl.monomorphized(context).read().unwrap().clone();
+            // FIXME: Need to do this shit, because generic types in `real_impl` aren't the same as in `f`
+            let mut context = GenericContext::for_fn(real_impl.clone(), context);
+            f.parameters()
+                .map(|arg| arg.ty())
+                .zip(real_impl.read().unwrap().parameters().map(|p| p.ty()))
+                .for_each(|(arg, p)| {
+                    arg.convertible_to(p).within(&mut context).unwrap();
+                });
+
+            f = real_impl
+                .monomorphized(&mut context)
+                .read()
+                .unwrap()
+                .clone();
         }
 
         debug!(target: "monomorphized-from", "{from}");
