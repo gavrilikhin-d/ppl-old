@@ -178,7 +178,17 @@ impl Drop for FunctionContext<'_, '_> {
         }
 
         if !self.function.verify(true) {
+            eprintln!("------------------");
+            eprintln!("Invalid function:");
+            eprintln!("------------------");
             self.function.print_to_stderr();
+            eprintln!("");
+
+            eprintln!("------------------");
+            eprintln!("Invalid module:");
+            eprintln!("------------------");
+            self.module_context.module.print_to_stderr();
+            eprintln!("");
             panic!("Invalid LLVM IR for function");
         }
     }
