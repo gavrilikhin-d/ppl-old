@@ -6,6 +6,7 @@ e2e!(constraints);
 e2e!(constraints_in_constructor);
 e2e!(deref_member_ref);
 e2e!(generics);
+e2e!(import_all);
 e2e!(integer_not_eq_rational);
 e2e!(missing_fields);
 e2e!(monomorphize);
