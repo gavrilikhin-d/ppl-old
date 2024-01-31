@@ -50,7 +50,7 @@ impl StartsHere for Expression {
             || Tuple::starts_here(context)
             || matches!(
                 context.lexer.peek(),
-                Some(Token::Operator(_) | Token::Less | Token::Greater)
+                Some(Token::Operator(_) | Token::Less | Token::Greater | Token::Star)
             )
     }
 }

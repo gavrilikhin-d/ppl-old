@@ -1,0 +1,4 @@
+use lib.*
+
+do nothing
+do something

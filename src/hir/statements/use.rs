@@ -13,6 +13,7 @@ pub enum ImportedItem {
     ClassOrTrait(ClassOrTrait),
     Function(Function),
     Variable(Variable),
+    All,
 }
 
 /// Use statement

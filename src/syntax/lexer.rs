@@ -257,6 +257,7 @@ pub trait Lexer: Iterator<Item = Token> {
             Token::Operator(OperatorKind::Postfix),
             Token::Less,
             Token::Greater,
+            Token::Star,
         ])?;
         Ok(self.string_with_offset())
     }

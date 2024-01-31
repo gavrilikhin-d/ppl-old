@@ -98,6 +98,7 @@ impl Parse for FunctionNamePart {
             Token::Greater,
             Token::LBracket,
             Token::RBracket,
+            Token::Star,
             Token::Operator(OperatorKind::Prefix),
             Token::Operator(OperatorKind::Infix),
             Token::Operator(OperatorKind::Postfix),
@@ -108,6 +109,7 @@ impl Parse for FunctionNamePart {
             | Token::Greater
             | Token::LBracket
             | Token::RBracket
+            | Token::Star
             | Token::Operator(_) => Ok(context.lexer.string_with_offset().into()),
             Token::Less => {
                 // '<' here is an operator
