@@ -726,7 +726,18 @@ impl ToHIR for ast::Use {
 
         let name = self.path.last().unwrap().as_str();
 
-        let imported_item: hir::ImportedItem = if let Some(var) = module.variables.get(name) {
+        let imported_item: hir::ImportedItem = if name == "*" {
+            context
+                .module_mut()
+                .functions
+                .extend(module.functions.clone());
+            context
+                .module_mut()
+                .variables
+                .extend(module.variables.clone());
+            context.module_mut().types.extend(module.types.clone());
+            hir::ImportedItem::All
+        } else if let Some(var) = module.variables.get(name) {
             context
                 .module_mut()
                 .variables
