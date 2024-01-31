@@ -1,6 +1,5 @@
 let n = size of Integer
 let address = allocate n bytes
 let value = Integer at address
-print value
-print "\n"
+println value
 free address

@@ -1,5 +1,5 @@
-use crate::test_compilation_result;
+use crate::e2e;
 
-test_compilation_result!(consume_greater);
-test_compilation_result!(escaped_id);
-test_compilation_result!(multiple_errors);
+e2e!(consume_greater);
+e2e!(escaped_id);
+e2e!(multiple_errors);
