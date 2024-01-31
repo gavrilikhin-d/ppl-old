@@ -1,4 +1,4 @@
-use crate::test_compilation_result;
+use crate::e2e;
 
-test_compilation_result!(empty_constructor);
-test_compilation_result!(type_of);
+e2e!(empty_constructor);
+e2e!(type_of);

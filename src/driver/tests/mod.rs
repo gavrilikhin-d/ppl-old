@@ -1,3 +1,3 @@
-use crate::test_compilation_result;
+use crate::e2e;
 
-test_compilation_result!(multifile);
+e2e!(multifile);

@@ -29,7 +29,7 @@ pub use source_file::*;
 mod source_location;
 pub use source_location::*;
 
-pub(crate) mod test_compilation_result;
+pub(crate) mod e2e;
 
 mod reporter;
 pub use reporter::*;
