@@ -48,6 +48,10 @@ pub enum Token {
     #[token("=")]
     Assign,
 
+    /// '*' token
+    #[token("*")]
+    Star,
+
     /// Token for operator
     #[regex(r"[-+*/=<>?!~|&^%$#\\]+", operator)]
     Operator(OperatorKind),
@@ -191,14 +195,17 @@ pub enum Token {
 impl Token {
     /// Check if token is an operator
     pub fn is_operator(&self) -> bool {
-        matches!(self, Token::Less | Token::Greater | Token::Operator(_))
+        matches!(
+            self,
+            Token::Less | Token::Greater | Token::Star | Token::Operator(_)
+        )
     }
 
     /// Check if token is an infix operator
     pub fn is_infix_operator(&self) -> bool {
         matches!(
             self,
-            Token::Less | Token::Greater | Token::Operator(OperatorKind::Infix)
+            Token::Less | Token::Greater | Token::Star | Token::Operator(OperatorKind::Infix)
         )
     }
 
