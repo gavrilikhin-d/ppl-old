@@ -37,5 +37,20 @@ pub mod internal {
         let expected_stderr = fs::read_to_string(format!("{dir}/stderr.log", dir = dir.display()))
             .unwrap_or_default();
         assert_str_eq!(stderr, expected_stderr, "compiler output should match");
+
+        if !expected_stderr.is_empty() {
+            return;
+        }
+
+        let exe = temp_dir.path().join(OutputType::Executable.named(name));
+        let output = std::process::Command::new(exe)
+            .current_dir(&dir)
+            .output()
+            .expect("failed to run executable");
+
+        let run_log = String::from_utf8(output.stdout).expect("stdout is not utf8");
+        let expected_run_log =
+            fs::read_to_string(format!("{dir}/run.log", dir = dir.display())).unwrap_or_default();
+        assert_str_eq!(run_log, expected_run_log, "executable output should match");
     }
 }
