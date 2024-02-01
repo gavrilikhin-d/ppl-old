@@ -54,7 +54,15 @@ impl Monomorphized for Declaration {
 
 impl Monomorphized for Variable {
     fn monomorphized(self, context: &mut impl Context) -> Self {
-        if !self.is_generic() {
+        if !self.is_generic()
+            && !self
+                .read()
+                .unwrap()
+                .initializer
+                .as_ref()
+                .map(Generic::is_generic)
+                .unwrap_or(false)
+        {
             trace!(target: "monomorphizing-skipped", "{self}");
             return self;
         }
