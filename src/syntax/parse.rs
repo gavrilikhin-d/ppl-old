@@ -69,6 +69,16 @@ impl<Lexer: super::Lexer> Context<Lexer> {
     ) -> Vec<T> {
         self.parse_separated(parse, Token::Comma)
     }
+
+    /// Has space between current token and the next one?
+    pub fn has_space_before_next_token(&mut self) -> bool {
+        self.lexer.peek_span().start != self.lexer.span().end
+    }
+
+    /// No space between current token and the next one?
+    pub fn no_space_before_next_token(&mut self) -> bool {
+        !self.has_space_before_next_token()
+    }
 }
 
 impl<'l, Lexer: super::Lexer> Context<Lexer> {

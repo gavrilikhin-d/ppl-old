@@ -90,6 +90,22 @@ impl Call {
         }
         format
     }
+
+    /// Parse atomic function call using lexer
+    pub fn parse_atomic(
+        context: &mut Context<impl Lexer>,
+        name: Identifier,
+    ) -> Result<Self, <Self as Parse>::Err> {
+        let name_parts = vec![name.into()];
+
+        context.lexer.consume(Token::LParen)?;
+        context.lexer.consume(Token::RParen)?;
+
+        Ok(Call {
+            kind: FnKind::Function,
+            name_parts,
+        })
+    }
 }
 
 impl StartsHere for Call {
