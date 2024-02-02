@@ -31,6 +31,11 @@ impl<'llvm> Types<'llvm> {
         self.llvm.custom_width_int_type(bits)
     }
 
+    /// LLVM 32-bit int type
+    pub fn i32(&self) -> IntType<'llvm> {
+        self.i(32)
+    }
+
     /// LLVM 64-bit int type
     pub fn i64(&self) -> IntType<'llvm> {
         self.i(64)
@@ -39,6 +44,11 @@ impl<'llvm> Types<'llvm> {
     /// LLVM unsigned int type
     pub fn u(&self, bits: u32) -> IntType<'llvm> {
         self.i(bits)
+    }
+
+    /// LLVM 32-bit unsigned int type
+    pub fn u32(&self) -> IntType<'llvm> {
+        self.u(32)
     }
 
     /// LLVM 64-bit unsigned int type
