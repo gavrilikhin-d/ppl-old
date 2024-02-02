@@ -62,7 +62,13 @@ fn parse_atomic_expression(context: &mut Context<impl Lexer>) -> Result<Expressi
     } else if Tuple::starts_here(context) {
         Tuple::parse(context)?.into()
     } else if VariableReference::starts_here(context) {
-        VariableReference::parse(context)?.into()
+        let var = VariableReference::parse(context)?;
+        if context.lexer.try_match(Token::LParen).is_err() || context.has_space_before_next_token()
+        {
+            var.into()
+        } else {
+            Call::parse_atomic(context, var.name)?.into()
+        }
     } else if TypeReference::starts_here(context) {
         let ty = TypeReference::parse(context)?;
         if context.lexer.try_match(Token::LBrace).is_err() {
