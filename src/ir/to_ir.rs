@@ -881,7 +881,7 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         let main =
             context
                 .module
-                .add_function("main", context.types().none().fn_type(&[], false), None);
+                .add_function("main", context.types().i32().fn_type(&[], false), None);
         let mut fn_context = FunctionContext::new(&mut context, main);
 
         for statement in self
@@ -933,6 +933,13 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
             let last_block = main.get_last_basic_block().unwrap();
             fn_context.builder.position_at_end(last_block);
         }
+
+        // Return 0 at the end of main
+        fn_context.builder.position_at_end(*blocks.last().unwrap());
+        fn_context
+            .builder
+            .build_return(Some(&fn_context.types().i32().const_zero()))
+            .unwrap();
 
         drop(fn_context);
 

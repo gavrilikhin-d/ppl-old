@@ -5,6 +5,7 @@
 #![feature(lazy_cell)]
 #![feature(assert_matches)]
 #![feature(trait_upcasting)]
+#![feature(exit_status_error)]
 
 pub mod mutability;
 pub mod named;
