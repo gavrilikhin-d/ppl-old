@@ -1,6 +1,2 @@
 fn foo => println "foo"
-
 foo()
-
-`println <>`("Hello")
-`println <:String>`("World")
