@@ -1006,11 +1006,12 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
             unsafe { main.delete() };
         }
 
-        context
-            .module
+        let module = context.take_module();
+
+        module
             .verify()
             .expect("Should never produce invalid modules");
 
-        context.module
+        module
     }
 }
