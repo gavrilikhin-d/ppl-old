@@ -183,6 +183,13 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
 
         block
     }
+
+    /// Build an unconditional branch to return block
+    pub fn branch_to_return_block(&mut self) -> inkwell::values::InstructionValue<'llvm> {
+        self.builder
+            .build_unconditional_branch(self.return_block)
+            .unwrap()
+    }
 }
 
 impl Drop for FunctionContext<'_, '_> {
@@ -193,7 +200,7 @@ impl Drop for FunctionContext<'_, '_> {
             .and_then(|b| b.get_terminator());
 
         if terminator.is_none() {
-            self.builder.build_return(None).unwrap();
+            self.branch_to_return_block();
         }
 
         if !self.function.verify(true) {

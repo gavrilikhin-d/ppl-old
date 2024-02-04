@@ -725,10 +725,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Return {
                 )
                 .unwrap()
         });
-        context
-            .builder
-            .build_unconditional_branch(context.return_block)
-            .unwrap();
+        context.branch_to_return_block();
     }
 }
 
