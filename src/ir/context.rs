@@ -187,6 +187,8 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
     /// Build an unconditional branch to return block
     pub fn branch_to_return_block(&mut self) -> inkwell::values::InstructionValue<'llvm> {
         self.builder
+            .position_at_end(self.builder.get_insert_block().unwrap());
+        self.builder
             .build_unconditional_branch(self.return_block)
             .unwrap()
     }
