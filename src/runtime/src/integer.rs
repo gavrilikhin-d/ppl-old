@@ -180,3 +180,16 @@ pub extern "C" fn integer_mod_integer(x: *const Integer, y: *const Integer) -> *
     let boxed = Box::new(res);
     Box::into_raw(boxed)
 }
+
+/// # PPL
+/// ```no_run
+/// fn destroy <:Integer>
+/// ```
+#[no_mangle]
+pub extern "C" fn destroy_integer(x: *mut Integer) {
+    debug_assert!(!x.is_null());
+
+    unsafe {
+        let _ = Box::from_raw(x);
+    }
+}
