@@ -87,6 +87,10 @@ pub struct FunctionContext<'llvm, 'm> {
     pub function: inkwell::values::FunctionValue<'llvm>,
     /// Builder for current function
     pub builder: inkwell::builder::Builder<'llvm>,
+    /// Return value of this function
+    pub return_value: Option<inkwell::values::PointerValue<'llvm>>,
+    /// Basic block for return
+    pub return_block: BasicBlock<'llvm>,
     /// Parameters of this function
     pub parameters: IndexMap<String, inkwell::values::PointerValue<'llvm>>,
     /// Local variables
@@ -105,10 +109,25 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
         let basic_block = llvm.append_basic_block(function, "");
         builder.position_at_end(basic_block);
 
+        let return_type = function.get_type().get_return_type();
+        let return_value = return_type.map(|ty| builder.build_alloca(ty, "return_value").unwrap());
+        let return_block = llvm.append_basic_block(function, "return");
+        builder.position_at_end(return_block);
+
+        let value =
+            return_type.map(|ty| builder.build_load(ty, return_value.unwrap(), "").unwrap());
+        builder
+            .build_return(value.as_ref().map(|v| v as _))
+            .unwrap();
+
+        builder.position_at_end(basic_block);
+
         Self {
             module_context,
             function,
             builder,
+            return_value,
+            return_block,
             parameters: IndexMap::new(),
             variables: IndexMap::new(),
         }
@@ -164,6 +183,32 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
 
         block
     }
+
+    /// Build an unconditional branch to return block
+    pub fn branch_to_return_block(&mut self) -> inkwell::values::InstructionValue<'llvm> {
+        self.builder
+            .position_at_end(self.builder.get_insert_block().unwrap());
+        self.builder
+            .build_unconditional_branch(self.return_block)
+            .unwrap()
+    }
+
+    /// Load return value, if any and branch
+    pub fn load_return_value_and_branch(
+        &mut self,
+        value: Option<inkwell::values::BasicValueEnum>,
+    ) -> inkwell::values::InstructionValue<'llvm> {
+        value.map(|v| {
+            self.builder
+                .build_store(
+                    self.return_value
+                        .expect("Returning value in a function that doesn't return"),
+                    v,
+                )
+                .unwrap()
+        });
+        self.branch_to_return_block()
+    }
 }
 
 impl Drop for FunctionContext<'_, '_> {
@@ -174,7 +219,7 @@ impl Drop for FunctionContext<'_, '_> {
             .and_then(|b| b.get_terminator());
 
         if terminator.is_none() {
-            self.builder.build_return(None).unwrap();
+            self.branch_to_return_block();
         }
 
         if !self.function.verify(true) {
