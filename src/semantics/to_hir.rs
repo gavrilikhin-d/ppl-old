@@ -229,13 +229,14 @@ impl ToHIR for ast::Call {
                     None
                 };
 
-                return Ok(hir::Call {
+                let mut call = hir::Call {
                     range: self.range(),
                     function: f,
                     generic,
                     args,
-                }
-                .monomorphize(context));
+                };
+                call.monomorphize(context);
+                return Ok(call);
             }
         }
 
@@ -793,8 +794,8 @@ impl ToHIR for ast::Module {
                 |stmt: &S| {
                     let res = stmt.to_hir(context);
                     match res {
-                        Ok(stmt) => {
-                            let stmt = stmt.monomorphize(context);
+                        Ok(mut stmt) => {
+                            stmt.monomorphize(context);
                             context.module_mut().statements.push(stmt)
                         }
                         Err(err) => errors.push(err),

@@ -299,7 +299,8 @@ impl Declare for ast::VariableDeclaration {
         declaration: Self::Declaration,
         context: &mut impl Context,
     ) -> Result<Self::Definition, Error> {
-        let initializer = self.initializer.to_hir(context)?.monomorphize(context);
+        let mut initializer = self.initializer.to_hir(context)?;
+        initializer.monomorphize(context);
 
         declaration.write().unwrap().ty = initializer.ty();
         declaration.write().unwrap().initializer = Some(initializer);

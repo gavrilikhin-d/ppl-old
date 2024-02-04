@@ -81,8 +81,8 @@ fn process_single_statement<'llvm>(
     let ast = Statement::parse(parse_context)?;
     debug!(target: "ast", "{:#?}", ast);
 
-    let hir = ast.to_hir(ast_lowering_context)?;
-    let hir = hir.monomorphize(ast_lowering_context);
+    let mut hir = ast.to_hir(ast_lowering_context)?;
+    hir.monomorphize(ast_lowering_context);
     debug!(target: "hir", "{:#}", hir);
 
     let module = llvm.create_module("main");
