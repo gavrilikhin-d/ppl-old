@@ -156,6 +156,9 @@ fn <:Rational> / <:Rational> -> Rational
 /// Convert `Rational` to `String`
 @mangle_as("rational_as_string")
 fn <:Rational> as String -> String
+
+@mangle_as("destroy_rational")
+fn destroy <:Rational>
 //---------------------------------
 
 //=================================
