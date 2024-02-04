@@ -41,3 +41,16 @@ pub extern "C" fn print_string(str: *const String) {
     print!("{}", unsafe { &*str });
     std::io::stdout().flush().unwrap();
 }
+
+/// # PPL
+/// ```no_run
+/// fn destroy <:String>
+/// ```
+#[no_mangle]
+pub extern "C" fn destroy_string(x: *mut String) {
+    debug_assert!(!x.is_null());
+
+    unsafe {
+        let _ = Box::from_raw(x);
+    }
+}
