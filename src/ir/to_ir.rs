@@ -938,12 +938,29 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         }
 
         let blocks = main.get_basic_blocks();
+
+        /* Load 0 to return value */
+        let first_block = blocks.first().unwrap();
+        if first_block.get_terminator().is_none() {
+            fn_context.builder.position_at_end(*first_block);
+            fn_context.branch_to_return_block();
+        }
+        fn_context
+            .builder
+            .position_before(&first_block.get_terminator().unwrap());
+        fn_context
+            .builder
+            .build_store(
+                fn_context.return_value.unwrap(),
+                fn_context.llvm().i32_type().const_zero(),
+            )
+            .unwrap();
+
         // In empty main block there should be only two instructions in first block:
         // 1. Allocating return value
-        // 2. Branch to return block
-
-        let main_is_empty =
-            blocks.len() <= 2 && blocks.first().unwrap().get_instructions().count() == 2;
+        // 2. Assign 0 to it
+        // 3. Branch to return block
+        let main_is_empty = blocks.len() <= 2 && first_block.get_instructions().count() <= 3;
 
         if !main_is_empty
             && let Some(init) = fn_context.module_context.module.get_function("initialize")
@@ -965,10 +982,9 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
                     .unwrap()
             }));
 
-            let first_block = main.get_first_basic_block().unwrap();
             let init_block = fn_context
                 .llvm()
-                .prepend_basic_block(first_block, "init_globals");
+                .prepend_basic_block(*first_block, "init_globals");
             fn_context.builder.position_at_end(init_block);
 
             for init in inits {
@@ -976,24 +992,9 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
             }
             fn_context
                 .builder
-                .build_unconditional_branch(first_block)
+                .build_unconditional_branch(*first_block)
                 .unwrap();
-
-            let last_block = main.get_last_basic_block().unwrap();
-            fn_context.builder.position_at_end(last_block);
         }
-
-        // Load 0 to return value
-        fn_context
-            .builder
-            .position_before(&blocks.first().unwrap().get_last_instruction().unwrap());
-        fn_context
-            .builder
-            .build_store(
-                fn_context.return_value.unwrap(),
-                fn_context.llvm().i32_type().const_zero(),
-            )
-            .unwrap();
 
         drop(fn_context);
 
