@@ -109,14 +109,15 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
         let basic_block = llvm.append_basic_block(function, "");
         builder.position_at_end(basic_block);
 
-        let return_value = function
-            .get_type()
-            .get_return_type()
-            .map(|ty| builder.build_alloca(ty, "return_value").unwrap());
+        let return_type = function.get_type().get_return_type();
+        let return_value = return_type.map(|ty| builder.build_alloca(ty, "return_value").unwrap());
         let return_block = llvm.append_basic_block(function, "return");
         builder.position_at_end(return_block);
+
+        let value =
+            return_type.map(|ty| builder.build_load(ty, return_value.unwrap(), "").unwrap());
         builder
-            .build_return(return_value.as_ref().map(|v| v as _))
+            .build_return(value.as_ref().map(|v| v as _))
             .unwrap();
 
         builder.position_at_end(basic_block);
