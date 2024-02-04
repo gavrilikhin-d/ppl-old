@@ -709,12 +709,26 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Return {
 
     /// Lower [`Return`] to LLVM IR
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
-        let value = self.value.as_ref().map(|expr| expr.to_ir(context));
-        if let Some(Some(value)) = value {
-            context.builder.build_return(Some(&value)).unwrap();
-        } else {
-            context.builder.build_return(None).unwrap();
-        }
+        let value = self
+            .value
+            .as_ref()
+            .map(|expr| expr.to_ir(context))
+            .flatten();
+        value.map(|v| {
+            context
+                .builder
+                .build_store(
+                    context
+                        .return_value
+                        .expect("Returning value in a function that doesn't return"),
+                    v,
+                )
+                .unwrap()
+        });
+        context
+            .builder
+            .build_unconditional_branch(context.return_block)
+            .unwrap();
     }
 }
 
