@@ -67,6 +67,12 @@ impl<'llvm> ModuleContext<'llvm> {
             compile_unit,
         }
     }
+
+    /// Finalize building module
+    pub fn take_module(self) -> inkwell::module::Module<'llvm> {
+        self.dibuilder.finalize();
+        self.module
+    }
 }
 
 impl<'llvm> Context<'llvm> for ModuleContext<'llvm> {
