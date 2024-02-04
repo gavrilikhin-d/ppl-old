@@ -664,9 +664,7 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Statement {
                 let mut context = FunctionContext::new(context, function);
 
                 let value = expr.to_ir(&mut context);
-                if let Some(value) = value {
-                    context.builder.build_return(Some(&value)).unwrap();
-                }
+                context.load_return_value_and_branch(value);
             }
             Statement::Return(_) => unreachable!("Return statement is not allowed in global scope"),
             Statement::Use(_) => {
@@ -714,18 +712,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Return {
             .as_ref()
             .map(|expr| expr.to_ir(context))
             .flatten();
-        value.map(|v| {
-            context
-                .builder
-                .build_store(
-                    context
-                        .return_value
-                        .expect("Returning value in a function that doesn't return"),
-                    v,
-                )
-                .unwrap()
-        });
-        context.branch_to_return_block();
+        context.load_return_value_and_branch(value);
     }
 }
 
