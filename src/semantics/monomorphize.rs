@@ -15,45 +15,45 @@ use crate::{
 use super::{Context, ReplaceWithTypeInfo};
 
 /// Trait to get monomorphized version of statements
-pub trait Monomorphized {
+pub trait Monomorphize {
     /// Get monomorphized version of statement
-    fn monomorphized(self, context: &mut impl Context) -> Self;
+    fn monomorphize(self, context: &mut impl Context) -> Self;
 }
 
-impl<T: Monomorphized> Monomorphized for Vec<T> {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl<T: Monomorphize> Monomorphize for Vec<T> {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         self.into_iter()
-            .map(|val| val.monomorphized(context))
+            .map(|val| val.monomorphize(context))
             .collect()
     }
 }
 
-impl Monomorphized for Statement {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Statement {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         match self {
-            Statement::Expression(expr) => expr.monomorphized(context).into(),
-            Statement::Assignment(a) => a.monomorphized(context).into(),
-            Statement::If(stmt) => stmt.monomorphized(context).into(),
-            Statement::Loop(l) => l.monomorphized(context).into(),
-            Statement::While(l) => l.monomorphized(context).into(),
-            Statement::Return(ret) => ret.monomorphized(context).into(),
-            Statement::Declaration(d) => d.monomorphized(context).into(),
+            Statement::Expression(expr) => expr.monomorphize(context).into(),
+            Statement::Assignment(a) => a.monomorphize(context).into(),
+            Statement::If(stmt) => stmt.monomorphize(context).into(),
+            Statement::Loop(l) => l.monomorphize(context).into(),
+            Statement::While(l) => l.monomorphize(context).into(),
+            Statement::Return(ret) => ret.monomorphize(context).into(),
+            Statement::Declaration(d) => d.monomorphize(context).into(),
             Statement::Use(_) => self,
         }
     }
 }
 
-impl Monomorphized for Declaration {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Declaration {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         match self {
-            Declaration::Variable(v) => v.monomorphized(context).into(),
+            Declaration::Variable(v) => v.monomorphize(context).into(),
             _ => self,
         }
     }
 }
 
-impl Monomorphized for Variable {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Variable {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         if !self.is_generic()
             && !self
                 .read()
@@ -71,13 +71,13 @@ impl Monomorphized for Variable {
         trace!(target: "monomorphizing", "{from}");
 
         let res = Variable::new(VariableData {
-            ty: self.ty().clone().monomorphized(context),
+            ty: self.ty().clone().monomorphize(context),
             initializer: self
                 .read()
                 .unwrap()
                 .initializer
                 .clone()
-                .map(|i| i.monomorphized(context)),
+                .map(|i| i.monomorphize(context)),
             ..self.read().unwrap().clone()
         });
 
@@ -88,63 +88,63 @@ impl Monomorphized for Variable {
     }
 }
 
-impl Monomorphized for Assignment {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Assignment {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         Assignment {
-            target: self.target.monomorphized(context),
-            value: self.value.monomorphized(context),
+            target: self.target.monomorphize(context),
+            value: self.value.monomorphize(context),
         }
     }
 }
 
-impl Monomorphized for If {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for If {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         If {
-            condition: self.condition.monomorphized(context),
-            body: self.body.monomorphized(context),
-            else_ifs: self.else_ifs.monomorphized(context),
-            else_block: self.else_block.monomorphized(context),
+            condition: self.condition.monomorphize(context),
+            body: self.body.monomorphize(context),
+            else_ifs: self.else_ifs.monomorphize(context),
+            else_block: self.else_block.monomorphize(context),
         }
     }
 }
 
-impl Monomorphized for ElseIf {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for ElseIf {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         ElseIf {
-            condition: self.condition.monomorphized(context),
-            body: self.body.monomorphized(context),
+            condition: self.condition.monomorphize(context),
+            body: self.body.monomorphize(context),
         }
     }
 }
 
-impl Monomorphized for Return {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Return {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         Return {
-            value: self.value.clone().map(|value| value.monomorphized(context)),
+            value: self.value.clone().map(|value| value.monomorphize(context)),
         }
     }
 }
 
-impl Monomorphized for Loop {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Loop {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         Loop {
-            body: self.body.monomorphized(context),
+            body: self.body.monomorphize(context),
         }
     }
 }
 
-impl Monomorphized for While {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for While {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         While {
-            condition: self.condition.monomorphized(context),
-            body: self.body.monomorphized(context),
+            condition: self.condition.monomorphize(context),
+            body: self.body.monomorphize(context),
         }
     }
 }
 
-impl Monomorphized for ImplicitConversion {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
-        let expression = Box::new(self.expression.monomorphized(context));
+impl Monomorphize for ImplicitConversion {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
+        let expression = Box::new(self.expression.monomorphize(context));
         use ImplicitConversionKind::*;
         match self.kind {
             Reference => expression.reference(context).try_into().unwrap(),
@@ -153,25 +153,25 @@ impl Monomorphized for ImplicitConversion {
     }
 }
 
-impl Monomorphized for Expression {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Expression {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         match self {
-            Expression::Call(c) => c.monomorphized(context).into(),
-            Expression::VariableReference(var) => var.monomorphized(context).into(),
+            Expression::Call(c) => c.monomorphize(context).into(),
+            Expression::VariableReference(var) => var.monomorphize(context).into(),
             Expression::TypeReference(ty) => ty
-                .monomorphized(context)
+                .monomorphize(context)
                 .replace_with_type_info(context)
                 .into(),
             Expression::Literal(_) => self,
-            Expression::MemberReference(m) => m.monomorphized(context).into(),
-            Expression::Constructor(c) => c.monomorphized(context).into(),
-            Expression::ImplicitConversion(c) => c.monomorphized(context).into(),
+            Expression::MemberReference(m) => m.monomorphize(context).into(),
+            Expression::Constructor(c) => c.monomorphize(context).into(),
+            Expression::ImplicitConversion(c) => c.monomorphize(context).into(),
         }
     }
 }
 
-impl Monomorphized for Constructor {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Constructor {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         if !self.is_generic() {
             trace!(target: "monomorphizing-skipped", "{self}");
             return self;
@@ -180,9 +180,9 @@ impl Monomorphized for Constructor {
         let from = self.to_string();
         trace!(target: "monomorphizing", "{from}");
 
-        let initializers = self.initializers.monomorphized(context);
+        let initializers = self.initializers.monomorphize(context);
         let res = Constructor {
-            ty: self.ty.monomorphized(context),
+            ty: self.ty.monomorphize(context),
             initializers,
             rbrace: self.rbrace,
         };
@@ -194,18 +194,18 @@ impl Monomorphized for Constructor {
     }
 }
 
-impl Monomorphized for Initializer {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Initializer {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         Initializer {
-            member: self.member.monomorphized(context),
-            value: self.value.monomorphized(context),
+            member: self.member.monomorphize(context),
+            value: self.value.monomorphize(context),
             ..self
         }
     }
 }
 
-impl Monomorphized for TypeReference {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for TypeReference {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         if !self.is_generic() {
             trace!(target: "monomorphizing-skipped", "{self}");
             return self;
@@ -214,7 +214,7 @@ impl Monomorphized for TypeReference {
         let from = self.to_string();
         trace!(target: "monomorphizing", "{self}");
 
-        let referenced_type = self.referenced_type.monomorphized(context);
+        let referenced_type = self.referenced_type.monomorphize(context);
         let res = TypeReference {
             referenced_type: referenced_type.clone(),
             type_for_type: context.builtin().types().type_of(referenced_type),
@@ -228,10 +228,10 @@ impl Monomorphized for TypeReference {
     }
 }
 
-impl Monomorphized for Type {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Type {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         match self {
-            Type::Class(c) => c.monomorphized(context).into(),
+            Type::Class(c) => c.monomorphize(context).into(),
             Type::Function(_) => todo!(),
             Type::Generic(_) | Type::SelfType(_) | Type::Trait(_) => {
                 context.get_specialized(self.clone()).unwrap_or(self)
@@ -241,8 +241,8 @@ impl Monomorphized for Type {
     }
 }
 
-impl Monomorphized for Arc<ClassDeclaration> {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Arc<ClassDeclaration> {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         if !self.is_generic() {
             trace!(target: "monomorphizing-skipped", "\n{self:#}");
             return self;
@@ -252,8 +252,8 @@ impl Monomorphized for Arc<ClassDeclaration> {
         trace!(target: "monomorphizing", "\n{from}");
 
         let res = Arc::new(ClassDeclaration {
-            generic_parameters: self.generic_parameters.clone().monomorphized(context),
-            members: self.members.clone().monomorphized(context),
+            generic_parameters: self.generic_parameters.clone().monomorphize(context),
+            members: self.members.clone().monomorphize(context),
             ..self.as_ref().clone()
         });
 
@@ -264,21 +264,21 @@ impl Monomorphized for Arc<ClassDeclaration> {
     }
 }
 
-impl Monomorphized for Arc<Member> {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Arc<Member> {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         if !self.is_generic() {
             return self;
         }
 
         Arc::new(Member {
-            ty: self.ty.clone().monomorphized(context),
+            ty: self.ty.clone().monomorphize(context),
             ..self.as_ref().clone()
         })
     }
 }
 
-impl Monomorphized for Call {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Call {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         if !self.is_generic() {
             trace!(target: "monomorphizing-skipped", "{self}");
             return self;
@@ -286,7 +286,7 @@ impl Monomorphized for Call {
 
         let from = self.to_string();
         trace!(target: "monomorphizing", "{from}");
-        let args = self.args.monomorphized(context);
+        let args = self.args.monomorphize(context);
 
         let mut context = GenericContext::for_fn(self.function.clone(), context);
 
@@ -298,7 +298,7 @@ impl Monomorphized for Call {
             });
 
         let res = Call {
-            function: self.function.monomorphized(&mut context),
+            function: self.function.monomorphize(&mut context),
             args,
             ..self
         };
@@ -310,8 +310,8 @@ impl Monomorphized for Call {
     }
 }
 
-impl Monomorphized for VariableReference {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for VariableReference {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         if !self.is_generic() {
             trace!(target: "monomorphizing-skipped", "{self}");
             return self;
@@ -321,7 +321,7 @@ impl Monomorphized for VariableReference {
         trace!(target: "monomorphizing", "{self}");
         let res = VariableReference {
             span: self.span,
-            variable: self.variable.monomorphized(context),
+            variable: self.variable.monomorphize(context),
         };
 
         debug!(target: "monomorphized-from", "{from}");
@@ -331,17 +331,17 @@ impl Monomorphized for VariableReference {
     }
 }
 
-impl Monomorphized for ParameterOrVariable {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for ParameterOrVariable {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         match self {
-            ParameterOrVariable::Variable(v) => v.monomorphized(context).into(),
-            ParameterOrVariable::Parameter(p) => p.monomorphized(context).into(),
+            ParameterOrVariable::Variable(v) => v.monomorphize(context).into(),
+            ParameterOrVariable::Parameter(p) => p.monomorphize(context).into(),
         }
     }
 }
 
-impl Monomorphized for Function {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Function {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         let this = self.read().unwrap();
 
         if !this.is_generic() {
@@ -353,10 +353,10 @@ impl Monomorphized for Function {
         let from = this.to_string();
         trace!(target: "monomorphizing", "{from}");
 
-        let generic_types = this.generic_types.clone().monomorphized(context);
-        let name_parts = this.name_parts.clone().monomorphized(context);
+        let generic_types = this.generic_types.clone().monomorphize(context);
+        let name_parts = this.name_parts.clone().monomorphize(context);
         let name = FunctionData::build_name(&name_parts);
-        let return_type = this.return_type.clone().monomorphized(context);
+        let return_type = this.return_type.clone().monomorphize(context);
         let mut f = FunctionData::build()
             .with_generic_types(generic_types)
             .with_mangled_name(
@@ -369,7 +369,7 @@ impl Monomorphized for Function {
             .with_name(name_parts)
             .with_return_type(return_type);
 
-        f.body = this.body.clone().monomorphized(context);
+        f.body = this.body.clone().monomorphize(context);
 
         let ty_for_self =
             this.name_parts()
@@ -400,11 +400,7 @@ impl Monomorphized for Function {
                     arg.convertible_to(p).within(&mut context).unwrap();
                 });
 
-            f = real_impl
-                .monomorphized(&mut context)
-                .read()
-                .unwrap()
-                .clone();
+            f = real_impl.monomorphize(&mut context).read().unwrap().clone();
         }
 
         debug!(target: "monomorphized-from", "{from}");
@@ -414,30 +410,30 @@ impl Monomorphized for Function {
     }
 }
 
-impl Monomorphized for FunctionNamePart {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for FunctionNamePart {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         match self {
             FunctionNamePart::Text(_) => self,
-            FunctionNamePart::Parameter(p) => p.monomorphized(context).into(),
+            FunctionNamePart::Parameter(p) => p.monomorphize(context).into(),
         }
     }
 }
 
-impl Monomorphized for Arc<Parameter> {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Arc<Parameter> {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         if !self.is_generic() {
             return self;
         }
 
         Arc::new(Parameter {
-            ty: self.ty.clone().monomorphized(context),
+            ty: self.ty.clone().monomorphize(context),
             ..self.as_ref().clone()
         })
     }
 }
 
-impl Monomorphized for MemberReference {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for MemberReference {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         if !self.is_generic() {
             trace!(target: "monomorphizing-skipped", "{self}");
             return self;
@@ -446,7 +442,7 @@ impl Monomorphized for MemberReference {
         let from = self.to_string();
         trace!(target: "monomorphizing", "{self}");
 
-        let base = Box::new(self.base.monomorphized(context));
+        let base = Box::new(self.base.monomorphize(context));
         let member = base.ty().members()[self.index].clone();
 
         let res = MemberReference {
@@ -462,14 +458,14 @@ impl Monomorphized for MemberReference {
     }
 }
 
-impl Monomorphized for Module {
-    fn monomorphized(self, context: &mut impl Context) -> Self {
+impl Monomorphize for Module {
+    fn monomorphize(self, context: &mut impl Context) -> Self {
         trace!(target: "monomorphizing", "{}", context.module().source_file().name());
 
-        let statements = self.statements.monomorphized(context);
+        let statements = self.statements.monomorphize(context);
         let mut variables = self.variables;
         variables.values_mut().for_each(|v| {
-            *v = v.clone().monomorphized(context);
+            *v = v.clone().monomorphize(context);
         });
         Module {
             variables,
