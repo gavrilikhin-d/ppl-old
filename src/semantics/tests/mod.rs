@@ -5,6 +5,7 @@ e2e!(candidate_not_viable);
 e2e!(constraints);
 e2e!(constraints_in_constructor);
 e2e!(deref_member_ref);
+e2e!(destructor);
 e2e!(generics);
 e2e!(import_all);
 e2e!(integer_not_eq_rational);

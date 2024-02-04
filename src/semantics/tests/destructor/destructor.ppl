@@ -1,0 +1,8 @@
+type Destructible
+
+fn destroy <:Destructible> => println "destructor"
+
+let mut x = Destructible {}
+x = Destructible {}
+
+println "done"
