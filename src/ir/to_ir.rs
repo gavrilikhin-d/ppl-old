@@ -904,8 +904,12 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         }
 
         let blocks = main.get_basic_blocks();
-        let main_is_empty = blocks.is_empty()
-            || blocks.len() == 1 && blocks.last().unwrap().get_last_instruction().is_none();
+        // In empty main block there should be only two instructions in first block:
+        // 1. Allocating return value
+        // 2. Branch to return block
+
+        let main_is_empty =
+            blocks.len() <= 2 && blocks.first().unwrap().get_instructions().count() == 2;
 
         if !main_is_empty
             && let Some(init) = fn_context.module_context.module.get_function("initialize")
@@ -945,11 +949,16 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
             fn_context.builder.position_at_end(last_block);
         }
 
-        // Return 0 at the end of main
-        fn_context.builder.position_at_end(*blocks.last().unwrap());
+        // Load 0 to return value
         fn_context
             .builder
-            .build_return(Some(&fn_context.types().i32().const_zero()))
+            .position_before(&blocks.first().unwrap().get_last_instruction().unwrap());
+        fn_context
+            .builder
+            .build_store(
+                fn_context.return_value.unwrap(),
+                fn_context.llvm().i32_type().const_zero(),
+            )
             .unwrap();
 
         drop(fn_context);
