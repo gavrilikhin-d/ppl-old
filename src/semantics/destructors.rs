@@ -1,3 +1,5 @@
+use log::{debug, trace};
+
 use crate::{
     hir::{self, Call, Function, Statement, Typed},
     syntax::Ranged,
@@ -12,6 +14,7 @@ fn with_destructors(statements: &[Statement], context: &mut impl Context) -> Vec
         use Statement::*;
         match stmt {
             Assignment(a) => {
+                debug!("Insert destructors for {:?}", a.target.ty());
                 if let Some(destructor) = context.destructor_for(a.target.ty()) {
                     new_statements.push(
                         hir::Expression::from(Call {
@@ -80,8 +83,10 @@ pub trait InsertDestructors {
 impl InsertDestructors for hir::Module {
     fn insert_destructors(&mut self, context: &mut impl Context) {
         for func in self.iter_functions_mut() {
+            trace!(target: "steps", "Inserting destructors in: {func}");
             func.insert_destructors(context);
         }
+        self.statements = with_destructors(&self.statements, context);
     }
 }
 
