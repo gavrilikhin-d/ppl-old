@@ -27,5 +27,8 @@ pub use convert::*;
 mod implicit;
 pub use implicit::*;
 
+mod destructors;
+pub use destructors::*;
+
 #[cfg(test)]
 mod tests;
