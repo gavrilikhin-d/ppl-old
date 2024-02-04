@@ -114,6 +114,19 @@ pub extern "C" fn rational_less_rational(x: *const Rational, y: *const Rational)
     unsafe { *x < *y }
 }
 
+/// # PPL
+/// ```no_run
+/// fn destroy <:Rational>
+/// ```
+#[no_mangle]
+pub extern "C" fn destroy_rational(x: *mut Rational) {
+    debug_assert!(!x.is_null());
+
+    unsafe {
+        let _ = Box::from_raw(x);
+    }
+}
+
 pub fn maybe_to_decimal_string(r: &Rational) -> String {
     let mut denom = r.denom().clone();
     let pow2 = denom.remove_factor_mut(&Integer::from(2));

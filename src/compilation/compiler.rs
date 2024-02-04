@@ -10,7 +10,7 @@ use crate::{
     ast,
     hir::Module,
     named::Named,
-    semantics::{ModuleContext, ToHIR},
+    semantics::{InsertDestructors, ModuleContext, ToHIR},
     SourceFile,
 };
 use log::{debug, trace};
@@ -108,11 +108,15 @@ impl Compiler {
             module,
             compiler: self,
         };
-        let hir = ast.to_hir(&mut context).map_err(|e| {
+        let mut hir = ast.to_hir(&mut context).map_err(|e| {
             miette::Report::from(e)
                 .with_source_code(miette::NamedSource::new(path.to_string_lossy(), content))
         })?;
         debug!(target: &format!("{name}-hir"), "\n{:#}", hir);
+
+        trace!(target: "steps", "Inserting destructors `{}`", path.display());
+        hir.insert_destructors(&mut context);
+        debug!(target: &format!("{name}-hir-with-destructors"), "\n{:#}", hir);
 
         let module = Arc::new(hir);
         self.modules.insert(name.to_string(), module.clone());

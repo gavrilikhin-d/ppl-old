@@ -89,6 +89,17 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
             .cloned()
     }
 
+    /// Find destructor for type
+    fn destructor_for(&mut self, ty: Type) -> Option<Function>
+    where
+        Self: Sized,
+    {
+        let ty = ty.without_ref();
+
+        let name = format!("destroy <:{ty}>");
+        self.function_with_name(&name)
+    }
+
     /// Debug function to print hierarchy of contexts
     fn print_contexts_hierarchy(&self)
     where

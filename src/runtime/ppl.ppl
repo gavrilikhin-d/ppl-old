@@ -119,6 +119,9 @@ fn <x: Integer> % <y: Integer> -> Integer
 /// Convert `Integer` to `String`
 @mangle_as("integer_as_string")
 fn <:Integer> as String -> String
+
+@mangle_as("destroy_integer")
+fn destroy <:Integer>
 //---------------------------------
 
 //=================================
@@ -153,6 +156,9 @@ fn <:Rational> / <:Rational> -> Rational
 /// Convert `Rational` to `String`
 @mangle_as("rational_as_string")
 fn <:Rational> as String -> String
+
+@mangle_as("destroy_rational")
+fn destroy <:Rational>
 //---------------------------------
 
 //=================================
@@ -171,6 +177,9 @@ fn print <:String>
 
 /// Print string with a newline at the end
 fn println <str: String> => print (str + "\n")
+
+@mangle_as("destroy_string")
+fn destroy <:String>
 //---------------------------------
 
 //=================================
@@ -330,4 +339,12 @@ fn<T> push <x: T> to <array: ReferenceMut<Array<T>>>:
 fn<T> <array: Array<T>> [ <i: Integer> ] -> ReferenceMut<T>:
 	let address = array.data + i * (size of T)
 	return T at address
+//=================================
+
+//=================================
+//             Array
+//=================================
+/// Trait for things that have a destructor
+trait Destroy:
+	fn destroy <:Self>
 //=================================
