@@ -110,6 +110,11 @@ impl Module {
         self.functions.values().flat_map(|m| m.values())
     }
 
+    /// Iterate all functions mut
+    pub fn iter_functions_mut(&mut self) -> impl Iterator<Item = &mut Function> + '_ {
+        self.functions.values_mut().flat_map(|m| m.values_mut())
+    }
+
     /// Iterate over all functions with `n` name parts
     pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = &Function> + '_ {
         self.iter_functions()
