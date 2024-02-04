@@ -28,12 +28,12 @@ Error:   × Rational
 Advice:   ☞ candidate is not viable: expected `Rational` type, got `Integer`
 
 Error:   × Rational
-     ╭─[ppl.ppl:142:19]
- 141 │ @mangle_as("rational_plus_rational")
- 142 │ fn <:Rational> + <:Rational> -> Rational
+     ╭─[ppl.ppl:145:19]
+ 144 │ @mangle_as("rational_plus_rational")
+ 145 │ fn <:Rational> + <:Rational> -> Rational
      ·                   ▲
      ·                   ╰── this has `Rational` type
- 143 │ 
+ 146 │ 
      ╰────
 Error:   × Integer
    ╭─[candidate_not_viable.ppl:1:7]
@@ -44,12 +44,12 @@ Error:   × Integer
 Advice:   ☞ candidate is not viable: expected `String` type, got `Rational`
 
 Error:   × String
-     ╭─[ppl.ppl:166:5]
- 165 │ @mangle_as("string_plus_string")
- 166 │ fn <:String> + <:String> -> String
+     ╭─[ppl.ppl:172:5]
+ 171 │ @mangle_as("string_plus_string")
+ 172 │ fn <:String> + <:String> -> String
      ·     ▲
      ·     ╰── this has `String` type
- 167 │ 
+ 173 │ 
      ╰────
 Error:   × Rational
    ╭─[candidate_not_viable.ppl:1:1]
@@ -60,12 +60,12 @@ Error:   × Rational
 Advice:   ☞ candidate is not viable: expected `MemoryAddress` type, got `Rational`
 
 Error:   × MemoryAddress
-     ╭─[ppl.ppl:238:5]
- 237 │ /// Get another memory address by adding offset to this one
- 238 │ fn <address: MemoryAddress> + <offset: Integer> -> MemoryAddress:
+     ╭─[ppl.ppl:247:5]
+ 246 │ /// Get another memory address by adding offset to this one
+ 247 │ fn <address: MemoryAddress> + <offset: Integer> -> MemoryAddress:
      ·     ───┬───
      ·        ╰── this has `MemoryAddress` type
- 239 │     let value = address.value + offset
+ 248 │     let value = address.value + offset
      ╰────
 Error:   × Rational
    ╭─[candidate_not_viable.ppl:1:1]
