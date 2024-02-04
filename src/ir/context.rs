@@ -87,6 +87,10 @@ pub struct FunctionContext<'llvm, 'm> {
     pub function: inkwell::values::FunctionValue<'llvm>,
     /// Builder for current function
     pub builder: inkwell::builder::Builder<'llvm>,
+    /// Return value of this function
+    pub return_value: Option<inkwell::values::PointerValue<'llvm>>,
+    /// Basic block for return
+    pub return_block: BasicBlock<'llvm>,
     /// Parameters of this function
     pub parameters: IndexMap<String, inkwell::values::PointerValue<'llvm>>,
     /// Local variables
@@ -105,10 +109,24 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
         let basic_block = llvm.append_basic_block(function, "");
         builder.position_at_end(basic_block);
 
+        let return_value = function
+            .get_type()
+            .get_return_type()
+            .map(|ty| builder.build_alloca(ty, "return_value").unwrap());
+        let return_block = llvm.append_basic_block(function, "return");
+        builder.position_at_end(return_block);
+        builder
+            .build_return(return_value.as_ref().map(|v| v as _))
+            .unwrap();
+
+        builder.position_at_end(basic_block);
+
         Self {
             module_context,
             function,
             builder,
+            return_value,
+            return_block,
             parameters: IndexMap::new(),
             variables: IndexMap::new(),
         }
