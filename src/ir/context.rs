@@ -190,6 +190,23 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
             .build_unconditional_branch(self.return_block)
             .unwrap()
     }
+
+    /// Load return value, if any and branch
+    pub fn load_return_value_and_branch(
+        &mut self,
+        value: Option<inkwell::values::BasicValueEnum>,
+    ) -> inkwell::values::InstructionValue<'llvm> {
+        value.map(|v| {
+            self.builder
+                .build_store(
+                    self.return_value
+                        .expect("Returning value in a function that doesn't return"),
+                    v,
+                )
+                .unwrap()
+        });
+        self.branch_to_return_block()
+    }
 }
 
 impl Drop for FunctionContext<'_, '_> {
