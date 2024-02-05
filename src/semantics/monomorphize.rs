@@ -4,7 +4,7 @@ use log::{debug, trace};
 
 use crate::{
     hir::{
-        Assignment, Call, ClassDeclaration, Constructor, Declaration, ElseIf, Expression,
+        Assignment, Call, ClassDeclaration, Constructor, Declaration, ElseIf, Expression, Function,
         FunctionData, FunctionNamePart, Generic, If, ImplicitConversion, ImplicitConversionKind,
         Initializer, Loop, Member, MemberReference, Module, Parameter, ParameterOrVariable, Return,
         Statement, Type, TypeReference, Typed, Variable, VariableReference, While,
@@ -276,7 +276,7 @@ impl Monomorphize for Call {
         let mut f = self.function.read().unwrap().clone();
         f.monomorphize(&mut context);
 
-        *self.function.write().unwrap() = f;
+        self.function = Function::new(f);
 
         debug!(target: "monomorphized-from", "{from}");
         debug!(target: "monomorphized-to", "{self}");
