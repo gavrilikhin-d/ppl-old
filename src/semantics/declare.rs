@@ -10,7 +10,7 @@ use crate::{
 
 use super::{
     error::{CantDeduceReturnType, Error, ReturnTypeMismatch},
-    Context, ConvertibleTo, FunctionContext, GenericContext, Monomorphized, ToHIR, TraitContext,
+    Context, ConvertibleTo, FunctionContext, GenericContext, Monomorphize, ToHIR, TraitContext,
 };
 
 /// Trait to pre-declare something
@@ -299,7 +299,8 @@ impl Declare for ast::VariableDeclaration {
         declaration: Self::Declaration,
         context: &mut impl Context,
     ) -> Result<Self::Definition, Error> {
-        let initializer = self.initializer.to_hir(context)?.monomorphized(context);
+        let mut initializer = self.initializer.to_hir(context)?;
+        initializer.monomorphize(context);
 
         declaration.write().unwrap().ty = initializer.ty();
         declaration.write().unwrap().initializer = Some(initializer);

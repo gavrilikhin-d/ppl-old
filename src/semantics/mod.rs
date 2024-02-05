@@ -4,8 +4,8 @@ pub use to_hir::*;
 mod contexts;
 pub use contexts::*;
 
-mod monomorphized;
-pub use monomorphized::*;
+mod monomorphize;
+pub use monomorphize::*;
 
 mod declare;
 pub use declare::*;

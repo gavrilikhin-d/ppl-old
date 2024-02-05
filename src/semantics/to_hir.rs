@@ -16,7 +16,7 @@ use super::{
     error::*, Context, Convert, ConvertibleTo, Declare, GenericContext, Implicit, ModuleContext,
 };
 use crate::ast::{self, CallNamePart, FnKind, If};
-use crate::semantics::monomorphized::Monomorphized;
+use crate::semantics::monomorphize::Monomorphize;
 
 /// Lower to HIR inside some context
 pub trait ToHIR {
@@ -229,13 +229,14 @@ impl ToHIR for ast::Call {
                     None
                 };
 
-                return Ok(hir::Call {
+                let mut call = hir::Call {
                     range: self.range(),
                     function: f,
                     generic,
                     args,
-                }
-                .monomorphized(context));
+                };
+                call.monomorphize(context);
+                return Ok(call);
             }
         }
 
@@ -793,8 +794,8 @@ impl ToHIR for ast::Module {
                 |stmt: &S| {
                     let res = stmt.to_hir(context);
                     match res {
-                        Ok(stmt) => {
-                            let stmt = stmt.monomorphized(context);
+                        Ok(mut stmt) => {
+                            stmt.monomorphize(context);
                             context.module_mut().statements.push(stmt)
                         }
                         Err(err) => errors.push(err),
