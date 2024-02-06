@@ -21,6 +21,9 @@ pub trait Context<'llvm> {
 
     /// Get LLVM IR for PPL's functions
     fn functions<'m>(&'m self) -> Functions<'llvm, 'm>;
+
+    /// Get debug information builder
+    fn debug(&self) -> &DebugInfo<'llvm>;
 }
 
 /// Context for lowering HIR module to LLVM IR
@@ -55,6 +58,10 @@ impl<'llvm> Context<'llvm> for ModuleContext<'llvm> {
 
     fn functions<'m>(&'m self) -> Functions<'llvm, 'm> {
         Functions::new(&self.module)
+    }
+
+    fn debug(&self) -> &DebugInfo<'llvm> {
+        &self.debug_info
     }
 }
 
@@ -225,5 +232,9 @@ impl<'llvm> Context<'llvm> for FunctionContext<'llvm, '_> {
 
     fn functions<'m>(&'m self) -> Functions<'llvm, 'm> {
         self.module_context.functions()
+    }
+
+    fn debug(&self) -> &DebugInfo<'llvm> {
+        self.module_context.debug()
     }
 }
