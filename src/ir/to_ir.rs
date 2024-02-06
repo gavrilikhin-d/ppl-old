@@ -469,8 +469,9 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Call {
                     debug_assert!(
                         self.function.read().unwrap().mangled_name.is_some()
                             || self.function.read().unwrap().is_definition(),
-                        "Generic function has no definition: {}",
-                        self.function.read().unwrap()
+                        "Generic function {} has no definition, inside this call: {}",
+                        self.function.read().unwrap(),
+                        self
                     );
                     self.function.read().unwrap().to_ir(context)
                 }

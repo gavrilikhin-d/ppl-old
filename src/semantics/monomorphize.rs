@@ -8,7 +8,7 @@ use crate::{
         FunctionData, FunctionNamePart, Generic, If, ImplicitConversion, ImplicitConversionKind,
         Initializer, Loop, Member, MemberReference, Module, Parameter, ParameterOrVariable, Return,
         Statement, Type, TypeReference, Typed, Variable, VariableReference, While,
-    }, mutability::Mutable, semantics::{ConvertibleTo, GenericContext, Implicit}
+    }, mutability::Mutable, semantics::{ConvertibleTo, GenericContext}
 };
 
 use super::{Context, ReplaceWithTypeInfo};
@@ -277,7 +277,12 @@ impl Monomorphize for Call {
         let mut f = self.function.read().unwrap().clone();
         f.monomorphize(&mut context);
 
-        self.function = Function::new(f);
+
+        // FIXME: Can't monomorphize while still didn't get all definitions
+        // We won't receive body update once we've monomorphized it
+        if *self.function.read().unwrap() != f {
+            self.function = Function::new(f);
+        }
 
         debug!(target: "monomorphized-from", "{from}");
         debug!(target: "monomorphized-to", "{self}");
