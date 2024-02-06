@@ -1,3 +1,6 @@
+mod debug_info;
+pub use debug_info::*;
+
 mod to_ir;
 pub use to_ir::*;
 
