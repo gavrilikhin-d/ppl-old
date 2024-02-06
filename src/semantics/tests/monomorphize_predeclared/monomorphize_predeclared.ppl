@@ -1,0 +1,7 @@
+fn call predeclared:
+    predeclared 1
+
+fn<T> predeclared <x: T>:
+    println "called predeclared"
+
+call predeclared

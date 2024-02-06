@@ -11,6 +11,7 @@ e2e!(import_all);
 e2e!(integer_not_eq_rational);
 e2e!(missing_fields);
 e2e!(monomorphize);
+e2e!(monomorphize_predeclared);
 e2e!(multiple_errors);
 e2e!(multiple_initialization);
 e2e!(non_class_constructor);
