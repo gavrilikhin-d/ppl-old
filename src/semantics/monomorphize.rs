@@ -8,7 +8,7 @@ use crate::{
         FunctionData, FunctionNamePart, Generic, If, ImplicitConversion, ImplicitConversionKind,
         Initializer, Loop, Member, MemberReference, Module, Parameter, ParameterOrVariable, Return,
         Statement, Type, TypeReference, Typed, Variable, VariableReference, While,
-    }, mutability::Mutable, semantics::{ConvertibleTo, GenericContext, Implicit}
+    }, mutability::Mutable, semantics::{ConvertibleTo, GenericContext}
 };
 
 use super::{Context, ReplaceWithTypeInfo};
