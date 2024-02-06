@@ -317,6 +317,12 @@ fn<T> <:Type<T>>[] -> Array<T>:
 	let data = allocate capacity T
 	return Array<T> { size: 0, capacity, data }
 
+// TODO: errors, if out of borders
+/// Get i-th element of an array
+fn<T> <array: ReferenceMut<Array<T>>> [ <i: Integer> ] -> ReferenceMut<T>:
+	let address = array.data + i * (size of T)
+	return T at address
+
 fn<T> push <x: T> to <array: ReferenceMut<Array<T>>>:
 	if array.size == array.capacity:
 		let new_capacity = array.capacity * 2
@@ -333,12 +339,6 @@ fn<T> push <x: T> to <array: ReferenceMut<Array<T>>>:
 	let value = T at (array.data + array.size)
 	value = x
 	array.size = array.size + 1
-
-// TODO: errors, if out of borders
-/// Get i-th element of an array
-fn<T> <array: ReferenceMut<Array<T>>> [ <i: Integer> ] -> ReferenceMut<T>:
-	let address = array.data + i * (size of T)
-	return T at address
 //=================================
 
 //=================================
