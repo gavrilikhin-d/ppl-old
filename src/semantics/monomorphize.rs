@@ -277,7 +277,12 @@ impl Monomorphize for Call {
         let mut f = self.function.read().unwrap().clone();
         f.monomorphize(&mut context);
 
-        self.function = Function::new(f);
+
+        // FIXME: Can't monomorphize while still didn't get all definitions
+        // We won't receive body update once we've monomorphized it
+        if *self.function.read().unwrap() != f {
+            self.function = Function::new(f);
+        }
 
         debug!(target: "monomorphized-from", "{from}");
         debug!(target: "monomorphized-to", "{self}");
