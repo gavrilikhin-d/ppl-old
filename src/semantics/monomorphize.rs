@@ -8,8 +8,7 @@ use crate::{
         FunctionData, FunctionNamePart, Generic, If, ImplicitConversion, ImplicitConversionKind,
         Initializer, Loop, Member, MemberReference, Module, Parameter, ParameterOrVariable, Return,
         Statement, Type, TypeReference, Typed, Variable, VariableReference, While,
-    },
-    semantics::{ConvertibleTo, GenericContext, Implicit},
+    }, mutability::Mutable, semantics::{ConvertibleTo, GenericContext, Implicit}
 };
 
 use super::{Context, ReplaceWithTypeInfo};
@@ -126,14 +125,16 @@ impl Monomorphize for ImplicitConversion {
     fn monomorphize(&mut self, context: &mut impl Context) {
         self.expression.monomorphize(context);
         use ImplicitConversionKind::*;
-        *self = match self.kind {
-            Reference => self
-                .expression
-                .clone()
-                .reference(context)
-                .try_into()
-                .unwrap(),
-            Dereference => self.expression.clone().dereference().try_into().unwrap(),
+        let ty = self.expression.ty();
+        self.ty = match self.kind {
+            Reference => {
+                if self.expression.is_mutable() {
+                    context.builtin().types().reference_mut_to(ty)
+                } else {
+                    context.builtin().types().reference_to(ty)
+                }
+            },
+            Dereference => ty.without_ref(),
         };
     }
 }
