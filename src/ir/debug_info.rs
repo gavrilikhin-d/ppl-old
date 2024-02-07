@@ -12,7 +12,7 @@ impl<'llvm> DebugInfo<'llvm> {
     /// Create new debug info for module
     pub fn new(module: &Module<'llvm>) -> Self {
         let llvm = module.get_context();
-        let debug_metadata_version = llvm.i32_type().const_int(5, false);
+        let debug_metadata_version = llvm.i32_type().const_int(3, false);
         module.add_basic_value_flag(
             "Debug Info Version",
             inkwell::module::FlagBehavior::Warning,
