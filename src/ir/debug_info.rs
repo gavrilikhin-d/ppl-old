@@ -1,4 +1,4 @@
-use inkwell::{debug_info::{AsDIScope, DICompileUnit, DIFile, DIFlagsConstants, DIScope, DISubprogram, DebugInfoBuilder}, module::Module, values::FunctionValue};
+use inkwell::{debug_info::{AsDIScope, DIBasicType, DICompileUnit, DIFile, DIFlagsConstants, DIScope, DISubprogram, DISubroutineType, DIType, DebugInfoBuilder}, module::Module, values::FunctionValue};
 
 /// Builder for debug information
 pub struct DebugInfo<'llvm> {
@@ -60,16 +60,31 @@ impl<'llvm> DebugInfo<'llvm> {
         self.scopes.last().unwrap().clone()
     }
 
+    /// Get debug info for i32 type
+    pub fn i32(&self) -> DIBasicType<'llvm> {
+        let size_in_bits = 32;
+        let encoding = gimli::DW_ATE_signed.0 as u32;
+        let flags = DIFlagsConstants::ZERO;
+        self.dibuilder.create_basic_type("i32", size_in_bits, encoding, flags).unwrap()
+    }
+
+
+    /// Get debug info for function type
+    pub fn fn_type(&self, ret: DIType<'llvm>, args: &[DIType<'llvm>]) -> DISubroutineType<'llvm> {
+        self.dibuilder.create_subroutine_type(
+            self.file(), 
+            Some(ret), 
+            args, 
+            DIFlagsConstants::ZERO
+        )
+    }
+
     /// Register function in debug info
     pub fn register_function(&self, f: FunctionValue<'llvm>) -> DISubprogram<'llvm> {
         let name = f.get_name().to_str().unwrap();
         let linkage_name = None;
         let line_no = 0;
-        let ditype = self.dibuilder.create_subroutine_type(
-            self.file(), 
-            None, &[], 
-            DIFlagsConstants::ZERO
-        );
+        let ditype = self.fn_type(self.i32().as_type(), &[]);
         let is_local_to_unit = false;
         let is_definition = f.count_basic_blocks() > 0;
         let scope_line = 0;
