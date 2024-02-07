@@ -1005,6 +1005,8 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
                 main.print_to_stderr();
             }
             unsafe { main.delete() };
+        } else {
+            context.debug().register_function(main);
         }
 
         let module = context.take_module();

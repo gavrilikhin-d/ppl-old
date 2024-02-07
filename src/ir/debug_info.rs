@@ -1,4 +1,4 @@
-use inkwell::{debug_info::{DICompileUnit, DebugInfoBuilder}, module::Module};
+use inkwell::{debug_info::{AsDIScope, DICompileUnit, DIFile, DIFlagsConstants, DIScope, DISubprogram, DebugInfoBuilder}, module::Module, values::FunctionValue};
 
 /// Builder for debug information
 pub struct DebugInfo<'llvm> {
@@ -6,6 +6,8 @@ pub struct DebugInfo<'llvm> {
     dibuilder: DebugInfoBuilder<'llvm>,
     /// Compile unit for debug info
     compile_unit: DICompileUnit<'llvm>,
+    /// Scopes stack
+    scopes: Vec<DIScope<'llvm>>
 }
 
 impl<'llvm> DebugInfo<'llvm> {
@@ -39,11 +41,57 @@ impl<'llvm> DebugInfo<'llvm> {
         Self {
             dibuilder,
             compile_unit,
+            scopes: vec![compile_unit.get_file().as_debug_info_scope()]
         }
     }
 
     /// Finalize debug info
     pub fn finalize(&self) {
         self.dibuilder.finalize();
+    }
+
+    /// Get current file
+    pub fn file(&self) -> DIFile<'llvm> {
+        self.compile_unit.get_file()
+    }
+
+    /// Get current scope
+    pub fn scope(&self) -> DIScope<'llvm> {
+        self.scopes.last().unwrap().clone()
+    }
+
+    /// Register function in debug info
+    pub fn register_function(&self, f: FunctionValue<'llvm>) -> DISubprogram<'llvm> {
+        let name = f.get_name().to_str().unwrap();
+        let linkage_name = None;
+        let line_no = 0;
+        let ditype = self.dibuilder.create_subroutine_type(
+            self.file(), 
+            None, &[], 
+            DIFlagsConstants::ZERO
+        );
+        let is_local_to_unit = false;
+        let is_definition = f.count_basic_blocks() > 0;
+        let scope_line = 0;
+        let flags = DIFlagsConstants::ZERO;
+        let is_optimized = false;
+
+        let subprogram = self.dibuilder.create_function(
+            self.scope(), 
+            name, 
+            linkage_name, 
+            self.file(), 
+            line_no, 
+            ditype, 
+            is_local_to_unit, 
+            is_definition, 
+            scope_line, 
+            flags, 
+            is_optimized
+        );
+
+        f.set_subprogram(subprogram);
+
+        subprogram
     }
 }
