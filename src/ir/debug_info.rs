@@ -20,7 +20,7 @@ impl<'llvm> DebugInfo<'llvm> {
         );
         let (dibuilder, compile_unit) = module.create_debug_info_builder(
             true,
-            /* language */ inkwell::debug_info::DWARFSourceLanguage::Rust,
+            /* language */ inkwell::debug_info::DWARFSourceLanguage::C,
             /* filename */ module.get_source_file_name().to_str().unwrap(),
             /* directory */ ".",
             /* producer */ "ppl",
