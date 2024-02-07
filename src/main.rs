@@ -123,7 +123,7 @@ fn process_single_statement<'llvm>(
 fn repl() {
     let mut compiler = Compiler::new();
     let mut ast_context = ModuleContext {
-        module: hir::Module::new(SourceFile::in_memory(NamedSource::new("repl", ""))),
+        module: hir::Module::new(SourceFile::in_memory(NamedSource::new("repl", "".to_string()))),
         compiler: &mut compiler,
     };
 

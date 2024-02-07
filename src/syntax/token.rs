@@ -53,7 +53,7 @@ pub enum Token {
     Star,
 
     /// Token for operator
-    #[regex(r"[-+*/=<>?!~|&^%$#\\]+", operator)]
+    #[regex(r"[-+*/=<>?!~|&^%$#\\]+", operator, priority = 0)]
     Operator(OperatorKind),
 
     /// Identifier

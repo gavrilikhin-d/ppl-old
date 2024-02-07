@@ -12,7 +12,7 @@ pub struct SourceFile {
     /// Path to file
     path: PathBuf,
     /// File contents
-    source: Arc<NamedSource>,
+    source: Arc<NamedSource<String>>,
 }
 
 impl PartialEq for SourceFile {
@@ -25,7 +25,7 @@ impl Eq for SourceFile {}
 
 impl SourceFile {
     /// Get virtual source file
-    pub fn in_memory(source: NamedSource) -> Self {
+    pub fn in_memory(source: NamedSource<String>) -> Self {
         Self {
             path: PathBuf::new(),
             source: Arc::new(source),
