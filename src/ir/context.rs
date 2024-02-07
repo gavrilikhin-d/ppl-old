@@ -7,7 +7,7 @@ use crate::{
     named::Named,
 };
 
-use super::{Functions, ToIR, Types};
+use super::{DebugInfo, Functions, ToIR, Types};
 
 /// Trait for common context methods
 pub trait Context<'llvm> {
@@ -21,56 +21,32 @@ pub trait Context<'llvm> {
 
     /// Get LLVM IR for PPL's functions
     fn functions<'m>(&'m self) -> Functions<'llvm, 'm>;
+
+    /// Get debug information builder
+    fn debug(&self) -> &DebugInfo<'llvm>;
 }
 
 /// Context for lowering HIR module to LLVM IR
 pub struct ModuleContext<'llvm> {
     /// Currently built module
     pub module: inkwell::module::Module<'llvm>,
-    /// Builder for debug info
-    pub dibuilder: inkwell::debug_info::DebugInfoBuilder<'llvm>,
-    /// Compile unit for debug info
-    pub compile_unit: inkwell::debug_info::DICompileUnit<'llvm>,
+    /// Debug information builder
+    pub debug_info: DebugInfo<'llvm>,
 }
 
 impl<'llvm> ModuleContext<'llvm> {
     /// Initialize context for lowering HIR module to LLVM IR
     pub fn new(module: inkwell::module::Module<'llvm>) -> Self {
-        let llvm = module.get_context();
-        let debug_metadata_version = llvm.i32_type().const_int(3, false);
-        module.add_basic_value_flag(
-            "Debug Info Version",
-            inkwell::module::FlagBehavior::Warning,
-            debug_metadata_version,
-        );
-        let (dibuilder, compile_unit) = module.create_debug_info_builder(
-            true,
-            /* language */ inkwell::debug_info::DWARFSourceLanguage::Rust,
-            /* filename */ module.get_source_file_name().to_str().unwrap(),
-            /* directory */ ".",
-            /* producer */ "ppl",
-            /* is_optimized */ false,
-            /* compiler command line flags */ "",
-            /* runtime_ver */ 0,
-            /* split_name */ "",
-            /* kind */ inkwell::debug_info::DWARFEmissionKind::Full,
-            /* dwo_id */ 0,
-            /* split_debug_inling */ false,
-            /* debug_info_for_profiling */ false,
-            /* sys_root */ "/",
-            /* sdk */ "",
-        );
-
+        let debug_info = DebugInfo::new(&module);
         Self {
             module,
-            dibuilder,
-            compile_unit,
+            debug_info,
         }
     }
 
     /// Finalize building module
     pub fn take_module(self) -> inkwell::module::Module<'llvm> {
-        self.dibuilder.finalize();
+        self.debug_info.finalize();
         self.module
     }
 }
@@ -82,6 +58,10 @@ impl<'llvm> Context<'llvm> for ModuleContext<'llvm> {
 
     fn functions<'m>(&'m self) -> Functions<'llvm, 'm> {
         Functions::new(&self.module)
+    }
+
+    fn debug(&self) -> &DebugInfo<'llvm> {
+        &self.debug_info
     }
 }
 
@@ -252,5 +232,9 @@ impl<'llvm> Context<'llvm> for FunctionContext<'llvm, '_> {
 
     fn functions<'m>(&'m self) -> Functions<'llvm, 'm> {
         self.module_context.functions()
+    }
+
+    fn debug(&self) -> &DebugInfo<'llvm> {
+        self.module_context.debug()
     }
 }
