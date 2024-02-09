@@ -1,16 +1,15 @@
 extern crate ast_derive;
-use std::ops::Range;
 
 use ast_derive::AST;
 
 use crate::ast::Statement;
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
-use crate::syntax::{Context, Ranged, StartsHere};
+use crate::syntax::{Context, Keyword, StartsHere};
 
 /// AST for infinite loop
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct Loop {
-    pub keyword: Range<usize>,
+    pub keyword: Keyword<"loop">,
     /// Body of loop
     pub body: Vec<Statement>,
 }
@@ -27,7 +26,7 @@ impl Parse for Loop {
 
     /// Parse loop using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        let keyword = context.lexer.consume(Token::Loop)?.range();
+        let keyword = context.consume_keyword::<"loop">()?;
 
         context.lexer.consume(Token::Colon)?;
 

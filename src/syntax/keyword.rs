@@ -1,4 +1,4 @@
-use super::Ranged;
+use super::{Ranged, Token};
 
 /// A keyword in the language
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -16,6 +16,27 @@ impl<const KEYWORD: &'static str> Keyword<KEYWORD> {
     /// Get the length of the keyword
     pub fn len(&self) -> usize {
         KEYWORD.len()
+    }
+
+    /// Convert the keyword to a token
+    pub fn as_token() -> Token {
+        match KEYWORD {
+            "none" => Token::None,
+            "let" => Token::Let,
+            "mut" => Token::Mut,
+            "type" => Token::Type,
+            "fn" => Token::Fn,
+            "return" => Token::Return,
+            "if" => Token::If,
+            "else" => Token::Else,
+            "true" => Token::True,
+            "false" => Token::False,
+            "loop" => Token::Loop,
+            "while" => Token::While,
+            "trait" => Token::Trait,
+            "use" => Token::Use,
+            _ => panic!("Unknown keyword: {}", KEYWORD),
+        }
     }
 }
 

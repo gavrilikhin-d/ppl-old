@@ -1,4 +1,4 @@
-use std::{fmt::Display, str::FromStr};
+use std::fmt::Display;
 
 use logos::{Lexer, Logos};
 
@@ -248,30 +248,6 @@ impl Display for Token {
             Token::Dot => write!(f, "."),
             Token::Comma => write!(f, ","),
             _ => write!(f, "{}", format!("{:?}", self).to_lowercase()),
-        }
-    }
-}
-
-impl FromStr for Token {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "none" => Ok(Token::None),
-            "let" => Ok(Token::Let),
-            "mut" => Ok(Token::Mut),
-            "type" => Ok(Token::Type),
-            "fn" => Ok(Token::Fn),
-            "return" => Ok(Token::Return),
-            "if" => Ok(Token::If),
-            "else" => Ok(Token::Else),
-            "true" => Ok(Token::True),
-            "false" => Ok(Token::False),
-            "loop" => Ok(Token::Loop),
-            "while" => Ok(Token::While),
-            "trait" => Ok(Token::Trait),
-            "use" => Ok(Token::Use),
-            _ => Err(()),
         }
     }
 }

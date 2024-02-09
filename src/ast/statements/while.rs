@@ -4,7 +4,7 @@ use ast_derive::AST;
 
 use crate::ast::{Expression, Statement};
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
-use crate::syntax::{Context, Keyword, Ranged, StartsHere};
+use crate::syntax::{Context, Keyword, StartsHere};
 
 /// AST for while loop
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -29,7 +29,7 @@ impl Parse for While {
 
     /// Parse loop using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        let keyword = Keyword::<"while">::at(context.lexer.consume(Token::While)?.start());
+        let keyword = context.consume_keyword::<"while">()?;
 
         let condition = Expression::parse(context)?;
 

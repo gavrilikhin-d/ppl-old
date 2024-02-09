@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use super::{
     error::{LexerError, ParseError}, Identifier, Keyword, PrecedenceGroups, Ranged, StringWithOffset, Token
 };
@@ -23,7 +21,7 @@ impl<Lexer: super::Lexer> Context<Lexer> {
 
     /// Consume keyword
     pub fn consume_keyword<const KEYWORD: &'static str>(&mut self) -> Result<Keyword<KEYWORD>, LexerError> {
-        let token = Token::from_str(KEYWORD).expect(format!("Invalid keyword {}", KEYWORD).as_str());
+        let token = Keyword::<KEYWORD>::as_token();
         let offset = self.lexer.consume(token)?.start();
         Ok(Keyword::<KEYWORD>::at(offset))
     }
