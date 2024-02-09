@@ -104,7 +104,7 @@ impl Monomorphize for ElseIf {
 
 impl Monomorphize for Return {
     fn monomorphize(&mut self, context: &mut impl Context) {
-        self.value.as_mut().map(|value| value.monomorphize(context));
+        self.value_mut().map(|value| value.monomorphize(context));
     }
 }
 

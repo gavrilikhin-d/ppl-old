@@ -133,7 +133,7 @@ impl Declare for ast::FunctionDeclaration {
                 }
                 .into());
             }
-            body = vec![hir::Return { value: Some(expr) }.into()];
+            body = vec![hir::Return::Implicit { value: expr }.into()];
         }
 
         declaration.write().unwrap().body = body;

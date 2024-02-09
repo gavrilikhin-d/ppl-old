@@ -441,14 +441,13 @@ mod tests {
             FunctionData::build()
                 .with_generic_types(vec![ty.clone().into()])
                 .with_name(vec![param.clone().into()])
-                .with_body(vec![Statement::Return(Return {
-                    value: Some(
+                .with_body(vec![Statement::Return(Return::Implicit {
+                    value: 
                         VariableReference {
                             span: 21..22,
                             variable: param.into()
                         }
                         .into()
-                    )
                 })])
                 .with_return_type(ty.into())
         );

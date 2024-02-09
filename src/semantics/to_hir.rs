@@ -643,7 +643,7 @@ impl ToHIR for ast::Return {
             .into());
         }
 
-        Ok(hir::Return { value })
+        Ok(hir::Return::Explicit { keyword: self.keyword.clone(), value })
     }
 }
 
