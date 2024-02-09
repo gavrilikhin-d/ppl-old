@@ -37,3 +37,6 @@ pub use reporter::*;
 
 mod err_vec;
 pub use err_vec::*;
+
+mod line_number;
+pub use line_number::*;
