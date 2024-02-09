@@ -61,6 +61,7 @@ fn with_destructors(statements: &[Statement], context: &mut impl Context) -> Vec
             While(w) => {
                 new_statements.push(
                     hir::While {
+                        keyword: w.keyword.clone(),
                         condition: w.condition.clone(),
                         body: with_destructors(&w.body, context),
                     }

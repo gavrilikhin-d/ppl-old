@@ -704,6 +704,7 @@ impl ToHIR for ast::While {
     /// Lower [`ast::While`] to [`hir::While`] within lowering context
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(hir::While {
+            keyword: self.keyword.clone(),
             condition: self.condition.lower_condition_to_hir(context)?,
             body: self
                 .body

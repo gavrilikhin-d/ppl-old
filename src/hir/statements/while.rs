@@ -1,10 +1,12 @@
-use std::fmt::Display;
+use std::{fmt::Display, ops::Range};
 
-use crate::hir::{Expression, Statement};
+use crate::{hir::{Expression, Statement}, syntax::Keyword};
 
 /// While loop
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct While {
+    /// Keyword `while`
+    pub keyword: Keyword<"while">,
     /// Condition of a loop
     pub condition: Expression,
     /// Body of a loop
