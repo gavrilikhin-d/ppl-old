@@ -1,18 +1,36 @@
 use std::fmt::Display;
 
+use crate::syntax::Keyword;
+
 use super::{Expression, Statement};
 
+/// HIR for else-if statement
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ElseIf {
+    /// Keyword `else`
+    pub else_keyword: Keyword<"else">,
+    /// Keyword `if`
+    pub if_keyword: Keyword<"if">,
     /// Condition of else-if statement
     pub condition: Expression,
     /// Body of else-if statement
     pub body: Vec<Statement>,
 }
 
-/// AST for if-statement
+/// HIR for else block
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct Else {
+    /// Keyword `else`
+    pub keyword: Keyword<"else">,
+    /// Body of else block
+    pub body: Vec<Statement>,
+}
+
+/// HIR for if-statement
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct If {
+    /// Keyword `if`
+    pub keyword: Keyword<"if">,
     /// Condition of if-statement
     pub condition: Expression,
     /// Body of if-statement
@@ -20,7 +38,7 @@ pub struct If {
     /// Else-if statements
     pub else_ifs: Vec<ElseIf>,
     /// Else block
-    pub else_block: Vec<Statement>,
+    pub else_block: Option<Else>,
 }
 
 impl Display for If {
@@ -42,10 +60,10 @@ impl Display for If {
                 writeln!(f, "{statement:#new_indent$}")?;
             }
         }
-        if !self.else_block.is_empty() {
+        if let Some(else_block) = &self.else_block {
             write!(f, "{indent}")?;
             writeln!(f, "else:")?;
-            for statement in &self.else_block {
+            for statement in &else_block.body {
                 writeln!(f, "{statement:#new_indent$}")?;
             }
         }
