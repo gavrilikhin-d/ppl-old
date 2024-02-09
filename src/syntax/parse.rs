@@ -1,6 +1,7 @@
+use std::str::FromStr;
+
 use super::{
-    error::{LexerError, ParseError},
-    Identifier, PrecedenceGroups, StringWithOffset, Token,
+    error::{LexerError, ParseError}, Identifier, Keyword, PrecedenceGroups, Ranged, StringWithOffset, Token
 };
 
 /// Context for parsing
@@ -18,6 +19,13 @@ impl<Lexer: super::Lexer> Context<Lexer> {
             return Ok(Some(self.lexer.consume(Token::Newline)?));
         }
         Ok(None)
+    }
+
+    /// Consume keyword
+    pub fn consume_keyword<const KEYWORD: &'static str>(&mut self) -> Result<Keyword<KEYWORD>, LexerError> {
+        let token = Token::from_str(KEYWORD).expect(format!("Invalid keyword {}", KEYWORD).as_str());
+        let offset = self.lexer.consume(token)?.start();
+        Ok(Keyword::<KEYWORD>::at(offset))
     }
 
     /// Consume id or escaped id
