@@ -51,6 +51,7 @@ fn with_destructors(statements: &[Statement], context: &mut impl Context) -> Vec
             Loop(l) => {
                 new_statements.push(
                     hir::Loop {
+                        keyword: l.keyword.clone(),
                         body: with_destructors(&l.body, context),
                     }
                     .into(),

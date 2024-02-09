@@ -688,6 +688,7 @@ impl ToHIR for ast::Loop {
     /// Lower [`ast::Loop`] to [`hir::Loop`] within lowering context
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(hir::Loop {
+            keyword: self.keyword.clone(),
             body: self
                 .body
                 .iter()

@@ -1,10 +1,12 @@
-use std::fmt::Display;
+use std::{fmt::Display, ops::Range};
 
 use crate::hir::Statement;
 
 /// Infinite loop
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Loop {
+    /// Keyword `loop`
+    pub keyword: Range<usize>,
     /// Body of a loop
     pub body: Vec<Statement>,
 }
