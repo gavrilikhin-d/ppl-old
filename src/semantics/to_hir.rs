@@ -764,6 +764,7 @@ impl ToHIR for ast::Use {
         };
 
         Ok(hir::Use {
+            keyword: self.keyword.clone(),
             path: self.path.clone(),
             imported_item,
         })

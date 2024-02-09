@@ -4,7 +4,7 @@ use derive_more::From;
 
 use crate::{
     hir::{ClassOrTrait, Function, Variable},
-    syntax::Identifier,
+    syntax::{Identifier, Keyword},
 };
 
 /// Item, imported by use statement
@@ -19,6 +19,8 @@ pub enum ImportedItem {
 /// Use statement
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Use {
+    /// Keyword `use`
+    pub keyword: Keyword<"use">,
     /// Path to item
     pub path: Vec<Identifier>,
     /// Item, imported by use statement
