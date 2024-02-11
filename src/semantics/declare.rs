@@ -76,7 +76,7 @@ impl Declare for ast::FunctionDeclaration {
         });
 
         let f = Function::new(
-            hir::FunctionData::build()
+            hir::FunctionData::build(self.keyword)
                 .with_generic_types(generic_parameters)
                 .with_name(name_parts)
                 .with_mangled_name(mangled_name)

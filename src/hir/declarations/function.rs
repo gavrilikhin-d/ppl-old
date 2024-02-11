@@ -8,7 +8,7 @@ use derive_more::From;
 use crate::hir::{FunctionType, Generic, Statement, Type, TypeReference, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
-use crate::syntax::{Identifier, Ranged};
+use crate::syntax::{Identifier, Keyword, Ranged};
 
 /// Declaration of a function parameter
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -139,6 +139,8 @@ impl Named for Function {
 /// Declaration (or definition) of a function
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct FunctionData {
+    /// Keyword `fn`
+    pub keyword: Keyword<"fn">,
     /// Generic parameters of a function
     pub generic_types: Vec<Type>,
     /// Type's name
@@ -159,8 +161,8 @@ pub struct FunctionData {
 
 impl FunctionData {
     /// Create a new builder for a function declaration
-    pub fn build() -> FunctionBuilder {
-        FunctionBuilder::new()
+    pub fn build(keyword: Keyword<"fn">) -> FunctionBuilder {
+        FunctionBuilder::new(keyword)
     }
 
     /// Get name parts of function
@@ -307,6 +309,8 @@ impl Display for FunctionData {
 
 /// Builder for a function declaration
 pub struct FunctionBuilder {
+    /// Keyword `fn`
+    keyword: Keyword<"fn">,
     /// Generic parameters of a function
     generic_types: Vec<Type>,
     /// Type's name
@@ -319,8 +323,9 @@ pub struct FunctionBuilder {
 
 impl FunctionBuilder {
     /// Create a new builder for a function
-    pub fn new() -> Self {
+    pub fn new(keyword: Keyword<"fn">) -> Self {
         FunctionBuilder {
+            keyword,
             generic_types: Vec::new(),
             name_parts: Vec::new(),
             mangled_name: None,
@@ -382,6 +387,7 @@ impl FunctionBuilder {
         let name_format = self.build_name_format();
         let name = self.build_name();
         FunctionData {
+            keyword: self.keyword,
             generic_types: self.generic_types,
             name_parts: self.name_parts,
             return_type,
@@ -402,7 +408,7 @@ mod tests {
             VariableReference,
         },
         semantics::ToHIR,
-        syntax::Identifier,
+        syntax::{Identifier, Keyword},
     };
 
     use pretty_assertions::assert_eq;
@@ -438,7 +444,7 @@ mod tests {
         };
         assert_eq!(
             *hir.read().unwrap(),
-            FunctionData::build()
+            FunctionData::build(Keyword::<"fn">::at(0))
                 .with_generic_types(vec![ty.clone().into()])
                 .with_name(vec![param.clone().into()])
                 .with_body(vec![Statement::Return(Return::Implicit {
