@@ -3,21 +3,36 @@ use ast_derive::AST;
 
 use crate::ast::Expression;
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
-use crate::syntax::{Context, StartsHere};
+use crate::syntax::{Context, Keyword, StartsHere};
 
 use super::Statement;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ElseIf {
+    /// Keyword `else`
+    pub else_keyword: Keyword<"else">,
+    /// Keyword `if`
+    pub if_keyword: Keyword<"if">,
     /// Condition of else-if statement
     pub condition: Expression,
     /// Body of else-if statement
     pub body: Vec<Statement>,
 }
 
+/// AST for else block
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct Else {
+    /// Keyword `else`
+    pub keyword: Keyword<"else">,
+    /// Body of else statement
+    pub body: Vec<Statement>,
+}
+
 /// AST for if-statement
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct If {
+    /// Keyword `if`
+    pub keyword: Keyword<"if">,
     /// Condition of if-statement
     pub condition: Expression,
     /// Body of if-statement
@@ -25,7 +40,7 @@ pub struct If {
     /// Else-if statements
     pub else_ifs: Vec<ElseIf>,
     /// Else block
-    pub else_block: Vec<Statement>,
+    pub else_block: Option<Else>,
 }
 
 impl StartsHere for If {
@@ -40,7 +55,7 @@ impl Parse for If {
 
     /// Parse assignment using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        context.lexer.consume(Token::If)?;
+        let keyword = context.consume_keyword::<"if">()?;
 
         let condition = Expression::parse(context)?;
 
@@ -49,26 +64,26 @@ impl Parse for If {
         let body = context.parse_block(Statement::parse)?;
 
         let mut else_ifs = Vec::new();
-        let mut else_block = Vec::new();
-        while context.lexer.peek() == Some(Token::Else) {
-            context.lexer.next();
-
-            if context.lexer.peek() == Some(Token::If) {
-                context.lexer.next();
-
+        let mut else_block = None;
+        while let Ok(else_keyword) = context.consume_keyword::<"else">() {
+            if let Ok(if_keyword) = context.consume_keyword::<"if">() {
                 let condition = Expression::parse(context)?;
 
                 context.lexer.consume(Token::Colon)?;
                 let body = context.parse_block(Statement::parse)?;
-                else_ifs.push(ElseIf { condition, body });
+                else_ifs.push(ElseIf { else_keyword, if_keyword, condition, body });
             } else {
                 context.lexer.consume(Token::Colon)?;
-                else_block = context.parse_block(Statement::parse)?;
+                else_block = Some(Else {
+                    keyword: else_keyword,
+                    body: context.parse_block(Statement::parse)?
+                });
                 break;
             }
         }
 
         Ok(If {
+            keyword,
             condition,
             body,
             else_ifs,

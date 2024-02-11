@@ -1,10 +1,12 @@
 use std::fmt::Display;
 
-use crate::hir::Statement;
+use crate::{hir::Statement, syntax::{Keyword, Ranged}};
 
 /// Infinite loop
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Loop {
+    /// Keyword `loop`
+    pub keyword: Keyword<"loop">,
     /// Body of a loop
     pub body: Vec<Statement>,
 }
@@ -22,5 +24,15 @@ impl Display for Loop {
             writeln!(f, "{statement:#new_indent$}")?;
         }
         Ok(())
+    }
+}
+
+impl Ranged for Loop {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.body.last().map_or(self.keyword.end(), |s| s.end())
     }
 }

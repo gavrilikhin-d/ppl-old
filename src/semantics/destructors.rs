@@ -32,13 +32,19 @@ fn with_destructors(statements: &[Statement], context: &mut impl Context) -> Vec
             If(if_stmt) => {
                 new_statements.push(
                     hir::If {
+                        keyword: if_stmt.keyword.clone(),
                         condition: if_stmt.condition.clone(),
                         body: with_destructors(&if_stmt.body, context),
-                        else_block: with_destructors(&if_stmt.else_block, context),
-                        else_ifs: if_stmt
-                            .else_ifs
+                        else_block: if_stmt.else_block.as_ref().map(|else_block| hir::Else { 
+                                keyword: else_block.keyword.clone(), 
+                                body: with_destructors(&else_block.body, context) 
+                            }
+                        ),
+                        else_ifs: if_stmt.else_ifs
                             .iter()
                             .map(|else_if| hir::ElseIf {
+                                else_keyword: else_if.else_keyword.clone(),
+                                if_keyword: else_if.if_keyword.clone(),
                                 condition: else_if.condition.clone(),
                                 body: with_destructors(&else_if.body, context),
                             })
@@ -51,6 +57,7 @@ fn with_destructors(statements: &[Statement], context: &mut impl Context) -> Vec
             Loop(l) => {
                 new_statements.push(
                     hir::Loop {
+                        keyword: l.keyword.clone(),
                         body: with_destructors(&l.body, context),
                     }
                     .into(),
@@ -60,6 +67,7 @@ fn with_destructors(statements: &[Statement], context: &mut impl Context) -> Vec
             While(w) => {
                 new_statements.push(
                     hir::While {
+                        keyword: w.keyword.clone(),
                         condition: w.condition.clone(),
                         body: with_destructors(&w.body, context),
                     }

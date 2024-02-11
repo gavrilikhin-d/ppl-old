@@ -1,13 +1,15 @@
 extern crate ast_derive;
+
 use ast_derive::AST;
 
 use crate::ast::Statement;
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
-use crate::syntax::{Context, StartsHere};
+use crate::syntax::{Context, Keyword, StartsHere};
 
 /// AST for infinite loop
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct Loop {
+    pub keyword: Keyword<"loop">,
     /// Body of loop
     pub body: Vec<Statement>,
 }
@@ -24,12 +26,12 @@ impl Parse for Loop {
 
     /// Parse loop using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        context.lexer.consume(Token::Loop)?;
+        let keyword = context.consume_keyword::<"loop">()?;
 
         context.lexer.consume(Token::Colon)?;
 
         let body = context.parse_block(Statement::parse)?;
 
-        Ok(Loop { body })
+        Ok(Loop { keyword, body })
     }
 }

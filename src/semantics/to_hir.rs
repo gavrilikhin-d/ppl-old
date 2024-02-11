@@ -643,7 +643,7 @@ impl ToHIR for ast::Return {
             .into());
         }
 
-        Ok(hir::Return { value })
+        Ok(hir::Return::Explicit { keyword: self.keyword.clone(), value })
     }
 }
 
@@ -652,32 +652,46 @@ impl ToHIR for If {
 
     /// Lower [`ast::If`] to [`hir::If`] within lowering context
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
+        let condition = self.condition.lower_condition_to_hir(context)?;
+        let body = self
+        .body
+        .iter()
+        .map(|stmt| stmt.to_hir(context))
+        .try_collect()?;
+        let else_ifs = self
+        .else_ifs
+        .iter()
+        .map(|else_if| {
+            Ok::<hir::ElseIf, Error>(hir::ElseIf {
+                else_keyword: else_if.else_keyword.clone(),
+                if_keyword: else_if.if_keyword.clone(),
+                condition: else_if.condition.lower_condition_to_hir(context)?,
+                body: else_if
+                    .body
+                    .iter()
+                    .map(|stmt| stmt.to_hir(context))
+                    .try_collect()?,
+            })
+        })
+        .try_collect()?;
+        let else_block = if let Some(else_block) = &self.else_block {
+            Some(hir::Else {
+                keyword: else_block.keyword.clone(),
+                body: else_block
+                    .body
+                    .iter()
+                    .map(|stmt| stmt.to_hir(context))
+                    .try_collect()?,
+            })
+        } else {
+            None
+        };
         Ok(hir::If {
-            condition: self.condition.lower_condition_to_hir(context)?,
-            body: self
-                .body
-                .iter()
-                .map(|stmt| stmt.to_hir(context))
-                .try_collect()?,
-            else_ifs: self
-                .else_ifs
-                .iter()
-                .map(|else_if| {
-                    Ok::<hir::ElseIf, Error>(hir::ElseIf {
-                        condition: else_if.condition.lower_condition_to_hir(context)?,
-                        body: else_if
-                            .body
-                            .iter()
-                            .map(|stmt| stmt.to_hir(context))
-                            .try_collect()?,
-                    })
-                })
-                .try_collect()?,
-            else_block: self
-                .else_block
-                .iter()
-                .map(|stmt| stmt.to_hir(context))
-                .try_collect()?,
+            keyword: self.keyword.clone(),
+            condition,
+            body,
+            else_ifs,
+            else_block,
         })
     }
 }
@@ -688,6 +702,7 @@ impl ToHIR for ast::Loop {
     /// Lower [`ast::Loop`] to [`hir::Loop`] within lowering context
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(hir::Loop {
+            keyword: self.keyword.clone(),
             body: self
                 .body
                 .iter()
@@ -703,6 +718,7 @@ impl ToHIR for ast::While {
     /// Lower [`ast::While`] to [`hir::While`] within lowering context
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         Ok(hir::While {
+            keyword: self.keyword.clone(),
             condition: self.condition.lower_condition_to_hir(context)?,
             body: self
                 .body
@@ -762,6 +778,7 @@ impl ToHIR for ast::Use {
         };
 
         Ok(hir::Use {
+            keyword: self.keyword.clone(),
             path: self.path.clone(),
             imported_item,
         })

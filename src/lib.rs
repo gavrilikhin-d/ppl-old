@@ -6,6 +6,7 @@
 #![feature(assert_matches)]
 #![feature(trait_upcasting)]
 #![feature(exit_status_error)]
+#![feature(adt_const_params)]
 
 pub mod mutability;
 pub mod named;

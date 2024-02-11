@@ -2,20 +2,20 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
-use crate::syntax::{Context, Identifier, Ranged, StartsHere};
+use crate::syntax::{Context, Identifier, Keyword, Ranged, StartsHere};
 
 /// AST for use statement
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct Use {
-    /// Offset of "use" keyword
-    pub offset: usize,
+    /// Keyword `use`
+    pub keyword: Keyword<"use">,
     /// Path to introduce to current module
     pub path: Vec<Identifier>,
 }
 
 impl Ranged for Use {
     fn start(&self) -> usize {
-        self.offset
+        self.keyword.start()
     }
 
     fn end(&self) -> usize {
@@ -35,7 +35,7 @@ impl Parse for Use {
 
     /// Parse [`Use`] statement inside parsing context
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        let offset = context.lexer.consume(Token::Use)?.start();
+        let keyword = context.consume_keyword::<"use">()?;
 
         let path = context.parse_separated(
             |context| {
@@ -46,6 +46,6 @@ impl Parse for Use {
             Token::Dot,
         );
 
-        Ok(Use { offset, path })
+        Ok(Use { keyword, path })
     }
 }

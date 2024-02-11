@@ -7,13 +7,19 @@ use std::{
 
 use indexmap::IndexMap;
 
-use crate::{named::Named, syntax::Identifier, AddSourceLocation};
+use crate::{
+    named::Named,
+    syntax::{Identifier, Keyword, Ranged},
+    AddSourceLocation,
+};
 
 use super::Function;
 
 /// Declaration of a trait
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct TraitDeclaration {
+    /// Keyword `trait`
+    pub keyword: Keyword<"trait">,
     /// Trait's name
     pub name: Identifier,
     /// Associated functions
@@ -61,5 +67,18 @@ impl AddSourceLocation for Arc<TraitDeclaration> {}
 impl Hash for TraitDeclaration {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
+    }
+}
+
+impl Ranged for TraitDeclaration {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.functions
+            .values()
+            .last()
+            .map_or(self.name.end(), |f| f.end())
     }
 }

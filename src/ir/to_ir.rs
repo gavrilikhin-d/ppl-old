@@ -748,8 +748,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Return {
         trace!(target: "to_ir", "{self}");
 
         let value = self
-            .value
-            .as_ref()
+            .value()
             .map(|expr| expr.to_ir(context))
             .flatten();
         context.load_return_value_and_branch(value);
@@ -770,10 +769,10 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for If {
         let if_true = context.build_block("if.body", &self.body, Some(merge_block));
         if_true.move_after(entry_block).unwrap();
 
-        let last_block = if self.else_block.is_empty() {
+        let last_block = if self.else_block.is_none() {
             merge_block.clone()
         } else {
-            let else_block = context.build_block("else", &self.else_block, Some(merge_block));
+            let else_block = context.build_block("else", &self.else_block.as_ref().unwrap().body, Some(merge_block));
             else_block.move_after(if_true).unwrap();
             else_block
         };

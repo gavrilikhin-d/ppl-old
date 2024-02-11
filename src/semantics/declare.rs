@@ -76,7 +76,7 @@ impl Declare for ast::FunctionDeclaration {
         });
 
         let f = Function::new(
-            hir::FunctionData::build()
+            hir::FunctionData::build(self.keyword)
                 .with_generic_types(generic_parameters)
                 .with_name(name_parts)
                 .with_mangled_name(mangled_name)
@@ -133,7 +133,7 @@ impl Declare for ast::FunctionDeclaration {
                 }
                 .into());
             }
-            body = vec![hir::Return { value: Some(expr) }.into()];
+            body = vec![hir::Return::Implicit { value: expr }.into()];
         }
 
         declaration.write().unwrap().body = body;
@@ -151,6 +151,7 @@ impl Declare for ast::TraitDeclaration {
         let tr = Arc::new_cyclic(|trait_weak| {
             let mut context = TraitContext {
                 tr: hir::TraitDeclaration {
+                    keyword: self.keyword.clone(),
                     name: self.name.clone(),
                     functions: IndexMap::new(),
                 },
@@ -186,6 +187,7 @@ impl Declare for ast::TraitDeclaration {
         let tr = Arc::new_cyclic(|trait_weak| {
             let mut context = TraitContext {
                 tr: hir::TraitDeclaration {
+                    keyword: self.keyword.clone(),
                     name: self.name.clone(),
                     functions: IndexMap::new(),
                 },
@@ -238,6 +240,7 @@ impl Declare for ast::TypeDeclaration {
 
         // TODO: recursive types
         let ty = Arc::new(hir::ClassDeclaration {
+            keyword: self.keyword.clone(),
             basename: self.name.clone(),
             specialization_of: None,
             generic_parameters,
@@ -283,6 +286,7 @@ impl Declare for ast::VariableDeclaration {
 
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
         let var = hir::Variable::new(hir::VariableData {
+            keyword: self.keyword.clone(),
             name: self.name.clone(),
             ty: Type::Unknown,
             initializer: None,

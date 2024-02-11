@@ -6,8 +6,7 @@ use derive_more::From;
 use crate::{
     ast::{Annotation, Expression, Statement, TypeReference},
     syntax::{
-        error::ParseError, Context, Identifier, Lexer, OperatorKind, Parse, Ranged, StartsHere,
-        StringWithOffset, Token,
+        error::ParseError, Context, Identifier, Keyword, Lexer, OperatorKind, Parse, Ranged, StartsHere, StringWithOffset, Token
     },
 };
 
@@ -146,6 +145,8 @@ impl Parse for FunctionNamePart {
 /// Any PPL declaration
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct FunctionDeclaration {
+    /// Keyword `fn`
+    pub keyword: Keyword<"fn">,
     /// Generic parameters of a function
     pub generic_parameters: Vec<GenericParameter>,
     /// Name parts of function
@@ -174,13 +175,13 @@ impl Parse for FunctionDeclaration {
 
     /// Parse function declaration using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        let fn_token = context.lexer.consume(Token::Fn)?;
+        let keyword = context.consume_keyword::<"fn">()?;
 
         let mut generic_parameters = Vec::new();
         if context
             .lexer
             .try_match(Token::Less)
-            .is_ok_and(|t| t.start() == fn_token.end())
+            .is_ok_and(|t| t.start() == keyword.end())
         {
             context.lexer.consume(Token::Less).unwrap();
             generic_parameters = context.parse_comma_separated(GenericParameter::parse);
@@ -223,6 +224,7 @@ impl Parse for FunctionDeclaration {
         }
 
         Ok(FunctionDeclaration {
+            keyword,
             generic_parameters,
             name_parts,
             return_type,
@@ -240,7 +242,7 @@ mod tests {
             FunctionDeclaration, GenericParameter, Parameter, Statement, TypeReference,
             VariableReference,
         },
-        syntax::Identifier,
+        syntax::{Identifier, Keyword},
     };
 
     use pretty_assertions::assert_eq;
@@ -253,6 +255,7 @@ mod tests {
         assert_eq!(
             func,
             FunctionDeclaration {
+                keyword: Keyword::<"fn">::at(0),
                 generic_parameters: vec![],
                 name_parts: vec![
                     Identifier::from("distance").at(3).into(),
@@ -298,6 +301,7 @@ mod tests {
         assert_eq!(
             func,
             FunctionDeclaration {
+                keyword: Keyword::<"fn">::at(0),
                 generic_parameters: vec![],
                 name_parts: vec![Identifier::from("test").at(3).into(),],
                 return_type: None,
@@ -322,6 +326,7 @@ mod tests {
         assert_eq!(
             func,
             FunctionDeclaration {
+                keyword: Keyword::<"fn">::at(0),
                 generic_parameters: vec![GenericParameter {
                     name: Identifier::from("T").at(3).into(),
                     constraint: None
@@ -357,6 +362,7 @@ mod tests {
         assert_eq!(
             func,
             FunctionDeclaration {
+                keyword: Keyword::<"fn">::at(0),
                 generic_parameters: vec![GenericParameter {
                     name: Identifier::from("T").at(3).into(),
                     constraint: Some(TypeReference {

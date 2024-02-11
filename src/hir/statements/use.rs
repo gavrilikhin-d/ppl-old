@@ -4,7 +4,7 @@ use derive_more::From;
 
 use crate::{
     hir::{ClassOrTrait, Function, Variable},
-    syntax::Identifier,
+    syntax::{Identifier, Keyword, Ranged},
 };
 
 /// Item, imported by use statement
@@ -19,6 +19,8 @@ pub enum ImportedItem {
 /// Use statement
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Use {
+    /// Keyword `use`
+    pub keyword: Keyword<"use">,
     /// Path to item
     pub path: Vec<Identifier>,
     /// Item, imported by use statement
@@ -39,5 +41,15 @@ impl Display for Use {
                 .collect::<Vec<_>>()
                 .join(".")
         )
+    }
+}
+
+impl Ranged for Use {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.path.last().map_or_else(|| self.keyword.end(), |p| p.end())
     }
 }

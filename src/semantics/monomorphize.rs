@@ -4,10 +4,7 @@ use log::{debug, trace};
 
 use crate::{
     hir::{
-        Assignment, Call, ClassDeclaration, Constructor, Declaration, ElseIf, Expression, Function,
-        FunctionData, FunctionNamePart, Generic, If, ImplicitConversion, ImplicitConversionKind,
-        Initializer, Loop, Member, MemberReference, Module, Parameter, ParameterOrVariable, Return,
-        Statement, Type, TypeReference, Typed, Variable, VariableReference, While,
+        Assignment, Call, ClassDeclaration, Constructor, Declaration, Else, ElseIf, Expression, Function, FunctionData, FunctionNamePart, Generic, If, ImplicitConversion, ImplicitConversionKind, Initializer, Loop, Member, MemberReference, Module, Parameter, ParameterOrVariable, Return, Statement, Type, TypeReference, Typed, Variable, VariableReference, While
     }, mutability::Mutable, semantics::{ConvertibleTo, GenericContext}
 };
 
@@ -91,7 +88,7 @@ impl Monomorphize for If {
         self.condition.monomorphize(context);
         self.body.monomorphize(context);
         self.else_ifs.monomorphize(context);
-        self.else_block.monomorphize(context);
+        self.else_block.as_mut().map(|else_block| else_block.monomorphize(context));
     }
 }
 
@@ -102,9 +99,15 @@ impl Monomorphize for ElseIf {
     }
 }
 
+impl Monomorphize for Else {
+    fn monomorphize(&mut self, context: &mut impl Context) {
+        self.body.monomorphize(context);
+    }
+}
+
 impl Monomorphize for Return {
     fn monomorphize(&mut self, context: &mut impl Context) {
-        self.value.as_mut().map(|value| value.monomorphize(context));
+        self.value_mut().map(|value| value.monomorphize(context));
     }
 }
 

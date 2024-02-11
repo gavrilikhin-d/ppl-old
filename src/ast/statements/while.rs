@@ -1,13 +1,16 @@
 extern crate ast_derive;
+
 use ast_derive::AST;
 
 use crate::ast::{Expression, Statement};
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
-use crate::syntax::{Context, StartsHere};
+use crate::syntax::{Context, Keyword, StartsHere};
 
 /// AST for while loop
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct While {
+    /// Keyword `while`
+    pub keyword: Keyword<"while">,
     /// Condition of loop
     pub condition: Expression,
     /// Body of loop
@@ -26,7 +29,7 @@ impl Parse for While {
 
     /// Parse loop using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        context.lexer.consume(Token::While)?;
+        let keyword = context.consume_keyword::<"while">()?;
 
         let condition = Expression::parse(context)?;
 
@@ -34,6 +37,6 @@ impl Parse for While {
 
         let body = context.parse_block(Statement::parse)?;
 
-        Ok(While { condition, body })
+        Ok(While { keyword, condition, body })
     }
 }

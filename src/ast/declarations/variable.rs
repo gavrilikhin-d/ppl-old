@@ -4,11 +4,13 @@ use ast_derive::AST;
 use crate::ast::Expression;
 use crate::mutability::{Mutability, Mutable};
 use crate::syntax::error::{MissingVariableName, ParseError};
-use crate::syntax::{Context, Identifier, Lexer, Parse, StartsHere, Token};
+use crate::syntax::{Context, Identifier, Keyword, Lexer, Parse, StartsHere, Token};
 
 /// Declaration of the variable
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct VariableDeclaration {
+    /// Keyword `let`
+    pub keyword: Keyword<"let">,
     /// Name of variable
     pub name: Identifier,
     /// Initializer for variable
@@ -36,7 +38,7 @@ impl Parse for VariableDeclaration {
 
     /// Parse variable declaration using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        context.lexer.consume(Token::Let)?;
+        let keyword = context.consume_keyword::<"let">()?;
 
         let mutable = context.lexer.consume(Token::Mut).is_ok();
 
@@ -53,6 +55,7 @@ impl Parse for VariableDeclaration {
         context.consume_eol()?;
 
         Ok(VariableDeclaration {
+            keyword,
             name,
             initializer,
             mutability: match mutable {
@@ -71,6 +74,7 @@ fn test_variable_declaration() {
     assert_eq!(
         var,
         VariableDeclaration {
+            keyword: Keyword::<"let">::at(0),
             name: Identifier::from("x").at(4),
             initializer: Literal::Integer {
                 offset: 8,
@@ -85,6 +89,7 @@ fn test_variable_declaration() {
     assert_eq!(
         var,
         VariableDeclaration {
+            keyword: Keyword::<"let">::at(0),
             name: Identifier::from("x").at(8),
             initializer: Literal::Integer {
                 offset: 12,
