@@ -11,11 +11,11 @@ Error: semantics::no_function
 
 Advice:   ☞ candidate is not viable: `Integer` doesn't satisfy trait `Foo`
   │ requirements
-   ╭─[constraints.ppl:2:5]
+   ╭─[constraints.ppl:2:2]
  1 │ trait Foo:
  2 │     fn foo <:Self>
-   ·        ─────┬─────
-   ·             ╰── This required function isn't implemented
+   ·     ───────┬──────
+   ·            ╰── This required function isn't implemented
  3 │ 
    ╰────
 semantics::no_function
