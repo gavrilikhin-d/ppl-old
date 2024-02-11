@@ -4,7 +4,7 @@ use crate::{
     hir::{Basename, Generic, Type, Typed},
     mutability::Mutable,
     named::Named,
-    syntax::Identifier,
+    syntax::{Identifier, Keyword},
     AddSourceLocation,
 };
 
@@ -86,6 +86,8 @@ impl FromStr for BuiltinClass {
 /// Declaration of a type
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct ClassDeclaration {
+    /// Keyword `type`
+    pub keyword: Keyword<"type">,
     /// Type's name
     pub basename: Identifier,
     /// Base generic type, if this is a specialization
@@ -257,6 +259,7 @@ mod tests {
         assert_eq!(
             *type_decl,
             ClassDeclaration {
+                keyword: Keyword::<"type">::at(0),
                 basename: Identifier::from("x").at(5),
                 specialization_of: None,
                 generic_parameters: vec![],
@@ -277,6 +280,7 @@ mod tests {
         assert_eq!(
             *type_decl,
             ClassDeclaration {
+                keyword: Keyword::<"type">::at(0),
                 basename: Identifier::from("Point").at(5),
                 specialization_of: None,
                 generic_parameters: vec![GenericType {
@@ -321,6 +325,7 @@ mod tests {
         assert_eq!(
             *type_decl,
             ClassDeclaration {
+                keyword: Keyword::<"type">::at(0),
                 basename: Identifier::from("Point").at(5),
                 specialization_of: None,
                 generic_parameters: vec![],

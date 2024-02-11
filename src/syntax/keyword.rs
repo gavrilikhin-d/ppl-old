@@ -1,7 +1,7 @@
 use super::{Ranged, Token};
 
 /// A keyword in the language
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Keyword<const KEYWORD: &'static str> {
     /// Position of the keyword in the source code
     pub offset: usize,

@@ -4,7 +4,7 @@ use ast_derive::AST;
 use crate::{
     ast::{Annotation, TypeReference},
     syntax::{
-        error::ParseError, Context, Identifier, Lexer, Parse, StartsHere, Token,
+        error::ParseError, Context, Identifier, Keyword, Lexer, Parse, StartsHere, Token
     },
 };
 
@@ -67,6 +67,8 @@ impl Parse for GenericParameter {
 pub struct TypeDeclaration {
     /// Annotations for type
     pub annotations: Vec<Annotation>,
+    /// Keyword `type`
+    pub keyword: Keyword<"type">,
     /// Name of type
     pub name: Identifier,
     /// Generic parameters of type
@@ -87,7 +89,7 @@ impl Parse for TypeDeclaration {
 
     /// Parse type declaration using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        context.lexer.consume(Token::Type)?;
+        let keyword = context.consume_keyword::<"type">()?;
 
         let name = context.consume_id()?;
 
@@ -109,6 +111,7 @@ impl Parse for TypeDeclaration {
         }
 
         Ok(TypeDeclaration {
+            keyword,
             annotations: vec![],
             name,
             generic_parameters,
@@ -128,6 +131,7 @@ mod tests {
         assert_eq!(
             type_decl,
             TypeDeclaration {
+                keyword: Keyword::<"type">::at(0),
                 annotations: vec![],
                 name: Identifier::from("x").at(5),
                 generic_parameters: vec![],
@@ -142,6 +146,7 @@ mod tests {
         assert_eq!(
             type_decl,
             TypeDeclaration {
+                keyword: Keyword::<"type">::at(0),
                 annotations: vec![],
                 name: Identifier::from("Point").at(5),
                 generic_parameters: vec![GenericParameter {
@@ -164,6 +169,7 @@ mod tests {
         assert_eq!(
             type_decl,
             TypeDeclaration {
+                keyword: Keyword::<"type">::at(0),
                 annotations: vec![],
                 name: Identifier::from("Point").at(5),
                 generic_parameters: vec![GenericParameter {
@@ -197,6 +203,7 @@ mod tests {
         assert_eq!(
             type_decl,
             TypeDeclaration {
+                keyword: Keyword::<"type">::at(0),
                 annotations: vec![],
                 name: Identifier::from("Point").at(5),
                 generic_parameters: vec![],
