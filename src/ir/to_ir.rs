@@ -8,6 +8,7 @@ use super::inkwell::*;
 use crate::hir::*;
 use crate::mutability::Mutable;
 use crate::named::Named;
+use crate::syntax::Ranged;
 
 use super::Context;
 use super::FunctionContext;
@@ -747,10 +748,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Return {
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
-        let value = self
-            .value()
-            .map(|expr| expr.to_ir(context))
-            .flatten();
+        let value = self.value().map(|expr| expr.to_ir(context)).flatten();
         context.load_return_value_and_branch(value);
     }
 }
@@ -772,7 +770,11 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for If {
         let last_block = if self.else_block.is_none() {
             merge_block.clone()
         } else {
-            let else_block = context.build_block("else", &self.else_block.as_ref().unwrap().body, Some(merge_block));
+            let else_block = context.build_block(
+                "else",
+                &self.else_block.as_ref().unwrap().body,
+                Some(merge_block),
+            );
             else_block.move_after(if_true).unwrap();
             else_block
         };
@@ -1005,7 +1007,14 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
             }
             unsafe { main.delete() };
         } else {
-            context.debug().register_function(main);
+            let at = self
+                .statements
+                .iter()
+                .find(|s| !matches!(s, Statement::Declaration(_)))
+                .unwrap()
+                .start();
+            let at = self.source_file.line_number(at);
+            context.debug().register_function(main, at);
         }
 
         let module = context.take_module();

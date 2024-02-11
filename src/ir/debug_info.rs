@@ -1,4 +1,13 @@
-use inkwell::{debug_info::{AsDIScope, DIBasicType, DICompileUnit, DIFile, DIFlagsConstants, DIScope, DISubprogram, DISubroutineType, DIType, DebugInfoBuilder}, module::Module, values::FunctionValue};
+use inkwell::{
+    debug_info::{
+        AsDIScope, DIBasicType, DICompileUnit, DIFile, DIFlagsConstants, DIScope, DISubprogram,
+        DISubroutineType, DIType, DebugInfoBuilder,
+    },
+    module::Module,
+    values::FunctionValue,
+};
+
+use crate::LineNumber;
 
 /// Builder for debug information
 pub struct DebugInfo<'llvm> {
@@ -7,7 +16,7 @@ pub struct DebugInfo<'llvm> {
     /// Compile unit for debug info
     compile_unit: DICompileUnit<'llvm>,
     /// Scopes stack
-    scopes: Vec<DIScope<'llvm>>
+    scopes: Vec<DIScope<'llvm>>,
 }
 
 impl<'llvm> DebugInfo<'llvm> {
@@ -41,7 +50,7 @@ impl<'llvm> DebugInfo<'llvm> {
         Self {
             dibuilder,
             compile_unit,
-            scopes: vec![compile_unit.get_file().as_debug_info_scope()]
+            scopes: vec![compile_unit.get_file().as_debug_info_scope()],
         }
     }
 
@@ -65,25 +74,26 @@ impl<'llvm> DebugInfo<'llvm> {
         let size_in_bits = 32;
         let encoding = gimli::DW_ATE_signed.0 as u32;
         let flags = DIFlagsConstants::ZERO;
-        self.dibuilder.create_basic_type("i32", size_in_bits, encoding, flags).unwrap()
+        self.dibuilder
+            .create_basic_type("i32", size_in_bits, encoding, flags)
+            .unwrap()
     }
-
 
     /// Get debug info for function type
     pub fn fn_type(&self, ret: DIType<'llvm>, args: &[DIType<'llvm>]) -> DISubroutineType<'llvm> {
-        self.dibuilder.create_subroutine_type(
-            self.file(), 
-            Some(ret), 
-            args, 
-            DIFlagsConstants::ZERO
-        )
+        self.dibuilder
+            .create_subroutine_type(self.file(), Some(ret), args, DIFlagsConstants::ZERO)
     }
 
     /// Register function in debug info
-    pub fn register_function(&self, f: FunctionValue<'llvm>) -> DISubprogram<'llvm> {
+    pub fn register_function(
+        &self,
+        f: FunctionValue<'llvm>,
+        at: LineNumber,
+    ) -> DISubprogram<'llvm> {
         let name = f.get_name().to_str().unwrap();
         let linkage_name = None;
-        let line_no = 0;
+        let line_no = at.zero_based() as u32;
         let ditype = self.fn_type(self.i32().as_type(), &[]);
         let is_local_to_unit = false;
         let is_definition = f.count_basic_blocks() > 0;
@@ -92,17 +102,17 @@ impl<'llvm> DebugInfo<'llvm> {
         let is_optimized = false;
 
         let subprogram = self.dibuilder.create_function(
-            self.scope(), 
-            name, 
-            linkage_name, 
-            self.file(), 
-            line_no, 
-            ditype, 
-            is_local_to_unit, 
-            is_definition, 
-            scope_line, 
-            flags, 
-            is_optimized
+            self.scope(),
+            name,
+            linkage_name,
+            self.file(),
+            line_no,
+            ditype,
+            is_local_to_unit,
+            is_definition,
+            scope_line,
+            flags,
+            is_optimized,
         );
 
         f.set_subprogram(subprogram);
