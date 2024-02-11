@@ -38,10 +38,7 @@ impl<'llvm> ModuleContext<'llvm> {
     /// Initialize context for lowering HIR module to LLVM IR
     pub fn new(module: inkwell::module::Module<'llvm>) -> Self {
         let debug_info = DebugInfo::new(&module);
-        Self {
-            module,
-            debug_info,
-        }
+        Self { module, debug_info }
     }
 
     /// Finalize building module
