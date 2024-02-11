@@ -7,13 +7,15 @@ use std::{
 
 use indexmap::IndexMap;
 
-use crate::{named::Named, syntax::Identifier, AddSourceLocation};
+use crate::{named::Named, syntax::{Identifier, Keyword}, AddSourceLocation};
 
 use super::Function;
 
 /// Declaration of a trait
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct TraitDeclaration {
+    /// Keyword `trait`
+    pub keyword: Keyword<"trait">,
     /// Trait's name
     pub name: Identifier,
     /// Associated functions

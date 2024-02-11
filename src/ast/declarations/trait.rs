@@ -2,7 +2,7 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use crate::syntax::{
-    error::ParseError, Context, Identifier, Lexer, Parse, StartsHere, Token,
+    error::ParseError, Context, Identifier, Keyword, Lexer, Parse, StartsHere, Token
 };
 
 use super::FunctionDeclaration;
@@ -10,6 +10,8 @@ use super::FunctionDeclaration;
 /// Declaration of trait
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct TraitDeclaration {
+    /// Keyword `trait`
+    pub keyword: Keyword<"trait">,
     /// Name of trait
     pub name: Identifier,
     /// Associated functions
@@ -28,7 +30,7 @@ impl Parse for TraitDeclaration {
 
     /// Parse trait declaration
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        context.lexer.consume(Token::Trait)?;
+        let keyword = context.consume_keyword::<"trait">()?;
 
         let name = context.consume_id()?;
 
@@ -36,6 +38,6 @@ impl Parse for TraitDeclaration {
 
         let functions = context.parse_block(FunctionDeclaration::parse)?;
 
-        Ok(TraitDeclaration { name, functions })
+        Ok(TraitDeclaration { keyword, name, functions })
     }
 }

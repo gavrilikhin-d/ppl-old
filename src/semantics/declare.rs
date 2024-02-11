@@ -151,6 +151,7 @@ impl Declare for ast::TraitDeclaration {
         let tr = Arc::new_cyclic(|trait_weak| {
             let mut context = TraitContext {
                 tr: hir::TraitDeclaration {
+                    keyword: self.keyword.clone(),
                     name: self.name.clone(),
                     functions: IndexMap::new(),
                 },
@@ -186,6 +187,7 @@ impl Declare for ast::TraitDeclaration {
         let tr = Arc::new_cyclic(|trait_weak| {
             let mut context = TraitContext {
                 tr: hir::TraitDeclaration {
+                    keyword: self.keyword.clone(),
                     name: self.name.clone(),
                     functions: IndexMap::new(),
                 },
