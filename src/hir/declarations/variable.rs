@@ -5,7 +5,7 @@ use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::hir::{Expression, Generic, Type, Typed};
 use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
-use crate::syntax::{Identifier, Keyword};
+use crate::syntax::{Identifier, Keyword, Ranged};
 
 /// Variable data holder
 #[derive(Debug, Clone)]
@@ -70,6 +70,12 @@ impl Mutable for Variable {
     }
 }
 
+impl Ranged for Variable {
+    fn range(&self) -> std::ops::Range<usize> {
+        self.read().unwrap().range()
+    }
+}
+
 /// Declaration of a variable
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VariableData {
@@ -130,5 +136,17 @@ impl Typed for VariableData {
 impl Generic for VariableData {
     fn is_generic(&self) -> bool {
         self.ty.is_generic()
+    }
+}
+
+impl Ranged for VariableData {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.initializer
+            .as_ref()
+            .map_or(self.name.end(), |i| i.end())
     }
 }

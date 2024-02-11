@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::syntax::Keyword;
+use crate::syntax::{Keyword, Ranged};
 
 use super::{Expression, Statement};
 
@@ -17,6 +17,16 @@ pub struct ElseIf {
     pub body: Vec<Statement>,
 }
 
+impl Ranged for ElseIf {
+    fn start(&self) -> usize {
+        self.else_keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.body.last().map_or(self.condition.end(), |s| s.end())
+    }
+}
+
 /// HIR for else block
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Else {
@@ -24,6 +34,16 @@ pub struct Else {
     pub keyword: Keyword<"else">,
     /// Body of else block
     pub body: Vec<Statement>,
+}
+
+impl Ranged for Else {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.body.last().map_or(self.keyword.end(), |s| s.end())
+    }
 }
 
 /// HIR for if-statement
@@ -68,5 +88,20 @@ impl Display for If {
             }
         }
         Ok(())
+    }
+}
+
+impl Ranged for If {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.else_block
+            .as_ref()
+            .map(|else_block| else_block.end())
+            .or_else(|| self.else_ifs.last().map(|else_if| else_if.end()))
+            .or_else(|| self.body.last().map(|s| s.end()))
+            .unwrap_or_else(|| self.condition.end())
     }
 }

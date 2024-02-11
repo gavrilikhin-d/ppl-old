@@ -4,7 +4,7 @@ use crate::{
     hir::{Basename, Generic, Type, Typed},
     mutability::Mutable,
     named::Named,
-    syntax::{Identifier, Keyword},
+    syntax::{Identifier, Keyword, Ranged},
     AddSourceLocation,
 };
 
@@ -35,6 +35,17 @@ impl Typed for Member {
     /// Get type of member
     fn ty(&self) -> Type {
         self.ty.clone()
+    }
+}
+
+impl Ranged for Member {
+    fn start(&self) -> usize {
+        self.name.start()
+    }
+
+    fn end(&self) -> usize {
+        // FIXME: Replace type with type reference and use `self.ty.end()` here
+        self.name.end()
     }
 }
 
@@ -236,6 +247,18 @@ impl Mutable for ClassDeclaration {
             Some(BuiltinClass::ReferenceMut) => true,
             _ => false,
         }
+    }
+}
+
+impl Ranged for ClassDeclaration {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.members
+            .last()
+            .map_or_else(|| self.basename.end(), |m| m.end())
     }
 }
 

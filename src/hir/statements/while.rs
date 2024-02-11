@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{hir::{Expression, Statement}, syntax::Keyword};
+use crate::{hir::{Expression, Statement}, syntax::{Keyword, Ranged}};
 
 /// While loop
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -26,5 +26,15 @@ impl Display for While {
             writeln!(f, "{statement:#new_indent$}")?;
         }
         Ok(())
+    }
+}
+
+impl Ranged for While {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.body.last().map_or(self.condition.end(), |s| s.end())
     }
 }

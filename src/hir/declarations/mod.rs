@@ -16,7 +16,7 @@ use std::{borrow::Cow, sync::Arc};
 
 use derive_more::Display;
 
-use crate::named::Named;
+use crate::{named::Named, syntax::Ranged};
 
 /// Any PPL declaration
 #[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto)]
@@ -34,6 +34,17 @@ impl Named for Declaration {
             Declaration::Type(decl) => decl.name(),
             Declaration::Function(decl) => decl.name(),
             Declaration::Trait(decl) => decl.name(),
+        }
+    }
+}
+
+impl Ranged for Declaration {
+    fn range(&self) -> std::ops::Range<usize> {
+        match self {
+            Declaration::Variable(decl) => decl.range(),
+            Declaration::Type(decl) => decl.range(),
+            Declaration::Function(decl) => decl.range(),
+            Declaration::Trait(decl) => decl.range(),
         }
     }
 }

@@ -136,6 +136,12 @@ impl Named for Function {
     }
 }
 
+impl Ranged for Function {
+    fn range(&self) -> Range<usize> {
+        self.read().unwrap().range()
+    }
+}
+
 /// Declaration (or definition) of a function
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct FunctionData {
@@ -226,11 +232,20 @@ impl FunctionData {
 
 impl Ranged for FunctionData {
     fn start(&self) -> usize {
-        self.name_parts().first().unwrap().start()
+        self.keyword.start()
     }
 
     fn end(&self) -> usize {
-        self.name_parts().last().unwrap().end()
+        // FIXME: return end of return type annotation for fallback, if any
+        self.body.last().map_or_else(
+            || {
+                self.name_parts
+                    .last()
+                    .map(|p| p.end())
+                    .unwrap_or(self.keyword.end())
+            },
+            |s| s.end(),
+        )
     }
 }
 
@@ -448,12 +463,11 @@ mod tests {
                 .with_generic_types(vec![ty.clone().into()])
                 .with_name(vec![param.clone().into()])
                 .with_body(vec![Statement::Return(Return::Implicit {
-                    value: 
-                        VariableReference {
-                            span: 21..22,
-                            variable: param.into()
-                        }
-                        .into()
+                    value: VariableReference {
+                        span: 21..22,
+                        variable: param.into()
+                    }
+                    .into()
                 })])
                 .with_return_type(ty.into())
         );
