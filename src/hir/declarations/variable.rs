@@ -5,7 +5,7 @@ use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use crate::hir::{Expression, Generic, Type, Typed};
 use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
-use crate::syntax::Identifier;
+use crate::syntax::{Identifier, Keyword};
 
 /// Variable data holder
 #[derive(Debug, Clone)]
@@ -73,6 +73,8 @@ impl Mutable for Variable {
 /// Declaration of a variable
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VariableData {
+    /// Keyword `let`
+    pub keyword: Keyword<"let">,
     /// Mutability of variable
     pub mutability: Mutability,
     /// Variable's name

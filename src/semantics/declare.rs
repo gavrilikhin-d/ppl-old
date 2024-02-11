@@ -286,6 +286,7 @@ impl Declare for ast::VariableDeclaration {
 
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
         let var = hir::Variable::new(hir::VariableData {
+            keyword: self.keyword.clone(),
             name: self.name.clone(),
             ty: Type::Unknown,
             initializer: None,
