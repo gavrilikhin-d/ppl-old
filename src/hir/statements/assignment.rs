@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::hir::Expression;
+use crate::{hir::Expression, syntax::Ranged};
 
 /// Assignment of a value to a reference
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -17,5 +17,15 @@ impl Display for Assignment {
         write!(f, "{indent}")?;
 
         write!(f, "{} = {}", self.target, self.value)
+    }
+}
+
+impl Ranged for Assignment {
+    fn start(&self) -> usize {
+        self.target.start()
+    }
+
+    fn end(&self) -> usize {
+        self.value.end()
     }
 }
