@@ -4,7 +4,7 @@ use derive_more::From;
 
 use crate::{
     hir::{ClassOrTrait, Function, Variable},
-    syntax::{Identifier, Keyword},
+    syntax::{Identifier, Keyword, Ranged},
 };
 
 /// Item, imported by use statement
@@ -41,5 +41,15 @@ impl Display for Use {
                 .collect::<Vec<_>>()
                 .join(".")
         )
+    }
+}
+
+impl Ranged for Use {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.path.last().map_or_else(|| self.keyword.end(), |p| p.end())
     }
 }
