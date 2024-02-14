@@ -1,16 +1,19 @@
 use inkwell::{
+    context::ContextRef,
     debug_info::{
-        AsDIScope, DIBasicType, DICompileUnit, DIFile, DIFlagsConstants, DIScope, DISubprogram,
-        DISubroutineType, DIType, DebugInfoBuilder,
+        AsDIScope, DIBasicType, DICompileUnit, DIFile, DIFlagsConstants, DILocation, DIScope,
+        DISubprogram, DISubroutineType, DIType, DebugInfoBuilder,
     },
     module::Module,
     values::FunctionValue,
 };
 
-use crate::LineNumber;
+use crate::{ColumnNumber, LineNumber};
 
 /// Builder for debug information
 pub struct DebugInfo<'llvm> {
+    /// LLVM context
+    llvm: ContextRef<'llvm>,
     /// Builder for debug info
     dibuilder: DebugInfoBuilder<'llvm>,
     /// Compile unit for debug info
@@ -48,6 +51,7 @@ impl<'llvm> DebugInfo<'llvm> {
         );
 
         Self {
+            llvm,
             dibuilder,
             compile_unit,
             scopes: vec![compile_unit.get_file().as_debug_info_scope()],
@@ -83,6 +87,15 @@ impl<'llvm> DebugInfo<'llvm> {
     pub fn fn_type(&self, ret: DIType<'llvm>, args: &[DIType<'llvm>]) -> DISubroutineType<'llvm> {
         self.dibuilder
             .create_subroutine_type(self.file(), Some(ret), args, DIFlagsConstants::ZERO)
+    }
+
+    /// Get debug location
+    pub fn location(&self, line: LineNumber, column: ColumnNumber) -> DILocation<'llvm> {
+        let line = line.zero_based() as u32;
+        let column = column.zero_based() as u32;
+        let inlined_at = None;
+        self.dibuilder
+            .create_debug_location(self.llvm, line, column, self.scope(), inlined_at)
     }
 
     /// Register function in debug info
