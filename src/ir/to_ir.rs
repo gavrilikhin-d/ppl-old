@@ -1013,7 +1013,6 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
                 .find(|s| !matches!(s, Statement::Declaration(_)))
                 .unwrap()
                 .start();
-            let at = self.source_file.line_number(at);
             context.debug().register_function(main, at);
         }
 

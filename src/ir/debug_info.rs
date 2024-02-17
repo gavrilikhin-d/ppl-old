@@ -8,7 +8,7 @@ use inkwell::{
     values::FunctionValue,
 };
 
-use crate::{ColumnNumber, LineNumber, SourceFile};
+use crate::SourceFile;
 
 /// Builder for debug information
 pub struct DebugInfo<'llvm, 's> {
@@ -92,24 +92,30 @@ impl<'llvm, 's> DebugInfo<'llvm, 's> {
             .create_subroutine_type(self.file(), Some(ret), args, DIFlagsConstants::ZERO)
     }
 
+    /// Get line number from offset
+    fn line_number(&self, offset: usize) -> u32 {
+        self.source_file.line_number(offset).zero_based() as u32
+    }
+
+    /// Get column number from offset
+    fn column_number(&self, offset: usize) -> u32 {
+        self.source_file.column_number(offset).zero_based() as u32
+    }
+
     /// Get debug location
-    pub fn location(&self, line: LineNumber, column: ColumnNumber) -> DILocation<'llvm> {
-        let line = line.zero_based() as u32;
-        let column = column.zero_based() as u32;
+    pub fn location(&self, offset: usize) -> DILocation<'llvm> {
+        let line = self.line_number(offset);
+        let column = self.column_number(offset);
         let inlined_at = None;
         self.dibuilder
             .create_debug_location(self.llvm, line, column, self.scope(), inlined_at)
     }
 
     /// Register function in debug info
-    pub fn register_function(
-        &self,
-        f: FunctionValue<'llvm>,
-        at: LineNumber,
-    ) -> DISubprogram<'llvm> {
+    pub fn register_function(&self, f: FunctionValue<'llvm>, at: usize) -> DISubprogram<'llvm> {
         let name = f.get_name().to_str().unwrap();
         let linkage_name = None;
-        let line_no = at.zero_based() as u32;
+        let line_no = self.line_number(at);
         let ditype = self.fn_type(self.i32().as_type(), &[]);
         let is_local_to_unit = false;
         let is_definition = f.count_basic_blocks() > 0;
