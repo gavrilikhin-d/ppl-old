@@ -94,8 +94,6 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
     where
         Self: Sized,
     {
-        let ty = ty.without_ref();
-
         let name = format!("destroy <:{ty}>");
         self.function_with_name(&name)
     }
