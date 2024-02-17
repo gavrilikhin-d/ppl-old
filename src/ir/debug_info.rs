@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use inkwell::{
     context::ContextRef,
     debug_info::{
@@ -19,7 +21,7 @@ pub struct DebugInfo<'llvm, 's> {
     /// Compile unit for debug info
     compile_unit: DICompileUnit<'llvm>,
     /// Scopes stack
-    scopes: Vec<DIScope<'llvm>>,
+    scopes: RefCell<Vec<DIScope<'llvm>>>,
     /// Source file for the module
     source_file: &'s SourceFile,
 }
@@ -56,7 +58,7 @@ impl<'llvm, 's> DebugInfo<'llvm, 's> {
             llvm,
             dibuilder,
             compile_unit,
-            scopes: vec![compile_unit.get_file().as_debug_info_scope()],
+            scopes: RefCell::new(vec![compile_unit.get_file().as_debug_info_scope()]),
             source_file,
         }
     }
@@ -73,7 +75,7 @@ impl<'llvm, 's> DebugInfo<'llvm, 's> {
 
     /// Get current scope
     pub fn scope(&self) -> DIScope<'llvm> {
-        self.scopes.last().unwrap().clone()
+        self.scopes.borrow().last().unwrap().clone()
     }
 
     /// Get debug info for i32 type
@@ -140,5 +142,19 @@ impl<'llvm, 's> DebugInfo<'llvm, 's> {
         f.set_subprogram(subprogram);
 
         subprogram
+    }
+
+    /// Register function and enter the scope of it
+    pub fn push_function(&self, f: FunctionValue<'llvm>, at: usize) -> DISubprogram<'llvm> {
+        let f = self.register_function(f, at);
+        self.scopes.borrow_mut().push(f.as_debug_info_scope());
+        f
+    }
+
+    /// Pop debug scope
+    pub fn pop_scope(&self) -> DIScope<'llvm> {
+        assert!(self.scopes.borrow().len() >= 2, "Poping out of file scope");
+
+        self.scopes.borrow_mut().pop().unwrap()
     }
 }
