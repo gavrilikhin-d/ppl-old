@@ -86,6 +86,7 @@ impl<'llvm, 'm, 's> FunctionContext<'llvm, 'm, 's> {
     pub fn new(
         module_context: &'m mut ModuleContext<'llvm, 's>,
         function: inkwell::values::FunctionValue<'llvm>,
+        at: usize,
     ) -> Self {
         let llvm = module_context.llvm();
 
@@ -105,6 +106,8 @@ impl<'llvm, 'm, 's> FunctionContext<'llvm, 'm, 's> {
             .unwrap();
 
         builder.position_at_end(basic_block);
+
+        module_context.debug().push_function(function, at);
 
         Self {
             module_context,
@@ -211,6 +214,8 @@ impl Drop for FunctionContext<'_, '_, '_> {
         if terminator.is_none() {
             self.branch_to_return_block();
         }
+
+        self.debug().pop_scope();
 
         if !self.function.verify(true) {
             eprintln!("------------------");

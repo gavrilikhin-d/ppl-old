@@ -157,7 +157,9 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Variable {
             context.llvm().void_type().fn_type(&[], false),
             None,
         );
-        let mut f_context = FunctionContext::new(context, initialize);
+        let at = self.read().unwrap().initializer.as_ref().unwrap().start();
+        let mut f_context = FunctionContext::new(context, initialize, at);
+
         let value = self
             .read()
             .unwrap()
@@ -309,7 +311,7 @@ impl<'llvm> EmitBody<'llvm> for FunctionData {
             .get(&self.mangled_name())
             .expect("Function was not declared before emitting body");
         if !self.body.is_empty() {
-            let mut f_context = FunctionContext::new(context, f);
+            let mut f_context = FunctionContext::new(context, f, self.start());
             for (i, p) in self
                 .parameters()
                 .filter(|p| !p.name().is_empty() && !p.ty().is_none())
@@ -586,6 +588,9 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
         context: &mut FunctionContext<'llvm, 'm, '_>,
     ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
         trace!(target: "lower_to_ir_without_load", "{self}");
+
+        context.set_debug_location(self.start());
+
         match self {
             Expression::VariableReference(var) => {
                 let var = var.to_ir(context);
@@ -690,7 +695,7 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Statement {
                     None,
                 );
 
-                let mut context = FunctionContext::new(context, function);
+                let mut context = FunctionContext::new(context, function, self.start());
                 self.to_ir(&mut context);
             }
 
@@ -698,7 +703,7 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Statement {
                 let ty = expr.ty().to_ir(context).fn_type(&[], false);
                 let function = context.module.add_function("execute", ty, None);
 
-                let mut context = FunctionContext::new(context, function);
+                let mut context = FunctionContext::new(context, function, self.start());
 
                 let value = expr.to_ir(&mut context);
                 context.load_return_value_and_branch(value);
@@ -929,7 +934,14 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
             context
                 .module
                 .add_function("main", context.types().i32().fn_type(&[], false), None);
-        let mut fn_context = FunctionContext::new(&mut context, main);
+        let at = self
+            .statements
+            .iter()
+            .find(|s| !matches!(s, Statement::Declaration(_)))
+            .map(|s| s.start())
+            .unwrap_or(0);
+
+        let mut fn_context = FunctionContext::new(&mut context, main, at);
 
         for statement in self
             .statements
@@ -1006,14 +1018,6 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
                 main.print_to_stderr();
             }
             unsafe { main.delete() };
-        } else {
-            let at = self
-                .statements
-                .iter()
-                .find(|s| !matches!(s, Statement::Declaration(_)))
-                .unwrap()
-                .start();
-            context.debug().register_function(main, at);
         }
 
         let module = context.take_module();
