@@ -8,6 +8,7 @@ use super::inkwell::*;
 use crate::hir::*;
 use crate::mutability::Mutable;
 use crate::named::Named;
+use crate::syntax::Ranged;
 
 use super::Context;
 use super::FunctionContext;
@@ -38,11 +39,11 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for Type {
     }
 }
 
-impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Declaration {
+impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Declaration {
     type IR = ();
 
     /// Lower global [`Declaration`] to LLVM IR
-    fn to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+    fn to_ir(&self, context: &mut ModuleContext<'llvm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         match self {
@@ -66,11 +67,11 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Declaration {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Declaration {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Declaration {
     type IR = ();
 
     /// Lower local [`Declaration`] to LLVM IR
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         match self {
@@ -99,14 +100,14 @@ trait DeclareGlobal<'llvm> {
     type IR;
 
     /// Declare global value without defining it
-    fn declare_global(&self, context: &mut ModuleContext<'llvm>) -> Self::IR;
+    fn declare_global(&self, context: &mut ModuleContext<'llvm, '_>) -> Self::IR;
 }
 
 impl<'llvm> DeclareGlobal<'llvm> for VariableData {
     type IR = Option<inkwell::values::GlobalValue<'llvm>>;
 
     /// Declare global variable without defining it
-    fn declare_global(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+    fn declare_global(&self, context: &mut ModuleContext<'llvm, '_>) -> Self::IR {
         trace!(target: "declare_global", "{self}");
 
         if self.ty().is_none() {
@@ -126,11 +127,11 @@ impl<'llvm> DeclareGlobal<'llvm> for VariableData {
     }
 }
 
-impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Variable {
+impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Variable {
     type IR = Option<inkwell::values::GlobalValue<'llvm>>;
 
     /// Lower global [`VariableDeclaration`] to LLVM IR
-    fn to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+    fn to_ir(&self, context: &mut ModuleContext<'llvm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         let global = self.read().unwrap().declare_global(context);
@@ -156,7 +157,9 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Variable {
             context.llvm().void_type().fn_type(&[], false),
             None,
         );
-        let mut f_context = FunctionContext::new(context, initialize);
+        let at = self.read().unwrap().initializer.as_ref().unwrap().start();
+        let mut f_context = FunctionContext::new(context, initialize, at);
+
         let value = self
             .read()
             .unwrap()
@@ -176,11 +179,11 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Variable {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Variable {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Variable {
     type IR = inkwell::values::PointerValue<'llvm>;
 
     /// Lower local [`VariableDeclaration`] to LLVM IR
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         let ty = self
@@ -243,7 +246,7 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionData {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     /// Declare global function without defining it
-    fn declare_global(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+    fn declare_global(&self, context: &mut ModuleContext<'llvm, '_>) -> Self::IR {
         trace!(target: "declare_global", "{self}");
 
         let ty = match self.ty() {
@@ -262,11 +265,11 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionData {
     }
 }
 
-impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for FunctionData {
+impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for FunctionData {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     /// Lower global [`FunctionDeclaration`] to LLVM IR
-    fn to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+    fn to_ir(&self, context: &mut ModuleContext<'llvm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         let f = self.declare_global(context);
@@ -277,11 +280,11 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for FunctionData {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for FunctionData {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for FunctionData {
     type IR = inkwell::values::FunctionValue<'llvm>;
 
     /// Lower local [`FunctionDeclaration`] to LLVM IR
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         // TODO: limit function visibility, capture variables, etc.
@@ -296,11 +299,11 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for FunctionData {
 /// Trait for emitting body of function
 trait EmitBody<'llvm> {
     /// Emit body of function
-    fn emit_body(&self, context: &mut ModuleContext<'llvm>);
+    fn emit_body(&self, context: &mut ModuleContext<'llvm, '_>);
 }
 
 impl<'llvm> EmitBody<'llvm> for FunctionData {
-    fn emit_body(&self, context: &mut ModuleContext<'llvm>) {
+    fn emit_body(&self, context: &mut ModuleContext<'llvm, '_>) {
         trace!(target: "emit_body", "{self}");
 
         let f = context
@@ -308,7 +311,7 @@ impl<'llvm> EmitBody<'llvm> for FunctionData {
             .get(&self.mangled_name())
             .expect("Function was not declared before emitting body");
         if !self.body.is_empty() {
-            let mut f_context = FunctionContext::new(context, f);
+            let mut f_context = FunctionContext::new(context, f, self.start());
             for (i, p) in self
                 .parameters()
                 .filter(|p| !p.name().is_empty() && !p.ty().is_none())
@@ -331,11 +334,11 @@ impl<'llvm> EmitBody<'llvm> for FunctionData {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Literal {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Literal {
     type IR = Option<inkwell::values::BasicValueEnum<'llvm>>;
 
     /// Lower [`Literal`] to LLVM IR
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         Some(match self {
@@ -421,11 +424,11 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Literal {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for VariableReference {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for VariableReference {
     type IR = Option<inkwell::values::PointerValue<'llvm>>;
 
     /// Lower [`VariableReference`] to LLVM IR
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         if self.variable.ty().is_none() {
@@ -449,11 +452,11 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for VariableReference {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Call {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Call {
     type IR = inkwell::values::CallSiteValue<'llvm>;
 
     /// Lower [`Call`] to LLVM IR
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         let function = context
@@ -498,10 +501,10 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Call {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Constructor {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Constructor {
     type IR = inkwell::values::PointerValue<'llvm>;
 
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         let ty = self
@@ -535,14 +538,14 @@ trait HIRExpressionLoweringWithoutLoad<'llvm, 'm> {
     /// Lower [`Expression`] to LLVM IR without loading variables
     fn lower_to_ir_without_load(
         &self,
-        context: &mut FunctionContext<'llvm, 'm>,
+        context: &mut FunctionContext<'llvm, 'm, '_>,
     ) -> Option<inkwell::values::BasicValueEnum<'llvm>>;
 }
 
 impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for MemberReference {
     fn lower_to_ir_without_load(
         &self,
-        context: &mut FunctionContext<'llvm, 'm>,
+        context: &mut FunctionContext<'llvm, 'm, '_>,
     ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
         trace!(target: "lower_to_ir_without_load", "{self}");
 
@@ -566,7 +569,7 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for MemberReference 
 impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for ImplicitConversion {
     fn lower_to_ir_without_load(
         &self,
-        context: &mut FunctionContext<'llvm, 'm>,
+        context: &mut FunctionContext<'llvm, 'm, '_>,
     ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
         trace!(target: "lower_to_ir_without_load", "{self}");
 
@@ -582,9 +585,12 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
     /// Lower [`Expression`] to LLVM IR without loading variables
     fn lower_to_ir_without_load(
         &self,
-        context: &mut FunctionContext<'llvm, 'm>,
+        context: &mut FunctionContext<'llvm, 'm, '_>,
     ) -> Option<inkwell::values::BasicValueEnum<'llvm>> {
         trace!(target: "lower_to_ir_without_load", "{self}");
+
+        context.set_debug_location(self.start());
+
         match self {
             Expression::VariableReference(var) => {
                 let var = var.to_ir(context);
@@ -607,11 +613,11 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Expression {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Expression {
     type IR = Option<inkwell::values::BasicValueEnum<'llvm>>;
 
     /// Lower [`Expression`] to LLVM IR with loading references
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         let value = self.lower_to_ir_without_load(context);
@@ -639,11 +645,11 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Expression {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Assignment {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Assignment {
     type IR = Option<inkwell::values::InstructionValue<'llvm>>;
 
     /// Lower [`Assignment`] to LLVM IR
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         let target = if self.target.ty().is_any_reference() {
@@ -669,11 +675,11 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Assignment {
     }
 }
 
-impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Statement {
+impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Statement {
     type IR = ();
 
     /// Lower global [`Statement`] to LLVM IR
-    fn to_ir(&self, context: &mut ModuleContext<'llvm>) -> Self::IR {
+    fn to_ir(&self, context: &mut ModuleContext<'llvm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         match self {
@@ -689,7 +695,7 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Statement {
                     None,
                 );
 
-                let mut context = FunctionContext::new(context, function);
+                let mut context = FunctionContext::new(context, function, self.start());
                 self.to_ir(&mut context);
             }
 
@@ -697,7 +703,7 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Statement {
                 let ty = expr.ty().to_ir(context).fn_type(&[], false);
                 let function = context.module.add_function("execute", ty, None);
 
-                let mut context = FunctionContext::new(context, function);
+                let mut context = FunctionContext::new(context, function, self.start());
 
                 let value = expr.to_ir(&mut context);
                 context.load_return_value_and_branch(value);
@@ -710,11 +716,11 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm>> for Statement {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Statement {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Statement {
     type IR = ();
 
     /// Lower local [`Statement`] to LLVM IR
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         match self {
@@ -740,26 +746,23 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Statement {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Return {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Return {
     type IR = ();
 
     /// Lower [`Return`] to LLVM IR
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
-        let value = self
-            .value()
-            .map(|expr| expr.to_ir(context))
-            .flatten();
+        let value = self.value().map(|expr| expr.to_ir(context)).flatten();
         context.load_return_value_and_branch(value);
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for If {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for If {
     type IR = ();
 
     /// Lower [`If`] to LLVM IR
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         let entry_block = context.builder.get_insert_block().unwrap();
@@ -772,7 +775,11 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for If {
         let last_block = if self.else_block.is_none() {
             merge_block.clone()
         } else {
-            let else_block = context.build_block("else", &self.else_block.as_ref().unwrap().body, Some(merge_block));
+            let else_block = context.build_block(
+                "else",
+                &self.else_block.as_ref().unwrap().body,
+                Some(merge_block),
+            );
             else_block.move_after(if_true).unwrap();
             else_block
         };
@@ -841,11 +848,11 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for If {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Loop {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Loop {
     type IR = ();
 
     /// Lower [`Loop`] to LLVM IR
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         let loop_block = context.build_block("loop", &self.body, None);
@@ -865,11 +872,11 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for Loop {
     }
 }
 
-impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm>> for While {
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for While {
     type IR = ();
 
     /// Lower [`While`] to LLVM IR
-    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm>) -> Self::IR {
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
         let condition_block = context
@@ -914,7 +921,7 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         let module = llvm.create_module(&self.name());
         module.set_source_file_name(&self.source_file.path().to_string_lossy());
 
-        let mut context = ModuleContext::new(module);
+        let mut context = ModuleContext::new(module, self.source_file());
         for statement in self
             .statements
             .iter()
@@ -927,7 +934,14 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
             context
                 .module
                 .add_function("main", context.types().i32().fn_type(&[], false), None);
-        let mut fn_context = FunctionContext::new(&mut context, main);
+        let at = self
+            .statements
+            .iter()
+            .find(|s| !matches!(s, Statement::Declaration(_)))
+            .map(|s| s.start())
+            .unwrap_or(0);
+
+        let mut fn_context = FunctionContext::new(&mut context, main, at);
 
         for statement in self
             .statements
@@ -1004,8 +1018,6 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
                 main.print_to_stderr();
             }
             unsafe { main.delete() };
-        } else {
-            context.debug().register_function(main);
         }
 
         let module = context.take_module();

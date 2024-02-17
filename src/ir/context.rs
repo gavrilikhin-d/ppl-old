@@ -5,6 +5,7 @@ use inkwell::basic_block::BasicBlock;
 use crate::{
     hir::{ParameterOrVariable, Statement},
     named::Named,
+    SourceFile,
 };
 
 use super::{DebugInfo, Functions, ToIR, Types};
@@ -23,25 +24,22 @@ pub trait Context<'llvm> {
     fn functions<'m>(&'m self) -> Functions<'llvm, 'm>;
 
     /// Get debug information builder
-    fn debug(&self) -> &DebugInfo<'llvm>;
+    fn debug(&self) -> &DebugInfo<'llvm, '_>;
 }
 
 /// Context for lowering HIR module to LLVM IR
-pub struct ModuleContext<'llvm> {
+pub struct ModuleContext<'llvm, 's> {
     /// Currently built module
     pub module: inkwell::module::Module<'llvm>,
     /// Debug information builder
-    pub debug_info: DebugInfo<'llvm>,
+    pub debug_info: DebugInfo<'llvm, 's>,
 }
 
-impl<'llvm> ModuleContext<'llvm> {
+impl<'llvm, 's> ModuleContext<'llvm, 's> {
     /// Initialize context for lowering HIR module to LLVM IR
-    pub fn new(module: inkwell::module::Module<'llvm>) -> Self {
-        let debug_info = DebugInfo::new(&module);
-        Self {
-            module,
-            debug_info,
-        }
+    pub fn new(module: inkwell::module::Module<'llvm>, source_file: &'s SourceFile) -> Self {
+        let debug_info = DebugInfo::new(&module, source_file);
+        Self { module, debug_info }
     }
 
     /// Finalize building module
@@ -51,7 +49,7 @@ impl<'llvm> ModuleContext<'llvm> {
     }
 }
 
-impl<'llvm> Context<'llvm> for ModuleContext<'llvm> {
+impl<'llvm> Context<'llvm> for ModuleContext<'llvm, '_> {
     fn llvm(&self) -> inkwell::context::ContextRef<'llvm> {
         self.module.get_context()
     }
@@ -60,15 +58,15 @@ impl<'llvm> Context<'llvm> for ModuleContext<'llvm> {
         Functions::new(&self.module)
     }
 
-    fn debug(&self) -> &DebugInfo<'llvm> {
+    fn debug(&self) -> &DebugInfo<'llvm, '_> {
         &self.debug_info
     }
 }
 
 /// Context for lowering HIR function to LLVM IR
-pub struct FunctionContext<'llvm, 'm> {
+pub struct FunctionContext<'llvm, 'm, 's> {
     /// Context for lowering HIR module to LLVM IR
-    pub module_context: &'m mut ModuleContext<'llvm>,
+    pub module_context: &'m mut ModuleContext<'llvm, 's>,
     /// Currently built function
     pub function: inkwell::values::FunctionValue<'llvm>,
     /// Builder for current function
@@ -83,11 +81,12 @@ pub struct FunctionContext<'llvm, 'm> {
     pub variables: IndexMap<String, inkwell::values::PointerValue<'llvm>>,
 }
 
-impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
+impl<'llvm, 'm, 's> FunctionContext<'llvm, 'm, 's> {
     /// Initialize context for lowering HIR function to LLVM IR
     pub fn new(
-        module_context: &'m mut ModuleContext<'llvm>,
+        module_context: &'m mut ModuleContext<'llvm, 's>,
         function: inkwell::values::FunctionValue<'llvm>,
+        at: usize,
     ) -> Self {
         let llvm = module_context.llvm();
 
@@ -107,6 +106,8 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
             .unwrap();
 
         builder.position_at_end(basic_block);
+
+        module_context.debug().push_function(function, at);
 
         Self {
             module_context,
@@ -195,9 +196,15 @@ impl<'llvm, 'm> FunctionContext<'llvm, 'm> {
         });
         self.branch_to_return_block()
     }
+
+    /// Set current debug location at specific offset
+    pub fn set_debug_location(&mut self, offset: usize) {
+        self.builder
+            .set_current_debug_location(self.debug().location(offset))
+    }
 }
 
-impl Drop for FunctionContext<'_, '_> {
+impl Drop for FunctionContext<'_, '_, '_> {
     fn drop(&mut self) {
         let terminator = self
             .builder
@@ -207,6 +214,8 @@ impl Drop for FunctionContext<'_, '_> {
         if terminator.is_none() {
             self.branch_to_return_block();
         }
+
+        self.debug().pop_scope();
 
         if !self.function.verify(true) {
             eprintln!("------------------");
@@ -225,7 +234,7 @@ impl Drop for FunctionContext<'_, '_> {
     }
 }
 
-impl<'llvm> Context<'llvm> for FunctionContext<'llvm, '_> {
+impl<'llvm> Context<'llvm> for FunctionContext<'llvm, '_, '_> {
     fn llvm(&self) -> inkwell::context::ContextRef<'llvm> {
         self.module_context.llvm()
     }
@@ -234,7 +243,7 @@ impl<'llvm> Context<'llvm> for FunctionContext<'llvm, '_> {
         self.module_context.functions()
     }
 
-    fn debug(&self) -> &DebugInfo<'llvm> {
+    fn debug(&self) -> &DebugInfo<'llvm, '_> {
         self.module_context.debug()
     }
 }
