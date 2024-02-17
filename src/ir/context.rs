@@ -193,6 +193,12 @@ impl<'llvm, 'm, 's> FunctionContext<'llvm, 'm, 's> {
         });
         self.branch_to_return_block()
     }
+
+    /// Set current debug location at specific offset
+    pub fn set_debug_location(&mut self, offset: usize) {
+        self.builder
+            .set_current_debug_location(self.debug().location(offset))
+    }
 }
 
 impl Drop for FunctionContext<'_, '_, '_> {
