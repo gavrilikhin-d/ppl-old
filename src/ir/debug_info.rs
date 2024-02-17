@@ -8,10 +8,10 @@ use inkwell::{
     values::FunctionValue,
 };
 
-use crate::{ColumnNumber, LineNumber};
+use crate::{ColumnNumber, LineNumber, SourceFile};
 
 /// Builder for debug information
-pub struct DebugInfo<'llvm> {
+pub struct DebugInfo<'llvm, 's> {
     /// LLVM context
     llvm: ContextRef<'llvm>,
     /// Builder for debug info
@@ -20,11 +20,13 @@ pub struct DebugInfo<'llvm> {
     compile_unit: DICompileUnit<'llvm>,
     /// Scopes stack
     scopes: Vec<DIScope<'llvm>>,
+    /// Source file for the module
+    source_file: &'s SourceFile,
 }
 
-impl<'llvm> DebugInfo<'llvm> {
+impl<'llvm, 's> DebugInfo<'llvm, 's> {
     /// Create new debug info for module
-    pub fn new(module: &Module<'llvm>) -> Self {
+    pub fn new(module: &Module<'llvm>, source_file: &'s SourceFile) -> Self {
         let llvm = module.get_context();
         let debug_metadata_version = llvm.i32_type().const_int(3, false);
         module.add_basic_value_flag(
@@ -55,6 +57,7 @@ impl<'llvm> DebugInfo<'llvm> {
             dibuilder,
             compile_unit,
             scopes: vec![compile_unit.get_file().as_debug_info_scope()],
+            source_file,
         }
     }
 

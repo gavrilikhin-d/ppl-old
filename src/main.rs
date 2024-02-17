@@ -86,7 +86,7 @@ fn process_single_statement<'llvm>(
     debug!(target: "hir", "{:#}", hir);
 
     let module = llvm.create_module("main");
-    let mut context = ir::ModuleContext::new(module);
+    let mut context = ir::ModuleContext::new(module, ast_lowering_context.module.source_file());
     hir.to_ir(&mut context);
 
     let module = &context.module;
@@ -123,7 +123,10 @@ fn process_single_statement<'llvm>(
 fn repl() {
     let mut compiler = Compiler::new();
     let mut ast_context = ModuleContext {
-        module: hir::Module::new(SourceFile::in_memory(NamedSource::new("repl", "".to_string()))),
+        module: hir::Module::new(SourceFile::in_memory(NamedSource::new(
+            "repl",
+            "".to_string(),
+        ))),
         compiler: &mut compiler,
     };
 
