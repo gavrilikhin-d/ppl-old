@@ -60,17 +60,17 @@ impl SourceFile {
     }
 
     /// Line number for byte index
-    pub fn line_number(&self, byte: usize) -> LineNumber {
+    pub fn line_number(&self, offset: usize) -> LineNumber {
         let str = self.source.inner();
-        let end = byte.min(str.len());
+        let end = offset.min(str.len());
         let lines = str[..end].chars().filter(|&c| c == '\n').count();
         LineNumber::from_zero_based(lines)
     }
 
     /// Column number for byte index
-    pub fn column_number(&self, byte: usize) -> ColumnNumber {
+    pub fn column_number(&self, offset: usize) -> ColumnNumber {
         let str = self.source.inner();
-        let end = byte.min(str.len());
+        let end = offset.min(str.len());
         let last_line = str[..end].rfind('\n').map_or(0, |i| i + 1);
         ColumnNumber::from_zero_based(end - last_line)
     }
