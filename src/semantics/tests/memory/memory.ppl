@@ -1,0 +1,5 @@
+let address = allocate 1 Integer
+let x = Integer at address
+println x
+x = 1
+println x

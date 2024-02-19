@@ -9,6 +9,7 @@ e2e!(destructor);
 e2e!(generics);
 e2e!(import_all);
 e2e!(integer_not_eq_rational);
+e2e!(memory);
 e2e!(missing_fields);
 e2e!(monomorphize);
 e2e!(monomorphize_predeclared);
