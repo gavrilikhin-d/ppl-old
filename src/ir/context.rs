@@ -15,6 +15,9 @@ pub trait Context<'llvm> {
     /// Get LLVM context
     fn llvm(&self) -> inkwell::context::ContextRef<'llvm>;
 
+    /// Get LLVM module
+    fn module(&self) -> &inkwell::module::Module<'llvm>;
+
     /// Get LLVM IR for PPL's types
     fn types(&self) -> Types<'llvm> {
         Types::new(self.llvm())
@@ -52,6 +55,10 @@ impl<'llvm, 's> ModuleContext<'llvm, 's> {
 impl<'llvm> Context<'llvm> for ModuleContext<'llvm, '_> {
     fn llvm(&self) -> inkwell::context::ContextRef<'llvm> {
         self.module.get_context()
+    }
+
+    fn module(&self) -> &inkwell::module::Module<'llvm> {
+        &self.module
     }
 
     fn functions<'m>(&'m self) -> Functions<'llvm, 'm> {
@@ -237,6 +244,10 @@ impl Drop for FunctionContext<'_, '_, '_> {
 impl<'llvm> Context<'llvm> for FunctionContext<'llvm, '_, '_> {
     fn llvm(&self) -> inkwell::context::ContextRef<'llvm> {
         self.module_context.llvm()
+    }
+
+    fn module(&self) -> &inkwell::module::Module<'llvm> {
+        self.module_context.module()
     }
 
     fn functions<'m>(&'m self) -> Functions<'llvm, 'm> {
