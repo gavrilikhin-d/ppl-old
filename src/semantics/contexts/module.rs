@@ -47,21 +47,19 @@ impl FindDeclaration for ModuleContext<'_> {
 
 impl AddDeclaration for ModuleContext<'_> {
     fn add_type(&mut self, ty: Arc<ClassDeclaration>) {
-        self.module
-            .types
-            .insert(ty.basename().to_string(), ty.into());
+        self.module.add_type(ty)
     }
 
     fn add_trait(&mut self, tr: Arc<TraitDeclaration>) {
-        self.module.types.insert(tr.name().to_string(), tr.into());
+        self.module.add_trait(tr)
     }
 
     fn add_function(&mut self, f: Function) {
-        self.module.insert_function(f);
+        self.module.add_function(f)
     }
 
     fn add_variable(&mut self, v: Variable) {
-        self.module.variables.insert(v.name().to_string(), v);
+        self.module.add_variable(v)
     }
 }
 
