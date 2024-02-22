@@ -2,7 +2,7 @@ use std::{fmt::Display, sync::Arc};
 
 use crate::{
     compilation::Compiler,
-    hir::{Basename, ClassDeclaration, Function, Module, TraitDeclaration, Variable},
+    hir::{ClassDeclaration, Function, Module, TraitDeclaration, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration},
 };
