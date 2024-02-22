@@ -922,6 +922,16 @@ impl<'llvm> HIRModuleLowering<'llvm> for Module {
         module.set_source_file_name(&self.source_file.path().to_string_lossy());
 
         let mut context = ModuleContext::new(module, self.source_file());
+
+        // First emit special variables with type info
+        for variable in self
+            .variables
+            .values()
+            .filter(|v| v.name().starts_with("Type<"))
+        {
+            variable.to_ir(&mut context);
+        }
+
         for statement in self
             .statements
             .iter()

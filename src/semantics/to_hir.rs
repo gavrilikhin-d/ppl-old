@@ -5,15 +5,17 @@ use std::sync::Arc;
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericType, Specialize, Type, TypeReference, Typed,
+    self, FunctionNamePart, Generic, GenericType, Specialize, Type, TypeReference, Typed, Variable,
+    VariableData,
 };
-use crate::mutability::Mutable;
+use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
-use crate::syntax::Ranged;
+use crate::syntax::{Identifier, Keyword, Ranged};
 use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
 use super::{
-    error::*, Context, Convert, ConvertibleTo, Declare, GenericContext, Implicit, ModuleContext,
+    error::*, AddDeclaration, Context, Convert, ConvertibleTo, Declare, FindDeclaration,
+    GenericContext, Implicit, ModuleContext,
 };
 use crate::ast::{self, CallNamePart, FnKind, If};
 use crate::semantics::monomorphize::Monomorphize;
@@ -643,7 +645,10 @@ impl ToHIR for ast::Return {
             .into());
         }
 
-        Ok(hir::Return::Explicit { keyword: self.keyword.clone(), value })
+        Ok(hir::Return::Explicit {
+            keyword: self.keyword.clone(),
+            value,
+        })
     }
 }
 
@@ -654,26 +659,26 @@ impl ToHIR for If {
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         let condition = self.condition.lower_condition_to_hir(context)?;
         let body = self
-        .body
-        .iter()
-        .map(|stmt| stmt.to_hir(context))
-        .try_collect()?;
+            .body
+            .iter()
+            .map(|stmt| stmt.to_hir(context))
+            .try_collect()?;
         let else_ifs = self
-        .else_ifs
-        .iter()
-        .map(|else_if| {
-            Ok::<hir::ElseIf, Error>(hir::ElseIf {
-                else_keyword: else_if.else_keyword.clone(),
-                if_keyword: else_if.if_keyword.clone(),
-                condition: else_if.condition.lower_condition_to_hir(context)?,
-                body: else_if
-                    .body
-                    .iter()
-                    .map(|stmt| stmt.to_hir(context))
-                    .try_collect()?,
+            .else_ifs
+            .iter()
+            .map(|else_if| {
+                Ok::<hir::ElseIf, Error>(hir::ElseIf {
+                    else_keyword: else_if.else_keyword.clone(),
+                    if_keyword: else_if.if_keyword.clone(),
+                    condition: else_if.condition.lower_condition_to_hir(context)?,
+                    body: else_if
+                        .body
+                        .iter()
+                        .map(|stmt| stmt.to_hir(context))
+                        .try_collect()?,
+                })
             })
-        })
-        .try_collect()?;
+            .try_collect()?;
         let else_block = if let Some(else_block) = &self.else_block {
             Some(hir::Else {
                 keyword: else_block.keyword.clone(),
@@ -890,49 +895,70 @@ impl ToHIR for ast::Module {
 /// Trait to replace [`TypeReference`] with type info
 pub trait ReplaceWithTypeInfo {
     /// Replace [`TypeReference`] with type info
-    fn replace_with_type_info(&self, context: &impl Context) -> hir::Expression;
+    fn replace_with_type_info(&self, context: &mut impl Context) -> hir::Expression;
 }
 
 impl ReplaceWithTypeInfo for TypeReference {
-    fn replace_with_type_info(&self, context: &impl Context) -> hir::Expression {
+    fn replace_with_type_info(&self, context: &mut impl Context) -> hir::Expression {
         if self.is_generic() {
             return self.clone().into();
         }
 
-        hir::Constructor {
-            ty: hir::TypeReference {
-                span: self.range(),
-                referenced_type: self.type_for_type.clone(),
-                type_for_type: context
-                    .builtin()
-                    .types()
-                    .type_of(self.type_for_type.clone()),
-            },
-            initializers: vec![
-                hir::Initializer {
-                    span: 0..0,
-                    index: 0,
-                    member: self.type_for_type.members()[0].clone(),
-                    value: hir::Literal::String {
-                        span: 0..0,
-                        value: self.referenced_type.name().to_string(),
-                        ty: context.builtin().types().string(),
+        let name = self.type_for_type.name().to_string();
+        let variable = if let Some(var) = context.module().find_variable(&name) {
+            var
+        } else {
+            let var = Variable::new(VariableData {
+                keyword: Keyword::<"let">::at(self.start()),
+                mutability: Mutability::Immutable,
+                name: Identifier::from(name).at(self.start()),
+                ty: self.type_for_type.clone(),
+                initializer: Some(
+                    hir::Constructor {
+                        ty: hir::TypeReference {
+                            span: self.range(),
+                            referenced_type: self.type_for_type.clone(),
+                            type_for_type: context
+                                .builtin()
+                                .types()
+                                .type_of(self.type_for_type.clone()),
+                        },
+                        initializers: vec![
+                            hir::Initializer {
+                                span: 0..0,
+                                index: 0,
+                                member: self.type_for_type.members()[0].clone(),
+                                value: hir::Literal::String {
+                                    span: 0..0,
+                                    value: self.referenced_type.name().to_string(),
+                                    ty: context.builtin().types().string(),
+                                }
+                                .into(),
+                            },
+                            hir::Initializer {
+                                span: 0..0,
+                                index: 1,
+                                member: self.type_for_type.members()[1].clone(),
+                                value: hir::Literal::Integer {
+                                    span: 0..0,
+                                    value: self.referenced_type.size_in_bytes().into(),
+                                    ty: context.builtin().types().integer(),
+                                }
+                                .into(),
+                            },
+                        ],
+                        rbrace: self.end() - 1,
                     }
                     .into(),
-                },
-                hir::Initializer {
-                    span: 0..0,
-                    index: 1,
-                    member: self.type_for_type.members()[1].clone(),
-                    value: hir::Literal::Integer {
-                        span: 0..0,
-                        value: self.referenced_type.size_in_bytes().into(),
-                        ty: context.builtin().types().integer(),
-                    }
-                    .into(),
-                },
-            ],
-            rbrace: self.end() - 1,
+                ),
+            });
+            context.module_mut().add_variable(var.clone());
+            var.into()
+        };
+
+        hir::VariableReference {
+            span: self.range(),
+            variable,
         }
         .into()
     }

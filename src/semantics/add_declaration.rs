@@ -1,7 +1,11 @@
 use std::sync::Arc;
 
-use crate::hir::{
-    ClassDeclaration, Function, GenericType, TraitDeclaration, Type, TypeReference, Variable,
+use crate::{
+    hir::{
+        Basename, ClassDeclaration, Function, GenericType, Module, TraitDeclaration, Type,
+        TypeReference, Variable,
+    },
+    named::Named,
 };
 
 pub trait AddDeclaration {
@@ -43,5 +47,23 @@ pub trait AddDeclaration {
         self.parent_mut()
             .map(|p| p.new_generic_for_trait(ty))
             .unwrap()
+    }
+}
+
+impl AddDeclaration for Module {
+    fn add_type(&mut self, ty: Arc<ClassDeclaration>) {
+        self.types.insert(ty.basename().to_string(), ty.into());
+    }
+
+    fn add_trait(&mut self, tr: Arc<TraitDeclaration>) {
+        self.types.insert(tr.name().to_string(), tr.into());
+    }
+
+    fn add_function(&mut self, f: Function) {
+        self.insert_function(f);
+    }
+
+    fn add_variable(&mut self, v: Variable) {
+        self.variables.insert(v.name().to_string(), v);
     }
 }
