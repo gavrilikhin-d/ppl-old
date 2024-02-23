@@ -29,7 +29,7 @@ impl SourceFile {
     /// Get virtual source file
     pub fn in_memory(source: NamedSource<String>) -> Self {
         Self {
-            path: PathBuf::new(),
+            path: "<memory>".into(),
             source: Arc::new(source),
         }
     }
