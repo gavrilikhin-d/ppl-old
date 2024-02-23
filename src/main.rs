@@ -47,6 +47,16 @@ fn process_single_statement<'llvm>(
         unsafe {
             engine.run_function(f, &[]);
         }
+
+        for i in 1.. {
+            if let Some(f) = module.get_function(&format!("initialize.{i}")) {
+                unsafe {
+                    engine.run_function(f, &[]);
+                }
+            } else {
+                break;
+            }
+        }
     }
 
     if let Some(f) = module.get_function("main") {
