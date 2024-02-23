@@ -118,6 +118,7 @@ impl Execute for Compile {
         .args(&["-o", output_file.to_str().unwrap()])
         .arg("-Wno-override-module")
         .arg("-g")
+        .arg("-fsanitize=address")
         .status()
         .map_err(|e| miette!("{output_file:?}: {e}"))?;
 
