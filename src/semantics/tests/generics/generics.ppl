@@ -4,10 +4,10 @@ type Point<T>:
 fn<T> x of <p: Point<T>> => p.x
 
 let x = x of Point { x: 0, y: 0 }
-x == 0
+println x == 0
 
 fn<T> id <x: T> => x
 
-(id 1) == 1
-id "hello"
+println (id 1) == 1
+println (id "hello")
 id Point { x: 0, y: 0 }
