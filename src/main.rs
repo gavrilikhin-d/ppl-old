@@ -43,6 +43,12 @@ fn process_single_statement<'llvm>(
 
     engine.add_module(&module).unwrap();
 
+    if let Some(f) = module.get_function("initialize") {
+        unsafe {
+            engine.run_function(f, &[]);
+        }
+    }
+
     if let Some(f) = module.get_function("main") {
         unsafe { engine.run_function_as_main(f, &[]) };
     }
