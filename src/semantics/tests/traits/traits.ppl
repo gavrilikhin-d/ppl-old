@@ -7,4 +7,5 @@ trait Test:
 fn required <x: Integer> => none
 
 
-default 1
+let res = default 1
+println res
