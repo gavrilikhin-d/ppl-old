@@ -7,7 +7,7 @@ use indexmap::IndexMap;
 
 use crate::{
     ast,
-    hir::ModuleData,
+    hir::{ClassDeclaration, FunctionData, ModuleData, TraitDeclaration},
     named::Named,
     semantics::{InsertDestructors, ModuleContext, ToHIR},
     SourceFile,
@@ -38,10 +38,44 @@ impl Module {
     }
 }
 
+/// Index of a function in Compiler
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+pub struct Function {
+    index: usize,
+}
+
+impl Function {
+    /// Point at function with specified index
+    pub fn with_index(index: usize) -> Self {
+        Self { index }
+    }
+
+    /// Get underlying index
+    pub fn index(&self) -> usize {
+        self.index
+    }
+
+    /// Access data of a function
+    pub fn data<'c>(&self, compiler: &'c Compiler) -> &'c FunctionData {
+        &compiler.functions[self.index()]
+    }
+
+    /// Access data of a function for mutation
+    pub fn data_mut<'c>(&self, compiler: &'c mut Compiler) -> &'c mut FunctionData {
+        &mut compiler.functions[self.index()]
+    }
+}
+
 /// Struct that compiles and caches modules
 pub struct Compiler {
     /// Cache of compiled modules
     pub modules: IndexMap<String, ModuleData>,
+    /// Functions from all modules
+    pub functions: Vec<FunctionData>,
+    /// Classes from all modules
+    pub classes: IndexMap<String, ClassDeclaration>,
+    /// Traits from all modules
+    pub traits: IndexMap<String, TraitDeclaration>,
     /// Root directory of the compiler
     pub root: PathBuf,
 }
@@ -62,8 +96,11 @@ impl Compiler {
     /// The first module to be added will be interpreted as builtin
     pub fn without_builtin() -> Self {
         Self {
-            modules: IndexMap::new(),
-            root: "".into(),
+            modules: Default::default(),
+            functions: Default::default(),
+            classes: Default::default(),
+            traits: Default::default(),
+            root: Default::default(),
         }
     }
 
