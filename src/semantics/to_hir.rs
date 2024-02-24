@@ -2,6 +2,8 @@ use core::panic;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use indexmap::IndexMap;
+
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
@@ -160,12 +162,7 @@ impl ToHIR for ast::Call {
 
         let mut candidates_not_viable = Vec::new();
         for f in candidates {
-            let mut modules = context
-                .compiler()
-                .modules
-                .values()
-                .map(|m| m.as_ref())
-                .collect::<Vec<_>>();
+            let mut modules = context.compiler().modules.values().collect::<Vec<_>>();
             modules.push(context.module());
 
             let source_file = modules
@@ -744,43 +741,45 @@ impl ToHIR for ast::Use {
         }
 
         let module_name = self.path.first().unwrap().as_str();
-        let module = context.compiler_mut().get_module(module_name).unwrap();
+        let module = context.compiler_mut().compile(module_name).unwrap();
 
         let name = self.path.last().unwrap().as_str();
 
+        let mut functions = IndexMap::new();
+        let mut variables = IndexMap::new();
+        let mut types = IndexMap::new();
+
+        let module = module.data(context.compiler());
         let imported_item: hir::ImportedItem = if name == "*" {
-            context
-                .module_mut()
-                .functions
-                .extend(module.functions.clone());
-            context
-                .module_mut()
-                .variables
-                .extend(module.variables.clone());
-            context.module_mut().types.extend(module.types.clone());
+            functions = module.functions.clone();
+            variables = module.variables.clone();
+            types = module.types.clone();
             hir::ImportedItem::All
         } else if let Some(var) = module.variables.get(name) {
-            context
-                .module_mut()
-                .variables
-                .insert(var.name().to_string(), var.clone());
+            variables.insert(var.name().to_string(), var.clone());
             var.clone().into()
         } else if let Some(ty) = module.types.get(name) {
-            context
-                .module_mut()
-                .types
-                .insert(ty.name().to_string(), ty.clone());
+            types.insert(ty.name().to_string(), ty.clone());
             ty.clone().into()
         } else if let Some(f) = module.iter_functions().find(|f| f.name() == name) {
-            context.module_mut().insert_function(f.clone());
+            let set = functions
+                .entry(f.read().unwrap().name_format().to_string())
+                .or_insert_with(IndexMap::new);
+            set.insert(f.name().to_string(), f.clone().into());
             f.clone().into()
         } else {
-            return Err(UnresolvedImport {
-                name: name.to_string(),
-                at: self.path.last().unwrap().range().into(),
-            }
-            .into());
+            return Err::<_, Self::Error>(
+                UnresolvedImport {
+                    name: name.to_string(),
+                    at: self.path.last().unwrap().range().into(),
+                }
+                .into(),
+            );
         };
+
+        context.module_mut().functions.extend(functions);
+        context.module_mut().variables.extend(variables);
+        context.module_mut().types.extend(types);
 
         Ok(hir::Use {
             keyword: self.keyword.clone(),
