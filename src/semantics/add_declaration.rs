@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     hir::{
-        Basename, ClassDeclaration, Function, GenericType, Module, TraitDeclaration, Type,
+        Basename, ClassDeclaration, Function, GenericType, ModuleData, TraitDeclaration, Type,
         TypeReference, Variable,
     },
     named::Named,
@@ -50,7 +50,7 @@ pub trait AddDeclaration {
     }
 }
 
-impl AddDeclaration for Module {
+impl AddDeclaration for ModuleData {
     fn add_type(&mut self, ty: Arc<ClassDeclaration>) {
         self.types.insert(ty.basename().to_string(), ty.into());
     }

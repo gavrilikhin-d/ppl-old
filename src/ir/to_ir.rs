@@ -910,7 +910,7 @@ pub trait HIRModuleLowering<'llvm> {
         -> inkwell::module::Module<'llvm>;
 }
 
-impl<'llvm> HIRModuleLowering<'llvm> for Module {
+impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
     /// Lower [`Module`] to LLVM IR
     fn lower_to_ir(
         &self,

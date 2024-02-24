@@ -8,7 +8,7 @@ use indexmap::IndexMap;
 
 use crate::{
     ast,
-    hir::Module,
+    hir::ModuleData,
     named::Named,
     semantics::{InsertDestructors, ModuleContext, ToHIR},
     SourceFile,
@@ -19,7 +19,7 @@ use miette::miette;
 /// Struct that compiles and caches modules
 pub struct Compiler {
     /// Cache of compiled modules
-    pub modules: IndexMap<String, Arc<Module>>,
+    pub modules: IndexMap<String, Arc<ModuleData>>,
     /// Root directory of the compiler
     pub root: PathBuf,
 }
@@ -48,7 +48,7 @@ impl Compiler {
     /// Get builtin module, if present.
     ///
     /// Builtin module is the first module compiled
-    pub fn builtin_module(&self) -> Option<&Module> {
+    pub fn builtin_module(&self) -> Option<&ModuleData> {
         self.modules.values().next().map(|m| {
             debug_assert!(m.name() == "ppl", "Wrong module used as builtin");
             m.as_ref()
@@ -78,7 +78,7 @@ impl Compiler {
     /// let m2 = compiler.get_module("main").unwrap();
     /// assert_eq!(m1, m2);
     /// ```
-    pub fn get_module(&mut self, name: &str) -> miette::Result<Arc<Module>> {
+    pub fn get_module(&mut self, name: &str) -> miette::Result<Arc<ModuleData>> {
         if let Some(module) = self.modules.get(name) {
             return Ok(module.clone());
         }
@@ -99,7 +99,7 @@ impl Compiler {
         let ast = ast::Module::from_file(&path)?;
         debug!(target: &format!("{name}-ast"), "\n{:#?}", ast);
 
-        let module = Module::new(SourceFile::with_path(&path).unwrap());
+        let module = ModuleData::new(SourceFile::with_path(&path).unwrap());
 
         let content = fs::read_to_string(&path).map_err(|e| miette!("{path:?}: {e}"))?;
 

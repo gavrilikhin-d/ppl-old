@@ -791,7 +791,7 @@ impl ToHIR for ast::Use {
 }
 
 impl ToHIR for ast::Module {
-    type HIR = hir::Module;
+    type HIR = hir::ModuleData;
     type Error = ErrVec<Error>;
 
     /// Lower [`ast::Module`] to [`hir::Module`] within lowering context

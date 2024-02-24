@@ -5,7 +5,7 @@ use indexmap::IndexMap;
 use crate::{
     ast::CallNamePart,
     hir::{
-        ClassDeclaration, ClassOrTrait, Expression, Function, FunctionNamePart, Module, Name,
+        ClassDeclaration, ClassOrTrait, Expression, Function, FunctionNamePart, ModuleData, Name,
         ParameterOrVariable, TraitDeclaration, Type, Typed,
     },
 };
@@ -178,7 +178,7 @@ pub trait FindDeclaration: FindDeclarationHere {
     }
 }
 
-impl FindDeclarationHere for Module {
+impl FindDeclarationHere for ModuleData {
     fn find_type_here(&self, name: &str) -> Option<Type> {
         self.types.get(name).cloned().map(|t| t.into())
     }
@@ -213,9 +213,9 @@ impl FindDeclarationHere for Module {
     }
 }
 
-impl FindDeclaration for Module {}
+impl FindDeclaration for ModuleData {}
 
-impl<M: AsRef<Module>> FindDeclarationHere for M {
+impl<M: AsRef<ModuleData>> FindDeclarationHere for M {
     fn find_type_here(&self, name: &str) -> Option<Type> {
         self.as_ref().find_type_here(name)
     }

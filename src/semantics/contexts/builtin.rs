@@ -1,14 +1,14 @@
 use std::fmt::Display;
 
 use crate::{
-    hir::{Module, SpecializeParameters, Type},
+    hir::{ModuleData, SpecializeParameters, Type},
     named::Named,
 };
 
 /// Helper struct to get builtin things
 pub struct BuiltinContext<'m> {
     /// Builtin module
-    pub module: &'m Module,
+    pub module: &'m ModuleData,
 }
 
 impl Display for BuiltinContext<'_> {
@@ -26,8 +26,8 @@ impl<'m> BuiltinContext<'m> {
     }
 }
 
-impl AsRef<Module> for BuiltinContext<'_> {
-    fn as_ref(&self) -> &Module {
+impl AsRef<ModuleData> for BuiltinContext<'_> {
+    fn as_ref(&self) -> &ModuleData {
         self.module
     }
 }
@@ -35,7 +35,7 @@ impl AsRef<Module> for BuiltinContext<'_> {
 /// Helper struct to get builtin types
 pub struct BuiltinTypes<'m> {
     /// Builtin module
-    module: &'m Module,
+    module: &'m ModuleData,
 }
 
 /// Helper macro to add builtin types

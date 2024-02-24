@@ -44,7 +44,7 @@ pub type Name = String;
 
 /// Module with PPL code
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct Module {
+pub struct ModuleData {
     /// Source file for this module
     pub source_file: SourceFile,
 
@@ -61,7 +61,7 @@ pub struct Module {
     pub statements: Vec<Statement>,
 }
 
-impl Display for Module {
+impl Display for ModuleData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for statement in &self.statements {
             writeln!(f, "{:#}", statement)?;
@@ -70,7 +70,7 @@ impl Display for Module {
     }
 }
 
-impl Module {
+impl ModuleData {
     /// Create an empty module
     pub fn new(source_file: SourceFile) -> Self {
         Self {
@@ -122,7 +122,7 @@ impl Module {
     }
 }
 
-impl Named for Module {
+impl Named for ModuleData {
     fn name(&self) -> Cow<'_, str> {
         self.source_file
             .path()
@@ -132,7 +132,7 @@ impl Named for Module {
     }
 }
 
-impl Default for Module {
+impl Default for ModuleData {
     fn default() -> Self {
         Self::new(SourceFile::in_memory(NamedSource::new(
             "main",
