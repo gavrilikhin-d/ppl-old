@@ -69,20 +69,11 @@ impl ToHIR for ast::Literal {
                 value: *value,
                 ty: context.builtin().types().bool(),
             },
-            ast::Literal::Integer { value, .. } => {
-                let value = value.parse::<rug::Integer>().unwrap();
-                let ty = if value.to_i32().is_some() {
-                    context.builtin().types().i32()
-                } else {
-                    context.builtin().types().integer()
-                };
-
-                hir::Literal::Integer {
-                    span: self.range(),
-                    value,
-                    ty,
-                }
-            }
+            ast::Literal::Integer { value, .. } => hir::Literal::Integer {
+                span: self.range(),
+                value: value.parse::<rug::Integer>().unwrap(),
+                ty: context.builtin().types().integer(),
+            },
             ast::Literal::Rational { value, .. } => hir::Literal::Rational {
                 span: self.range(),
                 value: rug::Rational::from_decimal(&value).unwrap(),

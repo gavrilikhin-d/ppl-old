@@ -351,8 +351,20 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Literal {
                 .const_int(*value as u64, false)
                 .into(),
             Literal::Integer { value, .. } => {
-                if let Some(value) = value.to_i32() {
-                    return Some(context.types().i(32).const_int(value as u64, false).into());
+                if let Some(value) = value.to_i64() {
+                    return Some(
+                        context
+                            .builder
+                            .build_call(
+                                context.functions().integer_from_i64(),
+                                &[context.types().i(64).const_int(value as u64, false).into()],
+                                "",
+                            )
+                            .unwrap()
+                            .try_as_basic_value()
+                            .left()
+                            .unwrap(),
+                    );
                 }
 
                 let str = context

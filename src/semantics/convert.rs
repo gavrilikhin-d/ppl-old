@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use crate::{
     hir::{
-        Call, ClassDeclaration, Expression, FunctionType, GenericType, SelfType, TraitDeclaration,
-        Type, Typed,
+        ClassDeclaration, Expression, FunctionType, GenericType, SelfType, TraitDeclaration, Type,
+        Typed,
     },
     mutability::Mutable,
     semantics::error::ReferenceMutToImmutable,
@@ -75,7 +75,7 @@ impl ConvertibleToRequest<'_, Arc<ClassDeclaration>> {
                                 .is_ok_and(|convertible| convertible)
                         })
                 } else {
-                    *from == to || context.from_fn(from.clone().into(), to.into()).is_some()
+                    *from == to
                 }
             }
             Type::Trait(tr) => from.implements(tr.clone()).within(context).map(|_| true)?,
@@ -274,16 +274,6 @@ impl ConversionRequest {
         if self.from.value.is_immutable() && to.is_mutable() {
             return Err(ReferenceMutToImmutable {
                 at: self.from.value.range().into(),
-            }
-            .into());
-        }
-
-        if let Some(function) = context.from_fn(from.clone(), to.clone()) {
-            return Ok(Call {
-                range: self.from.value.range(),
-                function,
-                generic: None,
-                args: vec![self.from.value.clone()],
             }
             .into());
         }
