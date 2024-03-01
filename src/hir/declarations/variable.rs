@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::fmt::Display;
 use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-use crate::hir::{Expression, Generic, Type, Typed};
+use crate::hir::{Expression, Generic, Type, TypeReference, Typed};
 use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
 use crate::syntax::{Identifier, Keyword, Ranged};
@@ -85,6 +85,8 @@ pub struct VariableData {
     pub mutability: Mutability,
     /// Variable's name
     pub name: Identifier,
+    /// Type reference for variable
+    pub type_reference: Option<TypeReference>,
     /// Type of variable
     pub ty: Type,
     /// Initializer for variable

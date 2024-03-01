@@ -20,6 +20,7 @@ e2e!(predeclare_function);
 e2e!(predeclare_vars);
 e2e!(reference_mut);
 e2e!(references);
+e2e!(specify_variable_ty);
 e2e!(traits);
 e2e!(type_as_value);
 e2e!(wrong_initializer_type);

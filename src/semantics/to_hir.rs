@@ -913,6 +913,7 @@ impl ReplaceWithTypeInfo for TypeReference {
                 mutability: Mutability::Immutable,
                 name: Identifier::from(name).at(self.start()),
                 ty: self.type_for_type.clone(),
+                type_reference: None,
                 initializer: Some(
                     hir::Constructor {
                         ty: hir::TypeReference {

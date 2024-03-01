@@ -6,11 +6,13 @@ use crate::{
     ast,
     hir::{self, Function, Type, Typed},
     syntax::Ranged,
+    AddSourceLocation,
 };
 
 use super::{
     error::{CantDeduceReturnType, Error, ReturnTypeMismatch},
-    Context, ConvertibleTo, FunctionContext, GenericContext, Monomorphize, ToHIR, TraitContext,
+    Context, Convert, ConvertibleTo, FunctionContext, GenericContext, Monomorphize, ToHIR,
+    TraitContext,
 };
 
 /// Trait to pre-declare something
@@ -285,10 +287,15 @@ impl Declare for ast::VariableDeclaration {
     type Definition = hir::Variable;
 
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
+        let type_reference = self.ty.as_ref().map(|t| t.to_hir(context)).transpose()?;
         let var = hir::Variable::new(hir::VariableData {
             keyword: self.keyword.clone(),
             name: self.name.clone(),
-            ty: Type::Unknown,
+            ty: type_reference
+                .as_ref()
+                .map(|t| t.referenced_type.clone())
+                .unwrap_or(Type::Unknown),
+            type_reference,
             initializer: None,
             mutability: self.mutability.clone(),
         });
@@ -306,8 +313,17 @@ impl Declare for ast::VariableDeclaration {
         let mut initializer = self.initializer.to_hir(context)?;
         initializer.monomorphize(context);
 
-        declaration.write().unwrap().ty = initializer.ty();
-        declaration.write().unwrap().initializer = Some(initializer);
+        let range = declaration.read().unwrap().name.range();
+        let type_ref = declaration.read().unwrap().type_reference.clone();
+        if let Some(type_ref) = type_ref {
+            let initializer = initializer
+                .convert_to(type_ref.referenced_type.clone().at(range))
+                .within(context)?;
+            declaration.write().unwrap().initializer = Some(initializer)
+        } else {
+            declaration.write().unwrap().ty = initializer.ty();
+            declaration.write().unwrap().initializer = Some(initializer);
+        }
 
         Ok(declaration)
     }
