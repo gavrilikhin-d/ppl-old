@@ -372,4 +372,8 @@ fn <:I32> as String -> String
 /// Convert `I32` to `Integer`
 @mangle_as("integer_from_i32")
 fn Integer from <:I32> -> Integer
+
+/// Convert `Integer` to `I32
+@mangle_as("integer_as_i32")
+fn <:Integer> as I32 -> I32
 //=================================

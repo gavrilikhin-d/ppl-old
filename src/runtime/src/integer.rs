@@ -229,3 +229,19 @@ pub extern "C" fn i32_as_string(x: i32) -> *mut String {
     let boxed = Box::new(x.to_string());
     Box::into_raw(boxed)
 }
+
+/// # PPL
+/// ```no_run
+/// /// Convert `Integer` to `I32
+/// @mangle_as("integer_as_i32")
+/// fn <:Integer> as I32 -> I32
+/// ```
+#[no_mangle]
+pub extern "C" fn integer_as_i32(x: *mut Integer) -> i32 {
+    debug_assert!(!x.is_null());
+
+    let integer = unsafe { Box::from_raw(x) };
+    integer
+        .to_i32()
+        .expect(&format!("Integer `{integer}` is too big to fit into i32"))
+}
