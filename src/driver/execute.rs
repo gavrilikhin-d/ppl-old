@@ -44,10 +44,10 @@ impl Execute for Compile {
         .at(self.file.parent().unwrap());
 
         let name = self.file.file_stem().map(|n| n.to_str()).flatten().unwrap();
-        let module = compiler.get_module(name)?;
+        let module = compiler.compile(name)?;
 
         let llvm = inkwell::context::Context::create();
-        let ir = module.lower_to_ir(&llvm);
+        let ir = module.data(&compiler).lower_to_ir(&llvm);
         debug!(target: "ir", "{}", ir.to_string());
 
         let output_type = self.output_type.unwrap_or_else(|| {
@@ -70,7 +70,13 @@ impl Execute for Compile {
         let temp_dir = TempDir::new("ppl").unwrap();
 
         let bitcode = temp_dir.path().join(filename).with_extension("bc");
-        trace!(target: "steps", "generating bitcode for {} => {}", module.source_file().path().to_string_lossy(), bitcode.display());
+        let path = module
+            .data(&compiler)
+            .source_file()
+            .path()
+            .to_string_lossy()
+            .into_owned();
+        trace!(target: "steps", "generating bitcode for {} => {}", path, bitcode.display());
 
         ir.write_bitcode_to_path(&bitcode);
         if output_type == OutputType::Bitcode {

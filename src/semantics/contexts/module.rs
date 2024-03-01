@@ -2,7 +2,7 @@ use std::{fmt::Display, sync::Arc};
 
 use crate::{
     compilation::Compiler,
-    hir::{ClassDeclaration, Function, Module, TraitDeclaration, Variable},
+    hir::{ClassDeclaration, Function, ModuleData, TraitDeclaration, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration},
 };
@@ -12,7 +12,7 @@ use super::Context;
 /// Context for lowering content of module
 pub struct ModuleContext<'c> {
     /// Module, which is being lowered
-    pub module: Module,
+    pub module: ModuleData,
     /// Compiler for modules
     pub compiler: &'c mut Compiler,
 }
@@ -27,14 +27,14 @@ impl Display for ModuleContext<'_> {
 impl<'c> ModuleContext<'c> {
     pub fn new(compiler: &'c mut Compiler) -> Self {
         Self {
-            module: Module::default(),
+            module: ModuleData::default(),
             compiler,
         }
     }
 }
 
-impl AsRef<Module> for ModuleContext<'_> {
-    fn as_ref(&self) -> &Module {
+impl AsRef<ModuleData> for ModuleContext<'_> {
+    fn as_ref(&self) -> &ModuleData {
         &self.module
     }
 }
@@ -72,11 +72,11 @@ impl Context for ModuleContext<'_> {
         self.compiler
     }
 
-    fn module(&self) -> &Module {
+    fn module(&self) -> &ModuleData {
         &self.module
     }
 
-    fn module_mut(&mut self) -> &mut Module {
+    fn module_mut(&mut self) -> &mut ModuleData {
         &mut self.module
     }
 }

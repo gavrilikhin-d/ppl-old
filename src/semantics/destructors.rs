@@ -35,12 +35,12 @@ fn with_destructors(statements: &[Statement], context: &mut impl Context) -> Vec
                         keyword: if_stmt.keyword.clone(),
                         condition: if_stmt.condition.clone(),
                         body: with_destructors(&if_stmt.body, context),
-                        else_block: if_stmt.else_block.as_ref().map(|else_block| hir::Else { 
-                                keyword: else_block.keyword.clone(), 
-                                body: with_destructors(&else_block.body, context) 
-                            }
-                        ),
-                        else_ifs: if_stmt.else_ifs
+                        else_block: if_stmt.else_block.as_ref().map(|else_block| hir::Else {
+                            keyword: else_block.keyword.clone(),
+                            body: with_destructors(&else_block.body, context),
+                        }),
+                        else_ifs: if_stmt
+                            .else_ifs
                             .iter()
                             .map(|else_if| hir::ElseIf {
                                 else_keyword: else_if.else_keyword.clone(),
@@ -88,7 +88,7 @@ pub trait InsertDestructors {
     fn insert_destructors(&mut self, context: &mut impl Context);
 }
 
-impl InsertDestructors for hir::Module {
+impl InsertDestructors for hir::ModuleData {
     fn insert_destructors(&mut self, context: &mut impl Context) {
         for func in self.iter_functions_mut() {
             trace!(target: "steps", "Inserting destructors in: {func}");

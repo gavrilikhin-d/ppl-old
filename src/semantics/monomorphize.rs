@@ -4,8 +4,14 @@ use log::{debug, trace};
 
 use crate::{
     hir::{
-        Assignment, Call, ClassDeclaration, Constructor, Declaration, Else, ElseIf, Expression, Function, FunctionData, FunctionNamePart, Generic, If, ImplicitConversion, ImplicitConversionKind, Initializer, Loop, Member, MemberReference, Module, Parameter, ParameterOrVariable, Return, Statement, Type, TypeReference, Typed, Variable, VariableReference, While
-    }, mutability::Mutable, semantics::{ConvertibleTo, GenericContext}
+        Assignment, Call, ClassDeclaration, Constructor, Declaration, Else, ElseIf, Expression,
+        Function, FunctionData, FunctionNamePart, Generic, If, ImplicitConversion,
+        ImplicitConversionKind, Initializer, Loop, Member, MemberReference, ModuleData, Parameter,
+        ParameterOrVariable, Return, Statement, Type, TypeReference, Typed, Variable,
+        VariableReference, While,
+    },
+    mutability::Mutable,
+    semantics::{ConvertibleTo, GenericContext},
 };
 
 use super::{Context, ReplaceWithTypeInfo};
@@ -88,7 +94,9 @@ impl Monomorphize for If {
         self.condition.monomorphize(context);
         self.body.monomorphize(context);
         self.else_ifs.monomorphize(context);
-        self.else_block.as_mut().map(|else_block| else_block.monomorphize(context));
+        self.else_block
+            .as_mut()
+            .map(|else_block| else_block.monomorphize(context));
     }
 }
 
@@ -136,7 +144,7 @@ impl Monomorphize for ImplicitConversion {
                 } else {
                     context.builtin().types().reference_to(ty)
                 }
-            },
+            }
             Dereference => ty.without_ref(),
         };
     }
@@ -279,7 +287,6 @@ impl Monomorphize for Call {
 
         let mut f = self.function.read().unwrap().clone();
         f.monomorphize(&mut context);
-
 
         // FIXME: Can't monomorphize while still didn't get all definitions
         // We won't receive body update once we've monomorphized it
@@ -426,7 +433,7 @@ impl Monomorphize for MemberReference {
     }
 }
 
-impl Monomorphize for Module {
+impl Monomorphize for ModuleData {
     fn monomorphize(&mut self, context: &mut impl Context) {
         trace!(target: "monomorphizing", "{}", context.module().source_file().name());
 

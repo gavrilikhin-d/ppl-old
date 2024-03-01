@@ -1,14 +1,13 @@
 use std::{
     fs,
     path::{Path, PathBuf},
-    sync::Arc,
 };
 
 use indexmap::IndexMap;
 
 use crate::{
     ast,
-    hir::Module,
+    hir::{ClassDeclaration, FunctionData, ModuleData, TraitDeclaration},
     named::Named,
     semantics::{InsertDestructors, ModuleContext, ToHIR},
     SourceFile,
@@ -16,10 +15,67 @@ use crate::{
 use log::{debug, trace};
 use miette::miette;
 
+/// Module index inside a Compiler
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+pub struct Module {
+    index: usize,
+}
+
+impl Module {
+    /// Get module with specified
+    pub fn with_index(index: usize) -> Self {
+        Self { index }
+    }
+
+    /// Convert to underlying index
+    pub fn index(&self) -> usize {
+        self.index
+    }
+
+    /// Access data of a bodule
+    pub fn data<'c>(&self, compiler: &'c Compiler) -> &'c ModuleData {
+        compiler.modules.get_index(self.index()).unwrap().1
+    }
+}
+
+/// Index of a function in Compiler
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+pub struct Function {
+    index: usize,
+}
+
+impl Function {
+    /// Point at function with specified index
+    pub fn with_index(index: usize) -> Self {
+        Self { index }
+    }
+
+    /// Get underlying index
+    pub fn index(&self) -> usize {
+        self.index
+    }
+
+    /// Access data of a function
+    pub fn data<'c>(&self, compiler: &'c Compiler) -> &'c FunctionData {
+        &compiler.functions[self.index()]
+    }
+
+    /// Access data of a function for mutation
+    pub fn data_mut<'c>(&self, compiler: &'c mut Compiler) -> &'c mut FunctionData {
+        &mut compiler.functions[self.index()]
+    }
+}
+
 /// Struct that compiles and caches modules
 pub struct Compiler {
     /// Cache of compiled modules
-    pub modules: IndexMap<String, Arc<Module>>,
+    pub modules: IndexMap<String, ModuleData>,
+    /// Functions from all modules
+    pub functions: Vec<FunctionData>,
+    /// Classes from all modules
+    pub classes: IndexMap<String, ClassDeclaration>,
+    /// Traits from all modules
+    pub traits: IndexMap<String, TraitDeclaration>,
     /// Root directory of the compiler
     pub root: PathBuf,
 }
@@ -31,7 +87,7 @@ impl Compiler {
 
         let mut compiler = Compiler::without_builtin().at(path);
 
-        compiler.get_module("ppl").unwrap();
+        compiler.compile("ppl").unwrap();
 
         compiler.at("")
     }
@@ -40,18 +96,21 @@ impl Compiler {
     /// The first module to be added will be interpreted as builtin
     pub fn without_builtin() -> Self {
         Self {
-            modules: IndexMap::new(),
-            root: "".into(),
+            modules: Default::default(),
+            functions: Default::default(),
+            classes: Default::default(),
+            traits: Default::default(),
+            root: Default::default(),
         }
     }
 
     /// Get builtin module, if present.
     ///
     /// Builtin module is the first module compiled
-    pub fn builtin_module(&self) -> Option<&Module> {
+    pub fn builtin_module(&self) -> Option<&ModuleData> {
         self.modules.values().next().map(|m| {
             debug_assert!(m.name() == "ppl", "Wrong module used as builtin");
-            m.as_ref()
+            m
         })
     }
 
@@ -74,13 +133,13 @@ impl Compiler {
     /// use ppl::compilation::Compiler;
     ///
     /// let mut compiler = Compiler::new().at("src");
-    /// let m1 = compiler.get_module("main").unwrap();
-    /// let m2 = compiler.get_module("main").unwrap();
+    /// let m1 = compiler.compile("main").unwrap();
+    /// let m2 = compiler.compule("main").unwrap();
     /// assert_eq!(m1, m2);
     /// ```
-    pub fn get_module(&mut self, name: &str) -> miette::Result<Arc<Module>> {
-        if let Some(module) = self.modules.get(name) {
-            return Ok(module.clone());
+    pub fn compile<'c>(&'c mut self, name: &str) -> miette::Result<Module> {
+        if let Some(index) = self.modules.get_index_of(name) {
+            return Ok(Module::with_index(index));
         }
 
         let variants = vec![
@@ -99,7 +158,7 @@ impl Compiler {
         let ast = ast::Module::from_file(&path)?;
         debug!(target: &format!("{name}-ast"), "\n{:#?}", ast);
 
-        let module = Module::new(SourceFile::with_path(&path).unwrap());
+        let module = ModuleData::new(SourceFile::with_path(&path).unwrap());
 
         let content = fs::read_to_string(&path).map_err(|e| miette!("{path:?}: {e}"))?;
 
@@ -118,8 +177,8 @@ impl Compiler {
         hir.insert_destructors(&mut context);
         debug!(target: &format!("{name}-hir-with-destructors"), "\n{:#}", hir);
 
-        let module = Arc::new(hir);
-        self.modules.insert(name.to_string(), module.clone());
-        Ok(module)
+        let index = self.modules.len();
+        self.modules.insert(name.to_string(), hir);
+        Ok(Module::with_index(index))
     }
 }

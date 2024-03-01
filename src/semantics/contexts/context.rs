@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::{
     compilation::Compiler,
-    hir::{Function, FunctionData, FunctionNamePart, Module, Type, Typed},
+    hir::{Function, FunctionData, FunctionNamePart, ModuleData, Type, Typed},
     semantics::{AddDeclaration, ConvertibleTo, FindDeclaration},
 };
 
@@ -31,12 +31,12 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
     }
 
     /// Get current module this context is for
-    fn module(&self) -> &Module {
+    fn module(&self) -> &ModuleData {
         Context::parent(self).unwrap().module()
     }
 
     /// Get current module this context is for
-    fn module_mut(&mut self) -> &mut Module {
+    fn module_mut(&mut self) -> &mut ModuleData {
         Context::parent_mut(self).unwrap().module_mut()
     }
 
