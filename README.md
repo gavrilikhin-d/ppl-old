@@ -40,6 +40,7 @@
 ### Current task
 * [ ] Fix definition of predeclared functions
 ---
+* [ ] `<:T> as String` -> `String from <:T>`. `as` should mean force cast (analog of `try_from().unwrap()`)
 * [ ] Add all `c` types
 * [ ] Intern strings that are generated in IR
 * [ ] `VariableReference` and `MemberReference` should have reference types
