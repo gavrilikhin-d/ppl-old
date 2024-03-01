@@ -193,3 +193,32 @@ pub extern "C" fn destroy_integer(x: *mut Integer) {
         let _ = Box::from_raw(x);
     }
 }
+
+/// # PPL
+/// ```no_run
+/// fn - <:I32> -> I32
+/// ```
+#[no_mangle]
+pub extern "C" fn minus_i32(x: i32) -> i32 {
+    -x
+}
+
+/// # PPL
+/// ```no_run
+/// fn <:I32> + <:I32> -> I32
+/// ```
+#[no_mangle]
+pub extern "C" fn i32_plus_i32(x: i32, y: i32) -> i32 {
+    x + y
+}
+
+/// # PPL
+/// ```no_run
+/// @mangle_as("i32_as_string")
+/// fn <:I32> as String -> String
+/// ```
+#[no_mangle]
+pub extern "C" fn i32_as_string(x: i32) -> *mut String {
+    let boxed = Box::new(x.to_string());
+    Box::into_raw(boxed)
+}
