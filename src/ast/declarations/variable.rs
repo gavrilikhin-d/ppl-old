@@ -1,7 +1,7 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::ast::Expression;
+use crate::ast::{Expression, TypeReference};
 use crate::mutability::{Mutability, Mutable};
 use crate::syntax::error::{MissingVariableName, ParseError};
 use crate::syntax::{Context, Identifier, Keyword, Lexer, Parse, StartsHere, Token};
@@ -13,6 +13,8 @@ pub struct VariableDeclaration {
     pub keyword: Keyword<"let">,
     /// Name of variable
     pub name: Identifier,
+    /// Type of variable
+    pub ty: Option<TypeReference>,
     /// Initializer for variable
     pub initializer: Expression,
 
@@ -48,6 +50,12 @@ impl Parse for VariableDeclaration {
             })
         })?;
 
+        let ty = if context.lexer.consume(Token::Colon).is_ok() {
+            Some(TypeReference::parse(context)?)
+        } else {
+            None
+        };
+
         context.lexer.consume(Token::Assign)?;
 
         let initializer = Expression::parse(context)?;
@@ -57,6 +65,7 @@ impl Parse for VariableDeclaration {
         Ok(VariableDeclaration {
             keyword,
             name,
+            ty,
             initializer,
             mutability: match mutable {
                 true => Mutability::Mutable,
@@ -76,6 +85,7 @@ fn test_variable_declaration() {
         VariableDeclaration {
             keyword: Keyword::<"let">::at(0),
             name: Identifier::from("x").at(4),
+            ty: None,
             initializer: Literal::Integer {
                 offset: 8,
                 value: "1".to_string()
@@ -91,6 +101,7 @@ fn test_variable_declaration() {
         VariableDeclaration {
             keyword: Keyword::<"let">::at(0),
             name: Identifier::from("x").at(8),
+            ty: None,
             initializer: Literal::Integer {
                 offset: 12,
                 value: "1".to_string()
@@ -98,5 +109,45 @@ fn test_variable_declaration() {
             .into(),
             mutability: Mutability::Mutable,
         }
-    )
+    );
+
+    let var = "let x: Integer = 1".parse::<VariableDeclaration>().unwrap();
+    assert_eq!(
+        var,
+        VariableDeclaration {
+            keyword: Keyword::<"let">::at(0),
+            name: Identifier::from("x").at(4),
+            ty: Some(TypeReference {
+                name: Identifier::from("Integer").at(7),
+                generic_parameters: vec![]
+            }),
+            initializer: Literal::Integer {
+                offset: 17,
+                value: "1".to_string()
+            }
+            .into(),
+            mutability: Mutability::Immutable,
+        }
+    );
+
+    let var = "let mut x: Integer = 1"
+        .parse::<VariableDeclaration>()
+        .unwrap();
+    assert_eq!(
+        var,
+        VariableDeclaration {
+            keyword: Keyword::<"let">::at(0),
+            name: Identifier::from("x").at(8),
+            ty: Some(TypeReference {
+                name: Identifier::from("Integer").at(11),
+                generic_parameters: vec![]
+            }),
+            initializer: Literal::Integer {
+                offset: 21,
+                value: "1".to_string()
+            }
+            .into(),
+            mutability: Mutability::Mutable,
+        }
+    );
 }
