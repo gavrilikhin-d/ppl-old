@@ -3,6 +3,7 @@ use std::fmt::Display;
 use crate::{
     compilation::Compiler,
     hir::{Function, FunctionData, FunctionNamePart, Module, Type, Typed},
+    named::Named,
     semantics::{AddDeclaration, ConvertibleTo, FindDeclaration},
 };
 
@@ -90,11 +91,17 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
     }
 
     /// Find destructor for type
-    fn destructor_for(&mut self, ty: Type) -> Option<Function>
+    fn destructor_for(&self, ty: Type) -> Option<Function>
     where
         Self: Sized,
     {
         let name = format!("destroy <:{ty}>");
+        self.function_with_name(&name)
+    }
+
+    /// Find function to convert from one type to another
+    fn from_fn(&self, from: Type, to: Type) -> Option<Function> {
+        let name = format!("{to} from <:{from}>", to = to.name(), from = from.name());
         self.function_with_name(&name)
     }
 
