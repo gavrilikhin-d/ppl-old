@@ -140,6 +140,11 @@ impl ClassDeclaration {
         self.builtin == Some(BuiltinClass::Bool)
     }
 
+    /// Is this a builtin `I32` type?
+    pub fn is_i32(&self) -> bool {
+        self.builtin == Some(BuiltinClass::I32)
+    }
+
     /// Is this a builtin "Integer" type?
     pub fn is_integer(&self) -> bool {
         self.builtin == Some(BuiltinClass::Integer)
