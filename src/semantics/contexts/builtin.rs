@@ -60,7 +60,7 @@ impl BuiltinTypes<'_> {
             .into()
     }
 
-    builtin_types!(none, bool, integer, rational, string, reference);
+    builtin_types!(none, bool, integer, rational, string, reference, i32);
 
     /// Get builtin type for types
     pub fn type_(&self) -> Type {

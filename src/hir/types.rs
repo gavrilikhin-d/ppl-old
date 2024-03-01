@@ -275,6 +275,14 @@ impl Type {
         }
     }
 
+    /// Is this a builtin `I32` type?
+    pub fn is_i32(&self) -> bool {
+        match self.without_ref() {
+            Type::Class(c) => c.is_i32(),
+            _ => false,
+        }
+    }
+
     /// Is this a builtin "Integer" type?
     pub fn is_integer(&self) -> bool {
         match self.without_ref() {

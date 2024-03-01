@@ -57,6 +57,7 @@ const POINTER_SIZE: usize = 8;
 pub enum BuiltinClass {
     None,
     Bool,
+    I32,
     Integer,
     Rational,
     String,
@@ -71,6 +72,7 @@ impl BuiltinClass {
         match self {
             None => 0,
             Bool => 1,
+            I32 => 4,
             Integer | Rational | String | Reference | ReferenceMut => POINTER_SIZE,
         }
     }
@@ -84,6 +86,7 @@ impl FromStr for BuiltinClass {
         Ok(match s {
             "None" => None,
             "Bool" => Bool,
+            "I32" => I32,
             "Integer" => Integer,
             "Rational" => Rational,
             "String" => String,
@@ -135,6 +138,11 @@ impl ClassDeclaration {
     /// Is this a builtin "Bool" type?
     pub fn is_bool(&self) -> bool {
         self.builtin == Some(BuiltinClass::Bool)
+    }
+
+    /// Is this a builtin `I32` type?
+    pub fn is_i32(&self) -> bool {
+        self.builtin == Some(BuiltinClass::I32)
     }
 
     /// Is this a builtin "Integer" type?

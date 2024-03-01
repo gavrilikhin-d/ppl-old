@@ -5,6 +5,7 @@ use indexmap::IndexMap;
 use crate::{
     ast,
     hir::{self, Function, Type, Typed},
+    mutability::Mutable,
     syntax::Ranged,
     AddSourceLocation,
 };
@@ -313,12 +314,17 @@ impl Declare for ast::VariableDeclaration {
         let mut initializer = self.initializer.to_hir(context)?;
         initializer.monomorphize(context);
 
+        let mutable = declaration.read().unwrap().is_mutable();
+        let specified_type = declaration.read().unwrap().type_reference.is_some();
+        if initializer.ty().builtin() == Some(hir::BuiltinClass::I32) && mutable && !specified_type
+        {
+            declaration.write().unwrap().ty = context.builtin().types().integer();
+        }
+
         let range = declaration.read().unwrap().name.range();
-        let type_ref = declaration.read().unwrap().type_reference.clone();
-        if let Some(type_ref) = type_ref {
-            let initializer = initializer
-                .convert_to(type_ref.referenced_type.clone().at(range))
-                .within(context)?;
+        let ty = declaration.read().unwrap().ty();
+        if ty != Type::Unknown {
+            let initializer = initializer.convert_to(ty.at(range)).within(context)?;
             declaration.write().unwrap().initializer = Some(initializer)
         } else {
             declaration.write().unwrap().ty = initializer.ty();

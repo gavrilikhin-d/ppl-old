@@ -1,5 +1,12 @@
 use rug::{ops::Pow, Integer, Rational};
 
+/// Construct [`Integer`](ppl::semantics::Type::Integer) from i32
+#[no_mangle]
+pub extern "C" fn integer_from_i32(value: i32) -> *mut Integer {
+    let boxed = Box::new(value.into());
+    Box::into_raw(boxed)
+}
+
 /// Construct [`Integer`](ppl::semantics::Type::Integer) from i64
 #[no_mangle]
 pub extern "C" fn integer_from_i64(value: i64) -> *mut Integer {
@@ -33,9 +40,7 @@ pub extern "C" fn integer_from_c_string(str: *const i8) -> *mut Integer {
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_as_string(i: *const Integer) -> *mut String {
-    debug_assert!(!i.is_null());
-
-    let boxed = Box::new(unsafe { &*i }.to_string());
+    let boxed = Box::new(unsafe { i.as_ref().unwrap() }.to_string());
     Box::into_raw(boxed)
 }
 
@@ -47,9 +52,7 @@ pub extern "C" fn integer_as_string(i: *const Integer) -> *mut String {
 /// ```
 #[no_mangle]
 pub extern "C" fn minus_integer(i: *const Integer) -> *mut Integer {
-    debug_assert!(!i.is_null());
-
-    let boxed = Box::new(-unsafe { &*i }.clone());
+    let boxed = Box::new(-unsafe { i.as_ref().unwrap() }.clone());
     Box::into_raw(boxed)
 }
 
@@ -61,10 +64,10 @@ pub extern "C" fn minus_integer(i: *const Integer) -> *mut Integer {
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_plus_integer(x: *const Integer, y: *const Integer) -> *mut Integer {
-    debug_assert!(!x.is_null());
-    debug_assert!(!y.is_null());
+    let x = unsafe { x.as_ref().unwrap() };
+    let y = unsafe { y.as_ref().unwrap() };
 
-    let boxed = Box::new(Integer::from(unsafe { &*x } + unsafe { &*y }));
+    let boxed = Box::new(Integer::from(x + y));
     Box::into_raw(boxed)
 }
 
@@ -76,10 +79,10 @@ pub extern "C" fn integer_plus_integer(x: *const Integer, y: *const Integer) -> 
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_star_integer(x: *const Integer, y: *const Integer) -> *mut Integer {
-    debug_assert!(!x.is_null());
-    debug_assert!(!y.is_null());
+    let x = unsafe { x.as_ref().unwrap() };
+    let y = unsafe { y.as_ref().unwrap() };
 
-    let boxed = Box::new(Integer::from(unsafe { &*x } * unsafe { &*y }));
+    let boxed = Box::new(Integer::from(x * y));
     Box::into_raw(boxed)
 }
 
@@ -91,10 +94,10 @@ pub extern "C" fn integer_star_integer(x: *const Integer, y: *const Integer) -> 
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_slash_integer(x: *const Integer, y: *const Integer) -> *mut Rational {
-    debug_assert!(!x.is_null());
-    debug_assert!(!y.is_null());
+    let x = unsafe { x.as_ref().unwrap() };
+    let y = unsafe { y.as_ref().unwrap() };
 
-    let boxed = Box::new(Rational::from(unsafe { &*x }) / unsafe { &*y });
+    let boxed = Box::new(Rational::from(x / y));
     Box::into_raw(boxed)
 }
 
@@ -106,10 +109,10 @@ pub extern "C" fn integer_slash_integer(x: *const Integer, y: *const Integer) ->
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_eq_integer(x: *const Integer, y: *const Integer) -> bool {
-    debug_assert!(!x.is_null());
-    debug_assert!(!y.is_null());
+    let x = unsafe { x.as_ref().unwrap() };
+    let y = unsafe { y.as_ref().unwrap() };
 
-    unsafe { *x == *y }
+    x == y
 }
 
 /// Is one integer less than another?
@@ -120,10 +123,10 @@ pub extern "C" fn integer_eq_integer(x: *const Integer, y: *const Integer) -> bo
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_less_integer(x: *const Integer, y: *const Integer) -> bool {
-    debug_assert!(!x.is_null());
-    debug_assert!(!y.is_null());
+    let x = unsafe { x.as_ref().unwrap() };
+    let y = unsafe { y.as_ref().unwrap() };
 
-    unsafe { *x < *y }
+    x < y
 }
 
 /// Calculate square root of an integer with rounding
@@ -134,9 +137,7 @@ pub extern "C" fn integer_less_integer(x: *const Integer, y: *const Integer) -> 
 /// ```
 #[no_mangle]
 pub extern "C" fn sqrt_integer(i: *const Integer) -> *mut Integer {
-    debug_assert!(!i.is_null());
-
-    let i = unsafe { &*i };
+    let i = unsafe { i.as_ref().unwrap() };
 
     let boxed = Box::new(i.clone().root(2));
     Box::into_raw(boxed)
@@ -150,11 +151,8 @@ pub extern "C" fn sqrt_integer(i: *const Integer) -> *mut Integer {
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_power_integer(x: *const Integer, n: *const Integer) -> *mut Integer {
-    debug_assert!(!x.is_null());
-    debug_assert!(!n.is_null());
-
-    let x = unsafe { &*x };
-    let n = unsafe { &*n };
+    let x = unsafe { x.as_ref().unwrap() };
+    let n = unsafe { n.as_ref().unwrap() };
 
     // TODO: support other powers
     let res: Integer = x.pow(n.to_u32().unwrap()).into();
@@ -169,11 +167,8 @@ pub extern "C" fn integer_power_integer(x: *const Integer, n: *const Integer) ->
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_mod_integer(x: *const Integer, y: *const Integer) -> *mut Integer {
-    debug_assert!(!x.is_null());
-    debug_assert!(!y.is_null());
-
-    let x = unsafe { &*x };
-    let y = unsafe { &*y };
+    let x = unsafe { x.as_ref().unwrap() };
+    let y = unsafe { y.as_ref().unwrap() };
 
     let res = x.clone().modulo(y);
 
@@ -192,4 +187,49 @@ pub extern "C" fn destroy_integer(x: *mut Integer) {
     unsafe {
         let _ = Box::from_raw(x);
     }
+}
+
+/// # PPL
+/// ```no_run
+/// fn - <:I32> -> I32
+/// ```
+#[no_mangle]
+pub extern "C" fn minus_i32(x: i32) -> i32 {
+    -x
+}
+
+/// # PPL
+/// ```no_run
+/// fn <:I32> + <:I32> -> I32
+/// ```
+#[no_mangle]
+pub extern "C" fn i32_plus_i32(x: i32, y: i32) -> i32 {
+    x + y
+}
+
+/// # PPL
+/// ```no_run
+/// @mangle_as("i32_as_string")
+/// fn <:I32> as String -> String
+/// ```
+#[no_mangle]
+pub extern "C" fn i32_as_string(x: i32) -> *mut String {
+    let boxed = Box::new(x.to_string());
+    Box::into_raw(boxed)
+}
+
+/// # PPL
+/// ```no_run
+/// /// Convert `Integer` to `I32
+/// @mangle_as("integer_as_i32")
+/// fn <:Integer> as I32 -> I32
+/// ```
+#[no_mangle]
+pub extern "C" fn integer_as_i32(x: *mut Integer) -> i32 {
+    debug_assert!(!x.is_null());
+
+    let integer = unsafe { Box::from_raw(x) };
+    integer
+        .to_i32()
+        .expect(&format!("Integer `{integer}` is too big to fit into i32"))
 }

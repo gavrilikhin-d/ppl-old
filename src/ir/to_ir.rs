@@ -219,6 +219,8 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for ClassDeclaration {
             return context.types().none().into();
         } else if self.is_bool() {
             return context.types().bool().into();
+        } else if self.is_i32() {
+            return context.types().i32().into();
         }
 
         if self.members.is_empty() {
