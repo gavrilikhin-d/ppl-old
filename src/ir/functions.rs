@@ -39,6 +39,9 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
         self.module.add_function(name, ty, None)
     }
 
+    // LLVM IR for constructor of [`Integer`](Type::Integer) type from i32
+    add_builtin_function!(integer_from_i32: (i32) -> integer);
+
     // LLVM IR for constructor of [`Integer`](Type::Integer) type from i64
     add_builtin_function!(integer_from_i64: (i64) -> integer);
 

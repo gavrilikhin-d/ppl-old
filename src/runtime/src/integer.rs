@@ -1,5 +1,12 @@
 use rug::{ops::Pow, Integer, Rational};
 
+/// Construct [`Integer`](ppl::semantics::Type::Integer) from i32
+#[no_mangle]
+pub extern "C" fn integer_from_i32(value: i32) -> *mut Integer {
+    let boxed = Box::new(value.into());
+    Box::into_raw(boxed)
+}
+
 /// Construct [`Integer`](ppl::semantics::Type::Integer) from i64
 #[no_mangle]
 pub extern "C" fn integer_from_i64(value: i64) -> *mut Integer {

@@ -368,4 +368,8 @@ fn <x: I32> - <y: I32> => x + -y
 /// Convert `I32` to `String`
 @mangle_as("i32_as_string")
 fn <:I32> as String -> String
+
+/// Convert `I32` to `Integer`
+@mangle_as("integer_from_i32")
+fn Integer from <:I32> -> Integer
 //=================================
