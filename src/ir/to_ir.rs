@@ -635,7 +635,10 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Expression {
         let ptr = value.into_pointer_value();
         match self.ty() {
             Type::Class(cl) => {
-                if cl.is_opaque() && !(cl.is_none() || cl.is_bool() || self.is_reference()) {
+                // FIXME: this is very error prone
+                if cl.is_opaque()
+                    && !(cl.is_none() || cl.is_bool() || cl.is_i32() || self.is_reference())
+                {
                     return Some(ptr.into());
                 }
                 let ty = cl.to_ir(context).try_into_basic_type().unwrap();

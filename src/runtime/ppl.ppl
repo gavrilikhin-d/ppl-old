@@ -252,7 +252,8 @@ fn <address: MemoryAddress> + <offset: Integer> -> MemoryAddress:
 @mangle_as("memory_address_as_string")
 fn <address: MemoryAddress> as String -> String
 
-/// Allocate `n` bytes of memory
+/// Allocate `n` bytes of memory.
+/// Warning: memory is uninitialized!
 @mangle_as("allocate_n_bytes")
 fn allocate <n: Integer> bytes -> MemoryAddress
 
