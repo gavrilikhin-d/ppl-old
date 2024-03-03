@@ -1,7 +1,7 @@
-let mut i = 0
-println i
-i += 1
-println i
+let mut value = 0.0
+println value
+value += 1.0
+println value
 
 let mut str = "Hello"
 str += " World!"
