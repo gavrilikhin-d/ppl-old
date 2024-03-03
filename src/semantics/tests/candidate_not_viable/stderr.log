@@ -76,12 +76,12 @@ Error:   × Rational
 Advice:   ☞ candidate is not viable: expected `I32` type, got `Rational`
 
 Error:   × I32
-     ╭─[ppl.ppl:364:5]
- 363 │ @mangle_as("i32_plus_i32")
- 364 │ fn <:I32> + <:I32> -> I32
+     ╭─[ppl.ppl:365:5]
+ 364 │ @mangle_as("i32_plus_i32")
+ 365 │ fn <:I32> + <:I32> -> I32
      ·     ▲
      ·     ╰── this has `I32` type
- 365 │ 
+ 366 │ 
      ╰────
 Error:   × Rational
    ╭─[candidate_not_viable.ppl:1:1]
