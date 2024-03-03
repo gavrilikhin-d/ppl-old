@@ -1,0 +1,8 @@
+println "Hello" + " " + "World!"
+println (none as String)
+println (false as String)
+println (true as String)
+println (0 as String)
+println (0.0 as String)
+println (Integer as String)
+println (Array<Integer> as String)
