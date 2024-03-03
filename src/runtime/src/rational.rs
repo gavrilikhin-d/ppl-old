@@ -19,9 +19,7 @@ pub extern "C" fn rational_from_c_string(str: *const i8) -> *mut Rational {
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_as_string(r: *const Rational) -> *mut String {
-    debug_assert!(!r.is_null());
-
-    let value = unsafe { &*r };
+    let value = unsafe { r.as_ref().unwrap() };
 
     let boxed = Box::new(maybe_to_decimal_string(value));
     Box::into_raw(boxed)
@@ -35,9 +33,8 @@ pub extern "C" fn rational_as_string(r: *const Rational) -> *mut String {
 /// ```
 #[no_mangle]
 pub extern "C" fn minus_rational(r: *const Rational) -> *mut Rational {
-    debug_assert!(!r.is_null());
-
-    let boxed = Box::new(-unsafe { &*r }.clone());
+    let r = unsafe { r.as_ref().unwrap() };
+    let boxed = Box::new(Rational::from(-r));
     Box::into_raw(boxed)
 }
 
@@ -49,10 +46,10 @@ pub extern "C" fn minus_rational(r: *const Rational) -> *mut Rational {
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_plus_rational(x: *const Rational, y: *const Rational) -> *mut Rational {
-    debug_assert!(!x.is_null());
-    debug_assert!(!y.is_null());
+    let x = unsafe { x.as_ref().unwrap() };
+    let y = unsafe { y.as_ref().unwrap() };
 
-    let boxed = Box::new(Rational::from(unsafe { &*x } + unsafe { &*y }));
+    let boxed = Box::new(Rational::from(x + y));
     Box::into_raw(boxed)
 }
 
@@ -64,10 +61,9 @@ pub extern "C" fn rational_plus_rational(x: *const Rational, y: *const Rational)
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_star_rational(x: *const Rational, y: *const Rational) -> *mut Rational {
-    debug_assert!(!x.is_null());
-    debug_assert!(!y.is_null());
-
-    let boxed = Box::new(Rational::from(unsafe { &*x } * unsafe { &*y }));
+    let x = unsafe { x.as_ref().unwrap() };
+    let y = unsafe { y.as_ref().unwrap() };
+    let boxed = Box::new(Rational::from(x * y));
     Box::into_raw(boxed)
 }
 
@@ -79,10 +75,9 @@ pub extern "C" fn rational_star_rational(x: *const Rational, y: *const Rational)
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_slash_rational(x: *const Rational, y: *const Rational) -> *mut Rational {
-    debug_assert!(!x.is_null());
-    debug_assert!(!y.is_null());
-
-    let boxed = Box::new(Rational::from(unsafe { &*x } / unsafe { &*y }));
+    let x = unsafe { x.as_ref().unwrap() };
+    let y = unsafe { y.as_ref().unwrap() };
+    let boxed = Box::new(Rational::from(x / y));
     Box::into_raw(boxed)
 }
 
@@ -94,10 +89,10 @@ pub extern "C" fn rational_slash_rational(x: *const Rational, y: *const Rational
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_eq_rational(x: *const Rational, y: *const Rational) -> bool {
-    debug_assert!(!x.is_null());
-    debug_assert!(!y.is_null());
+    let x = unsafe { x.as_ref().unwrap() };
+    let y = unsafe { y.as_ref().unwrap() };
 
-    unsafe { *x == *y }
+    x == y
 }
 
 /// Is one rational less than another?
@@ -108,10 +103,9 @@ pub extern "C" fn rational_eq_rational(x: *const Rational, y: *const Rational) -
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_less_rational(x: *const Rational, y: *const Rational) -> bool {
-    debug_assert!(!x.is_null());
-    debug_assert!(!y.is_null());
-
-    unsafe { *x < *y }
+    let x = unsafe { x.as_ref().unwrap() };
+    let y = unsafe { y.as_ref().unwrap() };
+    x < y
 }
 
 /// # PPL
@@ -122,9 +116,7 @@ pub extern "C" fn rational_less_rational(x: *const Rational, y: *const Rational)
 pub extern "C" fn destroy_rational(x: *mut Rational) {
     debug_assert!(!x.is_null());
 
-    unsafe {
-        let _ = Box::from_raw(x);
-    }
+    let _ = unsafe { Box::from_raw(x) };
 }
 
 pub fn maybe_to_decimal_string(r: &Rational) -> String {

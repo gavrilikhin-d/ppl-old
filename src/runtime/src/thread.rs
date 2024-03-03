@@ -8,9 +8,7 @@ use rug::Integer;
 /// ```
 #[no_mangle]
 pub extern "C" fn sleep_ms(ms: *const Integer) {
-    debug_assert!(!ms.is_null());
-
-    let ms = unsafe { &*ms };
+    let ms = unsafe { ms.as_ref().unwrap() };
     let ms = ms.to_u64();
     if ms.is_none() {
         return;

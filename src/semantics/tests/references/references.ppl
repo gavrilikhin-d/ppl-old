@@ -1,5 +1,9 @@
-let n = size of Integer
+let n = size of I32
+// Returns uninitialized memory!
 let address = allocate n bytes
-let value = Integer at address
+let value = I32 at address
+value = 0 as I32
+println value
+value = 1 as I32
 println value
 free address

@@ -40,7 +40,9 @@ pub extern "C" fn integer_from_c_string(str: *const i8) -> *mut Integer {
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_as_string(i: *const Integer) -> *mut String {
-    let boxed = Box::new(unsafe { i.as_ref().unwrap() }.to_string());
+    let i = unsafe { i.as_ref().unwrap() };
+    let str = i.to_string();
+    let boxed = Box::new(str);
     Box::into_raw(boxed)
 }
 
@@ -52,7 +54,8 @@ pub extern "C" fn integer_as_string(i: *const Integer) -> *mut String {
 /// ```
 #[no_mangle]
 pub extern "C" fn minus_integer(i: *const Integer) -> *mut Integer {
-    let boxed = Box::new(-unsafe { i.as_ref().unwrap() }.clone());
+    let i = unsafe { i.as_ref().unwrap() };
+    let boxed = Box::new(Integer::from(-i));
     Box::into_raw(boxed)
 }
 
@@ -184,9 +187,7 @@ pub extern "C" fn integer_mod_integer(x: *const Integer, y: *const Integer) -> *
 pub extern "C" fn destroy_integer(x: *mut Integer) {
     debug_assert!(!x.is_null());
 
-    unsafe {
-        let _ = Box::from_raw(x);
-    }
+    let _ = unsafe { Box::from_raw(x) };
 }
 
 /// # PPL

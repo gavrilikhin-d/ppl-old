@@ -14,8 +14,7 @@ pub struct MemoryAddress {
 /// ```
 #[no_mangle]
 pub extern "C" fn memory_address_as_string(address: MemoryAddress) -> *mut String {
-    assert!(!address.value.is_null());
-    let value = unsafe { &*address.value };
+    let value = unsafe { address.value.as_ref().unwrap() };
 
     let hex = format!("0x{}", value.to_string_radix(16).to_uppercase());
     let boxed = Box::new(hex);
@@ -28,8 +27,7 @@ pub extern "C" fn memory_address_as_string(address: MemoryAddress) -> *mut Strin
 /// ```
 #[no_mangle]
 pub extern "C" fn allocate_n_bytes(n: *const Integer) -> MemoryAddress {
-    assert!(!n.is_null());
-    let n = unsafe { &*n };
+    let n = unsafe { n.as_ref().unwrap() };
 
     let n = n.to_usize();
     if n.is_none() {
@@ -52,8 +50,7 @@ pub extern "C" fn allocate_n_bytes(n: *const Integer) -> MemoryAddress {
 /// ```
 #[no_mangle]
 pub extern "C" fn free_memory(address: MemoryAddress) {
-    assert!(!address.value.is_null());
-    let address = unsafe { &*address.value };
+    let address = unsafe { address.value.as_ref().unwrap() };
 
     let address = address.to_u64();
     if address.is_none() {
@@ -74,8 +71,7 @@ pub extern "C" fn free_memory(address: MemoryAddress) {
 pub extern "C" fn read_memory(ty: Type, address: MemoryAddress) -> *mut c_void {
     let _ = ty;
 
-    assert!(!address.value.is_null());
-    let address = unsafe { &*address.value };
+    let address = unsafe { address.value.as_ref().unwrap() };
 
     let address = address.to_u64().unwrap();
 

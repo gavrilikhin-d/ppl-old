@@ -17,14 +17,11 @@ pub extern "C" fn string_from_c_string_and_length(str: *const i8, _len: u64) -> 
 /// fn <:String> + <:String> -> None
 /// ```
 #[no_mangle]
-pub extern "C" fn string_plus_string(a: *const String, b: *const String) -> *mut String {
-    debug_assert!(!a.is_null());
-    debug_assert!(!b.is_null());
+pub extern "C" fn string_plus_string(x: *const String, y: *const String) -> *mut String {
+    let x = unsafe { x.as_ref().unwrap() };
+    let y = unsafe { y.as_ref().unwrap() };
 
-    let a = unsafe { &*a };
-    let b = unsafe { &*b };
-
-    let boxed = Box::new(format!("{a}{b}"));
+    let boxed = Box::new(format!("{x}{y}"));
     Box::into_raw(boxed)
 }
 
@@ -36,9 +33,9 @@ pub extern "C" fn string_plus_string(a: *const String, b: *const String) -> *mut
 /// ```
 #[no_mangle]
 pub extern "C" fn print_string(str: *const String) {
-    debug_assert!(!str.is_null());
+    let str = unsafe { str.as_ref().unwrap() };
 
-    print!("{}", unsafe { &*str });
+    print!("{str}");
     std::io::stdout().flush().unwrap();
 }
 
@@ -50,7 +47,5 @@ pub extern "C" fn print_string(str: *const String) {
 pub extern "C" fn destroy_string(x: *mut String) {
     debug_assert!(!x.is_null());
 
-    unsafe {
-        let _ = Box::from_raw(x);
-    }
+    let _ = unsafe { Box::from_raw(x) };
 }
