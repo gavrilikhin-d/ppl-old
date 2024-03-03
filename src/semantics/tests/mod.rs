@@ -16,6 +16,7 @@ e2e!(monomorphize_predeclared);
 e2e!(multiple_errors);
 e2e!(multiple_initialization);
 e2e!(non_class_constructor);
+e2e!(plus_assign);
 e2e!(predeclare_function);
 e2e!(predeclare_vars);
 e2e!(reference_mut);
