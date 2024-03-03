@@ -1,6 +1,7 @@
 use rug::{ops::Pow, Integer};
 
-/// Runtime type information
+/// Rational number.
+/// Wrapper around pointer to [`rug::Rational`].
 ///
 /// # PPL
 /// ```no_run

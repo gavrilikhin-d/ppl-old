@@ -1,0 +1,8 @@
+println 0
+println +1
+println -2
+println 2 + 1
+println 2 ^ 2
+println 5 - 0
+println 2 * 3
+println 14 / 2

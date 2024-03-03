@@ -1,4 +1,6 @@
-use rug::{ops::Pow, Integer, Rational};
+use rug::{ops::Pow, Integer};
+
+use crate::Rational;
 
 /// Construct [`Integer`](ppl::semantics::Type::Integer) from i32
 #[no_mangle]
@@ -96,12 +98,14 @@ pub extern "C" fn integer_star_integer(x: *const Integer, y: *const Integer) -> 
 /// fn <:Integer> / <:Integer> -> Rational
 /// ```
 #[no_mangle]
-pub extern "C" fn integer_slash_integer(x: *const Integer, y: *const Integer) -> *mut Rational {
+pub extern "C" fn integer_slash_integer(x: *const Integer, y: *const Integer) -> Rational {
     let x = unsafe { x.as_ref().unwrap() };
     let y = unsafe { y.as_ref().unwrap() };
 
-    let boxed = Box::new(Rational::from(x) / y);
-    Box::into_raw(boxed)
+    let boxed = Box::new(rug::Rational::from(x) / y);
+    Rational {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Compare 2 integers for equality
