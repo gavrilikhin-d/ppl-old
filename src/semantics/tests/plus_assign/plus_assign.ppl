@@ -1,0 +1,8 @@
+let mut i = 0
+println i
+i += 1
+println i
+
+let mut str = "Hello"
+str += " World!"
+println str

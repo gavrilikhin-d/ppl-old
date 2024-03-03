@@ -378,3 +378,14 @@ fn Integer from <:I32> -> Integer
 @mangle_as("integer_as_i32")
 fn <:Integer> as I32 -> I32
 //=================================
+
+//=================================
+//            Add
+//=================================
+/// Trait for `+` operation
+trait Add:
+	fn <:Self> + <:Self> -> Self
+
+	fn <self: ReferenceMut<Self>> += <other: Self>:
+		self = self + other
+//=================================
