@@ -1,14 +1,31 @@
-use rug::{ops::Pow, Integer, Rational};
+use rug::{ops::Pow, Integer};
+
+/// Runtime type information
+///
+/// # PPL
+/// ```no_run
+/// type RationalImpl
+///
+/// @builtin
+/// type Rational:
+///     impl: Reference<RationalImpl>
+/// ```
+#[repr(C)]
+pub struct Rational {
+    pub data: *mut rug::Rational,
+}
 
 /// Construct [`Rational`](ppl::semantics::Type::Rational) from a C string
 #[no_mangle]
-pub extern "C" fn rational_from_c_string(str: *const i8) -> *mut Rational {
+pub extern "C" fn rational_from_c_string(str: *const i8) -> Rational {
     debug_assert!(!str.is_null());
 
     let c_str = unsafe { core::ffi::CStr::from_ptr(str) };
     let str = c_str.to_str().unwrap();
-    let boxed = Box::new(str.parse::<Rational>().unwrap());
-    Box::into_raw(boxed)
+    let boxed = Box::new(str.parse::<rug::Rational>().unwrap());
+    Rational {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Converts `Rational` to `String`
@@ -18,8 +35,8 @@ pub extern "C" fn rational_from_c_string(str: *const i8) -> *mut Rational {
 /// fn <:Rational> as String -> String
 /// ```
 #[no_mangle]
-pub extern "C" fn rational_as_string(r: *const Rational) -> *mut String {
-    let value = unsafe { r.as_ref().unwrap() };
+pub extern "C" fn rational_as_string(r: Rational) -> *mut String {
+    let value = unsafe { r.data.as_ref().unwrap() };
 
     let boxed = Box::new(maybe_to_decimal_string(value));
     Box::into_raw(boxed)
@@ -32,10 +49,12 @@ pub extern "C" fn rational_as_string(r: *const Rational) -> *mut String {
 /// fn - <:Rational> -> Rational
 /// ```
 #[no_mangle]
-pub extern "C" fn minus_rational(r: *const Rational) -> *mut Rational {
-    let r = unsafe { r.as_ref().unwrap() };
-    let boxed = Box::new(Rational::from(-r));
-    Box::into_raw(boxed)
+pub extern "C" fn minus_rational(r: Rational) -> Rational {
+    let r = unsafe { r.data.as_ref().unwrap() };
+    let boxed = Box::new(rug::Rational::from(-r));
+    Rational {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Add 2 rationals
@@ -45,12 +64,14 @@ pub extern "C" fn minus_rational(r: *const Rational) -> *mut Rational {
 /// fn <:Rational> + <:Rational> -> Rational
 /// ```
 #[no_mangle]
-pub extern "C" fn rational_plus_rational(x: *const Rational, y: *const Rational) -> *mut Rational {
-    let x = unsafe { x.as_ref().unwrap() };
-    let y = unsafe { y.as_ref().unwrap() };
+pub extern "C" fn rational_plus_rational(x: Rational, y: Rational) -> Rational {
+    let x = unsafe { x.data.as_ref().unwrap() };
+    let y = unsafe { y.data.as_ref().unwrap() };
 
-    let boxed = Box::new(Rational::from(x + y));
-    Box::into_raw(boxed)
+    let boxed = Box::new(rug::Rational::from(x + y));
+    Rational {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Multiply 2 rationals
@@ -60,11 +81,13 @@ pub extern "C" fn rational_plus_rational(x: *const Rational, y: *const Rational)
 /// fn <:Rational> * <:Rational> -> Rational
 /// ```
 #[no_mangle]
-pub extern "C" fn rational_star_rational(x: *const Rational, y: *const Rational) -> *mut Rational {
-    let x = unsafe { x.as_ref().unwrap() };
-    let y = unsafe { y.as_ref().unwrap() };
-    let boxed = Box::new(Rational::from(x * y));
-    Box::into_raw(boxed)
+pub extern "C" fn rational_star_rational(x: Rational, y: Rational) -> Rational {
+    let x = unsafe { x.data.as_ref().unwrap() };
+    let y = unsafe { y.data.as_ref().unwrap() };
+    let boxed = Box::new(rug::Rational::from(x * y));
+    Rational {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Divide 2 rationals
@@ -74,11 +97,13 @@ pub extern "C" fn rational_star_rational(x: *const Rational, y: *const Rational)
 /// fn <:Rational> / <:Rational> -> Rational
 /// ```
 #[no_mangle]
-pub extern "C" fn rational_slash_rational(x: *const Rational, y: *const Rational) -> *mut Rational {
-    let x = unsafe { x.as_ref().unwrap() };
-    let y = unsafe { y.as_ref().unwrap() };
-    let boxed = Box::new(Rational::from(x / y));
-    Box::into_raw(boxed)
+pub extern "C" fn rational_slash_rational(x: Rational, y: Rational) -> Rational {
+    let x = unsafe { x.data.as_ref().unwrap() };
+    let y = unsafe { y.data.as_ref().unwrap() };
+    let boxed = Box::new(rug::Rational::from(x / y));
+    Rational {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Compare 2 rationals for equality
@@ -88,9 +113,9 @@ pub extern "C" fn rational_slash_rational(x: *const Rational, y: *const Rational
 /// fn <:Rational> == <:Rational> -> Bool
 /// ```
 #[no_mangle]
-pub extern "C" fn rational_eq_rational(x: *const Rational, y: *const Rational) -> bool {
-    let x = unsafe { x.as_ref().unwrap() };
-    let y = unsafe { y.as_ref().unwrap() };
+pub extern "C" fn rational_eq_rational(x: Rational, y: Rational) -> bool {
+    let x = unsafe { x.data.as_ref().unwrap() };
+    let y = unsafe { y.data.as_ref().unwrap() };
 
     x == y
 }
@@ -102,9 +127,9 @@ pub extern "C" fn rational_eq_rational(x: *const Rational, y: *const Rational) -
 /// fn <:Rational> < <:Rational> -> Bool
 /// ```
 #[no_mangle]
-pub extern "C" fn rational_less_rational(x: *const Rational, y: *const Rational) -> bool {
-    let x = unsafe { x.as_ref().unwrap() };
-    let y = unsafe { y.as_ref().unwrap() };
+pub extern "C" fn rational_less_rational(x: Rational, y: Rational) -> bool {
+    let x = unsafe { x.data.as_ref().unwrap() };
+    let y = unsafe { y.data.as_ref().unwrap() };
     x < y
 }
 
@@ -113,13 +138,13 @@ pub extern "C" fn rational_less_rational(x: *const Rational, y: *const Rational)
 /// fn destroy <:Rational>
 /// ```
 #[no_mangle]
-pub extern "C" fn destroy_rational(x: *mut Rational) {
-    debug_assert!(!x.is_null());
+pub extern "C" fn destroy_rational(x: Rational) {
+    debug_assert!(!x.data.is_null());
 
-    let _ = unsafe { Box::from_raw(x) };
+    let _ = unsafe { Box::from_raw(x.data) };
 }
 
-pub fn maybe_to_decimal_string(r: &Rational) -> String {
+pub fn maybe_to_decimal_string(r: &rug::Rational) -> String {
     let mut denom = r.denom().clone();
     let pow2 = denom.remove_factor_mut(&Integer::from(2));
     let pow5 = denom.remove_factor_mut(&Integer::from(5));
@@ -153,25 +178,25 @@ mod test {
         use super::maybe_to_decimal_string;
         use rug::Rational;
 
-        let r = Rational::from((1, 3));
+        let r = rug::Rational::from((1, 3));
         assert_eq!(maybe_to_decimal_string(&r), "1/3");
 
-        let r = Rational::from((1, 2));
+        let r = rug::Rational::from((1, 2));
         assert_eq!(maybe_to_decimal_string(&r), "0.5");
 
-        let r = Rational::from((5, 1));
+        let r = rug::Rational::from((5, 1));
         assert_eq!(maybe_to_decimal_string(&r), "5.0");
 
-        let r = Rational::from((5, 2));
+        let r = rug::Rational::from((5, 2));
         assert_eq!(maybe_to_decimal_string(&r), "2.5");
 
-        let r = Rational::from((1, 4));
+        let r = rug::Rational::from((1, 4));
         assert_eq!(maybe_to_decimal_string(&r), "0.25");
 
-        let r = Rational::from((1, 8));
+        let r = rug::Rational::from((1, 8));
         assert_eq!(maybe_to_decimal_string(&r), "0.125");
 
-        let r = Rational::from((1, 16));
+        let r = rug::Rational::from((1, 16));
         assert_eq!(maybe_to_decimal_string(&r), "0.0625");
     }
 }

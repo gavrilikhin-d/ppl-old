@@ -65,6 +65,17 @@ impl<'llvm> Types<'llvm> {
         self.llvm.opaque_struct_type(name)
     }
 
+    /// Get wrapper around pointer to opaque impl
+    fn with_impl(&self, name: &str) -> StructType<'llvm> {
+        if let Some(ty) = self.llvm.get_struct_type(name) {
+            return ty;
+        }
+
+        let ty = self.llvm.opaque_struct_type(name);
+        ty.set_body(&[self.opaque(&format!("{name}Impl")).into()], false);
+        ty
+    }
+
     /// LLVM IR for [`Class`](Type::Class) type
     pub fn opaque(&self, name: &str) -> PointerType<'llvm> {
         self.get_or_add_opaque_struct(name)
@@ -82,8 +93,8 @@ impl<'llvm> Types<'llvm> {
     }
 
     /// LLVM IR for `Rational` type
-    pub fn rational(&self) -> PointerType<'llvm> {
-        self.opaque("Rational")
+    pub fn rational(&self) -> StructType<'llvm> {
+        self.with_impl("Rational")
     }
 
     /// LLVM IR for [`String`](Type::String) type
