@@ -89,4 +89,6 @@ Error:   × Rational
    · ─┬─
    ·  ╰── this has `Rational` type
    ╰────
+Advice:   ☞ candidate is not viable: expected `Self` type, got `Integer`
 
+Error:   × Self
