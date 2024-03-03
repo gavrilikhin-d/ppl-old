@@ -127,8 +127,11 @@ fn destroy <:Integer>
 //=================================
 //            Rational
 //=================================
+type RationalImpl
+
 @builtin
-type Rational
+type Rational:
+	impl: Reference<RationalImpl>
 
 @mangle_as("rational_eq_rational")
 fn <:Rational> == <:Rational> -> Bool
