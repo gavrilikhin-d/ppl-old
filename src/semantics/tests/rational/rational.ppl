@@ -1,0 +1,15 @@
+println 0.0
+println +1.0
+println -2.0
+println 1.0 + 2.0
+println 5.0 - 1.0
+println 2.5 * 2.0
+println 9.0 / (3 / 2)
+println 0.0 == 0.0
+println 1.0 != 0.0
+println 0.0 < 1.0
+println 1.0 > 0.0
+println 0.0 <= 0.0 
+println 0.0 <= 1.0
+println 0.0 >= 0.0
+println 1.0 >= 0.0

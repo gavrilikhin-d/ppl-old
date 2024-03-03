@@ -19,6 +19,7 @@ e2e!(non_class_constructor);
 e2e!(plus_assign);
 e2e!(predeclare_function);
 e2e!(predeclare_vars);
+e2e!(rational);
 e2e!(reference_mut);
 e2e!(references);
 e2e!(specify_variable_ty);

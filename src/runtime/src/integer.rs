@@ -100,7 +100,7 @@ pub extern "C" fn integer_slash_integer(x: *const Integer, y: *const Integer) ->
     let x = unsafe { x.as_ref().unwrap() };
     let y = unsafe { y.as_ref().unwrap() };
 
-    let boxed = Box::new(Rational::from(x / y));
+    let boxed = Box::new(Rational::from(x) / y);
     Box::into_raw(boxed)
 }
 
