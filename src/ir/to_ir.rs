@@ -208,7 +208,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Variable {
     }
 }
 
-impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for ClassDeclaration {
+impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for ClassData {
     type IR = inkwell::types::AnyTypeEnum<'llvm>;
 
     /// Lower [`TypeDeclaration`] to LLVM IR

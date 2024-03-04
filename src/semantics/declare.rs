@@ -219,8 +219,8 @@ impl Declare for ast::TraitDeclaration {
 }
 
 impl Declare for ast::TypeDeclaration {
-    type Declaration = Arc<hir::ClassDeclaration>;
-    type Definition = Arc<hir::ClassDeclaration>;
+    type Declaration = Arc<hir::ClassData>;
+    type Definition = Arc<hir::ClassData>;
 
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
         let annotations = self
@@ -242,7 +242,7 @@ impl Declare for ast::TypeDeclaration {
         let generic_parameters: Vec<Type> = self.generic_parameters.to_hir(context)?;
 
         // TODO: recursive types
-        let ty = Arc::new(hir::ClassDeclaration {
+        let ty = Arc::new(hir::ClassData {
             keyword: self.keyword.clone(),
             basename: self.name.clone(),
             specialization_of: None,
@@ -268,7 +268,7 @@ impl Declare for ast::TypeDeclaration {
         };
 
         // TODO: recursive types
-        let ty = Arc::new(hir::ClassDeclaration {
+        let ty = Arc::new(hir::ClassData {
             members: self
                 .members
                 .iter()

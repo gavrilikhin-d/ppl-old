@@ -15,7 +15,7 @@ where
     }
 }
 
-impl Implements for Arc<hir::ClassDeclaration> {}
+impl Implements for Arc<hir::ClassData> {}
 
 /// Helper struct to do check within context
 pub struct ImplementsCheck<'s, S> {
@@ -23,7 +23,7 @@ pub struct ImplementsCheck<'s, S> {
     tr: Arc<hir::TraitDeclaration>,
 }
 
-impl ImplementsCheck<'_, Arc<hir::ClassDeclaration>> {
+impl ImplementsCheck<'_, Arc<hir::ClassData>> {
     pub fn within(self, context: &mut impl Context) -> Result<(), NotImplemented> {
         let unimplemented: Vec<_> = self
             .tr

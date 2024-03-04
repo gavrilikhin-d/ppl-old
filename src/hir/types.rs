@@ -7,9 +7,7 @@ use std::{
 
 use crate::{mutability::Mutable, named::Named, syntax::Identifier, AddSourceLocation};
 
-use super::{
-    Basename, BuiltinClass, ClassDeclaration, Generic, Member, TraitDeclaration, TypeReference,
-};
+use super::{Basename, BuiltinClass, ClassData, Generic, Member, TraitDeclaration, TypeReference};
 use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
 
@@ -167,7 +165,7 @@ impl Display for GenericType {
 #[derive(Debug, Display, PartialEq, Eq, Hash, Clone, From, TryInto)]
 pub enum Type {
     /// User defined type
-    Class(Arc<ClassDeclaration>),
+    Class(Arc<ClassData>),
     /// User defined trait
     Trait(Arc<TraitDeclaration>),
     /// Self type and trait it represents
@@ -310,7 +308,7 @@ impl Type {
     /// Convert this to class type
     /// # Panics
     /// Panics if this is not a class type
-    pub fn as_class(self) -> Arc<ClassDeclaration> {
+    pub fn as_class(self) -> Arc<ClassData> {
         self.try_into().unwrap()
     }
 
@@ -383,13 +381,13 @@ mod tests {
 
     use crate::{
         ast,
-        hir::{ClassDeclaration, GenericType, SpecializeParameters, Type},
+        hir::{ClassData, GenericType, SpecializeParameters, Type},
         named::Named,
         semantics::ToHIR,
     };
 
     /// Get type declaration from source
-    fn type_decl(source: &str) -> Arc<ClassDeclaration> {
+    fn type_decl(source: &str) -> Arc<ClassData> {
         source
             .parse::<ast::TypeDeclaration>()
             .unwrap()

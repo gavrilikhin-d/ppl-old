@@ -366,18 +366,18 @@ impl ToHIR for ast::Constructor {
     /// Lower [`ast::Constructor`] to [`hir::Constructor`] within lowering context
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         let mut ty = self.ty.to_hir(context)?;
-        let generic_ty: Arc<hir::ClassDeclaration> = ty
-            .referenced_type
-            .clone()
-            .try_into()
-            .map_err(|_| NonClassConstructor {
-                ty: TypeWithSpan {
-                    at: self.ty.range().into(),
-                    ty: ty.referenced_type.clone(),
-                    // TODO: real source file
-                    source_file: None,
-                },
-            })?;
+        let generic_ty: Arc<hir::ClassData> =
+            ty.referenced_type
+                .clone()
+                .try_into()
+                .map_err(|_| NonClassConstructor {
+                    ty: TypeWithSpan {
+                        at: self.ty.range().into(),
+                        ty: ty.referenced_type.clone(),
+                        // TODO: real source file
+                        source_file: None,
+                    },
+                })?;
 
         let mut members = ty.referenced_type.members().to_vec();
 

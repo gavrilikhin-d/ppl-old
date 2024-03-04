@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use super::{ClassDeclaration, FunctionType, Generic, Member, Type};
+use super::{ClassData, FunctionType, Generic, Member, Type};
 
 /// Specialize type using given mapping
 pub trait Specialize
@@ -30,7 +30,7 @@ impl Specialize for Type {
     }
 }
 
-impl Specialize for Arc<ClassDeclaration> {
+impl Specialize for Arc<ClassData> {
     fn specialize_with(self, mapping: &HashMap<Type, Type>) -> Self::Output {
         if !self.is_generic() {
             return self;
@@ -58,7 +58,7 @@ impl Specialize for Arc<ClassDeclaration> {
             return self;
         }
 
-        Arc::new(ClassDeclaration {
+        Arc::new(ClassData {
             specialization_of: self.specialization_of.clone().or(Some(self.clone())),
             generic_parameters,
             members,
@@ -99,7 +99,7 @@ where
     fn specialize_parameters(self, args: impl IntoIterator<Item = Type>) -> Self::Output;
 }
 
-impl SpecializeParameters for Arc<ClassDeclaration> {
+impl SpecializeParameters for Arc<ClassData> {
     fn specialize_parameters(self, args: impl IntoIterator<Item = Type>) -> Self::Output {
         let mapping = HashMap::from_iter((&self).generics().into_iter().cloned().zip(args));
         self.specialize_with(&mapping)

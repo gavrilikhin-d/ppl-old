@@ -5,7 +5,7 @@ use std::fmt::Display;
 use derive_more::From;
 use miette::NamedSource;
 
-use crate::hir::{ClassDeclaration, Statement, Variable};
+use crate::hir::{ClassData, Statement, Variable};
 use crate::named::Named;
 use crate::SourceFile;
 use std::sync::Arc;
@@ -16,7 +16,7 @@ use super::{Function, TraitDeclaration, Type};
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum ClassOrTrait {
     /// Class declaration
-    Class(Arc<ClassDeclaration>),
+    Class(Arc<ClassData>),
     /// Trait declaration
     Trait(Arc<TraitDeclaration>),
 }

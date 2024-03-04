@@ -4,11 +4,10 @@ use log::{debug, trace};
 
 use crate::{
     hir::{
-        Assignment, Call, ClassDeclaration, Constructor, Declaration, Else, ElseIf, Expression,
-        Function, FunctionData, FunctionNamePart, Generic, If, ImplicitConversion,
-        ImplicitConversionKind, Initializer, Loop, Member, MemberReference, ModuleData, Parameter,
-        ParameterOrVariable, Return, Statement, Type, TypeReference, Typed, Variable,
-        VariableReference, While,
+        Assignment, Call, ClassData, Constructor, Declaration, Else, ElseIf, Expression, Function,
+        FunctionData, FunctionNamePart, Generic, If, ImplicitConversion, ImplicitConversionKind,
+        Initializer, Loop, Member, MemberReference, ModuleData, Parameter, ParameterOrVariable,
+        Return, Statement, Type, TypeReference, Typed, Variable, VariableReference, While,
     },
     mutability::Mutable,
     semantics::{ConvertibleTo, GenericContext},
@@ -228,7 +227,7 @@ impl Monomorphize for Type {
     }
 }
 
-impl Monomorphize for Arc<ClassDeclaration> {
+impl Monomorphize for Arc<ClassData> {
     fn monomorphize(&mut self, context: &mut impl Context) {
         if !self.is_generic() {
             trace!(target: "monomorphizing-skipped", "\n{self:#}");

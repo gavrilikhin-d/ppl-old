@@ -99,7 +99,7 @@ impl BuiltinTypes<'_> {
 
 #[cfg(test)]
 mod test {
-    use crate::{compilation::Compiler, hir::ClassDeclaration, named::Named};
+    use crate::{compilation::Compiler, hir::ClassData, named::Named};
 
     use super::BuiltinTypes;
 
@@ -117,7 +117,7 @@ mod test {
         assert_str_eq!(none_ty.name(), "Type<None>");
         assert_eq!(
             none_ty.clone().as_class().as_ref(),
-            &ClassDeclaration {
+            &ClassData {
                 specialization_of: Some(ty.clone().as_class()),
                 generic_parameters: vec![none.clone().into()],
                 ..ty.clone().as_class().as_ref().clone()
@@ -128,7 +128,7 @@ mod test {
         assert_str_eq!(type_of_type.name(), "Type<Type<None>>");
         assert_eq!(
             type_of_type.clone().as_class().as_ref(),
-            &ClassDeclaration {
+            &ClassData {
                 specialization_of: Some(ty.clone().as_class()),
                 generic_parameters: vec![none_ty.clone().into()],
                 ..ty.clone().as_class().as_ref().clone()

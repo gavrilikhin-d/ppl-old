@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    hir::{ClassDeclaration, Function, SelfType, TraitDeclaration, Type, Variable},
+    hir::{ClassData, Function, SelfType, TraitDeclaration, Type, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
 };
@@ -65,7 +65,7 @@ impl AddDeclaration for TraitContext<'_> {
         Some(self.parent as _)
     }
 
-    fn add_type(&mut self, _ty: Arc<ClassDeclaration>) {
+    fn add_type(&mut self, _ty: Arc<ClassData>) {
         todo!("types in traits")
     }
 

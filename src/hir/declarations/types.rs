@@ -99,13 +99,13 @@ impl FromStr for BuiltinClass {
 
 /// Declaration of a type
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub struct ClassDeclaration {
+pub struct ClassData {
     /// Keyword `type`
     pub keyword: Keyword<"type">,
     /// Type's name
     pub basename: Identifier,
     /// Base generic type, if this is a specialization
-    pub specialization_of: Option<Arc<ClassDeclaration>>,
+    pub specialization_of: Option<Arc<ClassData>>,
     /// Generic parameters of type
     pub generic_parameters: Vec<Type>,
     /// Kind of a builtin type, if it is a builtin class
@@ -114,7 +114,7 @@ pub struct ClassDeclaration {
     pub members: Vec<Arc<Member>>,
 }
 
-impl ClassDeclaration {
+impl ClassData {
     /// Get member by name
     pub fn members(&self) -> &[Arc<Member>] {
         self.members.as_slice()
@@ -190,7 +190,7 @@ impl ClassDeclaration {
     }
 }
 
-impl Generic for ClassDeclaration {
+impl Generic for ClassData {
     /// Is this a generic type?
     fn is_generic(&self) -> bool {
         self.generic_parameters.iter().any(|p| p.is_generic())
@@ -198,13 +198,13 @@ impl Generic for ClassDeclaration {
     }
 }
 
-impl Basename for ClassDeclaration {
+impl Basename for ClassData {
     fn basename(&self) -> Cow<'_, str> {
         self.basename.as_str().into()
     }
 }
 
-impl Display for ClassDeclaration {
+impl Display for ClassData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if f.alternate() {
             let indent = f.width().unwrap_or(0);
@@ -227,9 +227,9 @@ impl Display for ClassDeclaration {
     }
 }
 
-impl AddSourceLocation for Arc<ClassDeclaration> {}
+impl AddSourceLocation for Arc<ClassData> {}
 
-impl Named for ClassDeclaration {
+impl Named for ClassData {
     /// Get name of type
     fn name(&self) -> Cow<'_, str> {
         if self.generic_parameters.is_empty() {
@@ -249,7 +249,7 @@ impl Named for ClassDeclaration {
     }
 }
 
-impl Mutable for ClassDeclaration {
+impl Mutable for ClassData {
     fn is_mutable(&self) -> bool {
         match self.builtin {
             Some(BuiltinClass::ReferenceMut) => true,
@@ -258,7 +258,7 @@ impl Mutable for ClassDeclaration {
     }
 }
 
-impl Ranged for ClassDeclaration {
+impl Ranged for ClassData {
     fn start(&self) -> usize {
         self.keyword.start()
     }
@@ -289,7 +289,7 @@ mod tests {
 
         assert_eq!(
             *type_decl,
-            ClassDeclaration {
+            ClassData {
                 keyword: Keyword::<"type">::at(0),
                 basename: Identifier::from("x").at(5),
                 specialization_of: None,
@@ -310,7 +310,7 @@ mod tests {
 
         assert_eq!(
             *type_decl,
-            ClassDeclaration {
+            ClassData {
                 keyword: Keyword::<"type">::at(0),
                 basename: Identifier::from("Point").at(5),
                 specialization_of: None,
@@ -355,7 +355,7 @@ mod tests {
 
         assert_eq!(
             *type_decl,
-            ClassDeclaration {
+            ClassData {
                 keyword: Keyword::<"type">::at(0),
                 basename: Identifier::from("Point").at(5),
                 specialization_of: None,

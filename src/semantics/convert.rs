@@ -2,8 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     hir::{
-        ClassDeclaration, Expression, FunctionType, GenericType, SelfType, TraitDeclaration, Type,
-        Typed,
+        ClassData, Expression, FunctionType, GenericType, SelfType, TraitDeclaration, Type, Typed,
     },
     mutability::Mutable,
     semantics::error::ReferenceMutToImmutable,
@@ -52,8 +51,8 @@ impl ConvertibleToRequest<'_, Type> {
     }
 }
 
-impl ConvertibleTo for Arc<ClassDeclaration> {}
-impl ConvertibleToRequest<'_, Arc<ClassDeclaration>> {
+impl ConvertibleTo for Arc<ClassData> {}
+impl ConvertibleToRequest<'_, Arc<ClassData>> {
     /// Check if struct type can be converted to another type within context
     pub fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
         let from = self.from;
