@@ -7,7 +7,7 @@ use indexmap::IndexMap;
 
 use crate::{
     ast,
-    hir::{ClassDeclaration, FunctionData, ModuleData, TraitDeclaration},
+    hir::{ClassData, FunctionData, ModuleData, TraitDeclaration},
     named::Named,
     semantics::{InsertDestructors, ModuleContext, ToHIR},
     SourceFile,
@@ -73,7 +73,7 @@ pub struct Compiler {
     /// Functions from all modules
     pub functions: Vec<FunctionData>,
     /// Classes from all modules
-    pub classes: IndexMap<String, ClassDeclaration>,
+    pub classes: IndexMap<String, ClassData>,
     /// Traits from all modules
     pub traits: IndexMap<String, TraitDeclaration>,
     /// Root directory of the compiler

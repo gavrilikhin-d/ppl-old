@@ -7,9 +7,7 @@ use std::{
 
 use crate::{mutability::Mutable, named::Named, syntax::Identifier, AddSourceLocation};
 
-use super::{
-    Basename, BuiltinClass, ClassDeclaration, Generic, Member, TraitDeclaration, TypeReference,
-};
+use super::{Basename, BuiltinClass, Class, Generic, Member, TraitDeclaration, TypeReference};
 use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
 
@@ -167,7 +165,7 @@ impl Display for GenericType {
 #[derive(Debug, Display, PartialEq, Eq, Hash, Clone, From, TryInto)]
 pub enum Type {
     /// User defined type
-    Class(Arc<ClassDeclaration>),
+    Class(Class),
     /// User defined trait
     Trait(Arc<TraitDeclaration>),
     /// Self type and trait it represents
@@ -200,10 +198,12 @@ impl Type {
         }
 
         match (&from, &to) {
-            (Type::Class(from), Type::Class(to)) if from.basename == to.basename => from
-                .generic_parameters
+            (Type::Class(from), Type::Class(to)) if from.basename() == to.basename() => from
+                .read()
+                .unwrap()
+                .generics()
                 .iter()
-                .zip(to.generic_parameters.iter())
+                .zip(to.read().unwrap().generics().iter())
                 .flat_map(|(t1, t2)| t1.diff(t2.clone()))
                 .collect(),
             _ => HashMap::from_iter(std::iter::once((from.clone(), to))),
@@ -220,18 +220,18 @@ impl Type {
     }
 
     /// Get generic parameters of type
-    pub fn generics(&self) -> &[Type] {
+    pub fn generics(&self) -> Vec<Type> {
         match self {
-            Type::Class(c) => c.generics(),
-            _ => &[],
+            Type::Class(c) => c.read().unwrap().generics().into(),
+            _ => vec![],
         }
     }
 
     /// Get members of type
-    pub fn members(&self) -> &[Arc<Member>] {
+    pub fn members(&self) -> Vec<Arc<Member>> {
         match self {
-            Type::Class(c) => c.members(),
-            _ => &[],
+            Type::Class(c) => c.read().unwrap().members().into(),
+            _ => vec![],
         }
     }
 
@@ -254,7 +254,7 @@ impl Type {
     /// Get builtin class tag for this type
     pub fn builtin(&self) -> Option<BuiltinClass> {
         match self {
-            Type::Class(c) => c.builtin.clone(),
+            Type::Class(c) => c.read().unwrap().builtin.clone(),
             _ => None,
         }
     }
@@ -278,7 +278,7 @@ impl Type {
     /// Is this a builtin `I32` type?
     pub fn is_i32(&self) -> bool {
         match self.without_ref() {
-            Type::Class(c) => c.is_i32(),
+            Type::Class(c) => c.read().unwrap().is_i32(),
             _ => false,
         }
     }
@@ -286,7 +286,7 @@ impl Type {
     /// Is this a builtin "Integer" type?
     pub fn is_integer(&self) -> bool {
         match self.without_ref() {
-            Type::Class(c) => c.is_integer(),
+            Type::Class(c) => c.read().unwrap().is_integer(),
             _ => false,
         }
     }
@@ -294,7 +294,7 @@ impl Type {
     /// Is this a builtin "String" type?
     pub fn is_string(&self) -> bool {
         match self.without_ref() {
-            Type::Class(c) => c.is_string(),
+            Type::Class(c) => c.read().unwrap().is_string(),
             _ => false,
         }
     }
@@ -302,7 +302,7 @@ impl Type {
     /// Is this a builtin `Reference` or `ReferenceMut` type?
     pub fn is_any_reference(&self) -> bool {
         match self {
-            Type::Class(c) => c.is_any_reference(),
+            Type::Class(c) => c.read().unwrap().is_any_reference(),
             _ => false,
         }
     }
@@ -310,14 +310,14 @@ impl Type {
     /// Convert this to class type
     /// # Panics
     /// Panics if this is not a class type
-    pub fn as_class(self) -> Arc<ClassDeclaration> {
+    pub fn as_class(self) -> Class {
         self.try_into().unwrap()
     }
 
     /// Size of type in bytes
     pub fn size_in_bytes(&self) -> usize {
         match self {
-            Type::Class(c) => c.size_in_bytes(),
+            Type::Class(c) => c.read().unwrap().size_in_bytes(),
             // TODO: implement size for other types
             _ => 0,
         }
@@ -328,7 +328,7 @@ impl Generic for Type {
     fn is_generic(&self) -> bool {
         match self {
             Type::SelfType(_) | Type::Trait(_) | Type::Generic(_) => true,
-            Type::Class(c) => c.is_generic(),
+            Type::Class(c) => c.read().unwrap().is_generic(),
             Type::Function(f) => f.is_generic(),
             Type::Unknown => unreachable!("Trying to check if not inferred type is generic"),
         }
@@ -338,7 +338,7 @@ impl Generic for Type {
 impl Basename for Type {
     fn basename(&self) -> Cow<'_, str> {
         match self {
-            Type::Class(c) => c.basename(),
+            Type::Class(c) => c.read().unwrap().basename().to_string().into(),
             _ => self.name(),
         }
     }
@@ -347,7 +347,7 @@ impl Basename for Type {
 impl Named for Type {
     fn name(&self) -> Cow<'_, str> {
         match self {
-            Type::Class(class) => class.name(),
+            Type::Class(class) => class.read().unwrap().name().to_string().into(),
             Type::Trait(tr) => tr.name(),
             Type::SelfType(s) => s.name(),
             Type::Function(f) => f.name(),
@@ -360,7 +360,7 @@ impl Named for Type {
 impl Mutable for Type {
     fn is_mutable(&self) -> bool {
         match self {
-            Type::Class(c) => c.is_mutable(),
+            Type::Class(c) => c.read().unwrap().is_mutable(),
             _ => false,
         }
     }
@@ -377,19 +377,19 @@ pub trait Typed {
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::HashMap, sync::Arc};
+    use std::collections::HashMap;
 
     use pretty_assertions::{assert_eq, assert_str_eq};
 
     use crate::{
         ast,
-        hir::{ClassDeclaration, GenericType, SpecializeParameters, Type},
+        hir::{Class, GenericType, SpecializeParameters, Type},
         named::Named,
         semantics::ToHIR,
     };
 
     /// Get type declaration from source
-    fn type_decl(source: &str) -> Arc<ClassDeclaration> {
+    fn type_decl(source: &str) -> Class {
         source
             .parse::<ast::TypeDeclaration>()
             .unwrap()

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use super::{ClassDeclaration, FunctionType, Generic, Member, Type};
+use super::{Class, ClassData, FunctionType, Generic, Member, Type};
 
 /// Specialize type using given mapping
 pub trait Specialize
@@ -30,20 +30,22 @@ impl Specialize for Type {
     }
 }
 
-impl Specialize for Arc<ClassDeclaration> {
+impl Specialize for Class {
     fn specialize_with(self, mapping: &HashMap<Type, Type>) -> Self::Output {
-        if !self.is_generic() {
+        if !self.read().unwrap().is_generic() {
             return self;
         }
 
-        let generic_parameters = self
+        let class = self.read().unwrap().clone();
+
+        let generic_parameters = class
             .generic_parameters
             .iter()
             .cloned()
             .map(|p| p.specialize_with(mapping))
             .collect::<Vec<_>>();
 
-        let members = self
+        let members = class
             .members
             .iter()
             .map(|m| {
@@ -54,15 +56,17 @@ impl Specialize for Arc<ClassDeclaration> {
             })
             .collect::<Vec<_>>();
 
-        if generic_parameters == self.generic_parameters && members == self.members {
+        if generic_parameters == self.read().unwrap().generic_parameters
+            && members == self.read().unwrap().members
+        {
             return self;
         }
 
-        Arc::new(ClassDeclaration {
-            specialization_of: self.specialization_of.clone().or(Some(self.clone())),
+        Class::new(ClassData {
+            specialization_of: class.specialization_of.clone().or(Some(self.clone())),
             generic_parameters,
             members,
-            ..self.as_ref().clone()
+            ..class
         })
     }
 }
@@ -99,9 +103,17 @@ where
     fn specialize_parameters(self, args: impl IntoIterator<Item = Type>) -> Self::Output;
 }
 
-impl SpecializeParameters for Arc<ClassDeclaration> {
+impl SpecializeParameters for Class {
     fn specialize_parameters(self, args: impl IntoIterator<Item = Type>) -> Self::Output {
-        let mapping = HashMap::from_iter((&self).generics().into_iter().cloned().zip(args));
+        let mapping = HashMap::from_iter(
+            (&self)
+                .read()
+                .unwrap()
+                .generics()
+                .into_iter()
+                .cloned()
+                .zip(args),
+        );
         self.specialize_with(&mapping)
     }
 }

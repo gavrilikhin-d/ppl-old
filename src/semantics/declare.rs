@@ -219,8 +219,8 @@ impl Declare for ast::TraitDeclaration {
 }
 
 impl Declare for ast::TypeDeclaration {
-    type Declaration = Arc<hir::ClassDeclaration>;
-    type Definition = Arc<hir::ClassDeclaration>;
+    type Declaration = hir::Class;
+    type Definition = hir::Class;
 
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
         let annotations = self
@@ -242,7 +242,7 @@ impl Declare for ast::TypeDeclaration {
         let generic_parameters: Vec<Type> = self.generic_parameters.to_hir(context)?;
 
         // TODO: recursive types
-        let ty = Arc::new(hir::ClassDeclaration {
+        let ty = hir::Class::new(hir::ClassData {
             keyword: self.keyword.clone(),
             basename: self.name.clone(),
             specialization_of: None,
@@ -263,23 +263,25 @@ impl Declare for ast::TypeDeclaration {
     ) -> Result<Self::Definition, Error> {
         let mut generic_context = GenericContext {
             parent: context,
-            generic_parameters: declaration.generic_parameters.clone(),
+            generic_parameters: declaration
+                .read()
+                .unwrap()
+                .generics()
+                .into_iter()
+                .cloned()
+                .collect(),
             generics_mapping: HashMap::new(),
         };
 
-        // TODO: recursive types
-        let ty = Arc::new(hir::ClassDeclaration {
-            members: self
-                .members
-                .iter()
-                .map(|m| m.to_hir(&mut generic_context))
-                .try_collect()?,
-            ..(*declaration).clone()
-        });
+        let members = self
+            .members
+            .iter()
+            .map(|m| m.to_hir(&mut generic_context))
+            .try_collect()?;
 
-        context.add_type(ty.clone());
+        declaration.write().unwrap().members = members;
 
-        Ok(ty)
+        Ok(declaration)
     }
 }
 
