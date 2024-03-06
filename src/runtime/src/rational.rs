@@ -1,5 +1,7 @@
 use rug::{ops::Pow, Integer};
 
+use crate::String;
+
 /// Rational number.
 /// Wrapper around pointer to [`rug::Rational`].
 ///
@@ -36,11 +38,13 @@ pub extern "C" fn rational_from_c_string(str: *const i8) -> Rational {
 /// fn <:Rational> as String -> String
 /// ```
 #[no_mangle]
-pub extern "C" fn rational_as_string(r: Rational) -> *mut String {
+pub extern "C" fn rational_as_string(r: Rational) -> String {
     let value = unsafe { r.data.as_ref().unwrap() };
 
     let boxed = Box::new(maybe_to_decimal_string(value));
-    Box::into_raw(boxed)
+    String {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Negates rational
@@ -145,7 +149,7 @@ pub extern "C" fn destroy_rational(x: Rational) {
     let _ = unsafe { Box::from_raw(x.data) };
 }
 
-pub fn maybe_to_decimal_string(r: &rug::Rational) -> String {
+pub fn maybe_to_decimal_string(r: &rug::Rational) -> std::string::String {
     let mut denom = r.denom().clone();
     let pow2 = denom.remove_factor_mut(&Integer::from(2));
     let pow5 = denom.remove_factor_mut(&Integer::from(5));

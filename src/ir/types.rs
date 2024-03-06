@@ -98,8 +98,8 @@ impl<'llvm> Types<'llvm> {
     }
 
     /// LLVM IR for [`String`](Type::String) type
-    pub fn string(&self) -> PointerType<'llvm> {
-        self.opaque("String")
+    pub fn string(&self) -> StructType<'llvm> {
+        self.with_impl("String")
     }
 
     /// LLVM IR for C string type

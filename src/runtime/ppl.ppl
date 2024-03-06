@@ -167,8 +167,11 @@ fn destroy <:Rational>
 //=================================
 //            String
 //=================================
+type StringImpl
+
 @builtin
-type String
+type String:
+	impl: Reference<StringImpl>
 
 /// Concatenate 2 strings
 @mangle_as("string_plus_string")

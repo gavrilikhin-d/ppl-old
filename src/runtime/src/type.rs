@@ -1,5 +1,7 @@
 use rug::Integer;
 
+use crate::String;
+
 /// Runtime type information
 ///
 /// # PPL
@@ -10,6 +12,6 @@ use rug::Integer;
 /// ```
 #[repr(C)]
 pub struct Type {
-    pub name: *mut String,
+    pub name: String,
     pub size: *mut Integer,
 }
