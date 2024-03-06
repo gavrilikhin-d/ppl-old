@@ -208,7 +208,7 @@ impl Generic for Class {
 
 impl Basename for Class {
     fn basename(&self) -> Cow<'_, str> {
-        self.read().unwrap().to_string().into()
+        self.read().unwrap().basename().to_string().into()
     }
 }
 
