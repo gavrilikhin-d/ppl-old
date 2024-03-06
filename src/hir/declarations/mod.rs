@@ -22,7 +22,7 @@ use crate::{named::Named, syntax::Ranged};
 #[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto)]
 pub enum Declaration {
     Variable(Variable),
-    Type(Arc<ClassData>),
+    Type(Class),
     Function(Function),
     Trait(Arc<TraitDeclaration>),
 }
@@ -31,7 +31,7 @@ impl Named for Declaration {
     fn name(&self) -> Cow<'_, str> {
         match self {
             Declaration::Variable(decl) => decl.name(),
-            Declaration::Type(decl) => decl.name(),
+            Declaration::Type(decl) => decl.read().unwrap().name().to_string().into(),
             Declaration::Function(decl) => decl.name(),
             Declaration::Trait(decl) => decl.name(),
         }

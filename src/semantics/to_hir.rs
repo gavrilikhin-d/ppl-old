@@ -312,7 +312,6 @@ impl ToHIR for ast::TypeReference {
         let generics_mapping = HashMap::from_iter(
             ty.generics()
                 .into_iter()
-                .cloned()
                 .zip(generics.into_iter().map(|g| g.referenced_type)),
         );
 
@@ -366,7 +365,7 @@ impl ToHIR for ast::Constructor {
     /// Lower [`ast::Constructor`] to [`hir::Constructor`] within lowering context
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         let mut ty = self.ty.to_hir(context)?;
-        let generic_ty: Arc<hir::ClassData> =
+        let generic_ty: hir::Class =
             ty.referenced_type
                 .clone()
                 .try_into()
@@ -382,7 +381,13 @@ impl ToHIR for ast::Constructor {
         let mut members = ty.referenced_type.members().to_vec();
 
         let mut constructor_context = GenericContext {
-            generic_parameters: generic_ty.generic_parameters.clone(),
+            generic_parameters: generic_ty
+                .read()
+                .unwrap()
+                .generics()
+                .into_iter()
+                .cloned()
+                .collect(),
             generics_mapping: HashMap::new(),
             parent: context,
         };
@@ -445,18 +450,19 @@ impl ToHIR for ast::Constructor {
             }
         }
 
-        if initializers.len() != generic_ty.members.len() {
+        let len = generic_ty.read().unwrap().members().len();
+        if initializers.len() != len {
             assert!(
-                initializers.len() < generic_ty.members.len(),
+                initializers.len() < len,
                 "impossible to have more initializers at this point"
             );
-            let diff = (0..generic_ty.members.len())
-                .filter(|i| initializers.iter().find(|init| init.index == *i).is_none());
+            let diff =
+                (0..len).filter(|i| initializers.iter().find(|init| init.index == *i).is_none());
             return Err(MissingFields {
                 ty: ty.referenced_type.clone(),
                 at: self.ty.name.range().into(),
                 fields: diff
-                    .map(|i| generic_ty.members[i].name().to_string())
+                    .map(|i| generic_ty.read().unwrap().members()[i].name().to_string())
                     .collect::<Vec<_>>()
                     .into(),
             }

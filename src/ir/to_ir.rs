@@ -29,7 +29,7 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for Type {
         trace!(target: "to_ir", "{self}");
 
         match self {
-            Type::Class(ty) => ty.to_ir(context).into(),
+            Type::Class(ty) => ty.read().unwrap().to_ir(context).into(),
             Type::SelfType(_) => unreachable!("Self must not be lowered to IR"),
             Type::Trait(_) => unreachable!("Trait must not be lowered to IR"),
             Type::Generic(_) => unreachable!("Generic must not be lowered to IR"),
@@ -51,6 +51,7 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Declaration {
                 var.to_ir(context);
             }
             Declaration::Type(ty) => {
+                let ty = ty.read().unwrap();
                 if !ty.is_generic() {
                     ty.to_ir(context);
                 }
@@ -79,6 +80,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Declaration {
                 var.to_ir(context);
             }
             Declaration::Type(ty) => {
+                let ty = ty.read().unwrap();
                 if !ty.is_generic() {
                     ty.to_ir(context);
                 }
@@ -635,6 +637,7 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Expression {
         let ptr = value.into_pointer_value();
         match self.ty() {
             Type::Class(cl) => {
+                let cl = cl.read().unwrap();
                 // FIXME: this is very error prone
                 if cl.is_opaque()
                     && !(cl.is_none() || cl.is_bool() || cl.is_i32() || self.is_reference())

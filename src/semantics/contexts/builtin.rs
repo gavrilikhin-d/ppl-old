@@ -116,22 +116,22 @@ mod test {
         let none_ty = builtin.type_of(none.clone());
         assert_str_eq!(none_ty.name(), "Type<None>");
         assert_eq!(
-            none_ty.clone().as_class().as_ref(),
-            &ClassData {
+            *none_ty.clone().as_class().read().unwrap(),
+            ClassData {
                 specialization_of: Some(ty.clone().as_class()),
                 generic_parameters: vec![none.clone().into()],
-                ..ty.clone().as_class().as_ref().clone()
+                ..ty.clone().as_class().read().unwrap().clone()
             }
         );
 
         let type_of_type = builtin.type_of(none_ty.clone());
         assert_str_eq!(type_of_type.name(), "Type<Type<None>>");
         assert_eq!(
-            type_of_type.clone().as_class().as_ref(),
-            &ClassData {
+            *type_of_type.clone().as_class().read().unwrap(),
+            ClassData {
                 specialization_of: Some(ty.clone().as_class()),
                 generic_parameters: vec![none_ty.clone().into()],
-                ..ty.clone().as_class().as_ref().clone()
+                ..ty.clone().as_class().read().unwrap().clone()
             }
         );
     }

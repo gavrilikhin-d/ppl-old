@@ -1,9 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    hir::{
-        ClassData, Expression, FunctionType, GenericType, SelfType, TraitDeclaration, Type, Typed,
-    },
+    hir::{Class, Expression, FunctionType, GenericType, SelfType, TraitDeclaration, Type, Typed},
     mutability::Mutable,
     semantics::error::ReferenceMutToImmutable,
     syntax::Ranged,
@@ -51,19 +49,22 @@ impl ConvertibleToRequest<'_, Type> {
     }
 }
 
-impl ConvertibleTo for Arc<ClassData> {}
-impl ConvertibleToRequest<'_, Arc<ClassData>> {
+impl ConvertibleTo for Class {}
+impl ConvertibleToRequest<'_, Class> {
     /// Check if struct type can be converted to another type within context
     pub fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
         let from = self.from;
         let to = self.to;
         Ok(match to {
             Type::Class(to) => {
-                if to.specialization_of == Some(from.clone())
-                    || from.specialization_of.is_some()
-                        && to.specialization_of == from.specialization_of
+                let to = to.read().unwrap();
+                if to.specialization_of == Some(self.from.clone())
+                    || from.read().unwrap().specialization_of.is_some()
+                        && to.specialization_of == from.read().unwrap().specialization_of
                 {
-                    from.generics()
+                    from.read()
+                        .unwrap()
+                        .generics()
                         .iter()
                         .zip(to.generics().iter())
                         .all(|(from, to)| {
@@ -74,7 +75,7 @@ impl ConvertibleToRequest<'_, Arc<ClassData>> {
                                 .is_ok_and(|convertible| convertible)
                         })
                 } else {
-                    *from == to
+                    *from.read().unwrap() == *to
                 }
             }
             Type::Trait(tr) => from.implements(tr.clone()).within(context).map(|_| true)?,

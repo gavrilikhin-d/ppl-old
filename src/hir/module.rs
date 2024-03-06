@@ -5,18 +5,18 @@ use std::fmt::Display;
 use derive_more::From;
 use miette::NamedSource;
 
-use crate::hir::{ClassData, Statement, Variable};
+use crate::hir::{Statement, Variable};
 use crate::named::Named;
 use crate::SourceFile;
 use std::sync::Arc;
 
-use super::{Function, TraitDeclaration, Type};
+use super::{Class, Function, TraitDeclaration, Type};
 
 /// Class or trait
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum ClassOrTrait {
     /// Class declaration
-    Class(Arc<ClassData>),
+    Class(Class),
     /// Trait declaration
     Trait(Arc<TraitDeclaration>),
 }
@@ -33,7 +33,7 @@ impl From<ClassOrTrait> for Type {
 impl Named for ClassOrTrait {
     fn name(&self) -> Cow<'_, str> {
         match self {
-            ClassOrTrait::Class(c) => c.name(),
+            ClassOrTrait::Class(c) => c.read().unwrap().name().to_string().into(),
             ClassOrTrait::Trait(t) => t.name(),
         }
     }

@@ -1,4 +1,11 @@
-use std::{borrow::Cow, fmt::Display, str::FromStr, sync::Arc};
+use std::{
+    borrow::Cow,
+    fmt::Display,
+    hash::Hash,
+    ops::Range,
+    str::FromStr,
+    sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard},
+};
 
 use crate::{
     hir::{Basename, Generic, Type, Typed},
@@ -97,6 +104,135 @@ impl FromStr for BuiltinClass {
     }
 }
 
+/// Class data holder
+#[derive(Debug, Clone)]
+pub struct Class {
+    inner: Arc<RwLock<ClassData>>,
+}
+
+impl Class {
+    /// Create a new class from its data
+    pub fn new(data: ClassData) -> Self {
+        Class {
+            inner: Arc::new(RwLock::new(data)),
+        }
+    }
+
+    /// Lock class for reading
+    pub fn read(&self) -> LockResult<RwLockReadGuard<'_, ClassData>> {
+        self.inner.read()
+    }
+
+    /// Lock class for writing
+    pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, ClassData>> {
+        self.inner.write()
+    }
+
+    /// Is this a builtin type?
+    pub fn is_builtin(&self) -> bool {
+        self.read().unwrap().is_builtin()
+    }
+
+    /// Is this a builtin "None" type?
+    pub fn is_none(&self) -> bool {
+        self.read().unwrap().is_none()
+    }
+
+    /// Is this a builtin "Bool" type?
+    pub fn is_bool(&self) -> bool {
+        self.read().unwrap().is_bool()
+    }
+
+    /// Is this a builtin `I32` type?
+    pub fn is_i32(&self) -> bool {
+        self.read().unwrap().is_i32()
+    }
+
+    /// Is this a builtin "Integer" type?
+    pub fn is_integer(&self) -> bool {
+        self.read().unwrap().is_integer()
+    }
+
+    /// Is this a builtin "Rational" type?
+    pub fn is_rational(&self) -> bool {
+        self.read().unwrap().is_rational()
+    }
+
+    /// Is this a builtin "String" type?
+    pub fn is_string(&self) -> bool {
+        self.read().unwrap().is_string()
+    }
+
+    /// Is this a builtin `Reference` or `ReferenceMut` type?
+    pub fn is_any_reference(&self) -> bool {
+        self.read().unwrap().is_any_reference()
+    }
+
+    /// Is this an opaque type?
+    pub fn is_opaque(&self) -> bool {
+        self.read().unwrap().is_opaque()
+    }
+
+    /// Get size in bytes for this type
+    pub fn size_in_bytes(&self) -> usize {
+        self.read().unwrap().size_in_bytes()
+    }
+}
+
+impl PartialEq for Class {
+    fn eq(&self, other: &Self) -> bool {
+        *self.read().unwrap() == *other.read().unwrap()
+    }
+}
+
+impl Eq for Class {}
+
+impl Hash for Class {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.read().unwrap().hash(state)
+    }
+}
+
+impl Display for Class {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.read().unwrap().fmt(f)
+    }
+}
+
+impl Generic for Class {
+    /// Is this a generic type?
+    fn is_generic(&self) -> bool {
+        self.read().unwrap().is_generic()
+    }
+}
+
+impl Basename for Class {
+    fn basename(&self) -> Cow<'_, str> {
+        self.read().unwrap().to_string().into()
+    }
+}
+
+impl AddSourceLocation for Class {}
+
+impl Named for Class {
+    /// Get name of type
+    fn name(&self) -> Cow<'_, str> {
+        self.read().unwrap().name().to_string().into()
+    }
+}
+
+impl Mutable for Class {
+    fn is_mutable(&self) -> bool {
+        self.read().unwrap().is_mutable()
+    }
+}
+
+impl Ranged for Class {
+    fn range(&self) -> Range<usize> {
+        self.read().unwrap().range()
+    }
+}
+
 /// Declaration of a type
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct ClassData {
@@ -105,7 +241,7 @@ pub struct ClassData {
     /// Type's name
     pub basename: Identifier,
     /// Base generic type, if this is a specialization
-    pub specialization_of: Option<Arc<ClassData>>,
+    pub specialization_of: Option<Class>,
     /// Generic parameters of type
     pub generic_parameters: Vec<Type>,
     /// Kind of a builtin type, if it is a builtin class
@@ -227,8 +363,6 @@ impl Display for ClassData {
     }
 }
 
-impl AddSourceLocation for Arc<ClassData> {}
-
 impl Named for ClassData {
     /// Get name of type
     fn name(&self) -> Cow<'_, str> {
@@ -288,7 +422,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            *type_decl,
+            *type_decl.read().unwrap(),
             ClassData {
                 keyword: Keyword::<"type">::at(0),
                 basename: Identifier::from("x").at(5),
@@ -309,7 +443,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            *type_decl,
+            *type_decl.read().unwrap(),
             ClassData {
                 keyword: Keyword::<"type">::at(0),
                 basename: Identifier::from("Point").at(5),
@@ -354,7 +488,7 @@ mod tests {
             .into();
 
         assert_eq!(
-            *type_decl,
+            *type_decl.read().unwrap(),
             ClassData {
                 keyword: Keyword::<"type">::at(0),
                 basename: Identifier::from("Point").at(5),
