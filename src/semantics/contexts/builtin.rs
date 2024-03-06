@@ -55,7 +55,18 @@ impl BuiltinTypes<'_> {
         self.module
             .types
             .get(name)
-            .expect(format!("Builtin type `{name}` should be present").as_str())
+            .expect(
+                format!(
+                    "Builtin type `{name}` should be present. Present types: {}",
+                    self.module
+                        .types
+                        .iter()
+                        .map(|t| t.0.clone())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                )
+                .as_str(),
+            )
             .clone()
             .into()
     }
