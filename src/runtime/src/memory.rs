@@ -1,7 +1,7 @@
 use libc::{c_void, malloc};
 use rug::Integer;
 
-use crate::{integer_from_i64, integer_from_u64, Type};
+use crate::{integer_from_i64, integer_from_u64, String, Type};
 
 #[repr(C)]
 pub struct MemoryAddress {
@@ -13,12 +13,14 @@ pub struct MemoryAddress {
 /// fn <address: MemoryAddress> as String -> String
 /// ```
 #[no_mangle]
-pub extern "C" fn memory_address_as_string(address: MemoryAddress) -> *mut String {
+pub extern "C" fn memory_address_as_string(address: MemoryAddress) -> String {
     let value = unsafe { address.value.as_ref().unwrap() };
 
     let hex = format!("0x{}", value.to_string_radix(16).to_uppercase());
     let boxed = Box::new(hex);
-    Box::into_raw(boxed)
+    String {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// # PPL

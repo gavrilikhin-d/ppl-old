@@ -1,6 +1,6 @@
 use rug::{ops::Pow, Integer};
 
-use crate::Rational;
+use crate::{Rational, String};
 
 /// Construct [`Integer`](ppl::semantics::Type::Integer) from i32
 #[no_mangle]
@@ -41,11 +41,13 @@ pub extern "C" fn integer_from_c_string(str: *const i8) -> *mut Integer {
 /// fn <:Integer> as String -> String
 /// ```
 #[no_mangle]
-pub extern "C" fn integer_as_string(i: *const Integer) -> *mut String {
+pub extern "C" fn integer_as_string(i: *const Integer) -> String {
     let i = unsafe { i.as_ref().unwrap() };
     let str = i.to_string();
     let boxed = Box::new(str);
-    Box::into_raw(boxed)
+    String {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Negates integer
@@ -218,9 +220,11 @@ pub extern "C" fn i32_plus_i32(x: i32, y: i32) -> i32 {
 /// fn <:I32> as String -> String
 /// ```
 #[no_mangle]
-pub extern "C" fn i32_as_string(x: i32) -> *mut String {
+pub extern "C" fn i32_as_string(x: i32) -> String {
     let boxed = Box::new(x.to_string());
-    Box::into_raw(boxed)
+    String {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// # PPL
