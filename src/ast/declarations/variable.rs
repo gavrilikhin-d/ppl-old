@@ -4,7 +4,7 @@ use ast_derive::AST;
 use crate::ast::{Expression, TypeReference};
 use crate::mutability::{Mutability, Mutable};
 use crate::syntax::error::{MissingVariableName, ParseError};
-use crate::syntax::{Context, Identifier, Keyword, Lexer, Parse, StartsHere, Token};
+use crate::syntax::{Context, Identifier, Keyword, Lexer, Parse, Ranged, StartsHere, Token};
 
 /// Declaration of the variable
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -20,6 +20,16 @@ pub struct VariableDeclaration {
 
     /// Is this variable mutable
     pub mutability: Mutability,
+}
+
+impl Ranged for VariableDeclaration {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.initializer.end()
+    }
 }
 
 impl Mutable for VariableDeclaration {

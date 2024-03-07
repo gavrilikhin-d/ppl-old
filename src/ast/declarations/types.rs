@@ -4,7 +4,7 @@ use ast_derive::AST;
 use crate::{
     ast::{Annotation, TypeReference},
     syntax::{
-        error::ParseError, Context, Identifier, Keyword, Lexer, Parse, StartsHere, Token
+        error::ParseError, Context, Identifier, Keyword, Lexer, Parse, Ranged, StartsHere, Token,
     },
 };
 
@@ -15,6 +15,16 @@ pub struct Member {
     pub name: Identifier,
     /// Type of member
     pub ty: TypeReference,
+}
+
+impl Ranged for Member {
+    fn start(&self) -> usize {
+        self.name.start()
+    }
+
+    fn end(&self) -> usize {
+        self.ty.end()
+    }
 }
 
 /// Parse single or multiple members, if they are separated by comma
@@ -75,6 +85,19 @@ pub struct TypeDeclaration {
     pub generic_parameters: Vec<GenericParameter>,
     /// Members of type
     pub members: Vec<Member>,
+}
+
+impl Ranged for TypeDeclaration {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.members
+            .last()
+            // FIXME: respect generic parameters
+            .map_or_else(|| self.name.end(), |s| s.end())
+    }
 }
 
 impl StartsHere for TypeDeclaration {

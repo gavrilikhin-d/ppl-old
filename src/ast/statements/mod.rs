@@ -1,4 +1,6 @@
 mod assignment;
+use std::ops::Range;
+
 pub use assignment::*;
 
 mod ret;
@@ -22,7 +24,7 @@ use ast_derive::AST;
 use crate::ast::{Declaration, Expression};
 use crate::syntax::error::MissingStatement;
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
-use crate::syntax::{Context, StartsHere};
+use crate::syntax::{Context, Ranged, StartsHere};
 
 use derive_more::From;
 
@@ -39,6 +41,22 @@ pub enum Statement {
     Loop(Loop),
     While(While),
     Use(Use),
+}
+
+impl Ranged for Statement {
+    fn range(&self) -> Range<usize> {
+        use Statement::*;
+        match self {
+            Declaration(s) => s.range(),
+            Expression(s) => s.range(),
+            Assignment(s) => s.range(),
+            Return(s) => s.range(),
+            If(s) => s.range(),
+            Loop(s) => s.range(),
+            While(s) => s.range(),
+            Use(s) => s.range(),
+        }
+    }
 }
 
 impl StartsHere for Statement {

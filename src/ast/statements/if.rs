@@ -3,7 +3,7 @@ use ast_derive::AST;
 
 use crate::ast::Expression;
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
-use crate::syntax::{Context, Keyword, StartsHere};
+use crate::syntax::{Context, Keyword, Ranged, StartsHere};
 
 use super::Statement;
 
@@ -19,6 +19,18 @@ pub struct ElseIf {
     pub body: Vec<Statement>,
 }
 
+impl Ranged for ElseIf {
+    fn start(&self) -> usize {
+        self.else_keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.body
+            .last()
+            .map_or_else(|| self.condition.end(), |s| s.end())
+    }
+}
+
 /// AST for else block
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Else {
@@ -26,6 +38,18 @@ pub struct Else {
     pub keyword: Keyword<"else">,
     /// Body of else statement
     pub body: Vec<Statement>,
+}
+
+impl Ranged for Else {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.body
+            .last()
+            .map_or_else(|| self.keyword.end(), |s| s.end())
+    }
 }
 
 /// AST for if-statement
@@ -41,6 +65,24 @@ pub struct If {
     pub else_ifs: Vec<ElseIf>,
     /// Else block
     pub else_block: Option<Else>,
+}
+
+impl Ranged for If {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        if let Some(else_block) = &self.else_block {
+            else_block.end()
+        } else if let Some(else_if) = self.else_ifs.last() {
+            else_if.end()
+        } else {
+            self.body
+                .last()
+                .map_or_else(|| self.condition.end(), |s| s.end())
+        }
+    }
 }
 
 impl StartsHere for If {
@@ -71,12 +113,17 @@ impl Parse for If {
 
                 context.lexer.consume(Token::Colon)?;
                 let body = context.parse_block(Statement::parse)?;
-                else_ifs.push(ElseIf { else_keyword, if_keyword, condition, body });
+                else_ifs.push(ElseIf {
+                    else_keyword,
+                    if_keyword,
+                    condition,
+                    body,
+                });
             } else {
                 context.lexer.consume(Token::Colon)?;
                 else_block = Some(Else {
                     keyword: else_keyword,
-                    body: context.parse_block(Statement::parse)?
+                    body: context.parse_block(Statement::parse)?,
                 });
                 break;
             }

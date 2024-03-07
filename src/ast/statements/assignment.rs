@@ -3,7 +3,7 @@ use ast_derive::AST;
 
 use crate::ast::Expression;
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
-use crate::syntax::{Context, StartsHere};
+use crate::syntax::{Context, Ranged, StartsHere};
 
 /// AST for assignment
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -12,6 +12,16 @@ pub struct Assignment {
     pub target: Expression,
     /// Expression to assign
     pub value: Expression,
+}
+
+impl Ranged for Assignment {
+    fn start(&self) -> usize {
+        self.target.start()
+    }
+
+    fn end(&self) -> usize {
+        self.value.end()
+    }
 }
 
 impl StartsHere for Assignment {

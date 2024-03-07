@@ -1,6 +1,6 @@
 let mut x = 1
 let y = reference to mutable x
 println y
-// y = 2
-// println y
-// println x
+y = 2
+println y
+println x

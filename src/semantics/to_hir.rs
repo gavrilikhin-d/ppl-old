@@ -816,26 +816,22 @@ impl ToHIR for ast::Module {
 
         let mut errors = Vec::new();
 
-        macro_rules! define {
-            () => {
-                |stmt: &S| {
-                    let res = stmt.to_hir(context);
-                    match res {
-                        Ok(mut stmt) => {
-                            stmt.monomorphize(context);
-                            context.module_mut().statements.push(stmt)
-                        }
-                        Err(err) => errors.push(err),
-                    }
-                }
-            };
-        }
-
         // Import things first
         self.statements
             .iter()
             .filter(|s| matches!(s, ast::Statement::Use(_)))
-            .for_each(define!());
+            .for_each(|stmt: &S| {
+                let res = stmt.to_hir(context);
+                match res {
+                    Ok(mut stmt) => {
+                        stmt.monomorphize(context);
+                        context.module_mut().statements.push(stmt)
+                    }
+                    Err(err) => errors.push(err),
+                }
+            });
+
+        let mut decls = HashMap::new();
 
         macro_rules! declare {
             () => {
@@ -846,8 +842,33 @@ impl ToHIR for ast::Module {
                     };
 
                     let res = decl.declare(context);
-                    if let Err(err) = res {
-                        errors.push(err);
+                    match res {
+                        Ok(decl) => {
+                            decls.insert(stmt.start(), decl);
+                        }
+                        Err(err) => {
+                            errors.push(err);
+                        }
+                    }
+                }
+            };
+        }
+
+        macro_rules! define {
+            () => {
+                |stmt: &S| {
+                    let decl: &D = match stmt {
+                        S::Declaration(d) => d,
+                        _ => return,
+                    };
+
+                    let res = decl.define(decls.remove(&decl.start()).unwrap(), context);
+                    match res {
+                        Ok(mut stmt) => {
+                            stmt.monomorphize(context);
+                            context.module_mut().statements.push(stmt.into())
+                        }
+                        Err(err) => errors.push(err),
                     }
                 }
             };
@@ -887,7 +908,16 @@ impl ToHIR for ast::Module {
         self.statements
             .iter()
             .filter(|s| !matches!(s, S::Use(_) | S::Declaration(_)))
-            .for_each(define!());
+            .for_each(|stmt: &S| {
+                let res = stmt.to_hir(context);
+                match res {
+                    Ok(mut stmt) => {
+                        stmt.monomorphize(context);
+                        context.module_mut().statements.push(stmt)
+                    }
+                    Err(err) => errors.push(err),
+                }
+            });
 
         if !errors.is_empty() {
             return Err(errors.into());

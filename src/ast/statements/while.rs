@@ -4,7 +4,7 @@ use ast_derive::AST;
 
 use crate::ast::{Expression, Statement};
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
-use crate::syntax::{Context, Keyword, StartsHere};
+use crate::syntax::{Context, Keyword, Ranged, StartsHere};
 
 /// AST for while loop
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -15,6 +15,18 @@ pub struct While {
     pub condition: Expression,
     /// Body of loop
     pub body: Vec<Statement>,
+}
+
+impl Ranged for While {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.body
+            .last()
+            .map_or_else(|| self.condition.end(), |s| s.end())
+    }
 }
 
 impl StartsHere for While {
@@ -37,6 +49,10 @@ impl Parse for While {
 
         let body = context.parse_block(Statement::parse)?;
 
-        Ok(While { keyword, condition, body })
+        Ok(While {
+            keyword,
+            condition,
+            body,
+        })
     }
 }

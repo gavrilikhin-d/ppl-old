@@ -1,4 +1,6 @@
 mod function;
+use std::ops::Range;
+
 pub use function::*;
 
 mod types;
@@ -15,7 +17,7 @@ use ast_derive::AST;
 
 use crate::syntax::{
     error::{MissingDeclaration, ParseError},
-    Context, Lexer, Parse, StartsHere, Token,
+    Context, Lexer, Parse, Ranged, StartsHere, Token,
 };
 
 use derive_more::From;
@@ -27,6 +29,18 @@ pub enum Declaration {
     Type(TypeDeclaration),
     Function(FunctionDeclaration),
     Trait(TraitDeclaration),
+}
+
+impl Ranged for Declaration {
+    fn range(&self) -> Range<usize> {
+        use Declaration::*;
+        match self {
+            Variable(s) => s.range(),
+            Type(s) => s.range(),
+            Function(s) => s.range(),
+            Trait(s) => s.range(),
+        }
+    }
 }
 
 impl StartsHere for Declaration {
