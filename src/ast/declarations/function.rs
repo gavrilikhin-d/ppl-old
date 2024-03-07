@@ -6,7 +6,8 @@ use derive_more::From;
 use crate::{
     ast::{Annotation, Expression, Statement, TypeReference},
     syntax::{
-        error::ParseError, Context, Identifier, Keyword, Lexer, OperatorKind, Parse, Ranged, StartsHere, StringWithOffset, Token
+        error::ParseError, Context, Identifier, Keyword, Lexer, OperatorKind, Parse, Ranged,
+        StartsHere, StringWithOffset, Token,
     },
 };
 
@@ -161,6 +162,19 @@ pub struct FunctionDeclaration {
 
     /// Annotations for function
     pub annotations: Vec<Annotation>,
+}
+
+impl Ranged for FunctionDeclaration {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.body
+            .last()
+            // FIXME: respect return_type, name_parts, generic_parameters
+            .map_or_else(|| self.keyword.end(), |s| s.end())
+    }
 }
 
 impl StartsHere for FunctionDeclaration {

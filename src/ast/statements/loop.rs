@@ -4,7 +4,7 @@ use ast_derive::AST;
 
 use crate::ast::Statement;
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
-use crate::syntax::{Context, Keyword, StartsHere};
+use crate::syntax::{Context, Keyword, Ranged, StartsHere};
 
 /// AST for infinite loop
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
@@ -12,6 +12,18 @@ pub struct Loop {
     pub keyword: Keyword<"loop">,
     /// Body of loop
     pub body: Vec<Statement>,
+}
+
+impl Ranged for Loop {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.body
+            .last()
+            .map_or_else(|| self.keyword.end(), |s| s.end())
+    }
 }
 
 impl StartsHere for Loop {

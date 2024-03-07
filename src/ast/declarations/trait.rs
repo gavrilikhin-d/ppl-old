@@ -2,7 +2,7 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use crate::syntax::{
-    error::ParseError, Context, Identifier, Keyword, Lexer, Parse, StartsHere, Token
+    error::ParseError, Context, Identifier, Keyword, Lexer, Parse, Ranged, StartsHere, Token,
 };
 
 use super::FunctionDeclaration;
@@ -16,6 +16,18 @@ pub struct TraitDeclaration {
     pub name: Identifier,
     /// Associated functions
     pub functions: Vec<FunctionDeclaration>,
+}
+
+impl Ranged for TraitDeclaration {
+    fn start(&self) -> usize {
+        self.keyword.start()
+    }
+
+    fn end(&self) -> usize {
+        self.functions
+            .last()
+            .map_or_else(|| self.name.end(), |s| s.end())
+    }
 }
 
 impl StartsHere for TraitDeclaration {
@@ -38,6 +50,10 @@ impl Parse for TraitDeclaration {
 
         let functions = context.parse_block(FunctionDeclaration::parse)?;
 
-        Ok(TraitDeclaration { keyword, name, functions })
+        Ok(TraitDeclaration {
+            keyword,
+            name,
+            functions,
+        })
     }
 }
