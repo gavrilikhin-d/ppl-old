@@ -36,10 +36,13 @@
 * [x] Support `use module.*` 
 * [x] Add tracing to compiler
 * [x] Don't define variables right away, when declaring them
+* [x] Fix `let y = &x; y`
+* [x] Fix definition of predeclared functions
 ---
 ### Current task
-* [ ] Fix definition of predeclared functions
 ---
+* [ ] Add type aliases
+* [ ] Add dependency analysis for modules and declarations
 * [ ] `<:T> as String` -> `String from <:T>`. `as` should mean force cast (analog of `try_from().unwrap()`)
 * [ ] Add all `c` types
 * [ ] Intern strings that are generated in IR
@@ -52,7 +55,6 @@
 * [ ] Run monomorphization from the top of the module
 * [ ] Reject lowercase names for types
 * [ ] Rebinding references
-* [ ] Fix `let y = &x; y`
 * [ ] Remove need for escaping `type` in `type of <:T>`
 * [ ] Fix crash in diagnostics due-to wrong source file
 * [ ] Add better errors for inferred generics
@@ -70,7 +72,6 @@
 * [ ] Fix bus error (caused by llvm 16 [issue](https://github.com/llvm/llvm-project/issues/60432))
 * [ ] Remove cached names from functions
 * [ ] Remove unnecessary information from errors (like `Error: <Type>`)
-* [ ] More functions to stdlib
 * [ ] Check compiler errors in repl too
 * [ ] Make statements to return `None` type for convenience
 * [ ] Make `if` to be an expression?
@@ -78,6 +79,7 @@
 * [ ] Fix memory leak due to pointers to builtin types
 * [ ] Explicit traits implementation
 * [ ] Functions as values
+* [ ] Add values as types (e.g `1 | 2 | "lol"`)
 * [ ] Add type unions `A | B`, `A & B`
 
 ## Important Implementation Details
