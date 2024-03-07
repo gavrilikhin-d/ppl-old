@@ -316,13 +316,6 @@ impl Declare for ast::VariableDeclaration {
         let mut initializer = self.initializer.to_hir(context)?;
         initializer.monomorphize(context);
 
-        let mutable = declaration.read().unwrap().is_mutable();
-        let specified_type = declaration.read().unwrap().type_reference.is_some();
-        if initializer.ty().builtin() == Some(hir::BuiltinClass::I32) && mutable && !specified_type
-        {
-            declaration.write().unwrap().ty = context.builtin().types().integer();
-        }
-
         let range = declaration.read().unwrap().name.range();
         let ty = declaration.read().unwrap().ty();
         if ty != Type::Unknown {
