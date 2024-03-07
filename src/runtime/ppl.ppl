@@ -69,8 +69,11 @@ fn <x: Bool> as String -> String:
 //=================================
 //            Integer
 //=================================
+type IntegerImpl
+
 @builtin
-type Integer
+type Integer:
+	impl: Reference<IntegerImpl>
 
 @mangle_as("integer_eq_integer")
 fn <:Integer> == <:Integer> -> Bool

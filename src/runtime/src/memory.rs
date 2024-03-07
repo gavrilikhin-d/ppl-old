@@ -1,11 +1,10 @@
 use libc::{c_void, malloc};
-use rug::Integer;
 
-use crate::{integer_from_i64, integer_from_u64, String, Type};
+use crate::{integer_from_i64, integer_from_u64, Integer, String, Type};
 
 #[repr(C)]
 pub struct MemoryAddress {
-    pub value: *mut Integer,
+    pub value: Integer,
 }
 
 /// # PPL
@@ -14,7 +13,7 @@ pub struct MemoryAddress {
 /// ```
 #[no_mangle]
 pub extern "C" fn memory_address_as_string(address: MemoryAddress) -> String {
-    let value = unsafe { address.value.as_ref().unwrap() };
+    let value = unsafe { address.value.data.as_ref().unwrap() };
 
     let hex = format!("0x{}", value.to_string_radix(16).to_uppercase());
     let boxed = Box::new(hex);
@@ -28,8 +27,8 @@ pub extern "C" fn memory_address_as_string(address: MemoryAddress) -> String {
 /// fn allocate <n: Integer> bytes -> MemoryAddress
 /// ```
 #[no_mangle]
-pub extern "C" fn allocate_n_bytes(n: *const Integer) -> MemoryAddress {
-    let n = unsafe { n.as_ref().unwrap() };
+pub extern "C" fn allocate_n_bytes(n: Integer) -> MemoryAddress {
+    let n = unsafe { n.data.as_ref().unwrap() };
 
     let n = n.to_usize();
     if n.is_none() {
@@ -52,7 +51,7 @@ pub extern "C" fn allocate_n_bytes(n: *const Integer) -> MemoryAddress {
 /// ```
 #[no_mangle]
 pub extern "C" fn free_memory(address: MemoryAddress) {
-    let address = unsafe { address.value.as_ref().unwrap() };
+    let address = unsafe { address.value.data.as_ref().unwrap() };
 
     let address = address.to_u64();
     if address.is_none() {
@@ -73,7 +72,7 @@ pub extern "C" fn free_memory(address: MemoryAddress) {
 pub extern "C" fn read_memory(ty: Type, address: MemoryAddress) -> *mut c_void {
     let _ = ty;
 
-    let address = unsafe { address.value.as_ref().unwrap() };
+    let address = unsafe { address.value.data.as_ref().unwrap() };
 
     let address = address.to_u64().unwrap();
 
