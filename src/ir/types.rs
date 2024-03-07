@@ -88,8 +88,8 @@ impl<'llvm> Types<'llvm> {
     }
 
     /// LLVM IR for [`Integer`](Type::Integer) type
-    pub fn integer(&self) -> PointerType<'llvm> {
-        self.opaque("Integer")
+    pub fn integer(&self) -> StructType<'llvm> {
+        self.with_impl("Integer")
     }
 
     /// LLVM IR for `Rational` type
