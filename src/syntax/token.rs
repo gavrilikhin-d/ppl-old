@@ -1,6 +1,8 @@
-use std::fmt::Display;
+use std::{fmt::Display, ops::Range};
 
-use logos::{Lexer, Logos};
+use logos::{Filter, Lexer, Logos};
+
+use super::error::{InvalidIndentation, InvalidToken, LexerError};
 
 /// Kind of operator
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -31,8 +33,30 @@ fn operator(lexer: &mut Lexer<Token>) -> OperatorKind {
     }
 }
 
+/// [`Token::Error`] kind
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
+pub enum ErrorKind {
+    /// Invalid (unknown or non-utf) token
+    #[default]
+    InvalidToken,
+    /// Indentation with spaces
+    InvalidIndentation,
+}
+
+impl ErrorKind {
+    /// Construct lexer error from error kind
+    pub fn at(&self, at: Range<usize>) -> LexerError {
+        let at: miette::SourceSpan = at.into();
+        match self {
+            ErrorKind::InvalidToken => InvalidToken { at }.into(),
+            ErrorKind::InvalidIndentation => InvalidIndentation { at }.into(),
+        }
+    }
+}
+
 /// The different kinds of tokens that can be lexed.
 #[derive(Logos, Debug, PartialEq, Eq, Clone)]
+#[logos(error = ErrorKind)]
 #[logos(skip "[ ]+")]
 #[logos(skip "//[^\n]*")]
 pub enum Token {
@@ -189,7 +213,7 @@ pub enum Token {
     Use,
 
     /// Error token
-    Error,
+    Error(ErrorKind),
 }
 
 impl Token {
