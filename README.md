@@ -40,6 +40,7 @@
 * [x] Fix definition of predeclared functions
 ---
 ### Current task
+* [ ] Sum of series benchmark
 ---
 * [ ] Add type aliases
 * [ ] Add dependency analysis for modules and declarations
