@@ -5,7 +5,6 @@ use indexmap::IndexMap;
 use crate::{
     ast,
     hir::{self, Function, Type, Typed},
-    mutability::Mutable,
     syntax::Ranged,
     AddSourceLocation,
 };
