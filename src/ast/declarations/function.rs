@@ -231,8 +231,9 @@ impl Parse for FunctionDeclaration {
             implicit_return = true;
 
             context.consume_eol()?;
-        } else if context.lexer.consume(Token::Colon).is_ok() {
-            body = context.parse_block(Statement::parse)?;
+        } else if let Ok(colon) = context.lexer.consume(Token::Colon) {
+            let error_range = keyword.start()..colon.start();
+            body = context.parse_block(Statement::parse, error_range)?;
         } else {
             context.consume_eol()?;
         }

@@ -1,0 +1,9 @@
+Error: parser::empty_block
+
+  × empty blocks are disallowed
+   ╭─[empty_block.ppl:1:1]
+ 1 │ loop:
+   · ──┬─
+   ·   ╰── this item has empty block
+   ╰────
+

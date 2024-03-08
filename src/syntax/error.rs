@@ -146,6 +146,16 @@ pub struct MissingVariableName {
     pub at: SourceSpan,
 }
 
+/// Diagnostic for empty blocks
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq, Eq)]
+#[error("empty blocks are disallowed")]
+#[diagnostic(code(parser::empty_block))]
+pub struct EmptyBlock {
+    /// Location of statement with empty block
+    #[label("this item has empty block")]
+    pub at: SourceSpan,
+}
+
 /// Possible parser errors
 #[derive(Error, Diagnostic, Debug, PartialEq, Eq)]
 pub enum ParseError {
@@ -164,6 +174,9 @@ pub enum ParseError {
     #[error(transparent)]
     #[diagnostic(transparent)]
     MissingVariableName(#[from] MissingVariableName),
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    EmptyBlock(#[from] EmptyBlock),
 }
 
 impl From<InvalidToken> for ParseError {

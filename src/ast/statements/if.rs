@@ -101,9 +101,10 @@ impl Parse for If {
 
         let condition = Expression::parse(context)?;
 
-        context.lexer.consume(Token::Colon)?;
+        let colon = context.lexer.consume(Token::Colon)?;
 
-        let body = context.parse_block(Statement::parse)?;
+        let error_range = keyword.start()..colon.start();
+        let body = context.parse_block(Statement::parse, error_range)?;
 
         let mut else_ifs = Vec::new();
         let mut else_block = None;
@@ -112,7 +113,8 @@ impl Parse for If {
                 let condition = Expression::parse(context)?;
 
                 context.lexer.consume(Token::Colon)?;
-                let body = context.parse_block(Statement::parse)?;
+                let error_range = else_keyword.start()..if_keyword.end();
+                let body = context.parse_block(Statement::parse, error_range)?;
                 else_ifs.push(ElseIf {
                     else_keyword,
                     if_keyword,
@@ -123,7 +125,7 @@ impl Parse for If {
                 context.lexer.consume(Token::Colon)?;
                 else_block = Some(Else {
                     keyword: else_keyword,
-                    body: context.parse_block(Statement::parse)?,
+                    body: context.parse_block(Statement::parse, else_keyword.range())?,
                 });
                 break;
             }

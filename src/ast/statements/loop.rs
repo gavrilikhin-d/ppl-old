@@ -42,7 +42,8 @@ impl Parse for Loop {
 
         context.lexer.consume(Token::Colon)?;
 
-        let body = context.parse_block(Statement::parse)?;
+        let error_range = keyword.range();
+        let body = context.parse_block(Statement::parse, error_range)?;
 
         Ok(Loop { keyword, body })
     }

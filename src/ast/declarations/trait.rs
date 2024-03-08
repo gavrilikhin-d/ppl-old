@@ -46,9 +46,10 @@ impl Parse for TraitDeclaration {
 
         let name = context.consume_id()?;
 
-        context.lexer.consume(Token::Colon)?;
+        let colon = context.lexer.consume(Token::Colon)?;
 
-        let functions = context.parse_block(FunctionDeclaration::parse)?;
+        let error_range = keyword.start()..colon.start();
+        let functions = context.parse_block(FunctionDeclaration::parse, error_range)?;
 
         Ok(TraitDeclaration {
             keyword,

@@ -1,4 +1,4 @@
 trait Trait:
-    fn lol -> None
+	fn lol -> None
 
 Trait { x: 1 }
