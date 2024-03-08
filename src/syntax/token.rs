@@ -1,6 +1,6 @@
 use std::{fmt::Display, ops::Range};
 
-use logos::{Filter, Lexer, Logos};
+use logos::{Lexer, Logos};
 
 use super::error::{InvalidIndentation, InvalidToken, LexerError};
 
@@ -46,10 +46,13 @@ pub enum ErrorKind {
 impl ErrorKind {
     /// Construct lexer error from error kind
     pub fn at(&self, at: Range<usize>) -> LexerError {
-        let at: miette::SourceSpan = at.into();
         match self {
-            ErrorKind::InvalidToken => InvalidToken { at }.into(),
-            ErrorKind::InvalidIndentation => InvalidIndentation { at }.into(),
+            ErrorKind::InvalidToken => InvalidToken { at: at.into() }.into(),
+            ErrorKind::InvalidIndentation => InvalidIndentation {
+                // Skip newline
+                at: (at.start + 1..at.end).into(),
+            }
+            .into(),
         }
     }
 }
@@ -213,6 +216,7 @@ pub enum Token {
     Use,
 
     /// Error token
+    #[regex("\n[ ]+", |_| ErrorKind::InvalidIndentation)]
     Error(ErrorKind),
 }
 

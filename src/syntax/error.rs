@@ -21,7 +21,7 @@ pub struct InvalidToken {
 #[diagnostic(code(lexer::invalid_indentation))]
 pub struct InvalidIndentation {
     /// Span of the token
-    #[label("using spaces instead of for indentation")]
+    #[label("using spaces instead of tabs for indentation")]
     pub at: SourceSpan,
 }
 
