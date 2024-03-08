@@ -124,8 +124,9 @@ impl Parse for TypeDeclaration {
 
         let mut members = Vec::new();
         if context.lexer.consume(Token::Colon).is_ok() {
+            let error_range = keyword.start()..name.end();
             members = context
-                .parse_block(parse_members)?
+                .parse_block(parse_members, error_range)?
                 .into_iter()
                 .flatten()
                 .collect();

@@ -3,6 +3,7 @@ extern crate ast_derive;
 use ast_derive::AST;
 
 use crate::ast::{Expression, Statement};
+use crate::syntax::error::EmptyBlock;
 use crate::syntax::{error::ParseError, Lexer, Parse, Token};
 use crate::syntax::{Context, Keyword, Ranged, StartsHere};
 
@@ -45,9 +46,17 @@ impl Parse for While {
 
         let condition = Expression::parse(context)?;
 
-        context.lexer.consume(Token::Colon)?;
+        let colon = context.lexer.consume(Token::Colon)?;
 
-        let body = context.parse_block(Statement::parse)?;
+        let error_range = keyword.start()..colon.start();
+        let body = context.parse_block(Statement::parse, error_range)?;
+
+        if body.is_empty() {
+            return Err(EmptyBlock {
+                at: (keyword.start()..colon.start()).into(),
+            }
+            .into());
+        }
 
         Ok(While {
             keyword,

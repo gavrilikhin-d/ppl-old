@@ -1,5 +1,8 @@
+use std::ops::Range;
+
 use super::{
-    error::{LexerError, ParseError}, Identifier, Keyword, PrecedenceGroups, Ranged, StringWithOffset, Token
+    error::{EmptyBlock, LexerError, ParseError},
+    Identifier, Keyword, PrecedenceGroups, Ranged, StringWithOffset, Token,
 };
 
 /// Context for parsing
@@ -20,7 +23,9 @@ impl<Lexer: super::Lexer> Context<Lexer> {
     }
 
     /// Consume keyword
-    pub fn consume_keyword<const KEYWORD: &'static str>(&mut self) -> Result<Keyword<KEYWORD>, LexerError> {
+    pub fn consume_keyword<const KEYWORD: &'static str>(
+        &mut self,
+    ) -> Result<Keyword<KEYWORD>, LexerError> {
         let token = Keyword::<KEYWORD>::as_token();
         let offset = self.lexer.consume(token)?.start();
         Ok(Keyword::<KEYWORD>::at(offset))
@@ -36,6 +41,7 @@ impl<Lexer: super::Lexer> Context<Lexer> {
     pub fn parse_block<T>(
         &mut self,
         parse: impl Fn(&mut Self) -> Result<T, ParseError>,
+        error_range: Range<usize>,
     ) -> Result<Vec<T>, ParseError> {
         let indentation = self.lexer.indentation() + 1;
 
@@ -47,6 +53,14 @@ impl<Lexer: super::Lexer> Context<Lexer> {
             stmts.push(parse(self)?);
             self.lexer.skip_indentation();
         }
+
+        if stmts.is_empty() {
+            return Err(EmptyBlock {
+                at: error_range.into(),
+            }
+            .into());
+        }
+
         Ok(stmts)
     }
 
