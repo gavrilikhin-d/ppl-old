@@ -971,6 +971,8 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
 
         let blocks = main.get_basic_blocks();
 
+        let insertion_block = fn_context.builder.get_insert_block().unwrap();
+
         /* Load 0 to return value */
         let first_block = blocks.first().unwrap();
         if first_block.get_terminator().is_none() {
@@ -1027,6 +1029,8 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
                 .build_unconditional_branch(*first_block)
                 .unwrap();
         }
+
+        fn_context.builder.position_at_end(insertion_block);
 
         drop(fn_context);
 
