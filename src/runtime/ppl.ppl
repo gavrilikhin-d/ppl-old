@@ -17,9 +17,7 @@
 /// }
 /// ```
 type Type<T>:
-	/// Name of type including generic parameters
 	name: String
-	/// Size of type in bytes
 	size: Integer
 //=================================
 
@@ -314,11 +312,8 @@ fn sleep <ms: Integer> ms
 //=================================
 /// Array of values
 type Array<T>:
-	/// Number of elements in array
 	size: Integer
-	/// Size of allocated memory in elements
 	capacity: Integer
-	/// Address of first allocated element
 	data: MemoryAddress
 
 /// Create an empty array
