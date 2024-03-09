@@ -15,6 +15,16 @@ pub struct InvalidToken {
     pub at: SourceSpan,
 }
 
+/// Diagnostic for indentation using space
+#[derive(Error, Diagnostic, Debug, Clone, PartialEq, Eq)]
+#[error("using spaces instead of tabs for indentation")]
+#[diagnostic(code(lexer::invalid_indentation))]
+pub struct InvalidIndentation {
+    /// Span of the token
+    #[label("using spaces instead of tabs for indentation")]
+    pub at: SourceSpan,
+}
+
 /// Diagnostic for unwanted extra tokens
 #[derive(Error, Diagnostic, Debug, Clone, PartialEq, Eq)]
 #[error("extra `{token}`")]
@@ -95,6 +105,9 @@ pub enum LexerError {
     #[error(transparent)]
     #[diagnostic(transparent)]
     InvalidToken(#[from] InvalidToken),
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    InvalidIndentation(#[from] InvalidIndentation),
     #[error(transparent)]
     #[diagnostic(transparent)]
     ExtraToken(#[from] ExtraToken),

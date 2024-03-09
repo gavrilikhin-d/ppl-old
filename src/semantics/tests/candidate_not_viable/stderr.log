@@ -12,12 +12,12 @@ Error: semantics::no_function
 Advice:   ☞ candidate is not viable: expected `Integer` type, got `Rational`
 
 Error:   × Integer
-    ╭─[ppl.ppl:90:5]
- 89 │ @mangle_as("integer_plus_integer")
- 90 │ fn <:Integer> + <:Integer> -> Integer
+    ╭─[ppl.ppl:88:5]
+ 87 │ @mangle_as("integer_plus_integer")
+ 88 │ fn <:Integer> + <:Integer> -> Integer
     ·     ▲
     ·     ╰── this has `Integer` type
- 91 │ 
+ 89 │ 
     ╰────
 Error:   × Rational
    ╭─[candidate_not_viable.ppl:1:1]
@@ -28,12 +28,12 @@ Error:   × Rational
 Advice:   ☞ candidate is not viable: expected `Rational` type, got `Integer`
 
 Error:   × Rational
-     ╭─[ppl.ppl:151:19]
- 150 │ @mangle_as("rational_plus_rational")
- 151 │ fn <:Rational> + <:Rational> -> Rational
+     ╭─[ppl.ppl:149:19]
+ 148 │ @mangle_as("rational_plus_rational")
+ 149 │ fn <:Rational> + <:Rational> -> Rational
      ·                   ▲
      ·                   ╰── this has `Rational` type
- 152 │ 
+ 150 │ 
      ╰────
 Error:   × Integer
    ╭─[candidate_not_viable.ppl:1:7]
@@ -44,12 +44,12 @@ Error:   × Integer
 Advice:   ☞ candidate is not viable: expected `String` type, got `Rational`
 
 Error:   × String
-     ╭─[ppl.ppl:181:5]
- 180 │ @mangle_as("string_plus_string")
- 181 │ fn <:String> + <:String> -> String
+     ╭─[ppl.ppl:179:5]
+ 178 │ @mangle_as("string_plus_string")
+ 179 │ fn <:String> + <:String> -> String
      ·     ▲
      ·     ╰── this has `String` type
- 182 │ 
+ 180 │ 
      ╰────
 Error:   × Rational
    ╭─[candidate_not_viable.ppl:1:1]
@@ -60,12 +60,12 @@ Error:   × Rational
 Advice:   ☞ candidate is not viable: expected `MemoryAddress` type, got `Rational`
 
 Error:   × MemoryAddress
-     ╭─[ppl.ppl:256:5]
- 255 │ /// Get another memory address by adding offset to this one
- 256 │ fn <address: MemoryAddress> + <offset: Integer> -> MemoryAddress:
+     ╭─[ppl.ppl:254:5]
+ 253 │ /// Get another memory address by adding offset to this one
+ 254 │ fn <address: MemoryAddress> + <offset: Integer> -> MemoryAddress:
      ·     ───┬───
      ·        ╰── this has `MemoryAddress` type
- 257 │     let value = address.value + offset
+ 255 │     let value = address.value + offset
      ╰────
 Error:   × Rational
    ╭─[candidate_not_viable.ppl:1:1]
@@ -76,12 +76,12 @@ Error:   × Rational
 Advice:   ☞ candidate is not viable: expected `I32` type, got `Rational`
 
 Error:   × I32
-     ╭─[ppl.ppl:374:5]
- 373 │ @mangle_as("i32_plus_i32")
- 374 │ fn <:I32> + <:I32> -> I32
+     ╭─[ppl.ppl:369:5]
+ 368 │ @mangle_as("i32_plus_i32")
+ 369 │ fn <:I32> + <:I32> -> I32
      ·     ▲
      ·     ╰── this has `I32` type
- 375 │ 
+ 370 │ 
      ╰────
 Error:   × Rational
    ╭─[candidate_not_viable.ppl:1:1]

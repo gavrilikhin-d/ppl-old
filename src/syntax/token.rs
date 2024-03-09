@@ -1,6 +1,8 @@
-use std::fmt::Display;
+use std::{fmt::Display, ops::Range};
 
 use logos::{Lexer, Logos};
+
+use super::error::{InvalidIndentation, InvalidToken, LexerError};
 
 /// Kind of operator
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -31,8 +33,33 @@ fn operator(lexer: &mut Lexer<Token>) -> OperatorKind {
     }
 }
 
+/// [`Token::Error`] kind
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
+pub enum ErrorKind {
+    /// Invalid (unknown or non-utf) token
+    #[default]
+    InvalidToken,
+    /// Indentation with spaces
+    InvalidIndentation,
+}
+
+impl ErrorKind {
+    /// Construct lexer error from error kind
+    pub fn at(&self, at: Range<usize>) -> LexerError {
+        match self {
+            ErrorKind::InvalidToken => InvalidToken { at: at.into() }.into(),
+            ErrorKind::InvalidIndentation => InvalidIndentation {
+                // Skip newline
+                at: (at.start + 1..at.end).into(),
+            }
+            .into(),
+        }
+    }
+}
+
 /// The different kinds of tokens that can be lexed.
 #[derive(Logos, Debug, PartialEq, Eq, Clone)]
+#[logos(error = ErrorKind)]
 #[logos(skip "[ ]+")]
 #[logos(skip "//[^\n]*")]
 pub enum Token {
@@ -189,7 +216,8 @@ pub enum Token {
     Use,
 
     /// Error token
-    Error,
+    #[regex("\n[ ]+", |_| ErrorKind::InvalidIndentation)]
+    Error(ErrorKind),
 }
 
 impl Token {

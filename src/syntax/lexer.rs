@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use log::debug;
 use logos::{Logos, Span};
 
-use crate::syntax::error::{InvalidToken, LexerError, MissingToken, UnexpectedToken};
+use crate::syntax::error::{LexerError, MissingToken, UnexpectedToken};
 
 use super::{OperatorKind, StringWithOffset, Token};
 
@@ -14,7 +14,7 @@ trait LogosLexErrorToken {
 
 impl LogosLexErrorToken for logos::Lexer<'_, Token> {
     fn lex(&mut self) -> Option<Token> {
-        self.next()?.ok().or(Some(Token::Error))
+        Some(self.next()?.unwrap_or_else(|kind| Token::Error(kind)))
     }
 }
 
@@ -146,11 +146,8 @@ pub trait Lexer: Iterator<Item = Token> {
         let token = token.unwrap();
 
         if !tokens.contains(&token) {
-            if token == Token::Error {
-                return Err(InvalidToken {
-                    at: self.peek_span().into(),
-                }
-                .into());
+            if let Token::Error(kind) = token {
+                return Err(kind.at(self.peek_span()));
             }
 
             return Err(UnexpectedToken {
