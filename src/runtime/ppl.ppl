@@ -393,3 +393,15 @@ trait Add:
 	fn <self: ReferenceMut<Self>> += <other: Self>:
 		self = self + other
 //=================================
+
+
+//=================================
+//            Multiply
+//=================================
+/// Trait for `*` operation
+trait Multiply:
+	fn <:Self> * <:Self> -> Self
+
+	fn <self: ReferenceMut<Self>> *= <other: Self>:
+		self = self * other
+//=================================

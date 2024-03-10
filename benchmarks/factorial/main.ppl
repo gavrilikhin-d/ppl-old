@@ -1,15 +1,15 @@
-print "Solutions to n! + 1 = x^2\n"
+println "Solutions to n! + 1 = x^2"
 
 let limit = 10000
 let mut n = 1
+let mut factorial = n
 while n <= limit:
-	let x = n! + 1
+	let x = factorial + 1
 	let root = sqrt x
-	if root ^ 2 == x:
+	if root * root == x:
 		print "n = "
 		print n
-		print ", "
-		print "x = "
-		print root
-		print "\n"
-	n = n + 1
+		print ", x = "
+		println root
+	n += 1
+	factorial *= n
