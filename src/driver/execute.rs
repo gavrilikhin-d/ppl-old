@@ -46,17 +46,12 @@ impl Execute for Compile {
         let name = self.file.file_stem().map(|n| n.to_str()).flatten().unwrap();
         let module = compiler.compile(name)?;
 
-        let llvm = inkwell::context::Context::create();
-        let ir = module.data(&compiler).lower_to_ir(&llvm);
-        debug!(target: "ir", "{}", ir.to_string());
+        let output_type = self.output_type.unwrap_or(OutputType::Executable);
+        let with_main = output_type == OutputType::Executable;
 
-        let output_type = self.output_type.unwrap_or_else(|| {
-            if ir.get_function("main").is_some() {
-                OutputType::Executable
-            } else {
-                OutputType::DynamicLibrary
-            }
-        });
+        let llvm = inkwell::context::Context::create();
+        let ir = module.data(&compiler).to_ir(&llvm, with_main);
+        debug!(target: "ir", "{}", ir.to_string());
 
         let filename = output_type.named(name);
 
@@ -90,7 +85,8 @@ impl Execute for Compile {
             .filter(|m| m.name() != name && m.name() != "ppl")
             .map(|m| {
                 let llvm = inkwell::context::Context::create();
-                let ir = m.lower_to_ir(&llvm);
+                let with_main = false;
+                let ir = m.to_ir(&llvm, with_main);
                 let filename = m.name().to_string();
                 let bitcode = temp_dir.path().join(filename).with_extension("bc");
                 trace!(target: "steps", "generating bitcode for {} => {}", m.source_file().path().to_string_lossy(), bitcode.display());

@@ -2,7 +2,6 @@ use inkwell::types::BasicMetadataTypeEnum;
 
 use inkwell::values::BasicMetadataValueEnum;
 use log::trace;
-use log::{debug, log_enabled, Level::Debug};
 
 use super::inkwell::*;
 use crate::hir::*;
@@ -919,19 +918,25 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for While {
 /// Trait for lowering HIR Module to LLVM IR
 pub trait HIRModuleLowering<'llvm> {
     /// Lower [`Module`] to LLVM IR
-    fn lower_to_ir(&self, llvm: &'llvm inkwell::context::Context)
-        -> inkwell::module::Module<'llvm>;
+    fn to_ir(
+        &self,
+        llvm: &'llvm inkwell::context::Context,
+        with_main: bool,
+    ) -> inkwell::module::Module<'llvm>;
 }
 
 impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
     /// Lower [`Module`] to LLVM IR
-    fn lower_to_ir(
+    fn to_ir(
         &self,
         llvm: &'llvm inkwell::context::Context,
+        with_main: bool,
     ) -> inkwell::module::Module<'llvm> {
         trace!(target: "lower_to_ir", "{self}");
 
-        let module = llvm.create_module(&self.name());
+        let name = self.name();
+
+        let module = llvm.create_module(&name);
         module.set_source_file_name(&self.source_file.path().to_string_lossy());
 
         let mut context = ModuleContext::new(module, self.source_file());
@@ -953,10 +958,11 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
             statement.to_ir(&mut context);
         }
 
-        let main =
-            context
-                .module
-                .add_function("main", context.types().i32().fn_type(&[], false), None);
+        let execute = context.module.add_function(
+            &format!("{name}.execute"),
+            context.types().none().fn_type(&[], false),
+            None,
+        );
         let at = self
             .statements
             .iter()
@@ -964,7 +970,7 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
             .map(|s| s.start())
             .unwrap_or(0);
 
-        let mut fn_context = FunctionContext::new(&mut context, main, at);
+        let mut fn_context = FunctionContext::new(&mut context, execute, at);
 
         for statement in self
             .statements
@@ -974,34 +980,13 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
             statement.to_ir(&mut fn_context);
         }
 
-        let blocks = main.get_basic_blocks();
+        let blocks = execute.get_basic_blocks();
 
         let insertion_block = fn_context.builder.get_insert_block().unwrap();
 
-        /* Load 0 to return value */
-        let first_block = blocks.first().unwrap();
-        if first_block.get_terminator().is_none() {
-            fn_context.builder.position_at_end(*first_block);
-            fn_context.branch_to_return_block();
-        }
-        fn_context
-            .builder
-            .position_before(&first_block.get_terminator().unwrap());
-        fn_context
-            .builder
-            .build_store(
-                fn_context.return_value.unwrap(),
-                fn_context.llvm().i32_type().const_zero(),
-            )
-            .unwrap();
+        if !fn_context.module_context.initializers.is_empty() {
+            let first_block = blocks.first().unwrap();
 
-        // In empty main block there should be only two instructions in first block:
-        // 1. Allocating return value
-        // 2. Assign 0 to it
-        // 3. Branch to return block
-        let main_is_empty = blocks.len() <= 2 && first_block.get_instructions().count() <= 3;
-
-        if !main_is_empty && !fn_context.module_context.initializers.is_empty() {
             let init_block = fn_context
                 .llvm()
                 .prepend_basic_block(*first_block, "init_globals");
@@ -1026,12 +1011,28 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
 
         drop(fn_context);
 
-        if main_is_empty {
-            debug!(target: "ir", "Deleting main, because it's empty");
-            if log_enabled!(target: "ir", Debug) {
-                main.print_to_stderr();
-            }
-            unsafe { main.delete() };
+        if with_main {
+            let main = context.module.add_function(
+                "main",
+                context.types().i32().fn_type(&[], false),
+                None,
+            );
+            let mut fn_context = FunctionContext::new(&mut context, main, at);
+
+            // Load 0 to return value
+            fn_context
+                .builder
+                .build_store(
+                    fn_context.return_value.unwrap(),
+                    fn_context.llvm().i32_type().const_zero(),
+                )
+                .unwrap();
+
+            // Call execute
+            fn_context.set_debug_location(at);
+            fn_context.builder.build_call(execute, &[], "").unwrap();
+
+            fn_context.branch_to_return_block();
         }
 
         let module = context.take_module();

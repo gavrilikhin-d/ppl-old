@@ -36,28 +36,13 @@ fn process_single_statement<'llvm>(
 
     ast_lowering_context.module.statements = vec![hir];
 
-    let module = ast_lowering_context.module.lower_to_ir(llvm);
+    let with_main = true;
+    let module = ast_lowering_context.module.to_ir(llvm, with_main);
     debug!(target: "ir", "{}", module.to_string());
 
     module.verify().unwrap();
 
     engine.add_module(&module).unwrap();
-
-    if let Some(f) = module.get_function("initialize") {
-        unsafe {
-            engine.run_function(f, &[]);
-        }
-
-        for i in 1.. {
-            if let Some(f) = module.get_function(&format!("initialize.{i}")) {
-                unsafe {
-                    engine.run_function(f, &[]);
-                }
-            } else {
-                break;
-            }
-        }
-    }
 
     if let Some(f) = module.get_function("main") {
         unsafe { engine.run_function_as_main(f, &[]) };
