@@ -30,10 +30,21 @@ pub trait Context<'llvm> {
     fn debug(&self) -> &DebugInfo<'llvm, '_>;
 }
 
+/// Initializer for a global variable
+#[derive(Debug, Clone)]
+pub struct Initializer<'llvm> {
+    /// Function that initializes the global variable
+    pub function: inkwell::values::FunctionValue<'llvm>,
+    /// Range of instructions that initialize the global variable
+    pub at: usize,
+}
+
 /// Context for lowering HIR module to LLVM IR
 pub struct ModuleContext<'llvm, 's> {
     /// Currently built module
     pub module: inkwell::module::Module<'llvm>,
+    /// Initializers for global variables
+    pub initializers: Vec<Initializer<'llvm>>,
     /// Debug information builder
     pub debug_info: DebugInfo<'llvm, 's>,
 }
@@ -42,7 +53,11 @@ impl<'llvm, 's> ModuleContext<'llvm, 's> {
     /// Initialize context for lowering HIR module to LLVM IR
     pub fn new(module: inkwell::module::Module<'llvm>, source_file: &'s SourceFile) -> Self {
         let debug_info = DebugInfo::new(&module, source_file);
-        Self { module, debug_info }
+        Self {
+            module,
+            initializers: vec![],
+            debug_info,
+        }
     }
 
     /// Finalize building module
