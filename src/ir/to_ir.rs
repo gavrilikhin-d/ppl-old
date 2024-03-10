@@ -6,6 +6,7 @@ use log::{debug, log_enabled, Level::Debug};
 
 use super::inkwell::*;
 use crate::hir::*;
+use crate::ir::Initializer;
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
@@ -160,6 +161,10 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Variable {
             None,
         );
         let at = self.read().unwrap().initializer.as_ref().unwrap().start();
+        context.initializers.push(Initializer {
+            function: initialize,
+            at,
+        });
         let mut f_context = FunctionContext::new(context, initialize, at);
 
         let value = self
@@ -996,34 +1001,21 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
         // 3. Branch to return block
         let main_is_empty = blocks.len() <= 2 && first_block.get_instructions().count() <= 3;
 
-        if !main_is_empty
-            && let Some(init) = fn_context.module_context.module.get_function("initialize")
-        {
-            let past_last_index = (1..)
-                .find(|i| {
-                    fn_context
-                        .module_context
-                        .module
-                        .get_function(&format!("initialize.{i}"))
-                        .is_none()
-                })
-                .unwrap();
-            let inits = std::iter::once(init).chain((1..past_last_index).into_iter().map(|i| {
-                fn_context
-                    .module_context
-                    .module
-                    .get_function(&format!("initialize.{i}"))
-                    .unwrap()
-            }));
-
+        if !main_is_empty && !fn_context.module_context.initializers.is_empty() {
             let init_block = fn_context
                 .llvm()
                 .prepend_basic_block(*first_block, "init_globals");
             fn_context.builder.position_at_end(init_block);
 
+            let inits = fn_context.module_context.initializers.clone();
             for init in inits {
-                fn_context.builder.build_call(init, &[], "").unwrap();
+                fn_context.set_debug_location(init.at);
+                fn_context
+                    .builder
+                    .build_call(init.function, &[], "")
+                    .unwrap();
             }
+
             fn_context
                 .builder
                 .build_unconditional_branch(*first_block)
