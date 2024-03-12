@@ -4,7 +4,8 @@
 	"patterns": [
 		{ "include": "#comments" },
 		{ "include": "#keywords" },
-		{ "include": "#strings" }
+		{ "include": "#strings" },
+		{ "include": "#constants" }
 	],
 	"repository": {
 		"comments": {
@@ -35,6 +36,18 @@
 				{
 					"name": "constant.character.escape.ppl",
 					"match": "\\\\."
+				}
+			]
+		},
+		"constants": {
+			"patterns": [
+				{
+					"name": "constant.numeric.ppl",
+					"match": "\\b(([0-9]+\\.)?[0-9]+)\\b"
+				},
+				{
+					"name": "constant.language.ppl",
+					"match": "\\b(none|true|false)\\b"
 				}
 			]
 		}
