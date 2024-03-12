@@ -11,6 +11,10 @@
 				{
 					"name": "keyword.control.ppl",
 					"match": "\\b(if|else|loop|while|for|return)\\b"
+				},
+				{
+					"name": "keyword.other.ppl",
+					"match": "\\b(use|let|mut|fn|type|trait)\\b"
 				}
 			]
 		},
