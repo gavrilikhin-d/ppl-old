@@ -90,6 +90,10 @@
 						"1": { "name": "punctuation.accessor" },
 						"2": { "name": "variable.name" }
 					}
+				},
+				{
+					"match": "\\b([a-z_][a-zA-Z0-9_]*)\\b(?=\\s*[:,}\\]])",
+					"name": "variable.name"
 				}
 			]
 		}
