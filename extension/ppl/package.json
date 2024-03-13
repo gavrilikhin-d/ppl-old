@@ -1,0 +1,25 @@
+{
+  "name": "ppl",
+  "displayName": "ppl",
+  "description": "Syntax highlights for PPL programming language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.87.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "ppl",
+      "aliases": ["ppl", "ppl"],
+      "extensions": [".ppl"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "ppl",
+      "scopeName": "source.ppl",
+      "path": "./syntaxes/ppl.tmLanguage.json"
+    }]
+  }
+}

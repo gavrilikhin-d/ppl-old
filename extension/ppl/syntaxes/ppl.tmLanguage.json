@@ -1,0 +1,102 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "ppl",
+	"patterns": [
+		{ "include": "#comments" },
+		{ "include": "#keywords" },
+		{ "include": "#strings" },
+		{ "include": "#constants" },
+		{ "include": "#types" },
+		{ "include": "#decorators" },
+		{ "include": "#variables" }
+	],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.ppl",
+					"match": "//.*$"
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.ppl",
+					"match": "\\b(if|else|loop|while|for|return)\\b"
+				},
+				{
+					"name": "keyword.other.ppl",
+					"match": "\\b(use|let|mut|fn|type|trait)\\b"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.ppl",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.ppl",
+					"match": "\\\\."
+				}
+			]
+		},
+		"constants": {
+			"patterns": [
+				{
+					"name": "constant.numeric.ppl",
+					"match": "\\b(([0-9]+\\.)?[0-9]+)\\b"
+				},
+				{
+					"name": "constant.language.ppl",
+					"match": "\\b(none|true|false)\\b"
+				}
+			]
+		},
+		"types": {
+			"patterns": [
+				{
+					"name": "entity.name.type.ppl",
+					"match": "\\b([A-Z][a-zA-Z0-9_]*)\\b"
+				}
+			]
+		},
+		"decorators": {
+			"patterns": [
+				{
+					"name": "entity.name.function.ppl",
+					"match": "(^|\\s)(@\\w+)\\b"
+				}
+			]
+		},
+		"variables": {
+			"patterns": [
+				{
+					"match": "\\b([a-z_][a-zA-Z0-9_]*)\\b(?=\\s*:\\s*[A-Z])",
+					"name": "variable.name"
+				},
+				{
+					"match": "\\b([a-z_][a-zA-Z0-9_]*)\\b(?=\\s*=)",
+					"name": "variable.name"
+				},
+				{
+					"match": "\\b([a-z_][a-zA-Z0-9_]*)\\b(?=\\.)",
+					"name": "variable.name"
+				},
+				{
+					"match": "(\\.)([a-z_][a-zA-Z0-9_]*)\\b",
+					"captures": {
+						"1": { "name": "punctuation.accessor" },
+						"2": { "name": "variable.name" }
+					}
+				},
+				{
+					"match": "\\b([a-z_][a-zA-Z0-9_]*)\\b(?=\\s*[:,}\\]])",
+					"name": "variable.name"
+				}
+			]
+		}
+	},
+	"scopeName": "source.ppl"
+}
