@@ -75,6 +75,10 @@
 				{
 					"match": "\\b([a-z_][a-zA-Z0-9_]*)\\b(?=\\s*:\\s*[A-Z])",
 					"name": "variable.name"
+				},
+				{
+					"match": "\\b([a-z_][a-zA-Z0-9_]*)\\b(?=\\s*=)",
+					"name": "variable.name"
 				}
 			]
 		}
