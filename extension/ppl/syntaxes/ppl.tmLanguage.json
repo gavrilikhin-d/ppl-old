@@ -5,7 +5,8 @@
 		{ "include": "#comments" },
 		{ "include": "#keywords" },
 		{ "include": "#strings" },
-		{ "include": "#constants" }
+		{ "include": "#constants" },
+		{ "include": "#types" }
 	],
 	"repository": {
 		"comments": {
@@ -48,6 +49,14 @@
 				{
 					"name": "constant.language.ppl",
 					"match": "\\b(none|true|false)\\b"
+				}
+			]
+		},
+		"types": {
+			"patterns": [
+				{
+					"name": "entity.name.type.ppl",
+					"match": "\\b([A-Z][a-zA-Z0-9_]*)\\b"
 				}
 			]
 		}
