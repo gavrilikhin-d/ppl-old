@@ -1,7 +1,4 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use indexmap::IndexMap;
 
@@ -68,6 +65,8 @@ impl Function {
 
 /// Struct that compiles and caches modules
 pub struct Compiler {
+    /// ASTs of all modules
+    pub asts: IndexMap<PathBuf, ast::Module>,
     /// Cache of compiled modules
     pub modules: IndexMap<String, ModuleData>,
     /// Functions from all modules
@@ -96,6 +95,7 @@ impl Compiler {
     /// The first module to be added will be interpreted as builtin
     pub fn without_builtin() -> Self {
         Self {
+            asts: Default::default(),
             modules: Default::default(),
             functions: Default::default(),
             classes: Default::default(),
@@ -140,6 +140,18 @@ impl Compiler {
             .ok_or_else(|| miette!("Module `{name}` not found. Tried {:#?}", variants))
     }
 
+    /// Parse module from file
+    fn parse(&mut self, path: &Path) -> miette::Result<ast::Module> {
+        if let Some(ast) = self.asts.get(path) {
+            return Ok(ast.clone());
+        }
+
+        trace!(target: "steps", "Parsing `{}`", path.display());
+        let ast = ast::Module::from_file(path)?;
+        self.asts.insert(path.to_path_buf(), ast.clone());
+        Ok(ast)
+    }
+
     /// Get compiled module from cache or compile it
     ///
     /// # Module search order
@@ -162,23 +174,19 @@ impl Compiler {
 
         let path = self.locate(name)?;
 
-        trace!(target: "steps", "Parsing `{}`", path.display());
-        let ast = ast::Module::from_file(&path)?;
-        debug!(target: &format!("{name}-ast"), "\n{:#?}", ast);
+        let ast = self.parse(&path)?;
 
-        let module = ModuleData::new(SourceFile::with_path(&path).unwrap());
-
-        let content = fs::read_to_string(&path).map_err(|e| miette!("{path:?}: {e}"))?;
+        let source_file = SourceFile::with_path(&path).unwrap();
+        let module = ModuleData::new(source_file.clone());
 
         trace!(target: "steps", "Lowering to hir `{}`", path.display());
         let mut context = ModuleContext {
             module,
             compiler: self,
         };
-        let mut hir = ast.to_hir(&mut context).map_err(|e| {
-            miette::Report::from(e)
-                .with_source_code(miette::NamedSource::new(path.to_string_lossy(), content))
-        })?;
+        let mut hir = ast
+            .to_hir(&mut context)
+            .map_err(|e| miette::Report::from(e).with_source_code(source_file))?;
         debug!(target: &format!("{name}-hir"), "\n{:#}", hir);
 
         trace!(target: "steps", "Inserting destructors `{}`", path.display());
