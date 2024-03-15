@@ -122,6 +122,24 @@ impl Compiler {
         }
     }
 
+    /// Locate module by name
+    ///
+    /// # Module search order
+    /// 1. `{root}/{name}.ppl`
+    /// 2. `{root}/{name}/mod.ppl`
+    pub fn locate(&mut self, name: &str) -> miette::Result<PathBuf> {
+        let variants = [
+            self.root.join(format!("{name}.ppl")),
+            self.root.join(name).join("mod.ppl"),
+        ];
+
+        variants
+            .iter()
+            .find(|p| p.exists())
+            .cloned()
+            .ok_or_else(|| miette!("Module `{name}` not found. Tried {:#?}", variants))
+    }
+
     /// Get compiled module from cache or compile it
     ///
     /// # Module search order
@@ -142,17 +160,7 @@ impl Compiler {
             return Ok(Module::with_index(index));
         }
 
-        let variants = vec![
-            self.root.join(format!("{name}.ppl")),
-            self.root.join(name).join("mod.ppl"),
-        ];
-
-        let path = variants
-            .iter()
-            .filter(|p| p.exists())
-            .next()
-            .cloned()
-            .ok_or_else(|| miette!("Module `{name}` not found. Tried {:#?}", variants))?;
+        let path = self.locate(name)?;
 
         trace!(target: "steps", "Parsing `{}`", path.display());
         let ast = ast::Module::from_file(&path)?;
