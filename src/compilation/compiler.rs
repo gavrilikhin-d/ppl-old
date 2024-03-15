@@ -137,7 +137,7 @@ impl Compiler {
     /// let m2 = compiler.compule("main").unwrap();
     /// assert_eq!(m1, m2);
     /// ```
-    pub fn compile<'c>(&'c mut self, name: &str) -> miette::Result<Module> {
+    pub fn compile(&mut self, name: &str) -> miette::Result<Module> {
         if let Some(index) = self.modules.get_index_of(name) {
             return Ok(Module::with_index(index));
         }
