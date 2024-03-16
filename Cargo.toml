@@ -1,3 +1,4 @@
+workspace = { members = ["new-ppl"] }
 [package]
 name = "ppl"
 version = "0.1.0"
