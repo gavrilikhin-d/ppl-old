@@ -64,14 +64,18 @@ pub fn parse_module(db: &dyn Db, source: SourceProgram) -> Module {
         .next()
         .unwrap();
 
-    Diagnostics::push(
-        db,
-        Diagnostic {
-            message: "Lol".to_string(),
-        },
-    );
+    let mut functions: Vec<Function> = Vec::new();
+    for f in module.into_inner() {
+        match f.as_rule() {
+            Rule::function => functions.push(Function::new(
+                db,
+                FunctionId::new(db, f.into_inner().nth(1).unwrap().as_str().to_string()),
+            )),
+            _ => {}
+        }
+    }
 
-    Module::new(db, vec![])
+    Module::new(db, functions)
 }
 
 #[salsa::accumulator]
@@ -84,19 +88,27 @@ pub struct Diagnostic {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_debug_snapshot;
+    use salsa::DebugWithDb;
+
     use super::*;
 
     #[test]
     fn test_parse_module() {
-        let mut db = Database::default();
-        let source = SourceProgram::new(&db, "fn main".to_string());
+        let db = &Database::default();
+        let source = SourceProgram::new(db, "fn main".to_string());
 
-        parse_module(&db, source);
-        source.set_text(&mut db).to("fn lol".into());
-
-        parse_module(&db, source);
-
-        let diags = parse_module::accumulated::<Diagnostics>(&db, source);
-        insta::assert_snapshot!(diags.len(), @"1");
+        let module = parse_module(db, source);
+        assert_debug_snapshot!(module.statements(db).debug(db), @r###"
+        [
+            Function {
+                [salsa id]: 0,
+                name: FunctionId {
+                    [salsa id]: 0,
+                    text: "main",
+                },
+            },
+        ]
+        "###);
     }
 }
