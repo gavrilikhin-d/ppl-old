@@ -6,5 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+insta = "1.36.1"
 pest = "2.7.8"
+pest_derive = "2.7.8"
 salsa = { git = "https://github.com/salsa-rs/salsa", version = "0.1.0", package = "salsa-2022" }

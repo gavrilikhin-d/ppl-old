@@ -1,0 +1,102 @@
+use pest::Parser;
+
+#[salsa::jar(db = Db)]
+pub struct Jar(
+    SourceProgram,
+    Module,
+    Function,
+    FunctionId,
+    parse_module,
+    Diagnostics,
+);
+
+pub trait Db: salsa::DbWithJar<Jar> {}
+impl<DB> Db for DB where DB: ?Sized + salsa::DbWithJar<Jar> {}
+
+#[derive(Default)]
+#[salsa::db(Jar)]
+pub struct Database {
+    storage: salsa::Storage<Self>,
+}
+impl salsa::Database for Database {}
+impl salsa::ParallelDatabase for Database {
+    fn snapshot(&self) -> salsa::Snapshot<Self> {
+        salsa::Snapshot::new(Database {
+            storage: self.storage.snapshot(),
+        })
+    }
+}
+
+#[salsa::input]
+pub struct SourceProgram {
+    #[return_ref]
+    pub text: String,
+}
+
+#[salsa::tracked]
+pub struct Module {
+    #[return_ref]
+    pub statements: Vec<Function>,
+}
+
+#[salsa::tracked]
+pub struct Function {
+    #[id]
+    pub name: FunctionId,
+}
+
+#[salsa::interned]
+pub struct FunctionId {
+    #[return_ref]
+    pub text: String,
+}
+
+#[derive(pest_derive::Parser)]
+#[grammar = "ppl.pest"]
+pub struct PPLParser;
+
+#[salsa::tracked]
+pub fn parse_module(db: &dyn Db, source: SourceProgram) -> Module {
+    let source_text = source.text(db);
+
+    let module = PPLParser::parse(Rule::module, &source_text)
+        .unwrap()
+        .next()
+        .unwrap();
+
+    Diagnostics::push(
+        db,
+        Diagnostic {
+            message: "Lol".to_string(),
+        },
+    );
+
+    Module::new(db, vec![])
+}
+
+#[salsa::accumulator]
+pub struct Diagnostics(Diagnostic);
+
+#[derive(Clone)]
+pub struct Diagnostic {
+    pub message: String,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_module() {
+        let mut db = Database::default();
+        let source = SourceProgram::new(&db, "fn main".to_string());
+
+        parse_module(&db, source);
+        source.set_text(&mut db).to("fn lol".into());
+
+        parse_module(&db, source);
+
+        let diags = parse_module::accumulated::<Diagnostics>(&db, source);
+        insta::assert_snapshot!(diags.len(), @"1");
+    }
+}

@@ -1,0 +1,7 @@
+module     = _{ SOI ~ function* ~ EOI }
+function   =  { FN ~ identifier ~ EOL }
+identifier = @{ LOWERCASE_LETTER ~ (LOWERCASE_LETTER | NUMBER)* }
+
+FN         = @{ "fn" ~ WHITESPACE }
+EOL        = _{ LINE_SEPARATOR | EOI }
+WHITESPACE = _{ !LINE_SEPARATOR ~ WHITE_SPACE }
