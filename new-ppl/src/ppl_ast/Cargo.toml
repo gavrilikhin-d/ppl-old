@@ -1,13 +1,9 @@
-workspace = { members = ["src/ppl_ast", "src/ppl_parser"] }
 [package]
-name = "new-ppl"
+name = "ppl_ast"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-insta = "1.36.1"
-ppl_ast = { version = "0.1.0", path = "src/ppl_ast" }
-ppl_parser = { version = "0.1.0", path = "src/ppl_parser" }
 salsa = { git = "https://github.com/salsa-rs/salsa", version = "0.1.0", package = "salsa-2022" }
