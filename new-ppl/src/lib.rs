@@ -14,8 +14,8 @@ impl salsa::ParallelDatabase for Database {
 
 #[cfg(test)]
 mod tests {
-    use insta::assert_debug_snapshot;
-    use ppl_parser::{parser::parse_module, source::SourceProgram};
+    use insta::{assert_debug_snapshot, assert_snapshot};
+    use ppl_parser::{diagnostic::Diagnostics, parser::parse_module, source::SourceProgram};
     use salsa::DebugWithDb;
 
     use super::*;
@@ -23,7 +23,7 @@ mod tests {
     #[test]
     fn test_parse_module() {
         let db = &Database::default();
-        let source = SourceProgram::new(db, "fn main".to_string());
+        let source = SourceProgram::new(db, Some("test.ppl".into()), "fn main".to_string());
 
         let module = parse_module(db, source);
         assert_debug_snapshot!(module.statements(db).debug(db), @r###"
@@ -37,5 +37,8 @@ mod tests {
             },
         ]
         "###);
+
+        let diagnostics = parse_module::accumulated::<Diagnostics>(db, source);
+        assert_snapshot!(diagnostics[0], @"");
     }
 }

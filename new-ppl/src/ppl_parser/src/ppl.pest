@@ -1,7 +1,17 @@
-module     =  { SOI ~ function* ~ EOI }
-function   =  { FN ~ identifier ~ EOL }
-identifier = @{ LOWERCASE_LETTER ~ (LOWERCASE_LETTER | NUMBER)* }
+module = { SOI ~ statement* ~ EOI }
 
-FN         = @{ "fn" ~ WHITESPACE }
+statement = _{ declaration }
+
+declaration = _{ function }
+
+function            = ${ "fn" ~ WHITESPACE ~ function_name_parts ~ EOL }
+function_name_parts = _{ function_name_part ~ (WHITESPACE ~ function_name_part)* }
+function_name_part  = _{ text | parameter }
+parameter           =  { "<" ~ identifier ~ ":" ~ typename ~ ">" }
+
+text       = @{ LETTER+ }
+typename   = @{ UPPERCASE_LETTER ~ LETTER_NUMBER* }
+identifier = @{ LOWERCASE_LETTER ~ LETTER_NUMBER* }
+
 EOL        = _{ LINE_SEPARATOR | EOI }
 WHITESPACE = _{ !LINE_SEPARATOR ~ WHITE_SPACE }
