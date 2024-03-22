@@ -50,9 +50,7 @@ pub fn parse_module(db: &dyn Db, source: SourceProgram) -> Module {
             Rule::r#type => {
                 decls.push(ty(db, decl).into());
             }
-            _ => {
-                unreachable!("unexpected rule: {:?}", decl.as_rule())
-            }
+            _ => {}
         }
     }
 

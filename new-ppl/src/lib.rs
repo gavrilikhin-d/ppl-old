@@ -56,6 +56,28 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_type() {
+        let db = &Database::default();
+        let source = SourceProgram::new(db, Some("test.ppl".into()), "type Point".to_string());
+
+        let module = parse_module(db, source);
+        assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
+        [
+            Type {
+                [salsa id]: 0,
+                name: Typename {
+                    [salsa id]: 0,
+                    text: "Point",
+                },
+            },
+        ]
+        "###);
+
+        let diagnostics = parse_module::accumulated::<Diagnostics>(db, source);
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
     fn test_multipart_function() {
         let db = &Database::default();
         let source = SourceProgram::new(
