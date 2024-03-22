@@ -30,7 +30,7 @@ mod tests {
         let source = SourceProgram::new(db, Some("test.ppl".into()), "fn main".to_string());
 
         let module = parse_module(db, source);
-        assert_debug_snapshot!(module.statements(db).debug(db), @r###"
+        assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
         [
             Function {
                 [salsa id]: 0,
@@ -38,6 +38,15 @@ mod tests {
                     [salsa id]: 0,
                     text: "main",
                 },
+                name_parts: [
+                    Text(
+                        Text(
+                            Id {
+                                value: 1,
+                            },
+                        ),
+                    ),
+                ],
             },
         ]
         "###);
@@ -56,7 +65,7 @@ mod tests {
         );
 
         let module = parse_module(db, source);
-        assert_debug_snapshot!(module.statements(db).debug(db), @r###"
+        assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
         [
             Function {
                 [salsa id]: 0,
@@ -64,6 +73,29 @@ mod tests {
                     [salsa id]: 0,
                     text: "say hello world",
                 },
+                name_parts: [
+                    Text(
+                        Text(
+                            Id {
+                                value: 1,
+                            },
+                        ),
+                    ),
+                    Text(
+                        Text(
+                            Id {
+                                value: 2,
+                            },
+                        ),
+                    ),
+                    Text(
+                        Text(
+                            Id {
+                                value: 3,
+                            },
+                        ),
+                    ),
+                ],
             },
         ]
         "###);
@@ -82,7 +114,7 @@ mod tests {
         );
 
         let module = parse_module(db, source);
-        assert_debug_snapshot!(module.statements(db).debug(db), @r###"
+        assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
         [
             Function {
                 [salsa id]: 0,
@@ -90,6 +122,57 @@ mod tests {
                     [salsa id]: 0,
                     text: "distance from <:Point> to <:Point>",
                 },
+                name_parts: [
+                    Text(
+                        Text(
+                            Id {
+                                value: 1,
+                            },
+                        ),
+                    ),
+                    Text(
+                        Text(
+                            Id {
+                                value: 2,
+                            },
+                        ),
+                    ),
+                    Parameter(
+                        Parameter {
+                            name: Identifier(
+                                Id {
+                                    value: 1,
+                                },
+                            ),
+                            ty: Typename(
+                                Id {
+                                    value: 1,
+                                },
+                            ),
+                        },
+                    ),
+                    Text(
+                        Text(
+                            Id {
+                                value: 3,
+                            },
+                        ),
+                    ),
+                    Parameter(
+                        Parameter {
+                            name: Identifier(
+                                Id {
+                                    value: 2,
+                                },
+                            ),
+                            ty: Typename(
+                                Id {
+                                    value: 1,
+                                },
+                            ),
+                        },
+                    ),
+                ],
             },
         ]
         "###);
