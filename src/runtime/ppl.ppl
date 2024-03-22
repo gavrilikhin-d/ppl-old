@@ -355,7 +355,7 @@ trait Destroy:
 //=================================
 
 //=================================
-//             C-Types
+//             I32
 //=================================
 @builtin
 type I32
@@ -381,6 +381,38 @@ fn Integer from <:I32> -> Integer
 /// Convert `Integer` to `I32
 @mangle_as("integer_as_i32")
 fn <:Integer> as I32 -> I32
+//=================================
+
+//=================================
+//             F64
+//=================================
+@builtin
+type F64
+
+fn + <x: F64> => x
+
+@mangle_as("minus_f64")
+fn - <:F64> -> F64
+
+@mangle_as("f64_plus_f64")
+fn <:F64> + <:F64> -> F64
+
+fn <x: F64> - <y: F64> => x + -y
+
+@mangle_as("f64_star_f64")
+fn <:F64> * <:F64> -> F64
+
+/// Convert `F64` to `String`
+@mangle_as("f64_as_string")
+fn <:F64> as String -> String
+
+/// Convert `Rational` to `F64`
+@mangle_as("f64_from_rational")
+fn F64 from <:Rational> -> F64
+
+/// Convert `Rational` to `F64`
+@mangle_as("rational_from_f64")
+fn Rational from <:F64> -> Rational
 //=================================
 
 //=================================
