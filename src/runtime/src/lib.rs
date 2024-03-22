@@ -1,3 +1,6 @@
+mod r#f64;
+pub use r#f64::*;
+
 mod integer;
 pub use integer::*;
 

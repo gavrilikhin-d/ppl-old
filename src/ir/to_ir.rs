@@ -227,6 +227,8 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for ClassData {
             return context.types().bool().into();
         } else if self.is_i32() {
             return context.types().i32().into();
+        } else if self.is_f64() {
+            return context.types().f64().into();
         }
 
         if self.members.is_empty() {
@@ -644,7 +646,11 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Expression {
                 let cl = cl.read().unwrap();
                 // FIXME: this is very error prone
                 if cl.is_opaque()
-                    && !(cl.is_none() || cl.is_bool() || cl.is_i32() || self.is_reference())
+                    && !(cl.is_none()
+                        || cl.is_bool()
+                        || cl.is_i32()
+                        || cl.is_f64()
+                        || self.is_reference())
                 {
                     return Some(ptr.into());
                 }

@@ -1,6 +1,6 @@
 use inkwell::{
     context::ContextRef,
-    types::{IntType, PointerType, StructType, VoidType},
+    types::{FloatType, IntType, PointerType, StructType, VoidType},
     AddressSpace,
 };
 
@@ -54,6 +54,11 @@ impl<'llvm> Types<'llvm> {
     /// LLVM 64-bit unsigned int type
     pub fn u64(&self) -> IntType<'llvm> {
         self.u(64)
+    }
+
+    /// LLVM 64-bit float type
+    pub fn f64(&self) -> FloatType<'llvm> {
+        self.llvm.f64_type()
     }
 
     /// Get LLVM opaque struct type or create it if it doesn't exist

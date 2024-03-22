@@ -59,17 +59,38 @@ impl Ranged for Member {
 /// Size of pointer in bytes
 const POINTER_SIZE: usize = 8;
 
-/// Enum of all builtin classes
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub enum BuiltinClass {
+macro_rules! builtin_class {
+    ($($name:ident),+) => {
+        /// Enum of all builtin classes
+        #[derive(Debug, PartialEq, Eq, Hash, Clone)]
+        pub enum BuiltinClass {
+            $($name),+
+        }
+
+        impl FromStr for BuiltinClass {
+            type Err = String;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                use BuiltinClass::*;
+                Ok(match s {
+                    $(stringify!($name) => $name,)+
+                    _ => return Err(format!("Invalid builtin type `{s}`")),
+                })
+            }
+        }
+    };
+}
+
+builtin_class! {
     None,
     Bool,
     I32,
+    F64,
     Integer,
     Rational,
     String,
     Reference,
-    ReferenceMut,
+    ReferenceMut
 }
 
 impl BuiltinClass {
@@ -80,27 +101,9 @@ impl BuiltinClass {
             None => 0,
             Bool => 1,
             I32 => 4,
+            F64 => 8,
             Integer | Rational | String | Reference | ReferenceMut => POINTER_SIZE,
         }
-    }
-}
-
-impl FromStr for BuiltinClass {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use BuiltinClass::*;
-        Ok(match s {
-            "None" => None,
-            "Bool" => Bool,
-            "I32" => I32,
-            "Integer" => Integer,
-            "Rational" => Rational,
-            "String" => String,
-            "Reference" => Reference,
-            "ReferenceMut" => ReferenceMut,
-            _ => return Err(format!("Invalid builtin type `{s}`")),
-        })
     }
 }
 
@@ -279,6 +282,11 @@ impl ClassData {
     /// Is this a builtin `I32` type?
     pub fn is_i32(&self) -> bool {
         self.builtin == Some(BuiltinClass::I32)
+    }
+
+    /// Is this a builtin `I32` type?
+    pub fn is_f64(&self) -> bool {
+        self.builtin == Some(BuiltinClass::F64)
     }
 
     /// Is this a builtin "Integer" type?
