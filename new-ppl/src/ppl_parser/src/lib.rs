@@ -1,4 +1,5 @@
 #![feature(trait_upcasting)]
+#![feature(debug_closure_helpers)]
 
 use diagnostic::Diagnostics;
 use parser::parse_module;

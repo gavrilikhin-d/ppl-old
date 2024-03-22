@@ -1,4 +1,4 @@
-use pest::Parser;
+use pest::{iterators::Pair, Parser};
 use ppl_ast::{
     declarations::{Function, FunctionId, Identifier, Parameter, Text, Typename},
     module::Module,
@@ -39,33 +39,41 @@ pub fn parse_module(db: &dyn Db, source: SourceProgram) -> Module {
     for f in module.into_inner() {
         match f.as_rule() {
             Rule::function => {
-                let name_parts = f
-                    .into_inner()
-                    .map(|part| match part.as_rule() {
-                        Rule::text => Text::new(db, part.as_str().to_string()).into(),
-                        Rule::parameter => {
-                            let parts = part.into_inner();
-                            Parameter::new(
-                                db,
-                                Identifier::new(db, "lol".to_string()),
-                                Typename::new(db, "kek".to_string()),
-                            )
-                            .into()
-                        }
-                        _ => {
-                            todo!("Handle invalid parsing for rule {}", part.to_string())
-                        }
-                    })
-                    .collect();
-                functions.push(Function::new(
-                    db,
-                    FunctionId::new(db, "mock".to_string()),
-                    name_parts,
-                ))
+                functions.push(function(db, f));
             }
             _ => {}
         }
     }
 
     Module::new(db, functions)
+}
+
+fn function(db: &dyn Db, tree: Pair<'_, Rule>) -> Function {
+    let name_parts: Vec<_> = tree
+        .into_inner()
+        .filter_map(|part| {
+            Some(match part.as_rule() {
+                Rule::text => Text::new(db, part.as_str().to_string()).into(),
+                Rule::parameter => parameter(db, part).into(),
+                _ => return None,
+            })
+        })
+        .collect();
+    Function::new(db, FunctionId::from_parts(db, &name_parts), name_parts)
+}
+
+fn parameter(db: &dyn Db, tree: Pair<'_, Rule>) -> Parameter {
+    let mut parts = tree.into_inner();
+    Parameter {
+        name: identifier(db, parts.next().unwrap()),
+        ty: typename(db, parts.next().unwrap()),
+    }
+}
+
+fn identifier(db: &dyn Db, tree: Pair<'_, Rule>) -> Identifier {
+    Identifier::new(db, tree.as_str().to_string())
+}
+
+fn typename(db: &dyn Db, tree: Pair<'_, Rule>) -> Typename {
+    Typename::new(db, tree.as_str().to_string())
 }

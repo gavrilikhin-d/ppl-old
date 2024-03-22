@@ -1,5 +1,7 @@
 use derive_more::From;
 
+use crate::Db;
+
 #[salsa::tracked]
 pub struct Function {
     #[id]
@@ -14,6 +16,22 @@ pub struct FunctionId {
     pub text: String,
 }
 
+impl FunctionId {
+    pub fn from_parts(db: &dyn Db, parts: &[FunctionNamePart]) -> Self {
+        let text = parts
+            .iter()
+            .map(|part| match part {
+                FunctionNamePart::Text(text) => text.text(db).clone(),
+                FunctionNamePart::Parameter(param) => {
+                    format!("<:{}>", param.ty.text(db))
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+        FunctionId::new(db, text)
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, From)]
 pub enum FunctionNamePart {
     Text(Text),
@@ -26,9 +44,8 @@ pub struct Text {
     pub text: String,
 }
 
-#[salsa::tracked]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Parameter {
-    #[id]
     pub name: Identifier,
     pub ty: Typename,
 }
