@@ -1,4 +1,7 @@
-module = { SOI ~ statement* ~ EOI }
+module = { SOI ~ annotated_statement* ~ EOI }
+
+annotated_statement =  { annotation* ~ statement }
+annotation          = ${ "@" ~ identifier ~ EOL }
 
 statement = _{ declaration }
 

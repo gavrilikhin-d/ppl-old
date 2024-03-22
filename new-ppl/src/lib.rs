@@ -56,6 +56,56 @@ mod tests {
     }
 
     #[test]
+    fn test_function_with_annotation() {
+        let db = &Database::default();
+        let source = SourceProgram::new(
+            db,
+            Some("test.ppl".into()),
+            r###"
+            @builtin
+            fn main
+            "###
+            .to_string(),
+        );
+
+        let module = parse_module(db, source);
+        assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
+        [
+            AnnotatedStatement {
+                annotations: [
+                    Annotation {
+                        [salsa id]: 0,
+                        name: Identifier {
+                            [salsa id]: 0,
+                            text: "builtin",
+                        },
+                    },
+                ],
+                statement: Function {
+                    [salsa id]: 0,
+                    name: FunctionId {
+                        [salsa id]: 0,
+                        text: "main",
+                    },
+                    name_parts: [
+                        Text(
+                            Text(
+                                Id {
+                                    value: 1,
+                                },
+                            ),
+                        ),
+                    ],
+                },
+            },
+        ]
+        "###);
+
+        let diagnostics = parse_module::accumulated::<Diagnostics>(db, source);
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
     fn test_parse_type() {
         let db = &Database::default();
         let source = SourceProgram::new(db, Some("test.ppl".into()), "type Point".to_string());
@@ -68,6 +118,47 @@ mod tests {
                 name: Typename {
                     [salsa id]: 0,
                     text: "Point",
+                },
+            },
+        ]
+        "###);
+
+        let diagnostics = parse_module::accumulated::<Diagnostics>(db, source);
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn test_parse_type_with_annotation() {
+        let db = &Database::default();
+        let source = SourceProgram::new(
+            db,
+            Some("test.ppl".into()),
+            r###"
+            @builtin
+            type Point
+            "###
+            .to_string(),
+        );
+
+        let module = parse_module(db, source);
+        assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
+        [
+            AnnotatedStatement {
+                annotations: [
+                    Annotation {
+                        [salsa id]: 0,
+                        name: Identifier {
+                            [salsa id]: 0,
+                            text: "builtin",
+                        },
+                    },
+                ],
+                statement: Type {
+                    [salsa id]: 0,
+                    name: Typename {
+                        [salsa id]: 0,
+                        text: "Point",
+                    },
                 },
             },
         ]

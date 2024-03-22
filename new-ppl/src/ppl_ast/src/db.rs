@@ -1,4 +1,5 @@
 use crate::{
+    annotation::Annotation,
     declarations::{
         function::{Function, FunctionId, Text},
         ty::Type,
@@ -17,6 +18,7 @@ pub struct Jar(
     Identifier,
     Typename,
     Type,
+    Annotation,
 );
 
 pub trait Db: salsa::DbWithJar<Jar> {}

@@ -1,5 +1,6 @@
 use pest::{iterators::Pair, Parser};
 use ppl_ast::{
+    annotation::Annotation,
     declarations::{
         function::{Function, FunctionId, Parameter, Text},
         ty::Type,
@@ -7,6 +8,7 @@ use ppl_ast::{
     },
     identifier::Identifier,
     module::Module,
+    statements::{AnnotatedStatement, Statement},
     typename::Typename,
 };
 
@@ -41,20 +43,57 @@ pub fn parse_module(db: &dyn Db, source: SourceProgram) -> Module {
     }
     let module = module.unwrap().next().unwrap();
 
-    let mut decls: Vec<Declaration> = Vec::new();
-    for decl in module.into_inner() {
-        match decl.as_rule() {
-            Rule::function => {
-                decls.push(function(db, decl).into());
+    let mut stmts: Vec<AnnotatedStatement> = Vec::new();
+    for stmt in module.into_inner() {
+        match stmt.as_rule() {
+            Rule::annotated_statement => {
+                stmts.push(annotated_statement(db, stmt).into());
             }
-            Rule::r#type => {
-                decls.push(ty(db, decl).into());
+            _ => {
+                break;
             }
-            _ => {}
         }
     }
 
-    Module::new(db, decls)
+    Module::new(db, stmts)
+}
+
+fn annotated_statement(db: &dyn Db, tree: Pair<'_, Rule>) -> AnnotatedStatement {
+    let mut annotations = Vec::new();
+    let mut stmt = None;
+    for tree in tree.into_inner() {
+        match tree.as_rule() {
+            Rule::annotation => {
+                annotations.push(annotation(db, tree));
+            }
+            _ => {
+                stmt = Some(statement(db, tree));
+                break;
+            }
+        }
+    }
+    AnnotatedStatement {
+        annotations,
+        statement: stmt.unwrap(),
+    }
+}
+
+fn annotation(db: &dyn Db, tree: Pair<'_, Rule>) -> Annotation {
+    Annotation::new(db, identifier(db, tree.into_inner().next().unwrap()))
+}
+
+fn statement(db: &dyn Db, tree: Pair<'_, Rule>) -> Statement {
+    declaration(db, tree).into()
+}
+
+fn declaration(db: &dyn Db, tree: Pair<'_, Rule>) -> Declaration {
+    match tree.as_rule() {
+        Rule::function => function(db, tree).into(),
+        Rule::r#type => ty(db, tree).into(),
+        _ => {
+            unreachable!("Unexpected rule {:?}", tree.as_rule())
+        }
+    }
 }
 
 fn ty(db: &dyn Db, tree: Pair<'_, Rule>) -> Type {
