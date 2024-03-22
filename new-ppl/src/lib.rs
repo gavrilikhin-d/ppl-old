@@ -75,7 +75,11 @@ mod tests {
     #[test]
     fn test_function_with_parameter() {
         let db = &Database::default();
-        let source = SourceProgram::new(db, Some("test.ppl".into()), "fn <x:Integer>".to_string());
+        let source = SourceProgram::new(
+            db,
+            Some("test.ppl".into()),
+            "fn distance from <a: Point> to <b: Point>".to_string(),
+        );
 
         let module = parse_module(db, source);
         assert_debug_snapshot!(module.statements(db).debug(db), @r###"
@@ -84,7 +88,7 @@ mod tests {
                 [salsa id]: 0,
                 name: FunctionId {
                     [salsa id]: 0,
-                    text: "say hello world",
+                    text: "distance from <:Point> to <:Point>",
                 },
             },
         ]
