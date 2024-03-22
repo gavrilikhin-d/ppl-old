@@ -1,7 +1,9 @@
 use pest::{iterators::Pair, Parser};
 use ppl_ast::{
-    declarations::{Function, FunctionId, Identifier, Parameter, Text, Typename},
+    declarations::function::{Function, FunctionId, Parameter, Text},
+    identifier::Identifier,
     module::Module,
+    typename::Typename,
 };
 
 use crate::{

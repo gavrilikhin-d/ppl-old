@@ -1,6 +1,8 @@
 use crate::{
-    declarations::{Function, FunctionId, Identifier, Text, Typename},
+    declarations::function::{Function, FunctionId, Text},
+    identifier::Identifier,
     module::Module,
+    typename::Typename,
 };
 
 #[salsa::jar(db = Db)]

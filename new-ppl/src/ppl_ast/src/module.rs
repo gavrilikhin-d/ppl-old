@@ -1,4 +1,4 @@
-use crate::declarations::Function;
+use crate::declarations::function::Function;
 
 #[salsa::tracked]
 pub struct Module {
