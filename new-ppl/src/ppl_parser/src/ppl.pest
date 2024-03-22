@@ -2,16 +2,18 @@ module = { SOI ~ statement* ~ EOI }
 
 statement = _{ declaration }
 
-declaration = _{ function }
+declaration = _{ function | type }
 
 function            = ${ "fn" ~ WHITESPACE ~ function_name_parts ~ EOL }
 function_name_parts = _{ function_name_part ~ (WHITESPACE ~ function_name_part)* }
 function_name_part  = _{ text | parameter }
 parameter           = !{ "<" ~ identifier ~ ":" ~ typename ~ ">" }
 
+type     = ${ "type" ~ WHITESPACE ~ typename ~ EOL }
+typename = @{ UPPERCASE_LETTER ~ (LETTER | NUMBER)* }
+
 text       = @{ LETTER+ }
-typename   = @{ UPPERCASE_LETTER ~ (LETTER | NUMBER)* }
 identifier = @{ LOWERCASE_LETTER ~ (LETTER | NUMBER)* }
 
-EOL        = _{ LINE_SEPARATOR | EOI }
-WHITESPACE = _{ !LINE_SEPARATOR ~ WHITE_SPACE }
+EOL        = _{ "\n" | EOI }
+WHITESPACE = _{ WHITE_SPACE }

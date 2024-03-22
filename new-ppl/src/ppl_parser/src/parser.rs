@@ -1,6 +1,10 @@
 use pest::{iterators::Pair, Parser};
 use ppl_ast::{
-    declarations::function::{Function, FunctionId, Parameter, Text},
+    declarations::{
+        function::{Function, FunctionId, Parameter, Text},
+        ty::Type,
+        Declaration,
+    },
     identifier::Identifier,
     module::Module,
     typename::Typename,
@@ -37,17 +41,30 @@ pub fn parse_module(db: &dyn Db, source: SourceProgram) -> Module {
     }
     let module = module.unwrap().next().unwrap();
 
-    let mut functions: Vec<Function> = Vec::new();
-    for f in module.into_inner() {
-        match f.as_rule() {
+    let mut decls: Vec<Declaration> = Vec::new();
+    for decl in module.into_inner() {
+        match decl.as_rule() {
             Rule::function => {
-                functions.push(function(db, f));
+                decls.push(function(db, decl).into());
             }
-            _ => {}
+            Rule::r#type => {
+                decls.push(ty(db, decl).into());
+            }
+            _ => {
+                unreachable!("unexpected rule: {:?}", decl.as_rule())
+            }
         }
     }
 
-    Module::new(db, functions)
+    Module::new(db, decls)
+}
+
+fn ty(db: &dyn Db, tree: Pair<'_, Rule>) -> Type {
+    Type::new(db, typename(db, tree.into_inner().next().unwrap()))
+}
+
+fn typename(db: &dyn Db, tree: Pair<'_, Rule>) -> Typename {
+    Typename::new(db, tree.as_str().to_string())
 }
 
 fn function(db: &dyn Db, tree: Pair<'_, Rule>) -> Function {
@@ -74,8 +91,4 @@ fn parameter(db: &dyn Db, tree: Pair<'_, Rule>) -> Parameter {
 
 fn identifier(db: &dyn Db, tree: Pair<'_, Rule>) -> Identifier {
     Identifier::new(db, tree.as_str().to_string())
-}
-
-fn typename(db: &dyn Db, tree: Pair<'_, Rule>) -> Typename {
-    Typename::new(db, tree.as_str().to_string())
 }

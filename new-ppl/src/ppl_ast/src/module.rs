@@ -1,7 +1,7 @@
-use crate::declarations::function::Function;
+use crate::declarations::Declaration;
 
 #[salsa::tracked]
 pub struct Module {
     #[return_ref]
-    pub statements: Vec<Function>,
+    pub statements: Vec<Declaration>,
 }
