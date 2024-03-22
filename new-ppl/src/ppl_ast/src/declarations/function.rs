@@ -1,4 +1,5 @@
 use derive_more::From;
+use salsa::DebugWithDb;
 
 use crate::{identifier::Identifier, typename::Typename, Db};
 
@@ -38,6 +39,21 @@ pub enum FunctionNamePart {
     Parameter(Parameter),
 }
 
+impl<DB: Sized + Db> DebugWithDb<DB> for FunctionNamePart {
+    fn fmt(
+        &self,
+        f: &mut std::fmt::Formatter<'_>,
+        db: &DB,
+        include_all_fields: bool,
+    ) -> std::fmt::Result {
+        use FunctionNamePart::*;
+        match self {
+            Text(t) => t.fmt(f, db, include_all_fields),
+            Parameter(p) => p.fmt(f, db, include_all_fields),
+        }
+    }
+}
+
 #[salsa::interned]
 pub struct Text {
     #[return_ref]
@@ -48,4 +64,18 @@ pub struct Text {
 pub struct Parameter {
     pub name: Identifier,
     pub ty: Typename,
+}
+
+impl<DB: Sized + Db> DebugWithDb<DB> for Parameter {
+    fn fmt(
+        &self,
+        f: &mut std::fmt::Formatter<'_>,
+        db: &DB,
+        include_all_fields: bool,
+    ) -> std::fmt::Result {
+        f.debug_struct("Parameter")
+            .field("name", &self.name.debug_with(db, include_all_fields))
+            .field("ty", &self.ty.debug_with(db, include_all_fields))
+            .finish()
+    }
 }
