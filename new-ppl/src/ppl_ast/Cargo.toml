@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 derive_more = "0.99.17"
+rug = "1.24.0"
 salsa = { git = "https://github.com/salsa-rs/salsa", version = "0.1.0", package = "salsa-2022" }

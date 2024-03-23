@@ -69,6 +69,8 @@ mod tests {
             none
             true
             false
+            10
+            0.63
             "###
             .to_string(),
         );
@@ -79,6 +81,8 @@ mod tests {
             none,
             true,
             false,
+            10,
+            0.63,
         ]
         "###);
 

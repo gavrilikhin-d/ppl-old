@@ -7,11 +7,13 @@ statement = _{ declaration | expression_statement }
 
 expression_statement = ${ expression ~ EOL }
 expression           = _{ literal }
-literal              = _{ NONE | boolean }
+literal              = _{ NONE | boolean | rational | integer }
 NONE                 =  { "none" }
 boolean              = _{ TRUE | FALSE }
 TRUE                 =  { "true" }
 FALSE                =  { "false" }
+rational             = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
+integer              = @{ ASCII_DIGIT+ }
 
 declaration = _{ function | type }
 
@@ -26,5 +28,5 @@ typename = @{ UPPERCASE_LETTER ~ (LETTER | NUMBER)* }
 text       = @{ LETTER+ }
 identifier = @{ LOWERCASE_LETTER ~ (LETTER | NUMBER)* }
 
-EOL        = _{ "\n" | EOI }
+EOL        = _{ NEWLINE | EOI }
 WHITESPACE = _{ WHITE_SPACE }

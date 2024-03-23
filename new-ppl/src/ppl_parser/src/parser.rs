@@ -6,7 +6,10 @@ use ppl_ast::{
         ty::Type,
         Declaration,
     },
-    expressions::{literal::Literal, Expression},
+    expressions::{
+        literal::{FromDecimal, Integer, Literal, Rational},
+        Expression,
+    },
     identifier::Identifier,
     module::Module,
     statements::{AnnotatedStatement, Statement},
@@ -98,8 +101,10 @@ fn literal(_db: &dyn Db, tree: Pair<'_, Rule>) -> Literal {
     let tree = tree.into_inner().next().unwrap();
     match tree.as_rule() {
         Rule::NONE => Literal::None,
-        Rule::TRUE => Literal::Boolean(true),
-        Rule::FALSE => Literal::Boolean(false),
+        Rule::TRUE => true.into(),
+        Rule::FALSE => false.into(),
+        Rule::integer => tree.as_str().parse::<Integer>().unwrap().into(),
+        Rule::rational => Rational::from_decimal(tree.as_str()).unwrap().into(),
         _ => {
             unreachable!("Unexpected rule {:?}", tree.as_rule())
         }
