@@ -105,6 +105,9 @@ fn literal(_db: &dyn Db, tree: Pair<'_, Rule>) -> Literal {
         Rule::FALSE => false.into(),
         Rule::integer => tree.as_str().parse::<Integer>().unwrap().into(),
         Rule::rational => Rational::from_decimal(tree.as_str()).unwrap().into(),
+        Rule::string => unescaper::unescape(&tree.as_str()[1..tree.as_str().len() - 1])
+            .unwrap()
+            .into(),
         _ => {
             unreachable!("Unexpected rule {:?}", tree.as_rule())
         }

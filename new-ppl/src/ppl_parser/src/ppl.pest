@@ -7,13 +7,14 @@ statement = _{ declaration | expression_statement }
 
 expression_statement = ${ expression ~ EOL }
 expression           = _{ literal }
-literal              = _{ NONE | boolean | rational | integer }
+literal              = _{ NONE | boolean | rational | integer | string }
 NONE                 =  { "none" }
 boolean              = _{ TRUE | FALSE }
 TRUE                 =  { "true" }
 FALSE                =  { "false" }
 rational             = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
 integer              = @{ ASCII_DIGIT+ }
+string               = @{ "\"" ~ (!("\"" | NEWLINE) ~ ANY)* ~ "\"" }
 
 declaration = _{ function | type }
 

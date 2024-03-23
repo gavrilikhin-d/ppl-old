@@ -71,6 +71,7 @@ mod tests {
             false
             10
             0.63
+            "hello\nworld!"
             "###
             .to_string(),
         );
@@ -83,6 +84,7 @@ mod tests {
             false,
             10,
             0.63,
+            "hello\nworld!",
         ]
         "###);
 

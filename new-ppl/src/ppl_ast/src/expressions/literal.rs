@@ -16,6 +16,7 @@ pub enum Literal {
     Boolean(bool),
     Integer(rug::Integer),
     Rational(rug::Rational),
+    String(String),
 }
 
 impl Display for Literal {
@@ -26,6 +27,7 @@ impl Display for Literal {
             Boolean(b) => write!(f, "{b}"),
             Integer(i) => write!(f, "{i}"),
             Rational(r) => write!(f, "{}", maybe_to_decimal_string(r)),
+            String(s) => write!(f, "{:?}", s),
         }
     }
 }
