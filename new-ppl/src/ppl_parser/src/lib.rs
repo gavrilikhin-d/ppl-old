@@ -108,17 +108,9 @@ mod tests {
         let module = module(db, source);
         assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
         [
-            AnnotatedStatement {
-                annotations: [
-                    Annotation {
-                        [salsa id]: 0,
-                        name: Identifier {
-                            [salsa id]: 0,
-                            text: "builtin",
-                        },
-                    },
-                ],
-                statement: Function {
+            [
+                @builtin,
+                Function {
                     [salsa id]: 0,
                     name: FunctionId {
                         [salsa id]: 0,
@@ -134,7 +126,7 @@ mod tests {
                         ),
                     ],
                 },
-            },
+            ],
         ]
         "###);
 
@@ -180,24 +172,16 @@ mod tests {
         let module = module(db, source);
         assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
         [
-            AnnotatedStatement {
-                annotations: [
-                    Annotation {
-                        [salsa id]: 0,
-                        name: Identifier {
-                            [salsa id]: 0,
-                            text: "builtin",
-                        },
-                    },
-                ],
-                statement: Type {
+            [
+                @builtin,
+                Type {
                     [salsa id]: 0,
                     name: Typename {
                         [salsa id]: 0,
                         text: "Point",
                     },
                 },
-            },
+            ],
         ]
         "###);
 

@@ -1,7 +1,10 @@
 use derive_more::From;
 use salsa::DebugWithDb;
 
-use crate::{annotation::Annotation, declarations::Declaration, expressions::Expression, Db};
+use crate::{
+    annotation::Annotation, declarations::Declaration, display::DisplayWithDb,
+    expressions::Expression, Db,
+};
 
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum Statement {
@@ -41,15 +44,9 @@ impl<DB: Sized + Db> DebugWithDb<DB> for AnnotatedStatement {
             return self.statement.fmt(f, db, include_all_fields);
         }
 
-        f.debug_struct("AnnotatedStatement")
-            .field(
-                "annotations",
-                &self.annotations.debug_with(db, include_all_fields),
-            )
-            .field(
-                "statement",
-                &self.statement.debug_with(db, include_all_fields),
-            )
+        f.debug_list()
+            .entries(self.annotations.iter().map(|a| a.display_with(db)))
+            .entry(&self.statement.debug_with(db, include_all_fields))
             .finish()
     }
 }
