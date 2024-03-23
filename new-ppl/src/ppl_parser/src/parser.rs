@@ -6,6 +6,7 @@ use ppl_ast::{
         ty::Type,
         Declaration,
     },
+    expressions::{literal::Literal, Expression},
     identifier::Identifier,
     module::Module,
     statements::{AnnotatedStatement, Statement},
@@ -83,7 +84,26 @@ fn annotation(db: &dyn Db, tree: Pair<'_, Rule>) -> Annotation {
 }
 
 fn statement(db: &dyn Db, tree: Pair<'_, Rule>) -> Statement {
-    declaration(db, tree).into()
+    match tree.as_rule() {
+        Rule::expression_statement => expression(db, tree).into(),
+        _ => declaration(db, tree).into(),
+    }
+}
+
+fn expression(db: &dyn Db, tree: Pair<'_, Rule>) -> Expression {
+    literal(db, tree).into()
+}
+
+fn literal(_db: &dyn Db, tree: Pair<'_, Rule>) -> Literal {
+    let tree = tree.into_inner().next().unwrap();
+    match tree.as_rule() {
+        Rule::NONE => Literal::None,
+        Rule::TRUE => Literal::Boolean(true),
+        Rule::FALSE => Literal::Boolean(false),
+        _ => {
+            unreachable!("Unexpected rule {:?}", tree.as_rule())
+        }
+    }
 }
 
 fn declaration(db: &dyn Db, tree: Pair<'_, Rule>) -> Declaration {

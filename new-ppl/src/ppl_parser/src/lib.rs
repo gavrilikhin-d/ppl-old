@@ -60,6 +60,33 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_literals() {
+        let db = &Database::default();
+        let source = SourceProgram::new(
+            db,
+            Some("test.ppl".into()),
+            r###"
+            none
+            true
+            false
+            "###
+            .to_string(),
+        );
+
+        let module = module(db, source);
+        assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
+        [
+            none,
+            true,
+            false,
+        ]
+        "###);
+
+        let diagnostics = module::accumulated::<Diagnostics>(db, source);
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
     fn test_function_with_annotation() {
         let db = &Database::default();
         let source = SourceProgram::new(

@@ -9,7 +9,7 @@ expression_statement = ${ expression ~ EOL }
 expression           = _{ literal }
 literal              = _{ NONE | boolean }
 NONE                 =  { "none" }
-boolean              =  { TRUE | FALSE }
+boolean              = _{ TRUE | FALSE }
 TRUE                 =  { "true" }
 FALSE                =  { "false" }
 
