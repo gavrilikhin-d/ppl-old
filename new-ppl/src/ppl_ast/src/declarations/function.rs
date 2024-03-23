@@ -11,6 +11,20 @@ pub struct Function {
     pub name_parts: Vec<FunctionNamePart>,
 }
 
+impl<'me> DisplayWithDb<'me, dyn Db + 'me> for Function {
+    fn fmt_with(&self, db: &dyn Db, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "fn {}",
+            self.name_parts(db)
+                .iter()
+                .map(|p| p.to_string_with(db))
+                .collect::<Vec<_>>()
+                .join(" ")
+        )
+    }
+}
+
 #[salsa::interned]
 pub struct FunctionId {
     #[return_ref]
@@ -33,10 +47,26 @@ impl FunctionId {
     }
 }
 
+impl<'me> DisplayWithDb<'me, dyn Db + 'me> for FunctionId {
+    fn fmt_with(&self, db: &dyn Db, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.text(db))
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, From)]
 pub enum FunctionNamePart {
     Text(Text),
     Parameter(Parameter),
+}
+
+impl<'me> DisplayWithDb<'me, dyn Db + 'me> for FunctionNamePart {
+    fn fmt_with(&self, db: &dyn Db, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use FunctionNamePart::*;
+        match self {
+            Text(t) => t.fmt_with(db, f),
+            Parameter(p) => p.fmt_with(db, f),
+        }
+    }
 }
 
 impl<DB: Sized + Db> DebugWithDb<DB> for FunctionNamePart {
@@ -70,6 +100,17 @@ impl<'me> DisplayWithDb<'me, dyn Db + 'me> for Text {
 pub struct Parameter {
     pub name: Identifier,
     pub ty: Typename,
+}
+
+impl<'me> DisplayWithDb<'me, dyn Db + 'me> for Parameter {
+    fn fmt_with(&self, db: &dyn Db, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "<{}: {}>",
+            self.name.display_with(db),
+            self.ty.display_with(db)
+        )
+    }
 }
 
 impl<DB: Sized + Db> DebugWithDb<DB> for Parameter {

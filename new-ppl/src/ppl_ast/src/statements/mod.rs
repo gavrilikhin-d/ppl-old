@@ -12,6 +12,16 @@ pub enum Statement {
     Expression(Expression),
 }
 
+impl<'me> DisplayWithDb<'me, dyn Db + 'me> for Statement {
+    fn fmt_with(&self, db: &dyn Db, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use Statement::*;
+        match self {
+            Declaration(d) => d.fmt_with(db, f),
+            Expression(e) => e.fmt_with(db, f),
+        }
+    }
+}
+
 impl<DB: Sized + Db> DebugWithDb<DB> for Statement {
     fn fmt(
         &self,
@@ -31,6 +41,15 @@ impl<DB: Sized + Db> DebugWithDb<DB> for Statement {
 pub struct AnnotatedStatement {
     pub annotations: Vec<Annotation>,
     pub statement: Statement,
+}
+
+impl<'me> DisplayWithDb<'me, dyn Db + 'me> for AnnotatedStatement {
+    fn fmt_with(&self, db: &dyn Db, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for a in &self.annotations {
+            writeln!(f, "{}", a.display_with(db))?;
+        }
+        self.statement.fmt_with(db, f)
+    }
 }
 
 impl<DB: Sized + Db> DebugWithDb<DB> for AnnotatedStatement {

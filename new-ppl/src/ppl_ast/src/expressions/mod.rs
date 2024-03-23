@@ -1,4 +1,4 @@
-use crate::Db;
+use crate::{display::DisplayWithDb, Db};
 
 use self::{literal::Literal, type_reference::TypeReference};
 
@@ -12,6 +12,16 @@ use salsa::DebugWithDb;
 pub enum Expression {
     Literal(Literal),
     TypeReference(TypeReference),
+}
+
+impl<'me> DisplayWithDb<'me, dyn Db + 'me> for Expression {
+    fn fmt_with(&self, db: &dyn Db, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use Expression::*;
+        match self {
+            Literal(l) => l.fmt_with(db, f),
+            TypeReference(t) => t.fmt_with(db, f),
+        }
+    }
 }
 
 impl<DB: Sized + Db> DebugWithDb<DB> for Expression {

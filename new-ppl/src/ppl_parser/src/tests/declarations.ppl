@@ -1,0 +1,11 @@
+@builtin
+type Point
+
+
+@main
+@builtin
+fn main
+
+fn say hello world
+
+fn distance from <a: Point> to <b: Point>

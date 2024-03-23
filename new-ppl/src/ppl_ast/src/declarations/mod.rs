@@ -1,7 +1,7 @@
 use derive_more::From;
 use salsa::DebugWithDb;
 
-use crate::Db;
+use crate::{display::DisplayWithDb, Db};
 
 use self::{function::Function, ty::Type};
 
@@ -12,6 +12,16 @@ pub mod ty;
 pub enum Declaration {
     Function(Function),
     Type(Type),
+}
+
+impl<'me> DisplayWithDb<'me, dyn Db + 'me> for Declaration {
+    fn fmt_with(&self, db: &dyn Db, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use Declaration::*;
+        match self {
+            Function(fun) => fun.fmt_with(db, f),
+            Type(ty) => ty.fmt_with(db, f),
+        }
+    }
 }
 
 impl<DB: Sized + Db> DebugWithDb<DB> for Declaration {

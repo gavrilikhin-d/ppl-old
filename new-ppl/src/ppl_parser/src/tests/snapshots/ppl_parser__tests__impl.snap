@@ -1,0 +1,11 @@
+---
+source: src/ppl_parser/src/tests/mod.rs
+expression: "module.statements(db).iter().map(|s|\n                s.to_string_with(db)).collect::<Vec<_>>().join(\"\\n\")"
+---
+none
+true
+false
+10
+0.63
+"hello\nworld!"
+Type
