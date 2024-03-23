@@ -8,6 +8,7 @@ use ppl_ast::{
     },
     expressions::{
         literal::{FromDecimal, Integer, Literal, Rational},
+        type_reference::TypeReference,
         Expression,
     },
     identifier::Identifier,
@@ -88,13 +89,22 @@ fn annotation(db: &dyn Db, tree: Pair<'_, Rule>) -> Annotation {
 
 fn statement(db: &dyn Db, tree: Pair<'_, Rule>) -> Statement {
     match tree.as_rule() {
-        Rule::expression_statement => expression(db, tree).into(),
+        Rule::expression_statement => expression(db, tree.into_inner().next().unwrap()).into(),
         _ => declaration(db, tree).into(),
     }
 }
 
 fn expression(db: &dyn Db, tree: Pair<'_, Rule>) -> Expression {
-    literal(db, tree).into()
+    match tree.as_rule() {
+        Rule::type_reference => type_reference(db, tree).into(),
+        _ => literal(db, tree).into(),
+    }
+}
+
+fn type_reference(db: &dyn Db, tree: Pair<'_, Rule>) -> TypeReference {
+    TypeReference {
+        ty: typename(db, tree.into_inner().next().unwrap()),
+    }
 }
 
 fn literal(_db: &dyn Db, tree: Pair<'_, Rule>) -> Literal {
