@@ -1,11 +1,12 @@
 use derive_more::From;
 use salsa::DebugWithDb;
 
-use crate::{annotation::Annotation, declarations::Declaration, Db};
+use crate::{annotation::Annotation, declarations::Declaration, expressions::Expression, Db};
 
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum Statement {
     Declaration(Declaration),
+    Expression(Expression),
 }
 
 impl<DB: Sized + Db> DebugWithDb<DB> for Statement {
@@ -18,6 +19,7 @@ impl<DB: Sized + Db> DebugWithDb<DB> for Statement {
         use Statement::*;
         match self {
             Declaration(d) => d.fmt(f, db, include_all_fields),
+            Expression(e) => e.fmt(f, db, include_all_fields),
         }
     }
 }
