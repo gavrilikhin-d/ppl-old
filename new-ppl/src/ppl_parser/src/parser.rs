@@ -23,7 +23,7 @@ use crate::{
 struct PPLParser;
 
 #[salsa::tracked]
-pub fn parse_module(db: &dyn Db, source: SourceProgram) -> Module {
+pub fn module(db: &dyn Db, source: SourceProgram) -> Module {
     let source_text = source.text(db);
 
     let module = PPLParser::parse(Rule::module, &source_text);

@@ -17,7 +17,7 @@ mod tests {
     use insta::assert_debug_snapshot;
     use ppl_parser::{
         diagnostic::{Diagnostics, DisplayDiagnostics},
-        parser::parse_module,
+        parser::module,
         source::SourceProgram,
     };
     use salsa::DebugWithDb;
@@ -29,7 +29,7 @@ mod tests {
         let db = &Database::default();
         let source = SourceProgram::new(db, Some("test.ppl".into()), "fn main".to_string());
 
-        let module = parse_module(db, source);
+        let module = module(db, source);
         assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
         [
             Function {
@@ -51,7 +51,7 @@ mod tests {
         ]
         "###);
 
-        let diagnostics = parse_module::accumulated::<Diagnostics>(db, source);
+        let diagnostics = module::accumulated::<Diagnostics>(db, source);
         assert!(diagnostics.is_empty());
     }
 
@@ -68,7 +68,7 @@ mod tests {
             .to_string(),
         );
 
-        let module = parse_module(db, source);
+        let module = module(db, source);
         assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
         [
             AnnotatedStatement {
@@ -101,7 +101,7 @@ mod tests {
         ]
         "###);
 
-        let diagnostics = parse_module::accumulated::<Diagnostics>(db, source);
+        let diagnostics = module::accumulated::<Diagnostics>(db, source);
         assert!(diagnostics.is_empty());
     }
 
@@ -110,7 +110,7 @@ mod tests {
         let db = &Database::default();
         let source = SourceProgram::new(db, Some("test.ppl".into()), "type Point".to_string());
 
-        let module = parse_module(db, source);
+        let module = module(db, source);
         assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
         [
             Type {
@@ -123,7 +123,7 @@ mod tests {
         ]
         "###);
 
-        let diagnostics = parse_module::accumulated::<Diagnostics>(db, source);
+        let diagnostics = module::accumulated::<Diagnostics>(db, source);
         assert!(diagnostics.is_empty());
     }
 
@@ -140,7 +140,7 @@ mod tests {
             .to_string(),
         );
 
-        let module = parse_module(db, source);
+        let module = module(db, source);
         assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
         [
             AnnotatedStatement {
@@ -164,7 +164,7 @@ mod tests {
         ]
         "###);
 
-        let diagnostics = parse_module::accumulated::<Diagnostics>(db, source);
+        let diagnostics = module::accumulated::<Diagnostics>(db, source);
         assert!(diagnostics.is_empty());
     }
 
@@ -177,7 +177,7 @@ mod tests {
             "fn say hello world".to_string(),
         );
 
-        let module = parse_module(db, source);
+        let module = module(db, source);
         assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
         [
             Function {
@@ -213,7 +213,7 @@ mod tests {
         ]
         "###);
 
-        let diagnostics = parse_module::accumulated::<Diagnostics>(db, source);
+        let diagnostics = module::accumulated::<Diagnostics>(db, source);
         assert!(diagnostics.is_empty(), "{}", diagnostics.display());
     }
 
@@ -226,7 +226,7 @@ mod tests {
             "fn distance from <a: Point> to <b: Point>".to_string(),
         );
 
-        let module = parse_module(db, source);
+        let module = module(db, source);
         assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
         [
             Function {
@@ -290,7 +290,7 @@ mod tests {
         ]
         "###);
 
-        let diagnostics = parse_module::accumulated::<Diagnostics>(db, source);
+        let diagnostics = module::accumulated::<Diagnostics>(db, source);
         assert!(diagnostics.is_empty(), "{}", diagnostics.display());
     }
 }

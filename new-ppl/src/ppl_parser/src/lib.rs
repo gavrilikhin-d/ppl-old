@@ -1,16 +1,300 @@
 #![feature(trait_upcasting)]
 #![feature(debug_closure_helpers)]
 
-use diagnostic::Diagnostics;
-use parser::parse_module;
-use source::SourceProgram;
-
 pub mod diagnostic;
 pub mod parser;
 pub mod source;
 
-#[salsa::jar(db = Db)]
-pub struct Jar(SourceProgram, parse_module, Diagnostics);
+mod db;
+pub use db::*;
 
-pub trait Db: salsa::DbWithJar<Jar> + ppl_ast::Db {}
-impl<DB> Db for DB where DB: ?Sized + salsa::DbWithJar<Jar> + ppl_ast::Db {}
+#[cfg(test)]
+mod tests {
+    use insta::assert_debug_snapshot;
+    use salsa::DebugWithDb;
+
+    use crate::{
+        diagnostic::{Diagnostics, DisplayDiagnostics},
+        parser::module,
+        source::SourceProgram,
+    };
+
+    use super::*;
+
+    #[derive(Default)]
+    #[salsa::db(ppl_ast::Jar, Jar)]
+    pub struct Database {
+        storage: salsa::Storage<Self>,
+    }
+    impl salsa::Database for Database {}
+
+    #[test]
+    fn test_parse_module() {
+        let db = &Database::default();
+        let source = SourceProgram::new(db, Some("test.ppl".into()), "fn main".to_string());
+
+        let module = module(db, source);
+        assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
+        [
+            Function {
+                [salsa id]: 0,
+                name: FunctionId {
+                    [salsa id]: 0,
+                    text: "main",
+                },
+                name_parts: [
+                    Text(
+                        Text(
+                            Id {
+                                value: 1,
+                            },
+                        ),
+                    ),
+                ],
+            },
+        ]
+        "###);
+
+        let diagnostics = module::accumulated::<Diagnostics>(db, source);
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn test_function_with_annotation() {
+        let db = &Database::default();
+        let source = SourceProgram::new(
+            db,
+            Some("test.ppl".into()),
+            r###"
+            @builtin
+            fn main
+            "###
+            .to_string(),
+        );
+
+        let module = module(db, source);
+        assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
+        [
+            AnnotatedStatement {
+                annotations: [
+                    Annotation {
+                        [salsa id]: 0,
+                        name: Identifier {
+                            [salsa id]: 0,
+                            text: "builtin",
+                        },
+                    },
+                ],
+                statement: Function {
+                    [salsa id]: 0,
+                    name: FunctionId {
+                        [salsa id]: 0,
+                        text: "main",
+                    },
+                    name_parts: [
+                        Text(
+                            Text(
+                                Id {
+                                    value: 1,
+                                },
+                            ),
+                        ),
+                    ],
+                },
+            },
+        ]
+        "###);
+
+        let diagnostics = module::accumulated::<Diagnostics>(db, source);
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn test_parse_type() {
+        let db = &Database::default();
+        let source = SourceProgram::new(db, Some("test.ppl".into()), "type Point".to_string());
+
+        let module = module(db, source);
+        assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
+        [
+            Type {
+                [salsa id]: 0,
+                name: Typename {
+                    [salsa id]: 0,
+                    text: "Point",
+                },
+            },
+        ]
+        "###);
+
+        let diagnostics = module::accumulated::<Diagnostics>(db, source);
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn test_parse_type_with_annotation() {
+        let db = &Database::default();
+        let source = SourceProgram::new(
+            db,
+            Some("test.ppl".into()),
+            r###"
+            @builtin
+            type Point
+            "###
+            .to_string(),
+        );
+
+        let module = module(db, source);
+        assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
+        [
+            AnnotatedStatement {
+                annotations: [
+                    Annotation {
+                        [salsa id]: 0,
+                        name: Identifier {
+                            [salsa id]: 0,
+                            text: "builtin",
+                        },
+                    },
+                ],
+                statement: Type {
+                    [salsa id]: 0,
+                    name: Typename {
+                        [salsa id]: 0,
+                        text: "Point",
+                    },
+                },
+            },
+        ]
+        "###);
+
+        let diagnostics = module::accumulated::<Diagnostics>(db, source);
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn test_multipart_function() {
+        let db = &Database::default();
+        let source = SourceProgram::new(
+            db,
+            Some("test.ppl".into()),
+            "fn say hello world".to_string(),
+        );
+
+        let module = module(db, source);
+        assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
+        [
+            Function {
+                [salsa id]: 0,
+                name: FunctionId {
+                    [salsa id]: 0,
+                    text: "say hello world",
+                },
+                name_parts: [
+                    Text(
+                        Text(
+                            Id {
+                                value: 1,
+                            },
+                        ),
+                    ),
+                    Text(
+                        Text(
+                            Id {
+                                value: 2,
+                            },
+                        ),
+                    ),
+                    Text(
+                        Text(
+                            Id {
+                                value: 3,
+                            },
+                        ),
+                    ),
+                ],
+            },
+        ]
+        "###);
+
+        let diagnostics = module::accumulated::<Diagnostics>(db, source);
+        assert!(diagnostics.is_empty(), "{}", diagnostics.display());
+    }
+
+    #[test]
+    fn test_function_with_parameter() {
+        let db = &Database::default();
+        let source = SourceProgram::new(
+            db,
+            Some("test.ppl".into()),
+            "fn distance from <a: Point> to <b: Point>".to_string(),
+        );
+
+        let module = module(db, source);
+        assert_debug_snapshot!(module.statements(db).debug_all(db), @r###"
+        [
+            Function {
+                [salsa id]: 0,
+                name: FunctionId {
+                    [salsa id]: 0,
+                    text: "distance from <:Point> to <:Point>",
+                },
+                name_parts: [
+                    Text(
+                        Text(
+                            Id {
+                                value: 1,
+                            },
+                        ),
+                    ),
+                    Text(
+                        Text(
+                            Id {
+                                value: 2,
+                            },
+                        ),
+                    ),
+                    Parameter(
+                        Parameter {
+                            name: Identifier(
+                                Id {
+                                    value: 1,
+                                },
+                            ),
+                            ty: Typename(
+                                Id {
+                                    value: 1,
+                                },
+                            ),
+                        },
+                    ),
+                    Text(
+                        Text(
+                            Id {
+                                value: 3,
+                            },
+                        ),
+                    ),
+                    Parameter(
+                        Parameter {
+                            name: Identifier(
+                                Id {
+                                    value: 2,
+                                },
+                            ),
+                            ty: Typename(
+                                Id {
+                                    value: 1,
+                                },
+                            ),
+                        },
+                    ),
+                ],
+            },
+        ]
+        "###);
+
+        let diagnostics = module::accumulated::<Diagnostics>(db, source);
+        assert!(diagnostics.is_empty(), "{}", diagnostics.display());
+    }
+}
