@@ -1,0 +1,176 @@
+---
+source: src/semantics/tests/mod.rs
+expression: ir
+---
+; ModuleID = 'references'
+source_filename = "references.ppl"
+
+%"Type<I32>" = type { %String, %Integer }
+%String = type { ptr }
+%Integer = type { ptr }
+%MemoryAddress = type { %Integer }
+
+@"Type<I32>" = global %"Type<I32>" zeroinitializer
+@0 = private unnamed_addr constant [4 x i8] c"I32\00", align 1
+@n = global %Integer zeroinitializer
+@address = global %MemoryAddress zeroinitializer
+@value = global ptr null
+
+define void @initialize() !dbg !3 {
+  %1 = alloca %"Type<I32>", align 8, !dbg !7
+  %"Type<I32>.name" = getelementptr inbounds %"Type<I32>", ptr %1, i32 0, i32 0, !dbg !7
+  %2 = call %String @string_from_c_string_and_length(ptr @0, i64 3), !dbg !8
+  store %String %2, ptr %"Type<I32>.name", align 8, !dbg !8
+  %"Type<I32>.size" = getelementptr inbounds %"Type<I32>", ptr %1, i32 0, i32 1, !dbg !8
+  %3 = call %Integer @integer_from_i64(i64 4), !dbg !8
+  store %Integer %3, ptr %"Type<I32>.size", align 8, !dbg !8
+  %4 = load %"Type<I32>", ptr %1, align 8, !dbg !8
+  store %"Type<I32>" %4, ptr @"Type<I32>", align 8, !dbg !8
+  br label %return, !dbg !8
+
+return:                                           ; preds = %0
+  ret void
+}
+
+declare %String @string_from_c_string_and_length(ptr, i64)
+
+declare %Integer @integer_from_i64(i64)
+
+define void @initialize.1() !dbg !9 {
+  %1 = load %"Type<I32>", ptr @"Type<I32>", align 8, !dbg !10
+  %2 = call %Integer @"size of <:Type<I32>>"(%"Type<I32>" %1), !dbg !10
+  store %Integer %2, ptr @n, align 8, !dbg !10
+  br label %return, !dbg !10
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define %Integer @"size of <:Type<I32>>"(%"Type<I32>" %0) !dbg !11 {
+  %return_value = alloca %Integer, align 8
+  %ty = alloca %"Type<I32>", align 8
+  store %"Type<I32>" %0, ptr %ty, align 8
+  %size = getelementptr inbounds %"Type<I32>", ptr %ty, i32 0, i32 1, !dbg !12
+  %2 = load %Integer, ptr %size, align 8, !dbg !12
+  store %Integer %2, ptr %return_value, align 8, !dbg !12
+  br label %return, !dbg !12
+
+return:                                           ; preds = %1
+  %3 = load %Integer, ptr %return_value, align 8
+  ret %Integer %3
+}
+
+define void @initialize.2() !dbg !13 {
+  %1 = load %Integer, ptr @n, align 8, !dbg !14
+  %2 = call %Integer @clone_integer(%Integer %1), !dbg !14
+  %3 = call %MemoryAddress @allocate_n_bytes(%Integer %2), !dbg !14
+  store %MemoryAddress %3, ptr @address, align 8, !dbg !14
+  br label %return, !dbg !14
+
+return:                                           ; preds = %0
+  ret void
+}
+
+declare %MemoryAddress @allocate_n_bytes(%Integer)
+
+declare %Integer @clone_integer(%Integer)
+
+define void @initialize.3() !dbg !15 {
+  %1 = load %"Type<I32>", ptr @"Type<I32>", align 8, !dbg !16
+  %2 = load %MemoryAddress, ptr @address, align 8, !dbg !17
+  %3 = call ptr @read_memory(%"Type<I32>" %1, %MemoryAddress %2), !dbg !17
+  store ptr %3, ptr @value, align 8, !dbg !17
+  br label %return, !dbg !17
+
+return:                                           ; preds = %0
+  ret void
+}
+
+declare ptr @read_memory(%"Type<I32>", %MemoryAddress)
+
+define void @references.execute() !dbg !18 {
+init_globals:
+  call void @initialize(), !dbg !19
+  call void @initialize.1(), !dbg !20
+  call void @initialize.2(), !dbg !21
+  call void @initialize.3(), !dbg !22
+  br label %0, !dbg !22
+
+0:                                                ; preds = %init_globals
+  %1 = load ptr, ptr @value, align 8, !dbg !23
+  %2 = call %Integer @integer_from_i64(i64 0), !dbg !24
+  %3 = call i32 @integer_as_i32(%Integer %2), !dbg !24
+  store i32 %3, ptr %1, align 4, !dbg !24
+  %4 = load ptr, ptr @value, align 8, !dbg !25
+  %5 = load i32, ptr %4, align 4, !dbg !25
+  call void @"println <:I32>"(i32 %5), !dbg !25
+  %6 = load ptr, ptr @value, align 8, !dbg !26
+  %7 = call %Integer @integer_from_i64(i64 1), !dbg !27
+  %8 = call i32 @integer_as_i32(%Integer %7), !dbg !27
+  store i32 %8, ptr %6, align 4, !dbg !27
+  %9 = load ptr, ptr @value, align 8, !dbg !28
+  %10 = load i32, ptr %9, align 4, !dbg !28
+  call void @"println <:I32>"(i32 %10), !dbg !28
+  %11 = load %MemoryAddress, ptr @address, align 8, !dbg !29
+  call void @free_memory(%MemoryAddress %11), !dbg !29
+  br label %return, !dbg !22
+
+return:                                           ; preds = %0
+  ret void
+}
+
+declare i32 @integer_as_i32(%Integer)
+
+define void @"println <:I32>"(i32 %0) !dbg !30 {
+  %x = alloca i32, align 4
+  store i32 %0, ptr %x, align 4
+  %2 = load i32, ptr %x, align 4, !dbg !31
+  %3 = call %String @i32_as_string(i32 %2), !dbg !31
+  call void @"println <:String>"(%String %3), !dbg !31
+  br label %return, !dbg !31
+
+return:                                           ; preds = %1
+  ret void
+}
+
+declare void @"println <:String>"(%String)
+
+declare %String @i32_as_string(i32)
+
+declare void @free_memory(%MemoryAddress)
+
+!llvm.module.flags = !{!0}
+!llvm.dbg.cu = !{!1}
+
+!0 = !{i32 2, !"Debug Info Version", i32 3}
+!1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "ppl", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, sysroot: "/")
+!2 = !DIFile(filename: "references.ppl", directory: ".")
+!3 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!4 = !DISubroutineType(types: !5)
+!5 = !{!6}
+!6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
+!7 = !DILocation(line: 0, column: 16, scope: !3)
+!8 = !DILocation(line: 0, scope: !3)
+!9 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!10 = !DILocation(line: 0, column: 16, scope: !9)
+!11 = distinct !DISubprogram(name: "size of <:Type<I32>>", linkageName: "size of <:Type<I32>>", scope: !9, file: !2, line: 8, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!12 = !DILocation(line: 8, column: 12, scope: !11)
+!13 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!14 = !DILocation(line: 2, column: 23, scope: !13)
+!15 = distinct !DISubprogram(name: "initialize.3", linkageName: "initialize.3", scope: !2, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!16 = !DILocation(line: 3, column: 12, scope: !15)
+!17 = !DILocation(line: 3, column: 19, scope: !15)
+!18 = distinct !DISubprogram(name: "references.execute", linkageName: "references.execute", scope: !2, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!19 = !DILocation(line: 0, column: 16, scope: !18)
+!20 = !DILocation(line: 0, column: 8, scope: !18)
+!21 = !DILocation(line: 2, column: 14, scope: !18)
+!22 = !DILocation(line: 3, column: 12, scope: !18)
+!23 = !DILocation(line: 4, scope: !18)
+!24 = !DILocation(line: 4, column: 8, scope: !18)
+!25 = !DILocation(line: 5, column: 8, scope: !18)
+!26 = !DILocation(line: 6, scope: !18)
+!27 = !DILocation(line: 6, column: 8, scope: !18)
+!28 = !DILocation(line: 7, column: 8, scope: !18)
+!29 = !DILocation(line: 8, column: 5, scope: !18)
+!30 = distinct !DISubprogram(name: "println <:I32>", linkageName: "println <:I32>", scope: !18, file: !2, line: 8, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!31 = !DILocation(line: 8, column: 12, scope: !30)

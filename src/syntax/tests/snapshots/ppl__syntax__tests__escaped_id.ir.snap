@@ -1,0 +1,55 @@
+---
+source: src/syntax/tests/mod.rs
+expression: ir
+---
+; ModuleID = 'escaped_id'
+source_filename = "escaped_id.ppl"
+
+%Integer = type { ptr }
+
+@if = global %Integer zeroinitializer
+
+define void @initialize() !dbg !3 {
+  %1 = call %Integer @integer_from_i64(i64 1), !dbg !7
+  store %Integer %1, ptr @if, align 8, !dbg !7
+  br label %return, !dbg !7
+
+return:                                           ; preds = %0
+  ret void
+}
+
+declare %Integer @integer_from_i64(i64)
+
+define void @escaped_id.execute() !dbg !8 {
+init_globals:
+  call void @initialize(), !dbg !9
+  br label %0, !dbg !9
+
+0:                                                ; preds = %init_globals
+  %1 = load %Integer, ptr @if, align 8, !dbg !10
+  call void @destroy_integer(%Integer %1), !dbg !10
+  %2 = call %Integer @integer_from_i64(i64 2), !dbg !11
+  store %Integer %2, ptr @if, align 8, !dbg !11
+  br label %return, !dbg !9
+
+return:                                           ; preds = %0
+  ret void
+}
+
+declare void @destroy_integer(%Integer)
+
+!llvm.module.flags = !{!0}
+!llvm.dbg.cu = !{!1}
+
+!0 = !{i32 2, !"Debug Info Version", i32 3}
+!1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "ppl", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, sysroot: "/")
+!2 = !DIFile(filename: "escaped_id.ppl", directory: ".")
+!3 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!4 = !DISubroutineType(types: !5)
+!5 = !{!6}
+!6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
+!7 = !DILocation(line: 0, column: 15, scope: !3)
+!8 = distinct !DISubprogram(name: "escaped_id.execute", linkageName: "escaped_id.execute", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!9 = !DILocation(line: 0, column: 15, scope: !8)
+!10 = !DILocation(line: 1, scope: !8)
+!11 = !DILocation(line: 1, column: 7, scope: !8)

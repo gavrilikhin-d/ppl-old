@@ -25,6 +25,9 @@ macro_rules! e2e {
 
             let run_log = $crate::e2e::internal::run(&temp_dir, name, &dir);
             assert_snapshot!(concat!(stringify!($name), ".run"), run_log);
+
+            let ir = $crate::e2e::internal::ir(&temp_dir, name, &dir);
+            assert_snapshot!(concat!(stringify!($name), ".ir"), ir);
         }
     };
 }
@@ -64,6 +67,22 @@ pub mod internal {
         }
 
         Ok(())
+    }
+
+    pub fn ir(temp_dir: &TempDir, name: &str, dir: &Path) -> String {
+        let ppl = concat!(env!("CARGO_MANIFEST_DIR"), "/target/debug/ppl");
+        let file = format!("{name}.ppl");
+        std::process::Command::new(ppl)
+            .args(&["compile", &file])
+            .args(&["--output-dir", temp_dir.path().to_str().unwrap()])
+            .args(&["--emit", "ir"])
+            .current_dir(dir)
+            .status()
+            .unwrap();
+
+        let ir = temp_dir.path().join(OutputType::IR.named(name));
+
+        std::fs::read_to_string(&ir).expect("failed to read IR")
     }
 
     pub fn run(temp_dir: &TempDir, name: &str, dir: &Path) -> String {
