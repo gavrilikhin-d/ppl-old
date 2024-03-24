@@ -1,30 +1,32 @@
-use crate::e2e;
+use crate::e2es;
 
-e2e!(array);
-e2e!(candidate_not_viable);
-e2e!(constraints);
-e2e!(constraints_in_constructor);
-e2e!(deref_member_ref);
-e2e!(destructor);
-e2e!(generics);
-e2e!(import_all);
-e2e!(integer);
-e2e!(integer_not_eq_rational);
-e2e!(memory);
-e2e!(missing_fields);
-e2e!(monomorphize);
-e2e!(monomorphize_predeclared);
-e2e!(multiple_errors);
-e2e!(multiple_initialization);
-e2e!(non_class_constructor);
-e2e!(plus_assign);
-e2e!(predeclare_function);
-e2e!(predeclare_vars);
-e2e!(rational);
-e2e!(reference_mut);
-e2e!(references);
-e2e!(specify_variable_ty);
-e2e!(string);
-e2e!(traits);
-e2e!(type_as_value);
-e2e!(wrong_initializer_type);
+e2es! {
+    array,
+    candidate_not_viable,
+    constraints,
+    constraints_in_constructor,
+    deref_member_ref,
+    destructor,
+    generics,
+    import_all,
+    integer,
+    integer_not_eq_rational,
+    memory,
+    missing_fields,
+    monomorphize,
+    monomorphize_predeclared,
+    multiple_errors,
+    multiple_initialization,
+    non_class_constructor,
+    plus_assign,
+    predeclare_function,
+    predeclare_vars,
+    rational,
+    reference_mut,
+    references,
+    specify_variable_ty,
+    string,
+    traits,
+    type_as_value,
+    wrong_initializer_type
+}

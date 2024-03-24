@@ -1,0 +1,114 @@
+---
+source: src/semantics/tests/mod.rs
+expression: err
+---
+Error: semantics::no_function
+
+  × no operator `<:Rational> + <:Integer>`
+   ╭─[candidate_not_viable.ppl:1:1]
+ 1 │ 0.1 + 2
+   · ─┬─ ┬ ┬
+   ·  │  │ ╰── <:Integer>
+   ·  │  ╰── for this operator
+   ·  ╰── <:Rational>
+   ╰────
+
+Advice:   ☞ candidate is not viable: expected `Integer` type, got `Rational`
+
+Error:   × Integer
+    ╭─[ppl.ppl:88:5]
+ 87 │ @mangle_as("integer_plus_integer")
+ 88 │ fn <:Integer> + <:Integer> -> Integer
+    ·     ▲
+    ·     ╰── this has `Integer` type
+ 89 │ 
+    ╰────
+Error:   × Rational
+   ╭─[candidate_not_viable.ppl:1:1]
+ 1 │ 0.1 + 2
+   · ─┬─
+   ·  ╰── this has `Rational` type
+   ╰────
+Advice:   ☞ candidate is not viable: expected `Rational` type, got `Integer`
+
+Error:   × Rational
+     ╭─[ppl.ppl:152:19]
+ 151 │ @mangle_as("rational_plus_rational")
+ 152 │ fn <:Rational> + <:Rational> -> Rational
+     ·                   ▲
+     ·                   ╰── this has `Rational` type
+ 153 │ 
+     ╰────
+Error:   × Integer
+   ╭─[candidate_not_viable.ppl:1:7]
+ 1 │ 0.1 + 2
+   ·       ┬
+   ·       ╰── this has `Integer` type
+   ╰────
+Advice:   ☞ candidate is not viable: expected `String` type, got `Rational`
+
+Error:   × String
+     ╭─[ppl.ppl:185:5]
+ 184 │ @mangle_as("string_plus_string")
+ 185 │ fn <:String> + <:String> -> String
+     ·     ▲
+     ·     ╰── this has `String` type
+ 186 │ 
+     ╰────
+Error:   × Rational
+   ╭─[candidate_not_viable.ppl:1:1]
+ 1 │ 0.1 + 2
+   · ─┬─
+   ·  ╰── this has `Rational` type
+   ╰────
+Advice:   ☞ candidate is not viable: expected `MemoryAddress` type, got `Rational`
+
+Error:   × MemoryAddress
+     ╭─[ppl.ppl:263:5]
+ 262 │ /// Get another memory address by adding offset to this one
+ 263 │ fn <address: MemoryAddress> + <offset: Integer> -> MemoryAddress:
+     ·     ───┬───
+     ·        ╰── this has `MemoryAddress` type
+ 264 │     let value = address.value + offset
+     ╰────
+Error:   × Rational
+   ╭─[candidate_not_viable.ppl:1:1]
+ 1 │ 0.1 + 2
+   · ─┬─
+   ·  ╰── this has `Rational` type
+   ╰────
+Advice:   ☞ candidate is not viable: expected `I32` type, got `Rational`
+
+Error:   × I32
+     ╭─[ppl.ppl:378:5]
+ 377 │ @mangle_as("i32_plus_i32")
+ 378 │ fn <:I32> + <:I32> -> I32
+     ·     ▲
+     ·     ╰── this has `I32` type
+ 379 │ 
+     ╰────
+Error:   × Rational
+   ╭─[candidate_not_viable.ppl:1:1]
+ 1 │ 0.1 + 2
+   · ─┬─
+   ·  ╰── this has `Rational` type
+   ╰────
+Advice:   ☞ candidate is not viable: expected `F64` type, got `Rational`
+
+Error:   × F64
+     ╭─[ppl.ppl:407:5]
+ 406 │ @mangle_as("f64_plus_f64")
+ 407 │ fn <:F64> + <:F64> -> F64
+     ·     ▲
+     ·     ╰── this has `F64` type
+ 408 │ 
+     ╰────
+Error:   × Rational
+   ╭─[candidate_not_viable.ppl:1:1]
+ 1 │ 0.1 + 2
+   · ─┬─
+   ·  ╰── this has `Rational` type
+   ╰────
+Advice:   ☞ candidate is not viable: expected `Self` type, got `Integer`
+
+Error:   × Self

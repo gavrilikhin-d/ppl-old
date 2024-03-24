@@ -239,7 +239,8 @@ pub trait Lexer: Iterator<Item = Token> {
     /// 				Token::Operator(OperatorKind::Infix),
     /// 				Token::Operator(OperatorKind::Postfix),
     /// 				Token::Less,
-    /// 				Token::Greater
+    /// 				Token::Greater,
+    ///                 Token::Star
     /// 			],
     /// 			got: Token::Integer,
     /// 			at: lexer.peek_span().into()
@@ -281,7 +282,7 @@ pub trait Lexer: Iterator<Item = Token> {
     /// ```
     /// use ppl::syntax::{Token, Lexer, FullSourceLexer};
     ///
-    /// let mut lexer = FullSourceLexer::new("\n  \n42");
+    /// let mut lexer = FullSourceLexer::new("\n\n42");
     /// assert_eq!(lexer.peek(), Some(Token::Newline));
     /// lexer.skip_spaces();
     /// assert_eq!(lexer.peek(), Some(Token::Integer));

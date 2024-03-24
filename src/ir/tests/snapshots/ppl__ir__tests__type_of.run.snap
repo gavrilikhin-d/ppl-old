@@ -1,0 +1,5 @@
+---
+source: src/ir/tests/mod.rs
+expression: run_log
+---
+Integer

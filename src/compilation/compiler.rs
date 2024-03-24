@@ -164,7 +164,7 @@ impl Compiler {
     ///
     /// let mut compiler = Compiler::new().at("src");
     /// let m1 = compiler.compile("main").unwrap();
-    /// let m2 = compiler.compule("main").unwrap();
+    /// let m2 = compiler.compile("main").unwrap();
     /// assert_eq!(m1, m2);
     /// ```
     pub fn compile(&mut self, name: &str) -> miette::Result<Module> {

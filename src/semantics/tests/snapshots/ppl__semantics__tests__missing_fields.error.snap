@@ -1,0 +1,13 @@
+---
+source: src/semantics/tests/mod.rs
+expression: err
+---
+Error: semantics::missing_fields
+
+  × type `Point` has missing fields: [`x`]
+   ╭─[missing_fields.ppl:4:1]
+ 3 │ 
+ 4 │ Point { y: 1 }
+   · ──┬──
+   ·   ╰── missing fields: [`x`]
+   ╰────
