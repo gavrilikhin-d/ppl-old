@@ -1,5 +1,7 @@
-use crate::e2e;
+use crate::e2es;
 
-e2e!(clone);
-e2e!(empty_constructor);
-e2e!(type_of);
+e2es! {
+    clone,
+    empty_constructor,
+    type_of
+}

@@ -29,6 +29,15 @@ macro_rules! e2e {
     };
 }
 
+#[macro_export]
+macro_rules! e2es {
+    ($($name: ident),+) => {
+        $(
+            $crate::e2e!($name);
+        )+
+    };
+}
+
 #[cfg(test)]
 pub mod internal {
     use std::path::Path;
