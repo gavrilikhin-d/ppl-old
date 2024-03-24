@@ -47,15 +47,20 @@ impl Execute for Compile {
         let module = compiler.compile(name)?;
 
         let output_type = self.output_type.unwrap_or(OutputType::Executable);
+        let filename = output_type.named(name);
+        let output_file = self.output_dir.join(&filename);
+
+        if output_type == OutputType::HIR {
+            let hir = module.data(&compiler).to_string();
+            fs::write(&output_file, hir).map_err(|e| miette!("{output_file:?}: {e}"))?;
+            return Ok(());
+        }
+
         let with_main = output_type == OutputType::Executable;
 
         let llvm = inkwell::context::Context::create();
         let ir = module.data(&compiler).to_ir(&llvm, with_main);
         debug!(target: "ir", "{}", ir.to_string());
-
-        let filename = output_type.named(name);
-
-        let output_file = self.output_dir.join(&filename);
 
         if output_type == OutputType::IR {
             fs::write(&output_file, ir.to_string()).map_err(|e| miette!("{output_file:?}: {e}"))?;
@@ -101,6 +106,7 @@ impl Execute for Compile {
         let lib = lib_path.to_str().unwrap();
 
         match output_type {
+            OutputType::HIR => unreachable!("HIR is already written"),
             OutputType::IR => unreachable!("IR is already written"),
             OutputType::Bitcode => unreachable!("IR is already written"),
 

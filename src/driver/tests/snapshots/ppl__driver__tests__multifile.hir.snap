@@ -1,0 +1,6 @@
+---
+source: src/driver/tests/mod.rs
+expression: hir
+---
+use greet.greet <:String>
+greet "World"

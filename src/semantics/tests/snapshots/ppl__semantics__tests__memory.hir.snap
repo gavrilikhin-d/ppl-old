@@ -1,0 +1,10 @@
+---
+source: src/semantics/tests/mod.rs
+expression: hir
+---
+let address: MemoryAddress = allocate 1 (Type<Integer>:Type<Integer>)
+let x: ReferenceMut<Integer> = (Type<Integer>:Type<Integer>) at (address:MemoryAddress)
+(x:ReferenceMut<Integer>) = 0
+println (*x:Integer)
+(x:ReferenceMut<Integer>) = 1
+println (*x:Integer)

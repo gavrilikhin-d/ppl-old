@@ -1,0 +1,7 @@
+---
+source: src/semantics/tests/mod.rs
+expression: hir
+---
+let mut arr: Array<Integer> = (Type<Integer>:Type<Integer>) [ ]
+push 1 to (&arr:ReferenceMut<Array<Integer>>)
+println (*(&arr:ReferenceMut<Array<Integer>>) [ 0 ]:Integer)

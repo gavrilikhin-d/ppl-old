@@ -1,0 +1,8 @@
+---
+source: src/syntax/tests/mod.rs
+expression: hir
+---
+type Point<U>:
+	x: U
+
+Point<Integer> { x: 1 }

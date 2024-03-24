@@ -1,0 +1,5 @@
+---
+source: src/syntax/tests/mod.rs
+expression: hir
+---
+println 2 + 2 * 2

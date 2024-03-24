@@ -1,0 +1,11 @@
+---
+source: src/semantics/tests/mod.rs
+expression: hir
+---
+let mut value: Rational = 0.0
+let mut str: String = "Hello"
+println clone (value:Rational)
+(&value:ReferenceMut<Rational>) += 1.0
+println clone (value:Rational)
+(&str:ReferenceMut<String>) += " World!"
+println clone (str:String)
