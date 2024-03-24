@@ -1,0 +1,84 @@
+---
+source: src/semantics/tests/mod.rs
+expression: err
+---
+Error: semantics::no_function
+
+  × no function `bar <:Integer>`
+    ╭─[constraints.ppl:10:5]
+  9 │ bar none
+ 10 │ bar 1
+    ·     ┬
+    ·     ╰── <:Integer>
+ 11 │ 
+    ╰────
+
+Advice:   ☞ candidate is not viable: `Integer` doesn't satisfy trait `Foo`
+  │ requirements
+   ╭─[constraints.ppl:2:2]
+ 1 │ trait Foo:
+ 2 │     fn foo <:Self>
+   ·     ───────┬──────
+   ·            ╰── This required function isn't implemented
+ 3 │ 
+   ╰────
+semantics::no_function
+
+  × no function `baz <:None> <:Bool>`
+    ╭─[constraints.ppl:17:5]
+ 16 │ baz none none
+ 17 │ baz none true
+    ·     ──┬─ ──┬─
+    ·       │    ╰── <:Bool>
+    ·       ╰── <:None>
+ 18 │ baz true none
+    ╰────
+
+Advice:   ☞ candidate is not viable: expected `T` type, got `Bool`
+
+Error:   × T
+    ╭─[constraints.ppl:12:24]
+ 11 │ 
+ 12 │ fn<T: Foo> baz <a: T> <b: T>:
+    ·                        ┬
+    ·                        ╰── this has `T` type
+ 13 │     foo a
+    ╰────
+Error:   × Bool
+    ╭─[constraints.ppl:17:10]
+ 16 │ baz none none
+ 17 │ baz none true
+    ·          ──┬─
+    ·            ╰── this has `Bool` type
+ 18 │ baz true none
+    ╰────
+semantics::no_function
+
+  × no function `baz <:Bool> <:None>`
+    ╭─[constraints.ppl:18:5]
+ 17 │ baz none true
+ 18 │ baz true none
+    ·     ──┬─ ──┬─
+    ·       │    ╰── <:None>
+    ·       ╰── <:Bool>
+ 19 │ baz true true
+    ╰────
+
+Advice:   ☞ candidate is not viable: expected `T` type, got `None`
+
+Error:   × T
+    ╭─[constraints.ppl:12:24]
+ 11 │ 
+ 12 │ fn<T: Foo> baz <a: T> <b: T>:
+    ·                        ┬
+    ·                        ╰── this has `T` type
+ 13 │     foo a
+    ╰────
+Error:   × None
+    ╭─[constraints.ppl:18:10]
+ 17 │ baz none true
+ 18 │ baz true none
+    ·          ──┬─
+    ·            ╰── this has `None` type
+ 19 │ baz true true
+    ╰────

@@ -1,0 +1,8 @@
+---
+source: src/ir/tests/mod.rs
+expression: run_log
+---
+1
+1
+1
+2

@@ -1,0 +1,5 @@
+---
+source: src/semantics/tests/mod.rs
+expression: run_log
+---
+4
