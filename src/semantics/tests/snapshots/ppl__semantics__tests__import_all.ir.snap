@@ -1,0 +1,83 @@
+---
+source: src/semantics/tests/mod.rs
+expression: ir
+---
+; ModuleID = 'import_all'
+source_filename = "import_all.ppl"
+
+%Integer = type { ptr }
+%String = type { ptr }
+
+@0 = private unnamed_addr constant [5 x i8] c"none\00", align 1
+
+define void @import_all.execute() !dbg !3 {
+  call void @"do nothing"(), !dbg !7
+  call void @"println <:None>"(), !dbg !7
+  %1 = call %Integer @"do something"(), !dbg !8
+  call void @"println <:Integer>"(%Integer %1), !dbg !8
+  br label %return, !dbg !8
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define void @"println <:None>"() !dbg !9 {
+  %1 = call %String @"<:None> as String"(), !dbg !10
+  call void @"println <:String>"(%String %1), !dbg !10
+  br label %return, !dbg !10
+
+return:                                           ; preds = %0
+  ret void
+}
+
+declare void @"println <:String>"(%String)
+
+define %String @"<:None> as String"() !dbg !11 {
+  %return_value = alloca %String, align 8
+  %1 = call %String @string_from_c_string_and_length(ptr @0, i64 4), !dbg !12
+  store %String %1, ptr %return_value, align 8, !dbg !12
+  br label %return, !dbg !12
+
+return:                                           ; preds = %0
+  %2 = load %String, ptr %return_value, align 8
+  ret %String %2
+}
+
+declare %String @string_from_c_string_and_length(ptr, i64)
+
+declare void @"do nothing"()
+
+define void @"println <:Integer>"(%Integer %0) !dbg !13 {
+  %x = alloca %Integer, align 8
+  store %Integer %0, ptr %x, align 8
+  %2 = load %Integer, ptr %x, align 8, !dbg !14
+  %3 = call %String @integer_as_string(%Integer %2), !dbg !14
+  call void @"println <:String>"(%String %3), !dbg !14
+  br label %return, !dbg !14
+
+return:                                           ; preds = %1
+  ret void
+}
+
+declare %String @integer_as_string(%Integer)
+
+declare %Integer @"do something"()
+
+!llvm.module.flags = !{!0}
+!llvm.dbg.cu = !{!1}
+
+!0 = !{i32 2, !"Debug Info Version", i32 3}
+!1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "ppl", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, sysroot: "/")
+!2 = !DIFile(filename: "import_all.ppl", directory: ".")
+!3 = distinct !DISubprogram(name: "import_all.execute", linkageName: "import_all.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!4 = !DISubroutineType(types: !5)
+!5 = !{!6}
+!6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
+!7 = !DILocation(line: 2, column: 9, scope: !3)
+!8 = !DILocation(line: 3, column: 9, scope: !3)
+!9 = distinct !DISubprogram(name: "println <:None>", linkageName: "println <:None>", scope: !3, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!10 = !DILocation(line: 3, column: 22, scope: !9)
+!11 = distinct !DISubprogram(name: "<:None> as String", linkageName: "<:None> as String", scope: !9, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!12 = !DILocation(line: 3, column: 22, scope: !11)
+!13 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !3, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!14 = !DILocation(line: 3, column: 22, scope: !13)

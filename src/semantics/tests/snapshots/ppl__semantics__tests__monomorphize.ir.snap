@@ -1,0 +1,131 @@
+---
+source: src/semantics/tests/mod.rs
+expression: ir
+---
+; ModuleID = 'monomorphize'
+source_filename = "monomorphize.ppl"
+
+%"Point<Integer>" = type { %Integer, %Integer }
+%Integer = type { ptr }
+%String = type { ptr }
+
+@p = global %"Point<Integer>" zeroinitializer
+@x = global %Integer zeroinitializer
+@0 = private unnamed_addr constant [5 x i8] c"true\00", align 1
+@1 = private unnamed_addr constant [6 x i8] c"false\00", align 1
+
+define void @initialize() !dbg !3 {
+  %1 = alloca %"Point<Integer>", align 8, !dbg !7
+  %"Point<Integer>.x" = getelementptr inbounds %"Point<Integer>", ptr %1, i32 0, i32 0, !dbg !7
+  %2 = call %Integer @integer_from_i64(i64 1), !dbg !8
+  store %Integer %2, ptr %"Point<Integer>.x", align 8, !dbg !8
+  %"Point<Integer>.y" = getelementptr inbounds %"Point<Integer>", ptr %1, i32 0, i32 1, !dbg !8
+  %3 = call %Integer @integer_from_i64(i64 2), !dbg !9
+  store %Integer %3, ptr %"Point<Integer>.y", align 8, !dbg !9
+  %4 = load %"Point<Integer>", ptr %1, align 8, !dbg !9
+  store %"Point<Integer>" %4, ptr @p, align 8, !dbg !9
+  br label %return, !dbg !9
+
+return:                                           ; preds = %0
+  ret void
+}
+
+declare %Integer @integer_from_i64(i64)
+
+define void @initialize.1() !dbg !10 {
+  %1 = load %Integer, ptr @p, align 8, !dbg !11
+  %2 = call %Integer @clone_integer(%Integer %1), !dbg !11
+  store %Integer %2, ptr @x, align 8, !dbg !11
+  br label %return, !dbg !11
+
+return:                                           ; preds = %0
+  ret void
+}
+
+declare %Integer @clone_integer(%Integer)
+
+define void @monomorphize.execute() !dbg !12 {
+init_globals:
+  call void @initialize(), !dbg !13
+  call void @initialize.1(), !dbg !14
+  br label %0, !dbg !14
+
+0:                                                ; preds = %init_globals
+  %1 = load %Integer, ptr @x, align 8, !dbg !15
+  %2 = call %Integer @clone_integer(%Integer %1), !dbg !15
+  %3 = call %Integer @integer_from_i64(i64 1), !dbg !16
+  %4 = call i1 @integer_eq_integer(%Integer %2, %Integer %3), !dbg !16
+  call void @"println <:Bool>"(i1 %4), !dbg !16
+  br label %return, !dbg !14
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define void @"println <:Bool>"(i1 %0) !dbg !17 {
+  %x = alloca i1, align 1
+  store i1 %0, ptr %x, align 1
+  %2 = load i1, ptr %x, align 1, !dbg !18
+  %3 = call %String @"<:Bool> as String"(i1 %2), !dbg !18
+  call void @"println <:String>"(%String %3), !dbg !18
+  br label %return, !dbg !18
+
+return:                                           ; preds = %1
+  ret void
+}
+
+declare void @"println <:String>"(%String)
+
+define %String @"<:Bool> as String"(i1 %0) !dbg !19 {
+  %return_value = alloca %String, align 8
+  %x = alloca i1, align 1
+  store i1 %0, ptr %x, align 1
+  br label %if.condition, !dbg !20
+
+if.condition:                                     ; preds = %1
+  %2 = load i1, ptr %x, align 1, !dbg !20
+  br i1 %2, label %if.body, label %5, !dbg !20
+
+if.body:                                          ; preds = %if.condition
+  %3 = call %String @string_from_c_string_and_length(ptr @0, i64 4), !dbg !20
+  store %String %3, ptr %return_value, align 8, !dbg !20
+  br label %return, !dbg !20
+
+return:                                           ; preds = %5, %if.body
+  %4 = load %String, ptr %return_value, align 8
+  ret %String %4
+
+5:                                                ; preds = %if.condition
+  %6 = call %String @string_from_c_string_and_length(ptr @1, i64 5), !dbg !20
+  store %String %6, ptr %return_value, align 8, !dbg !20
+  br label %return, !dbg !20
+}
+
+declare %String @string_from_c_string_and_length(ptr, i64)
+
+declare i1 @integer_eq_integer(%Integer, %Integer)
+
+!llvm.module.flags = !{!0}
+!llvm.dbg.cu = !{!1}
+
+!0 = !{i32 2, !"Debug Info Version", i32 3}
+!1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "ppl", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, sysroot: "/")
+!2 = !DIFile(filename: "monomorphize.ppl", directory: ".")
+!3 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !2, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!4 = !DISubroutineType(types: !5)
+!5 = !{!6}
+!6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
+!7 = !DILocation(line: 3, column: 8, scope: !3)
+!8 = !DILocation(line: 3, column: 19, scope: !3)
+!9 = !DILocation(line: 3, column: 25, scope: !3)
+!10 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!11 = !DILocation(line: 4, column: 8, scope: !10)
+!12 = distinct !DISubprogram(name: "monomorphize.execute", linkageName: "monomorphize.execute", scope: !2, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!13 = !DILocation(line: 3, column: 8, scope: !12)
+!14 = !DILocation(line: 4, column: 8, scope: !12)
+!15 = !DILocation(line: 5, column: 8, scope: !12)
+!16 = !DILocation(line: 5, column: 13, scope: !12)
+!17 = distinct !DISubprogram(name: "println <:Bool>", linkageName: "println <:Bool>", scope: !12, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!18 = !DILocation(line: 5, column: 14, scope: !17)
+!19 = distinct !DISubprogram(name: "<:Bool> as String", linkageName: "<:Bool> as String", scope: !17, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!20 = !DILocation(line: 5, column: 14, scope: !19)
