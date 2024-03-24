@@ -1,0 +1,6 @@
+---
+source: src/ir/tests/mod.rs
+expression: hir
+---
+let ty: Type<Integer> = type of 1
+println (ty:Type<Integer>)

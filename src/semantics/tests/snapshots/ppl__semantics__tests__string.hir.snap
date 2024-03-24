@@ -1,0 +1,12 @@
+---
+source: src/semantics/tests/mod.rs
+expression: hir
+---
+println "Hello" + " " + "World!"
+println none as String
+println false as String
+println true as String
+println 0 as String
+println 0.0 as String
+println (Type<Integer>:Type<Integer>) as String
+println (Type<Array<Integer>>:Type<Array<Integer>>) as String

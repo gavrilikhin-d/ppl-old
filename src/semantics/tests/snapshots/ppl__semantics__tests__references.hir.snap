@@ -1,0 +1,12 @@
+---
+source: src/semantics/tests/mod.rs
+expression: hir
+---
+let n: Integer = size of (Type<I32>:Type<I32>)
+let address: MemoryAddress = allocate clone (n:Integer) bytes
+let value: ReferenceMut<I32> = (Type<I32>:Type<I32>) at (address:MemoryAddress)
+(value:ReferenceMut<I32>) = 0 as I32
+println (*value:I32)
+(value:ReferenceMut<I32>) = 1 as I32
+println (*value:I32)
+free (address:MemoryAddress)

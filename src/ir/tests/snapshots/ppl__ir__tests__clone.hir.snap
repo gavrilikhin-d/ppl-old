@@ -1,0 +1,12 @@
+---
+source: src/ir/tests/mod.rs
+expression: hir
+---
+let mut x: Integer = 1
+let mut y: Integer = clone (x:Integer)
+println clone (x:Integer)
+println clone (y:Integer)
+destroy (y:Integer)
+(y:Integer) = 2
+println clone (x:Integer)
+println clone (y:Integer)

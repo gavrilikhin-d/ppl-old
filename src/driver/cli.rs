@@ -49,6 +49,7 @@ pub mod commands {
         /// Output type of compilation
         #[derive(Debug, PartialEq, Eq, Clone, Copy, ValueEnum)]
         pub enum OutputType {
+            HIR,
             IR,
             Bitcode,
             Object,
@@ -62,6 +63,7 @@ pub mod commands {
             /// Extension associated with this output type
             pub fn extension(&self) -> &'static str {
                 match self {
+                    Self::HIR => "hir",
                     Self::IR => "ll",
                     Self::Bitcode => "bc",
                     Self::Object => "o",
@@ -118,6 +120,7 @@ pub mod commands {
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 match s {
+                    "hir" | ".hir" => Ok(Self::HIR),
                     "ir" | ".ll" => Ok(Self::IR),
                     "bitcode" | ".bc" => Ok(Self::Bitcode),
                     "object" | ".o" => Ok(Self::Object),
