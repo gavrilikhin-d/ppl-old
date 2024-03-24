@@ -123,6 +123,9 @@ fn <:Integer> as String -> String
 
 @mangle_as("destroy_integer")
 fn destroy <:Integer>
+
+@mangle_as("clone_integer")
+fn clone <:Integer> -> Integer
 //---------------------------------
 
 //=================================
@@ -163,6 +166,9 @@ fn <:Rational> as String -> String
 
 @mangle_as("destroy_rational")
 fn destroy <:Rational>
+
+@mangle_as("clone_rational")
+fn clone <:Rational> -> Rational
 //---------------------------------
 
 //=================================
@@ -187,6 +193,9 @@ fn println <str: String> => print (str + "\n")
 
 @mangle_as("destroy_string")
 fn destroy <:String>
+
+@mangle_as("clone_string")
+fn clone <:String> -> String
 //---------------------------------
 
 //=================================

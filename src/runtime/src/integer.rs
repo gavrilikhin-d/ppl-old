@@ -234,6 +234,19 @@ pub extern "C" fn destroy_integer(x: Integer) {
 
 /// # PPL
 /// ```no_run
+/// @mangle_as("clone_integer")
+/// fn clone <:Integer> -> Integer
+/// ```
+#[no_mangle]
+pub extern "C" fn clone_integer(x: Integer) -> Integer {
+    let value = unsafe { x.data.as_ref() }.unwrap().clone();
+    Integer {
+        data: Box::into_raw(Box::new(value)),
+    }
+}
+
+/// # PPL
+/// ```no_run
 /// fn - <:I32> -> I32
 /// ```
 #[no_mangle]

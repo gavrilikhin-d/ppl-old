@@ -69,3 +69,16 @@ pub extern "C" fn destroy_string(x: String) {
 
     let _ = unsafe { Box::from_raw(x.data) };
 }
+
+/// # PPL
+/// ```no_run
+/// @mangle_as("clone_string")
+/// fn clone <:String> -> String
+/// ```
+#[no_mangle]
+pub extern "C" fn clone_string(x: String) -> String {
+    let value = unsafe { x.data.as_ref() }.unwrap().clone();
+    String {
+        data: Box::into_raw(Box::new(value)),
+    }
+}

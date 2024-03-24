@@ -149,6 +149,19 @@ pub extern "C" fn destroy_rational(x: Rational) {
     let _ = unsafe { Box::from_raw(x.data) };
 }
 
+/// # PPL
+/// ```no_run
+/// @mangle_as("clone_rational")
+/// fn clone <:Rational> -> Rational
+/// ```
+#[no_mangle]
+pub extern "C" fn clone_rational(x: Rational) -> Rational {
+    let value = unsafe { x.data.as_ref() }.unwrap().clone();
+    Rational {
+        data: Box::into_raw(Box::new(value)),
+    }
+}
+
 pub fn maybe_to_decimal_string(r: &rug::Rational) -> std::string::String {
     let mut denom = r.denom().clone();
     let pow2 = denom.remove_factor_mut(&Integer::from(2));
