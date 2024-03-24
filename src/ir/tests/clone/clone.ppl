@@ -1,0 +1,7 @@
+let mut x = 1
+let mut y = x
+println x
+println y
+y = 2
+println x
+println y

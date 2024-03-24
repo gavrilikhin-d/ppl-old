@@ -98,6 +98,15 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
         self.function_with_name(&name)
     }
 
+    /// Find clone function for type
+    fn clone_for(&mut self, ty: Type) -> Option<Function>
+    where
+        Self: Sized,
+    {
+        let name = format!("clone <:{ty}>");
+        self.function_with_name(&name)
+    }
+
     /// Debug function to print hierarchy of contexts
     fn print_contexts_hierarchy(&self)
     where

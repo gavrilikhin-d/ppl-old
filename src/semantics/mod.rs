@@ -1,6 +1,8 @@
 mod to_hir;
 pub use to_hir::*;
 
+pub mod clone;
+
 mod contexts;
 pub use contexts::*;
 
