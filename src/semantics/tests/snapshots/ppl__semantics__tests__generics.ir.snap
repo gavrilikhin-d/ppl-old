@@ -85,7 +85,7 @@ define void @"println <:Bool>"(i1 %0) !dbg !22 {
   %x = alloca i1, align 1
   store i1 %0, ptr %x, align 1
   %2 = load i1, ptr %x, align 1, !dbg !23
-  %3 = call %String @"<:Bool> as String"(i1 %2), !dbg !23
+  %3 = call %String @"String from <:Bool>"(i1 %2), !dbg !23
   call void @"println <:String>"(%String %3), !dbg !23
   br label %return, !dbg !23
 
@@ -95,7 +95,7 @@ return:                                           ; preds = %1
 
 declare void @"println <:String>"(%String)
 
-define %String @"<:Bool> as String"(i1 %0) !dbg !24 {
+define %String @"String from <:Bool>"(i1 %0) !dbg !24 {
   %return_value = alloca %String, align 8
   %x = alloca i1, align 1
   store i1 %0, ptr %x, align 1
@@ -192,7 +192,7 @@ return:                                           ; preds = %1
 !21 = !DILocation(line: 12, column: 20, scope: !12)
 !22 = distinct !DISubprogram(name: "println <:Bool>", linkageName: "println <:Bool>", scope: !12, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !23 = !DILocation(line: 13, scope: !22)
-!24 = distinct !DISubprogram(name: "<:Bool> as String", linkageName: "<:Bool> as String", scope: !22, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!24 = distinct !DISubprogram(name: "String from <:Bool>", linkageName: "String from <:Bool>", scope: !22, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !25 = !DILocation(line: 13, scope: !24)
 !26 = distinct !DISubprogram(name: "id <:Integer>", linkageName: "id <:Integer>", scope: !12, file: !2, line: 8, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !27 = !DILocation(line: 8, column: 19, scope: !26)

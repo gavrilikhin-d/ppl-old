@@ -9,7 +9,7 @@ pub struct MemoryAddress {
 
 /// # PPL
 /// ```no_run
-/// fn <address: MemoryAddress> as String -> String
+/// fn String from <address: MemoryAddress> -> String
 /// ```
 #[no_mangle]
 pub extern "C" fn memory_address_as_string(address: MemoryAddress) -> String {

@@ -73,7 +73,7 @@ define void @"println <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !17 {
   %x = alloca %"Type<Integer>", align 8
   store %"Type<Integer>" %0, ptr %x, align 8
   %2 = load %"Type<Integer>", ptr %x, align 8, !dbg !18
-  %3 = call %String @"<:Type<Integer>> as String"(%"Type<Integer>" %2), !dbg !18
+  %3 = call %String @"String from <:Type<Integer>>"(%"Type<Integer>" %2), !dbg !18
   call void @"println <:String>"(%String %3), !dbg !18
   br label %return, !dbg !18
 
@@ -83,7 +83,7 @@ return:                                           ; preds = %1
 
 declare void @"println <:String>"(%String)
 
-define %String @"<:Type<Integer>> as String"(%"Type<Integer>" %0) !dbg !19 {
+define %String @"String from <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !19 {
   %return_value = alloca %String, align 8
   %ty = alloca %"Type<Integer>", align 8
   store %"Type<Integer>" %0, ptr %ty, align 8
@@ -119,5 +119,5 @@ return:                                           ; preds = %1
 !16 = !DILocation(line: 1, column: 8, scope: !13)
 !17 = distinct !DISubprogram(name: "println <:Type<Integer>>", linkageName: "println <:Type<Integer>>", scope: !13, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !18 = !DILocation(line: 1, column: 10, scope: !17)
-!19 = distinct !DISubprogram(name: "<:Type<Integer>> as String", linkageName: "<:Type<Integer>> as String", scope: !17, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!19 = distinct !DISubprogram(name: "String from <:Type<Integer>>", linkageName: "String from <:Type<Integer>>", scope: !17, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !20 = !DILocation(line: 1, column: 10, scope: !19)

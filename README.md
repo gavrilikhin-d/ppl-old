@@ -38,13 +38,13 @@
 * [x] Don't define variables right away, when declaring them
 * [x] Fix `let y = &x; y`
 * [x] Fix definition of predeclared functions
+* [x] `<:T> as String` -> `String from <:T>`. `as` should mean force cast (analog of `try_from().unwrap()`)
 ---
 ### Current task
 * [ ] Sum of series benchmark
 ---
 * [ ] Add type aliases
 * [ ] Add dependency analysis for modules and declarations
-* [ ] `<:T> as String` -> `String from <:T>`. `as` should mean force cast (analog of `try_from().unwrap()`)
 * [ ] Add all `c` types
 * [ ] Intern strings that are generated in IR
 * [ ] `VariableReference` and `MemberReference` should have reference types
