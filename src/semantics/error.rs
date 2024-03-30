@@ -321,36 +321,18 @@ pub struct NoMember {
 }
 
 /// Diagnostic for multiple initializers for single field
-#[derive(Error, Debug, Clone, PartialEq)]
+#[derive(Diagnostic, Error, Debug, Clone, PartialEq)]
 #[error("field `{name}` initialized multiple times")]
+#[diagnostic(code(semantics::multiple_initialization))]
 pub struct MultipleInitialization {
     /// Name of the field
     pub name: String,
+    /// First initializer span
+    #[label("was firstly initialized here")]
+    pub first_at: SourceSpan,
     /// Span of the initializers
-    pub at: Vec<SourceSpan>,
-}
-
-impl Diagnostic for MultipleInitialization {
-    fn code<'a>(&'a self) -> Option<Box<dyn std::fmt::Display + 'a>> {
-        Some(Box::new("semantics::multiple_initialization"))
-    }
-
-    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
-        assert!(self.at.len() >= 2);
-
-        Some(Box::new(
-            std::iter::once(miette::LabeledSpan::new_with_span(
-                Some("was firstly initialized here".to_string()),
-                self.at.first().unwrap().clone(),
-            ))
-            .chain(self.at.iter().skip(1).map(|at| {
-                miette::LabeledSpan::new_with_span(
-                    Some("repeated initialization".to_string()),
-                    at.clone(),
-                )
-            })),
-        ))
-    }
+    #[label(collection, "repeated initialization")]
+    pub repeated_at: Vec<SourceSpan>,
 }
 
 /// Diagnostic for missing fields in constructor

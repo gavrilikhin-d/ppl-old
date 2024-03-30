@@ -421,7 +421,8 @@ impl ToHIR for ast::Constructor {
                 if let Some(prev) = initializers.iter().find(|i| i.index == index) {
                     return Err(MultipleInitialization {
                         name: member.name().to_string(),
-                        at: [prev.range().into(), init.range().into()].into(),
+                        first_at: prev.range().into(),
+                        repeated_at: vec![init.range().into()],
                     }
                     .into());
                 }
