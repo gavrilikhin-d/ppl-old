@@ -314,6 +314,13 @@ impl Type {
         self.try_into().unwrap()
     }
 
+    /// Convert this to trait tpy
+    /// # Panics
+    /// Panics if this is not a trait type
+    pub fn as_trait(self) -> Arc<TraitDeclaration> {
+        self.try_into().unwrap()
+    }
+
     /// Size of type in bytes
     pub fn size_in_bytes(&self) -> usize {
         match self {

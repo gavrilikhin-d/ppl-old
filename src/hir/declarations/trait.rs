@@ -22,6 +22,8 @@ pub struct TraitDeclaration {
     pub keyword: Keyword<"trait">,
     /// Trait's name
     pub name: Identifier,
+    /// Supertraits
+    pub supertraits: Vec<Arc<TraitDeclaration>>,
     /// Associated functions
     pub functions: IndexMap<String, Function>,
 }

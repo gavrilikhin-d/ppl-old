@@ -147,10 +147,23 @@ impl Declare for ast::TraitDeclaration {
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
         let mut error = None;
         let tr = Arc::new_cyclic(|trait_weak| {
+            let mut supertraits = Vec::new();
+            for t in &self.supertraits {
+                let res = t.to_hir(context);
+                match res {
+                    Ok(t) => supertraits.push(t.referenced_type.as_trait()),
+                    Err(e) => {
+                        error = Some(e);
+                        break;
+                    }
+                }
+            }
+
             let mut context = TraitContext {
                 tr: hir::TraitDeclaration {
                     keyword: self.keyword.clone(),
                     name: self.name.clone(),
+                    supertraits,
                     functions: IndexMap::new(),
                 },
                 trait_weak: trait_weak.clone(),
@@ -178,7 +191,7 @@ impl Declare for ast::TraitDeclaration {
 
     fn define(
         &self,
-        _declaration: Self::Declaration,
+        declaration: Self::Declaration,
         context: &mut impl Context,
     ) -> Result<Self::Definition, Error> {
         let mut error = None;
@@ -187,6 +200,7 @@ impl Declare for ast::TraitDeclaration {
                 tr: hir::TraitDeclaration {
                     keyword: self.keyword.clone(),
                     name: self.name.clone(),
+                    supertraits: declaration.supertraits.clone(),
                     functions: IndexMap::new(),
                 },
                 trait_weak: trait_weak.clone(),

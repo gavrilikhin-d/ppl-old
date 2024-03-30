@@ -135,7 +135,30 @@ impl ConvertibleToRequest<'_, Arc<TraitDeclaration>> {
                     true
                 }
             }
-            Type::Trait(tr) => *from == tr,
+            Type::Trait(tr) => {
+                if *from == tr {
+                    return Ok(true);
+                }
+
+                if tr.supertraits.is_empty() {
+                    return Ok(false);
+                }
+
+                let res: Vec<_> = tr
+                    .supertraits
+                    .iter()
+                    .cloned()
+                    .map(|s| from.convertible_to(s.into()).within(context))
+                    .collect();
+                if res
+                    .iter()
+                    .find(|r| r.as_ref().is_ok_and(|res| *res))
+                    .is_some()
+                {
+                    return Ok(true);
+                }
+                return res.into_iter().next().unwrap();
+            }
             Type::SelfType(s) => *from == s.associated_trait.upgrade().unwrap(),
         })
     }
