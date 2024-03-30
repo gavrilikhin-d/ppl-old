@@ -60,9 +60,9 @@ pub extern "C" fn integer_from_c_string(str: *const i8) -> Integer {
 
 /// Converts `Integer` to `String`
 ///
-/// Runtime for builtin ppl's function:
-/// ```ppl
-/// fn <:Integer> as String -> String
+/// # PPL
+/// ```no_run
+/// fn String from <:Integer> -> String
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_as_string(i: Integer) -> String {
@@ -266,7 +266,7 @@ pub extern "C" fn i32_plus_i32(x: i32, y: i32) -> i32 {
 /// # PPL
 /// ```no_run
 /// @mangle_as("i32_as_string")
-/// fn <:I32> as String -> String
+/// fn String from <:I32> -> String
 /// ```
 #[no_mangle]
 pub extern "C" fn i32_as_string(x: i32) -> String {

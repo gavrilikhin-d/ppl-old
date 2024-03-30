@@ -6,7 +6,7 @@ let x: Type<Integer> = (Type<Integer>:Type<Integer>)
 let y: Integer = clone (Type<Integer>:Type<Integer>).size
 println size of (Type<None>:Type<None>) == 0
 println size of (Type<Bool>:Type<Bool>) == 1
-println (Type<None>:Type<None>) as String
-println (Type<Type<Integer>>:Type<Type<Integer>>) as String
+println String from (Type<None>:Type<None>)
+println String from (Type<Type<Integer>>:Type<Type<Integer>>)
 println clone (y:Integer) == size of (Type<Integer>:Type<Integer>)
 println (Type<Integer>:Type<Integer>)

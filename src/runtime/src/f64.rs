@@ -9,7 +9,7 @@ type F64 = f64;
 /// ```no_run
 /// /// Convert `F64` to `String`
 /// @mangle_as("f64_as_string")
-/// fn <:F64> as String -> String
+/// fn String from <:F64> -> String
 /// ```
 #[no_mangle]
 pub extern "C" fn f64_as_string(d: F64) -> String {

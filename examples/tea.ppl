@@ -13,7 +13,7 @@ fn pour more water:
 	print "Pouring more water...\n"
 	sleep 2000 ms
 	currentLevel = maxLevel
-	print "New water level is: " + (currentLevel as String) + "mL\n\n"
+	print "New water level is: " + (String from currentLevel) + "mL\n\n"
 	sleep 1000 ms
 
 fn set kettle on gas:

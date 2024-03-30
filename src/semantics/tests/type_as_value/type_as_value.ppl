@@ -1,7 +1,7 @@
 println (size of None) == 0
 println (size of Bool) == 1
-println (None as String)
-println (Type<Integer> as String)
+println (String from None)
+println (String from Type<Integer>)
 
 let x = Integer
 let y = Integer.size

@@ -62,7 +62,7 @@ define void @"println <:Type<A>>"(%"Type<A>" %0) !dbg !15 {
   %x = alloca %"Type<A>", align 8
   store %"Type<A>" %0, ptr %x, align 8
   %2 = load %"Type<A>", ptr %x, align 8, !dbg !16
-  %3 = call %String @"<:Type<A>> as String"(%"Type<A>" %2), !dbg !16
+  %3 = call %String @"String from <:Type<A>>"(%"Type<A>" %2), !dbg !16
   call void @"println <:String>"(%String %3), !dbg !16
   br label %return, !dbg !16
 
@@ -72,7 +72,7 @@ return:                                           ; preds = %1
 
 declare void @"println <:String>"(%String)
 
-define %String @"<:Type<A>> as String"(%"Type<A>" %0) !dbg !17 {
+define %String @"String from <:Type<A>>"(%"Type<A>" %0) !dbg !17 {
   %return_value = alloca %String, align 8
   %ty = alloca %"Type<A>", align 8
   store %"Type<A>" %0, ptr %ty, align 8
@@ -117,7 +117,7 @@ return:                                           ; preds = %1
 !14 = !DILocation(line: 2, column: 19, scope: !11)
 !15 = distinct !DISubprogram(name: "println <:Type<A>>", linkageName: "println <:Type<A>>", scope: !11, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !16 = !DILocation(line: 2, column: 21, scope: !15)
-!17 = distinct !DISubprogram(name: "<:Type<A>> as String", linkageName: "<:Type<A>> as String", scope: !15, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!17 = distinct !DISubprogram(name: "String from <:Type<A>>", linkageName: "String from <:Type<A>>", scope: !15, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !18 = !DILocation(line: 2, column: 21, scope: !17)
 !19 = distinct !DISubprogram(name: "type of <:A>", linkageName: "type of <:A>", scope: !11, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !20 = !DILocation(line: 2, column: 21, scope: !19)

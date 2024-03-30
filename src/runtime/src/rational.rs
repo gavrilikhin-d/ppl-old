@@ -31,11 +31,9 @@ pub extern "C" fn rational_from_c_string(str: *const i8) -> Rational {
     }
 }
 
-/// Converts `Rational` to `String`
-///
-/// Runtime for builtin ppl's function:
-/// ```ppl
-/// fn <:Rational> as String -> String
+/// # PPL
+/// ```no_run
+/// fn String from <:Rational> -> String
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_as_string(r: Rational) -> String {

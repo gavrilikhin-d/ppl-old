@@ -28,7 +28,7 @@ type Type<T>:
 type None
 
 /// Convert `None` to `String`
-fn <:None> as String => "none"
+fn String from <:None> => "none"
 //---------------------------------
 
 
@@ -57,7 +57,7 @@ fn <x: Bool> or <y: Bool> -> Bool:
 	return y
 
 /// Convert `Bool` to `String`
-fn <x: Bool> as String -> String:
+fn String from <x: Bool> -> String:
 	if x:
 		return "true"
 	return "false"
@@ -119,7 +119,7 @@ fn <x: Integer> % <y: Integer> -> Integer
 
 /// Convert `Integer` to `String`
 @mangle_as("integer_as_string")
-fn <:Integer> as String -> String
+fn String from <:Integer> -> String
 
 @mangle_as("destroy_integer")
 fn destroy <:Integer>
@@ -162,7 +162,7 @@ fn <:Rational> / <:Rational> -> Rational
 
 /// Convert `Rational` to `String`
 @mangle_as("rational_as_string")
-fn <:Rational> as String -> String
+fn String from <:Rational> -> String
 
 @mangle_as("destroy_rational")
 fn destroy <:Rational>
@@ -203,13 +203,13 @@ fn clone <:String> -> String
 //=================================
 /// Trait for things that may be interpreted as string
 trait AsString:
-	fn <:Self> as String -> String
+	fn String from <:Self> -> String
 
 /// Print anything that may be interpreted as String
-fn print <x: AsString> => print (x as String)
+fn print <x: AsString> => print (String from x)
 
 /// Print anything that may be interpreted as String with newline
-fn println <x: AsString> => println (x as String)
+fn println <x: AsString> => println (String from x)
 //---------------------------------
 
 //=================================
@@ -240,7 +240,7 @@ trait Ord:
 //             Type
 //=================================
 /// Name of a type including generic parameters
-fn<T> <ty: Type<T>> as String => ty.name
+fn<T> String from <ty: Type<T>> => ty.name
 
 /// Size of a type in bytes
 fn<T> size of <ty: Type<T>> => ty.size
@@ -266,7 +266,7 @@ fn <address: MemoryAddress> + <offset: Integer> -> MemoryAddress:
 
 /// Convert `MemoryAddress` to `String`
 @mangle_as("memory_address_as_string")
-fn <address: MemoryAddress> as String -> String
+fn String from <address: MemoryAddress> -> String
 
 /// Allocate `n` bytes of memory.
 /// Warning: memory is uninitialized!
@@ -381,7 +381,7 @@ fn <x: I32> - <y: I32> => x + -y
 
 /// Convert `I32` to `String`
 @mangle_as("i32_as_string")
-fn <:I32> as String -> String
+fn String from <:I32> -> String
 
 /// Convert `I32` to `Integer`
 @mangle_as("integer_from_i32")
@@ -413,7 +413,7 @@ fn <:F64> * <:F64> -> F64
 
 /// Convert `F64` to `String`
 @mangle_as("f64_as_string")
-fn <:F64> as String -> String
+fn String from <:F64> -> String
 
 /// Convert `Rational` to `F64`
 @mangle_as("f64_from_rational")

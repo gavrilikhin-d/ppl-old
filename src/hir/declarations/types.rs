@@ -417,7 +417,7 @@ mod tests {
     use super::*;
     use crate::ast;
     use crate::compilation::Compiler;
-    use crate::hir::{GenericType, Member, Type};
+    use crate::hir::GenericType;
     use crate::semantics::{ModuleContext, ToHIR};
     use pretty_assertions::assert_eq;
 
