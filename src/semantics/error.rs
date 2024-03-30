@@ -142,37 +142,13 @@ pub struct NoUnaryOperator {
 }
 
 /// Diagnostic for unresolved function call
-#[derive(Error, Debug, Clone, PartialEq)]
-#[error("candidate is not viable: {reason}")]
+#[derive(Diagnostic, Error, Debug, Clone, PartialEq)]
+#[error("candidate is not viable")]
+#[diagnostic(severity(Advice))]
 pub struct CandidateNotViable {
-    /// Expected name of function
+    #[source]
+    #[diagnostic_source]
     pub reason: Error,
-}
-
-impl Diagnostic for CandidateNotViable {
-    fn severity(&self) -> Option<miette::Severity> {
-        Some(miette::Severity::Advice)
-    }
-
-    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
-        self.reason.labels()
-    }
-
-    fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {
-        self.reason.related()
-    }
-
-    fn source_code(&self) -> Option<&dyn miette::SourceCode> {
-        self.reason.source_code()
-    }
-
-    fn help<'a>(&'a self) -> Option<Box<dyn Display + 'a>> {
-        self.reason.help()
-    }
-
-    fn url<'a>(&'a self) -> Option<Box<dyn Display + 'a>> {
-        self.reason.url()
-    }
 }
 
 /// Diagnostic for unresolved function call

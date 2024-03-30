@@ -13,6 +13,18 @@ Error: semantics::no_function
    · ╰── <:Integer>
    ╰────
 
-Advice:   ☞ candidate is not viable: expected `Self` type, got `Rational`
-
-Error:   × Self
+Advice:   ☞ candidate is not viable
+  ╰─▶ semantics::type_mismatch
+      
+        × expected `Self` type, got `Rational`
+      
+      Error:   × Self
+      Error:   × Rational
+      
+Advice:   ☞ candidate is not viable
+  ╰─▶ semantics::type_mismatch
+      
+        × expected `Self` type, got `Rational`
+      
+      Error:   × Self
+      Error:   × Rational
