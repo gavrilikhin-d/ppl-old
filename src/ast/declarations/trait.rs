@@ -1,8 +1,11 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{
-    error::ParseError, Context, Identifier, Keyword, Lexer, Parse, Ranged, StartsHere, Token,
+use crate::{
+    ast::TypeReference,
+    syntax::{
+        error::ParseError, Context, Identifier, Keyword, Lexer, Parse, Ranged, StartsHere, Token,
+    },
 };
 
 use super::FunctionDeclaration;
@@ -14,6 +17,8 @@ pub struct TraitDeclaration {
     pub keyword: Keyword<"trait">,
     /// Name of trait
     pub name: Identifier,
+    /// Supertraits for this trait
+    pub supertraits: Vec<TypeReference>,
     /// Associated functions
     pub functions: Vec<FunctionDeclaration>,
 }
@@ -48,12 +53,15 @@ impl Parse for TraitDeclaration {
 
         let colon = context.lexer.consume(Token::Colon)?;
 
+        let supertraits = context.parse_comma_separated(TypeReference::parse);
+
         let error_range = keyword.start()..colon.start();
         let functions = context.parse_block(FunctionDeclaration::parse, error_range)?;
 
         Ok(TraitDeclaration {
             keyword,
             name,
+            supertraits,
             functions,
         })
     }
