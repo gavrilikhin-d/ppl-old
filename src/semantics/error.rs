@@ -7,8 +7,7 @@ use derive_more::From;
 
 use crate::{
     ast::FnKind,
-    hir::{Function, TraitDeclaration, Type},
-    syntax::Ranged,
+    hir::{TraitDeclaration, Type},
     SourceFile,
 };
 
@@ -377,30 +376,17 @@ pub struct NonClassConstructor {
 }
 
 /// Diagnostic for unimplemented trait
-#[derive(Error, Debug, Clone, PartialEq)]
+#[derive(Diagnostic, Error, Debug, Clone, PartialEq)]
 #[error("`{ty}` doesn't satisfy trait `{tr}` requirements")]
+#[diagnostic(code(semantics::not_implemented))]
 pub struct NotImplemented {
     /// Type that doesn't satisfy trait requirements
     pub ty: Type,
     /// Trait, that is not implemented
     pub tr: Arc<TraitDeclaration>,
-    /// Unimplemented functions
-    pub unimplemented: Vec<Function>,
-}
-
-impl Diagnostic for NotImplemented {
-    fn code<'a>(&'a self) -> Option<Box<dyn std::fmt::Display + 'a>> {
-        Some(Box::new("semantics::not_implemented"))
-    }
-
-    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
-        Some(Box::new(self.unimplemented.iter().map(|f| {
-            miette::LabeledSpan::new_with_span(
-                Some("This required function isn't implemented".to_string()),
-                f.read().unwrap().range(),
-            )
-        })))
-    }
+    /// Unimplemented functions spans
+    #[label(collection, "This required function isn't implemented")]
+    pub unimplemented: Vec<SourceSpan>,
 }
 
 /// Diagnostic for trying to take mutable reference to immutable data
