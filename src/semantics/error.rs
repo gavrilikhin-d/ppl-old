@@ -7,8 +7,7 @@ use derive_more::From;
 
 use crate::{
     ast::FnKind,
-    hir::{Function, TraitDeclaration, Type},
-    syntax::Ranged,
+    hir::{TraitDeclaration, Type},
     SourceFile,
 };
 
@@ -143,37 +142,13 @@ pub struct NoUnaryOperator {
 }
 
 /// Diagnostic for unresolved function call
-#[derive(Error, Debug, Clone, PartialEq)]
-#[error("candidate is not viable: {reason}")]
+#[derive(Diagnostic, Error, Debug, Clone, PartialEq)]
+#[error("candidate is not viable")]
+#[diagnostic(severity(Advice))]
 pub struct CandidateNotViable {
-    /// Expected name of function
+    #[source]
+    #[diagnostic_source]
     pub reason: Error,
-}
-
-impl Diagnostic for CandidateNotViable {
-    fn severity(&self) -> Option<miette::Severity> {
-        Some(miette::Severity::Advice)
-    }
-
-    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
-        self.reason.labels()
-    }
-
-    fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {
-        self.reason.related()
-    }
-
-    fn source_code(&self) -> Option<&dyn miette::SourceCode> {
-        self.reason.source_code()
-    }
-
-    fn help<'a>(&'a self) -> Option<Box<dyn Display + 'a>> {
-        self.reason.help()
-    }
-
-    fn url<'a>(&'a self) -> Option<Box<dyn Display + 'a>> {
-        self.reason.url()
-    }
 }
 
 /// Diagnostic for unresolved function call
@@ -321,36 +296,18 @@ pub struct NoMember {
 }
 
 /// Diagnostic for multiple initializers for single field
-#[derive(Error, Debug, Clone, PartialEq)]
+#[derive(Diagnostic, Error, Debug, Clone, PartialEq)]
 #[error("field `{name}` initialized multiple times")]
+#[diagnostic(code(semantics::multiple_initialization))]
 pub struct MultipleInitialization {
     /// Name of the field
     pub name: String,
+    /// First initializer span
+    #[label("was firstly initialized here")]
+    pub first_at: SourceSpan,
     /// Span of the initializers
-    pub at: Vec<SourceSpan>,
-}
-
-impl Diagnostic for MultipleInitialization {
-    fn code<'a>(&'a self) -> Option<Box<dyn std::fmt::Display + 'a>> {
-        Some(Box::new("semantics::multiple_initialization"))
-    }
-
-    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
-        assert!(self.at.len() >= 2);
-
-        Some(Box::new(
-            std::iter::once(miette::LabeledSpan::new_with_span(
-                Some("was firstly initialized here".to_string()),
-                self.at.first().unwrap().clone(),
-            ))
-            .chain(self.at.iter().skip(1).map(|at| {
-                miette::LabeledSpan::new_with_span(
-                    Some("repeated initialization".to_string()),
-                    at.clone(),
-                )
-            })),
-        ))
-    }
+    #[label(collection, "repeated initialization")]
+    pub repeated_at: Vec<SourceSpan>,
 }
 
 /// Diagnostic for missing fields in constructor
@@ -395,30 +352,17 @@ pub struct NonClassConstructor {
 }
 
 /// Diagnostic for unimplemented trait
-#[derive(Error, Debug, Clone, PartialEq)]
+#[derive(Diagnostic, Error, Debug, Clone, PartialEq)]
 #[error("`{ty}` doesn't satisfy trait `{tr}` requirements")]
+#[diagnostic(code(semantics::not_implemented))]
 pub struct NotImplemented {
     /// Type that doesn't satisfy trait requirements
     pub ty: Type,
     /// Trait, that is not implemented
     pub tr: Arc<TraitDeclaration>,
-    /// Unimplemented functions
-    pub unimplemented: Vec<Function>,
-}
-
-impl Diagnostic for NotImplemented {
-    fn code<'a>(&'a self) -> Option<Box<dyn std::fmt::Display + 'a>> {
-        Some(Box::new("semantics::not_implemented"))
-    }
-
-    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
-        Some(Box::new(self.unimplemented.iter().map(|f| {
-            miette::LabeledSpan::new_with_span(
-                Some("This required function isn't implemented".to_string()),
-                f.read().unwrap().range(),
-            )
-        })))
-    }
+    /// Unimplemented functions spans
+    #[label(collection, "This required function isn't implemented")]
+    pub unimplemented: Vec<SourceSpan>,
 }
 
 /// Diagnostic for trying to take mutable reference to immutable data

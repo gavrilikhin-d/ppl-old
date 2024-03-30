@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use crate::hir::{self, Type};
+use crate::{
+    hir::{self, Type},
+    syntax::Ranged,
+};
 
 use super::{error::NotImplemented, Context};
 
@@ -43,7 +46,10 @@ impl ImplementsCheck<'_, hir::Class> {
             return Err(NotImplemented {
                 ty: self.ty.clone().into(),
                 tr: self.tr,
-                unimplemented,
+                unimplemented: unimplemented
+                    .into_iter()
+                    .map(|f| f.range().into())
+                    .collect(),
             });
         }
 
