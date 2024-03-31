@@ -147,7 +147,6 @@ pub trait FindDeclaration: FindDeclarationHere {
                     tr.read()
                         .unwrap()
                         .functions_with_n_name_parts(name_parts.len())
-                        .cloned()
                         .collect::<Vec<_>>()
                 }),
         );
