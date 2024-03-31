@@ -65,7 +65,7 @@ return:                                           ; preds = %0
   ret void
 }
 
-define %Integer @"size of <:Type<I32>>"(%"Type<I32>" %0) !dbg !14 {
+define private %Integer @"size of <:Type<I32>>"(%"Type<I32>" %0) !dbg !14 {
   %return_value = alloca %Integer, align 8
   %ty = alloca %"Type<I32>", align 8
   store %"Type<I32>" %0, ptr %ty, align 8
@@ -141,7 +141,7 @@ return:                                           ; preds = %0
 
 declare i32 @integer_as_i32(%Integer)
 
-define void @"println <:I32>"(i32 %0) !dbg !34 {
+define private void @"println <:I32>"(i32 %0) !dbg !34 {
   %x = alloca i32, align 4
   store i32 %0, ptr %x, align 4
   %2 = load i32, ptr %x, align 4, !dbg !35

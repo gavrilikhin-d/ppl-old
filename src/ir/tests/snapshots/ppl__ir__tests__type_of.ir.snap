@@ -62,7 +62,7 @@ return:                                           ; preds = %0
   ret void
 }
 
-define %"Type<Integer>" @"type of <:Integer>"(%Integer %0) !dbg !14 {
+define private %"Type<Integer>" @"type of <:Integer>"(%Integer %0) !dbg !14 {
   %return_value = alloca %"Type<Integer>", align 8
   %2 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !15
   store %"Type<Integer>" %2, ptr %return_value, align 8, !dbg !15
@@ -89,7 +89,7 @@ return:                                           ; preds = %0
   ret void
 }
 
-define void @"println <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !20 {
+define private void @"println <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !20 {
   %x = alloca %"Type<Integer>", align 8
   store %"Type<Integer>" %0, ptr %x, align 8
   %2 = load %"Type<Integer>", ptr %x, align 8, !dbg !21
@@ -103,7 +103,7 @@ return:                                           ; preds = %1
 
 declare void @"println <:String>"(%String)
 
-define %String @"String from <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !22 {
+define private %String @"String from <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !22 {
   %return_value = alloca %String, align 8
   %ty = alloca %"Type<Integer>", align 8
   store %"Type<Integer>" %0, ptr %ty, align 8

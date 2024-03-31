@@ -73,7 +73,7 @@ return:                                           ; preds = %0
   ret void
 }
 
-define void @"println <:Integer>"(%Integer %0) !dbg !24 {
+define private void @"println <:Integer>"(%Integer %0) !dbg !24 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !25
@@ -101,7 +101,7 @@ declare %Integer @"<:Integer> - <:Integer>"(%Integer, %Integer)
 
 declare %Integer @integer_star_integer(%Integer, %Integer)
 
-define void @"println <:Rational>"(%Rational %0) !dbg !26 {
+define private void @"println <:Rational>"(%Rational %0) !dbg !26 {
   %x = alloca %Rational, align 8
   store %Rational %0, ptr %x, align 8
   %2 = load %Rational, ptr %x, align 8, !dbg !27

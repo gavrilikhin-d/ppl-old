@@ -54,7 +54,7 @@ return:                                           ; preds = %0
   ret void
 }
 
-define %Integer @"x of <:Point<Integer>>"(%"Point<Integer>" %0) !dbg !13 {
+define private %Integer @"x of <:Point<Integer>>"(%"Point<Integer>" %0) !dbg !13 {
   %return_value = alloca %Integer, align 8
   %p = alloca %"Point<Integer>", align 8
   store %"Point<Integer>" %0, ptr %p, align 8
@@ -103,7 +103,7 @@ return:                                           ; preds = %0
   ret void
 }
 
-define void @"println <:Bool>"(i1 %0) !dbg !26 {
+define private void @"println <:Bool>"(i1 %0) !dbg !26 {
   %x = alloca i1, align 1
   store i1 %0, ptr %x, align 1
   %2 = load i1, ptr %x, align 1, !dbg !27
@@ -146,7 +146,7 @@ declare i1 @integer_eq_integer(%Integer, %Integer)
 
 declare %Integer @clone_integer(%Integer)
 
-define %Integer @"id <:Integer>"(%Integer %0) !dbg !30 {
+define private %Integer @"id <:Integer>"(%Integer %0) !dbg !30 {
   %return_value = alloca %Integer, align 8
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
@@ -159,7 +159,7 @@ return:                                           ; preds = %1
   ret %Integer %3
 }
 
-define %String @"id <:String>"(%String %0) !dbg !32 {
+define private %String @"id <:String>"(%String %0) !dbg !32 {
   %return_value = alloca %String, align 8
   %x = alloca %String, align 8
   store %String %0, ptr %x, align 8
@@ -172,7 +172,7 @@ return:                                           ; preds = %1
   ret %String %3
 }
 
-define %"Point<Integer>" @"id <:Point<Integer>>"(%"Point<Integer>" %0) !dbg !34 {
+define private %"Point<Integer>" @"id <:Point<Integer>>"(%"Point<Integer>" %0) !dbg !34 {
   %return_value = alloca %"Point<Integer>", align 8
   %x = alloca %"Point<Integer>", align 8
   store %"Point<Integer>" %0, ptr %x, align 8

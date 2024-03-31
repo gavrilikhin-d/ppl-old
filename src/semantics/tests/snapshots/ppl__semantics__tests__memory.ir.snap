@@ -65,7 +65,7 @@ return:                                           ; preds = %0
   ret void
 }
 
-define %MemoryAddress @"allocate <:Integer> <:Type<Integer>>"(%Integer %0, %"Type<Integer>" %1) !dbg !15 {
+define private %MemoryAddress @"allocate <:Integer> <:Type<Integer>>"(%Integer %0, %"Type<Integer>" %1) !dbg !15 {
   %return_value = alloca %MemoryAddress, align 8
   %n = alloca %Integer, align 8
   store %Integer %0, ptr %n, align 8
@@ -89,7 +89,7 @@ declare %Integer @integer_star_integer(%Integer, %Integer)
 
 declare %Integer @clone_integer(%Integer)
 
-define %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !17 {
+define private %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !17 {
   %return_value = alloca %Integer, align 8
   %ty = alloca %"Type<Integer>", align 8
   store %"Type<Integer>" %0, ptr %ty, align 8
@@ -143,7 +143,7 @@ return:                                           ; preds = %0
   ret void
 }
 
-define void @"println <:Integer>"(%Integer %0) !dbg !33 {
+define private void @"println <:Integer>"(%Integer %0) !dbg !33 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !34
