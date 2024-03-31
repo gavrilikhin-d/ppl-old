@@ -417,8 +417,8 @@ mod tests {
     use super::*;
     use crate::ast;
     use crate::compilation::Compiler;
-    use crate::hir::GenericType;
-    use crate::semantics::{ModuleContext, ToHIR};
+    use crate::hir::{GenericType, ModuleData};
+    use crate::semantics::{Context, ModuleContext, ToHIR};
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -479,21 +479,14 @@ mod tests {
     #[test]
     fn test_type_with_body() {
         let mut compiler = Compiler::new();
-        let mut context = ModuleContext::new(&mut compiler);
+        let mut context = ModuleContext::new(ModuleData::default(), &mut compiler);
         let type_decl = include_str!("../../../examples/point.ppl")
             .parse::<ast::TypeDeclaration>()
             .unwrap()
             .to_hir(&mut context)
             .unwrap();
 
-        let integer: Type = compiler
-            .builtin_module()
-            .unwrap()
-            .types
-            .get("Integer")
-            .cloned()
-            .unwrap()
-            .into();
+        let integer: Type = context.builtin().types().integer();
 
         assert_eq!(
             *type_decl.read().unwrap(),

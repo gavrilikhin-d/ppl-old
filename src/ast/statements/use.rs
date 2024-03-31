@@ -13,6 +13,16 @@ pub struct Use {
     pub path: Vec<Identifier>,
 }
 
+impl Use {
+    /// Generate use statement for builtin module
+    pub fn builtin_module() -> Self {
+        Self {
+            keyword: Keyword::<"use">::at(0),
+            path: vec!["ppl".into(), "*".into()],
+        }
+    }
+}
+
 impl Ranged for Use {
     fn start(&self) -> usize {
         self.keyword.start()

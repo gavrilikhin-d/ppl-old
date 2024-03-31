@@ -1,14 +1,13 @@
 use std::fmt::Display;
 
-use crate::{
-    hir::{ModuleData, SpecializeParameters, Type},
-    named::Named,
-};
+use crate::hir::{SpecializeParameters, Type};
+
+use super::Context;
 
 /// Helper struct to get builtin things
-pub struct BuiltinContext<'m> {
-    /// Builtin module
-    pub module: &'m ModuleData,
+pub struct BuiltinContext<'ctx> {
+    /// Context to use lookup
+    pub context: &'ctx dyn Context,
 }
 
 impl Display for BuiltinContext<'_> {
@@ -17,25 +16,19 @@ impl Display for BuiltinContext<'_> {
     }
 }
 
-impl<'m> BuiltinContext<'m> {
+impl<'ctx> BuiltinContext<'ctx> {
     /// Get builtin types
-    pub fn types(&self) -> BuiltinTypes<'m> {
+    pub fn types(&self) -> BuiltinTypes<'ctx> {
         BuiltinTypes {
-            module: self.module,
+            context: self.context,
         }
     }
 }
 
-impl AsRef<ModuleData> for BuiltinContext<'_> {
-    fn as_ref(&self) -> &ModuleData {
-        self.module
-    }
-}
-
 /// Helper struct to get builtin types
-pub struct BuiltinTypes<'m> {
+pub struct BuiltinTypes<'ctx> {
     /// Builtin module
-    module: &'m ModuleData,
+    context: &'ctx dyn Context,
 }
 
 /// Helper macro to add builtin types
@@ -51,24 +44,9 @@ macro_rules! builtin_types {
 impl BuiltinTypes<'_> {
     /// Get builtin type by name
     fn get_type(&self, name: &str) -> Type {
-        debug_assert!(self.module.name() == "ppl", "Wrong module used as builtin");
-        self.module
-            .types
-            .get(name)
-            .expect(
-                format!(
-                    "Builtin type `{name}` should be present. Present types: {}",
-                    self.module
-                        .types
-                        .iter()
-                        .map(|t| t.0.clone())
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                )
-                .as_str(),
-            )
-            .clone()
-            .into()
+        self.context
+            .find_type(name)
+            .expect(format!("Builtin type `{name}` should be present",).as_str())
     }
 
     builtin_types!(none, bool, integer, rational, string, reference, i32, f64);
@@ -105,45 +83,5 @@ impl BuiltinTypes<'_> {
             .as_class()
             .specialize_parameters(std::iter::once(ty))
             .into()
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use crate::{compilation::Compiler, hir::ClassData, named::Named};
-
-    use super::BuiltinTypes;
-
-    use pretty_assertions::{assert_eq, assert_str_eq};
-
-    #[test]
-    fn type_of() {
-        let compiler = Compiler::new();
-        let builtin = BuiltinTypes {
-            module: compiler.builtin_module().unwrap(),
-        };
-        let none = builtin.none();
-        let ty = builtin.type_();
-        let none_ty = builtin.type_of(none.clone());
-        assert_str_eq!(none_ty.name(), "Type<None>");
-        assert_eq!(
-            *none_ty.clone().as_class().read().unwrap(),
-            ClassData {
-                specialization_of: Some(ty.clone().as_class()),
-                generic_parameters: vec![none.clone().into()],
-                ..ty.clone().as_class().read().unwrap().clone()
-            }
-        );
-
-        let type_of_type = builtin.type_of(none_ty.clone());
-        assert_str_eq!(type_of_type.name(), "Type<Type<None>>");
-        assert_eq!(
-            *type_of_type.clone().as_class().read().unwrap(),
-            ClassData {
-                specialization_of: Some(ty.clone().as_class()),
-                generic_parameters: vec![none_ty.clone().into()],
-                ..ty.clone().as_class().read().unwrap().clone()
-            }
-        );
     }
 }
