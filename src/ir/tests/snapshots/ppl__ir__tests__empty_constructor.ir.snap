@@ -78,7 +78,7 @@ return:                                           ; preds = %0
   ret void
 }
 
-define void @"println <:Type<A>>"(%"Type<A>" %0) !dbg !18 {
+define private void @"println <:Type<A>>"(%"Type<A>" %0) !dbg !18 {
   %x = alloca %"Type<A>", align 8
   store %"Type<A>" %0, ptr %x, align 8
   %2 = load %"Type<A>", ptr %x, align 8, !dbg !19
@@ -92,7 +92,7 @@ return:                                           ; preds = %1
 
 declare void @"println <:String>"(%String)
 
-define %String @"String from <:Type<A>>"(%"Type<A>" %0) !dbg !20 {
+define private %String @"String from <:Type<A>>"(%"Type<A>" %0) !dbg !20 {
   %return_value = alloca %String, align 8
   %ty = alloca %"Type<A>", align 8
   store %"Type<A>" %0, ptr %ty, align 8
@@ -106,7 +106,7 @@ return:                                           ; preds = %1
   ret %String %3
 }
 
-define %"Type<A>" @"type of <:A>"(ptr %0) !dbg !22 {
+define private %"Type<A>" @"type of <:A>"(ptr %0) !dbg !22 {
   %return_value = alloca %"Type<A>", align 8
   %2 = load %"Type<A>", ptr @"Type<A>", align 8, !dbg !23
   store %"Type<A>" %2, ptr %return_value, align 8, !dbg !23

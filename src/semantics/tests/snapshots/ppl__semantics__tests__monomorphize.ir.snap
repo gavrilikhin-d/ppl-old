@@ -84,7 +84,7 @@ return:                                           ; preds = %0
   ret void
 }
 
-define void @"println <:Bool>"(i1 %0) !dbg !21 {
+define private void @"println <:Bool>"(i1 %0) !dbg !21 {
   %x = alloca i1, align 1
   store i1 %0, ptr %x, align 1
   %2 = load i1, ptr %x, align 1, !dbg !22

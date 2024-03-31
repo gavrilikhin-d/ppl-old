@@ -49,7 +49,7 @@ return:                                           ; preds = %0
   ret void
 }
 
-define void @"println <:None>"() !dbg !13 {
+define private void @"println <:None>"() !dbg !13 {
   %1 = call %String @"String from <:None>"(), !dbg !14
   call void @"println <:String>"(%String %1), !dbg !14
   br label %return, !dbg !14
@@ -73,7 +73,7 @@ return:                                           ; preds = %0
 
 declare void @"do nothing"()
 
-define void @"println <:Integer>"(%Integer %0) !dbg !17 {
+define private void @"println <:Integer>"(%Integer %0) !dbg !17 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !18

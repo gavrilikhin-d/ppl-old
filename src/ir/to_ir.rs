@@ -277,7 +277,16 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionData {
             }
             _ => unreachable!("FunctionDeclaration::ty() returned non-function type"),
         };
-        context.module.add_function(&self.mangled_name(), ty, None)
+        context.module.add_function(
+            &self.mangled_name(),
+            ty,
+            // Private linkage for monomorphized generic functions
+            if self.generic_types.is_empty() || self.mangled_name.is_some() {
+                None
+            } else {
+                Some(Linkage::Private)
+            },
+        )
     }
 }
 

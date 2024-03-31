@@ -175,7 +175,7 @@ return:                                           ; preds = %0
   ret void
 }
 
-define void @"println <:Bool>"(i1 %0) !dbg !38 {
+define private void @"println <:Bool>"(i1 %0) !dbg !38 {
   %x = alloca i1, align 1
   store i1 %0, ptr %x, align 1
   %2 = load i1, ptr %x, align 1, !dbg !39
@@ -216,7 +216,7 @@ return:                                           ; preds = %5, %if.body
 
 declare i1 @integer_eq_integer(%Integer, %Integer)
 
-define %Integer @"size of <:Type<None>>"(%"Type<None>" %0) !dbg !42 {
+define private %Integer @"size of <:Type<None>>"(%"Type<None>" %0) !dbg !42 {
   %return_value = alloca %Integer, align 8
   %ty = alloca %"Type<None>", align 8
   store %"Type<None>" %0, ptr %ty, align 8
@@ -230,7 +230,7 @@ return:                                           ; preds = %1
   ret %Integer %3
 }
 
-define %Integer @"size of <:Type<Bool>>"(%"Type<Bool>" %0) !dbg !44 {
+define private %Integer @"size of <:Type<Bool>>"(%"Type<Bool>" %0) !dbg !44 {
   %return_value = alloca %Integer, align 8
   %ty = alloca %"Type<Bool>", align 8
   store %"Type<Bool>" %0, ptr %ty, align 8
@@ -244,7 +244,7 @@ return:                                           ; preds = %1
   ret %Integer %3
 }
 
-define %String @"String from <:Type<None>>"(%"Type<None>" %0) !dbg !46 {
+define private %String @"String from <:Type<None>>"(%"Type<None>" %0) !dbg !46 {
   %return_value = alloca %String, align 8
   %ty = alloca %"Type<None>", align 8
   store %"Type<None>" %0, ptr %ty, align 8
@@ -258,7 +258,7 @@ return:                                           ; preds = %1
   ret %String %3
 }
 
-define %String @"String from <:Type<Type<Integer>>>"(%"Type<Type<Integer>>" %0) !dbg !48 {
+define private %String @"String from <:Type<Type<Integer>>>"(%"Type<Type<Integer>>" %0) !dbg !48 {
   %return_value = alloca %String, align 8
   %ty = alloca %"Type<Type<Integer>>", align 8
   store %"Type<Type<Integer>>" %0, ptr %ty, align 8
@@ -272,7 +272,7 @@ return:                                           ; preds = %1
   ret %String %3
 }
 
-define %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !50 {
+define private %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !50 {
   %return_value = alloca %Integer, align 8
   %ty = alloca %"Type<Integer>", align 8
   store %"Type<Integer>" %0, ptr %ty, align 8
@@ -286,7 +286,7 @@ return:                                           ; preds = %1
   ret %Integer %3
 }
 
-define void @"println <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !52 {
+define private void @"println <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !52 {
   %x = alloca %"Type<Integer>", align 8
   store %"Type<Integer>" %0, ptr %x, align 8
   %2 = load %"Type<Integer>", ptr %x, align 8, !dbg !53
@@ -298,7 +298,7 @@ return:                                           ; preds = %1
   ret void
 }
 
-define %String @"String from <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !54 {
+define private %String @"String from <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !54 {
   %return_value = alloca %String, align 8
   %ty = alloca %"Type<Integer>", align 8
   store %"Type<Integer>" %0, ptr %ty, align 8

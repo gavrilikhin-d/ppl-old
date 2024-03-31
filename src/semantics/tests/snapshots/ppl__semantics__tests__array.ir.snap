@@ -66,7 +66,7 @@ return:                                           ; preds = %0
   ret void
 }
 
-define %"Array<Integer>" @"<:Type<Integer>> [ ]"(%"Type<Integer>" %0) !dbg !14 {
+define private %"Array<Integer>" @"<:Type<Integer>> [ ]"(%"Type<Integer>" %0) !dbg !14 {
   %return_value = alloca %"Array<Integer>", align 8
   %2 = call %Integer @integer_from_i64(i64 8), !dbg !15
   %capacity = alloca %Integer, align 8, !dbg !15
@@ -97,7 +97,7 @@ return:                                           ; preds = %1
   ret %"Array<Integer>" %13
 }
 
-define %MemoryAddress @"allocate <:Integer> <:Type<Integer>>"(%Integer %0, %"Type<Integer>" %1) !dbg !16 {
+define private %MemoryAddress @"allocate <:Integer> <:Type<Integer>>"(%Integer %0, %"Type<Integer>" %1) !dbg !16 {
   %return_value = alloca %MemoryAddress, align 8
   %n = alloca %Integer, align 8
   store %Integer %0, ptr %n, align 8
@@ -121,7 +121,7 @@ declare %Integer @integer_star_integer(%Integer, %Integer)
 
 declare %Integer @clone_integer(%Integer)
 
-define %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !18 {
+define private %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !18 {
   %return_value = alloca %Integer, align 8
   %ty = alloca %"Type<Integer>", align 8
   store %"Type<Integer>" %0, ptr %ty, align 8
@@ -181,7 +181,7 @@ if.body1:                                         ; preds = %if.condition2
 
 declare void @"println <:String>"(%String)
 
-define i1 @"<:Reference<Array<Integer>>> is empty"(ptr %0) !dbg !30 {
+define private i1 @"<:Reference<Array<Integer>>> is empty"(ptr %0) !dbg !30 {
   %return_value = alloca i1, align 1
   %array = alloca ptr, align 8
   store ptr %0, ptr %array, align 8
@@ -201,7 +201,7 @@ return:                                           ; preds = %1
 
 declare i1 @integer_eq_integer(%Integer, %Integer)
 
-define void @"push <:Integer> to <:ReferenceMut<Array<Integer>>>"(%Integer %0, ptr %1) !dbg !32 {
+define private void @"push <:Integer> to <:ReferenceMut<Array<Integer>>>"(%Integer %0, ptr %1) !dbg !32 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %array = alloca ptr, align 8
@@ -333,7 +333,7 @@ declare ptr @read_memory(%"Type<Integer>", %MemoryAddress)
 
 declare %MemoryAddress @"<:MemoryAddress> + <:Integer>"(%MemoryAddress, %Integer)
 
-define ptr @"<:ReferenceMut<Array<Integer>>> [ <:Integer> ]"(ptr %0, %Integer %1) !dbg !34 {
+define private ptr @"<:ReferenceMut<Array<Integer>>> [ <:Integer> ]"(ptr %0, %Integer %1) !dbg !34 {
   %return_value = alloca ptr, align 8
   %array = alloca ptr, align 8
   store ptr %0, ptr %array, align 8
@@ -369,7 +369,7 @@ declare i1 @integer_less_integer(%Integer, %Integer)
 
 declare void @free_memory(%MemoryAddress)
 
-define i1 @"<:Reference<Array<Integer>>> is not empty"(ptr %0) !dbg !36 {
+define private i1 @"<:Reference<Array<Integer>>> is not empty"(ptr %0) !dbg !36 {
   %return_value = alloca i1, align 1
   %array = alloca ptr, align 8
   store ptr %0, ptr %array, align 8
@@ -404,7 +404,7 @@ return:                                           ; preds = %2
   ret i1 %6
 }
 
-define void @"println <:Integer>"(%Integer %0) !dbg !40 {
+define private void @"println <:Integer>"(%Integer %0) !dbg !40 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !41

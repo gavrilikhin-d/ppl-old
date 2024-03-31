@@ -69,7 +69,7 @@ return:                                           ; preds = %0
   ret void
 }
 
-define void @"println <:Integer>"(%Integer %0) !dbg !16 {
+define private void @"println <:Integer>"(%Integer %0) !dbg !16 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !17
