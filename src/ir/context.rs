@@ -224,6 +224,11 @@ impl<'llvm, 'm, 's> FunctionContext<'llvm, 'm, 's> {
         self.builder
             .set_current_debug_location(self.debug().location(offset))
     }
+
+    /// Run code in this context
+    pub fn run<R>(&mut self, f: impl FnOnce(&mut Self) -> R) -> R {
+        f(self)
+    }
 }
 
 impl Drop for FunctionContext<'_, '_, '_> {
