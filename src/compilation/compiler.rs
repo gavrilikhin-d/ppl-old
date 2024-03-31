@@ -67,7 +67,7 @@ pub struct Compiler {
     /// ASTs of all modules
     pub asts: IndexMap<PathBuf, ast::Module>,
     /// Cache of compiled modules
-    pub modules: IndexMap<String, ModuleData>,
+    pub modules: IndexMap<PathBuf, ModuleData>,
     /// Functions from all modules
     pub functions: Vec<FunctionData>,
     /// Classes from all modules
@@ -81,13 +81,22 @@ pub struct Compiler {
 }
 
 impl Compiler {
+    /// Name of builtin module
+    pub const BUILTIN_MODULE_NAME: &'static str = "ppl";
+    /// Directory of builtin module
+    pub const BUILTIN_MODULE_DIR: &'static str =
+        concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime");
+    /// Path of builtin module
+    pub const BUILTIN_MODULE_PATH: &'static str =
+        concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime/ppl.ppl");
+
     /// Create new compiler with empty cache
     pub fn new() -> Self {
-        let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime"));
+        let path = Path::new(Self::BUILTIN_MODULE_DIR);
 
         let mut compiler = Compiler::without_builtin().at(path);
 
-        compiler.compile("ppl").unwrap();
+        compiler.compile(Self::BUILTIN_MODULE_NAME).unwrap();
 
         compiler.import_builtin = true;
 
@@ -122,10 +131,14 @@ impl Compiler {
     /// 1. `{root}/{name}.ppl`
     /// 2. `{root}/{name}/mod.ppl`
     pub fn locate(&mut self, name: &str) -> miette::Result<PathBuf> {
-        let variants = [
-            self.root.join(format!("{name}.ppl")),
-            self.root.join(name).join("mod.ppl"),
-        ];
+        let variants = if name == Self::BUILTIN_MODULE_NAME {
+            vec![Self::BUILTIN_MODULE_PATH.into()]
+        } else {
+            vec![
+                self.root.join(format!("{name}.ppl")),
+                self.root.join(name).join("mod.ppl"),
+            ]
+        };
 
         variants
             .iter()
@@ -136,13 +149,15 @@ impl Compiler {
 
     /// Parse module from file
     fn parse(&mut self, path: &Path) -> miette::Result<ast::Module> {
-        if let Some(ast) = self.asts.get(path) {
+        let canonic_path = std::fs::canonicalize(path).unwrap();
+
+        if let Some(ast) = self.asts.get(&canonic_path) {
             return Ok(ast.clone());
         }
 
         trace!(target: "steps", "Parsing `{}`", path.display());
         let ast = ast::Module::from_file(path)?;
-        self.asts.insert(path.to_path_buf(), ast.clone());
+        self.asts.insert(canonic_path, ast.clone());
         Ok(ast)
     }
 
@@ -162,11 +177,12 @@ impl Compiler {
     /// assert_eq!(m1, m2);
     /// ```
     pub fn compile(&mut self, name: &str) -> miette::Result<Module> {
-        if let Some(index) = self.modules.get_index_of(name) {
+        let path = self.locate(name)?;
+        let canonic_path = std::fs::canonicalize(&path).unwrap();
+
+        if let Some(index) = self.modules.get_index_of(&canonic_path) {
             return Ok(Module::with_index(index));
         }
-
-        let path = self.locate(name)?;
 
         let ast = self.parse(&path)?;
 
@@ -184,7 +200,7 @@ impl Compiler {
         debug!(target: &format!("{name}-hir-with-destructors"), "\n{:#}", hir);
 
         let index = self.modules.len();
-        self.modules.insert(name.to_string(), hir);
+        self.modules.insert(canonic_path, hir);
         Ok(Module::with_index(index))
     }
 }
