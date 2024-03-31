@@ -1,7 +1,5 @@
-use std::sync::Arc;
-
 use crate::{
-    hir::{Class, Expression, FunctionType, GenericType, SelfType, TraitDeclaration, Type, Typed},
+    hir::{Class, Expression, FunctionType, GenericType, SelfType, Trait, Type, Typed},
     mutability::Mutable,
     semantics::error::ReferenceMutToImmutable,
     syntax::Ranged,
@@ -86,7 +84,7 @@ impl ConvertibleToRequest<'_, Class> {
                 }
 
                 let convertible = from
-                    .implements(s.associated_trait.upgrade().unwrap())
+                    .implements(s.associated_trait.clone())
                     .within(context)
                     .map(|_| true)?;
                 if convertible {
@@ -117,8 +115,8 @@ impl ConvertibleToRequest<'_, Class> {
 }
 
 // TODO: unify `fn <:Trait>` with `fn<T: Trait> <x: T>`
-impl ConvertibleTo for Arc<TraitDeclaration> {}
-impl ConvertibleToRequest<'_, Arc<TraitDeclaration>> {
+impl ConvertibleTo for Trait {}
+impl ConvertibleToRequest<'_, Trait> {
     /// Check if trait can be converted to another type within context
     pub fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
         let from = self.from;
@@ -135,8 +133,35 @@ impl ConvertibleToRequest<'_, Arc<TraitDeclaration>> {
                     true
                 }
             }
-            Type::Trait(tr) => *from == tr,
-            Type::SelfType(s) => *from == s.associated_trait.upgrade().unwrap(),
+            Type::Trait(tr) => {
+                if *from == tr {
+                    return Ok(true);
+                }
+
+                if from.read().unwrap().supertraits.is_empty() {
+                    return Ok(false);
+                }
+
+                let res: Vec<_> = from
+                    .read()
+                    .unwrap()
+                    .supertraits
+                    .iter()
+                    .cloned()
+                    .map(|s| s.convertible_to(tr.clone().into()).within(context))
+                    .collect();
+                if res
+                    .iter()
+                    .find(|r| r.as_ref().is_ok_and(|res| *res))
+                    .is_some()
+                {
+                    return Ok(true);
+                }
+                return res.into_iter().next().unwrap();
+            }
+            Type::SelfType(s) => from
+                .convertible_to(s.associated_trait.into())
+                .within(context)?,
         })
     }
 }
@@ -198,18 +223,7 @@ impl ConvertibleToRequest<'_, SelfType> {
     pub fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
         let from = self.from;
         let to = self.to;
-        Ok(match to {
-            Type::Class(_) => false,
-            Type::Function(_) => false,
-            Type::SelfType(s) => *from == s,
-            Type::Generic(_) | Type::Trait(_) => from
-                .associated_trait
-                .upgrade()
-                .unwrap()
-                .convertible_to(to)
-                .within(context)?,
-            Type::Unknown => true,
-        })
+        from.associated_trait.convertible_to(to).within(context)
     }
 }
 

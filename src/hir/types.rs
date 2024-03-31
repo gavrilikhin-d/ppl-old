@@ -2,12 +2,12 @@ use std::{
     borrow::Cow,
     collections::HashMap,
     fmt::{Debug, Display},
-    sync::{Arc, Weak},
+    sync::Arc,
 };
 
 use crate::{mutability::Mutable, named::Named, syntax::Identifier, AddSourceLocation};
 
-use super::{Basename, BuiltinClass, Class, Generic, Member, TraitDeclaration, TypeReference};
+use super::{Basename, BuiltinClass, Class, Generic, Member, Trait, TypeReference};
 use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
 
@@ -98,19 +98,19 @@ impl FunctionTypeBuilder {
 #[derive(Debug, Clone)]
 pub struct SelfType {
     /// Trait associated with self type
-    pub associated_trait: Weak<TraitDeclaration>,
+    pub associated_trait: Trait,
 }
 
 impl PartialEq for SelfType {
     fn eq(&self, other: &Self) -> bool {
-        self.associated_trait.ptr_eq(&other.associated_trait)
+        self.associated_trait == other.associated_trait
     }
 }
 impl Eq for SelfType {}
 
 impl std::hash::Hash for SelfType {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.associated_trait.as_ptr().hash(state);
+        self.associated_trait.hash(state);
     }
 }
 
@@ -167,7 +167,7 @@ pub enum Type {
     /// User defined type
     Class(Class),
     /// User defined trait
-    Trait(Arc<TraitDeclaration>),
+    Trait(Trait),
     /// Self type and trait it represents
     SelfType(SelfType),
     /// Type for generic parameters
@@ -311,6 +311,13 @@ impl Type {
     /// # Panics
     /// Panics if this is not a class type
     pub fn as_class(self) -> Class {
+        self.try_into().unwrap()
+    }
+
+    /// Convert this to trait tpy
+    /// # Panics
+    /// Panics if this is not a trait type
+    pub fn as_trait(self) -> Trait {
         self.try_into().unwrap()
     }
 

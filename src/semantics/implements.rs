@@ -1,7 +1,5 @@
-use std::sync::Arc;
-
 use crate::{
-    hir::{self, Type},
+    hir::{self, Trait, Type},
     syntax::Ranged,
 };
 
@@ -13,7 +11,7 @@ where
     Self: Sized,
 {
     /// Does this class implement given trait?
-    fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck<Self> {
+    fn implements(&self, tr: Trait) -> ImplementsCheck<Self> {
         ImplementsCheck { ty: self, tr }
     }
 }
@@ -23,13 +21,19 @@ impl Implements for hir::Class {}
 /// Helper struct to do check within context
 pub struct ImplementsCheck<'s, S> {
     ty: &'s S,
-    tr: Arc<hir::TraitDeclaration>,
+    tr: Trait,
 }
 
 impl ImplementsCheck<'_, hir::Class> {
     pub fn within(self, context: &mut impl Context) -> Result<(), NotImplemented> {
+        for supertrait in &self.tr.read().unwrap().supertraits {
+            self.ty.implements(supertrait.clone()).within(context)?;
+        }
+
         let unimplemented: Vec<_> = self
             .tr
+            .read()
+            .unwrap()
             .functions
             .values()
             .filter(|f| {

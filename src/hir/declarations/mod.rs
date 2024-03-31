@@ -12,7 +12,7 @@ pub use r#trait::*;
 
 use derive_more::{From, TryInto};
 
-use std::{borrow::Cow, sync::Arc};
+use std::borrow::Cow;
 
 use derive_more::Display;
 
@@ -24,7 +24,7 @@ pub enum Declaration {
     Variable(Variable),
     Type(Class),
     Function(Function),
-    Trait(Arc<TraitDeclaration>),
+    Trait(Trait),
 }
 
 impl Named for Declaration {

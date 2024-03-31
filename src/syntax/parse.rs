@@ -38,10 +38,9 @@ impl<Lexer: super::Lexer> Context<Lexer> {
     }
 
     /// Parse block of items
-    pub fn parse_block<T>(
+    pub fn parse_maybe_empty_block<T>(
         &mut self,
         parse: impl Fn(&mut Self) -> Result<T, ParseError>,
-        error_range: Range<usize>,
     ) -> Result<Vec<T>, ParseError> {
         let indentation = self.lexer.indentation() + 1;
 
@@ -53,6 +52,17 @@ impl<Lexer: super::Lexer> Context<Lexer> {
             stmts.push(parse(self)?);
             self.lexer.skip_indentation();
         }
+
+        Ok(stmts)
+    }
+
+    /// Parse block of items
+    pub fn parse_block<T>(
+        &mut self,
+        parse: impl Fn(&mut Self) -> Result<T, ParseError>,
+        error_range: Range<usize>,
+    ) -> Result<Vec<T>, ParseError> {
+        let stmts = self.parse_maybe_empty_block(parse)?;
 
         if stmts.is_empty() {
             return Err(EmptyBlock {

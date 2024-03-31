@@ -38,3 +38,6 @@ pub use reporter::*;
 
 mod err_vec;
 pub use err_vec::*;
+
+#[cfg(test)]
+mod tests;

@@ -1,10 +1,7 @@
-use std::{
-    fmt::Display,
-    sync::{Arc, Weak},
-};
+use std::fmt::Display;
 
 use crate::{
-    hir::{Class, Function, SelfType, TraitDeclaration, Type, Variable},
+    hir::{Class, Function, SelfType, Trait, Type, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
 };
@@ -14,13 +11,21 @@ use super::Context;
 /// Context for lowering body of trait
 pub struct TraitContext<'p> {
     /// Trait, which is being lowered
-    pub tr: TraitDeclaration,
-
-    /// Uninitialized weak pointer to trait
-    pub trait_weak: Weak<TraitDeclaration>,
+    pub tr: Trait,
 
     /// Parent context for this function
     pub parent: &'p mut dyn Context,
+}
+
+impl<'p> TraitContext<'p> {
+    pub fn new(tr: Trait, parent: &'p mut dyn Context) -> Self {
+        Self { tr, parent }
+    }
+
+    /// Run code in this context
+    pub fn run<R>(&mut self, f: impl FnOnce(&mut Self) -> R) -> R {
+        f(self)
+    }
 }
 
 impl Display for TraitContext<'_> {
@@ -38,7 +43,7 @@ impl FindDeclarationHere for TraitContext<'_> {
 
         Some(
             SelfType {
-                associated_trait: self.trait_weak.clone(),
+                associated_trait: self.tr.clone(),
             }
             .into(),
         )
@@ -46,6 +51,8 @@ impl FindDeclarationHere for TraitContext<'_> {
 
     fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Function> {
         self.tr
+            .read()
+            .unwrap()
             .functions
             .values()
             .filter(move |f| f.read().unwrap().name_parts().len() == n)
@@ -69,12 +76,16 @@ impl AddDeclaration for TraitContext<'_> {
         todo!("types in traits")
     }
 
-    fn add_trait(&mut self, _tr: Arc<TraitDeclaration>) {
+    fn add_trait(&mut self, _tr: Trait) {
         todo!("traits in traits?")
     }
 
     fn add_function(&mut self, f: Function) {
-        self.tr.functions.insert(f.name().to_string(), f);
+        self.tr
+            .write()
+            .unwrap()
+            .functions
+            .insert(f.name().to_string(), f);
     }
 
     fn add_variable(&mut self, _v: Variable) {

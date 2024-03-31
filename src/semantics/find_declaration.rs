@@ -1,12 +1,10 @@
-use std::sync::Arc;
-
 use indexmap::IndexMap;
 
 use crate::{
     ast::CallNamePart,
     hir::{
         Class, ClassOrTrait, Expression, Function, FunctionNamePart, ModuleData, Name,
-        ParameterOrVariable, TraitDeclaration, Type, Typed,
+        ParameterOrVariable, Trait, Type, Typed,
     },
 };
 
@@ -43,7 +41,7 @@ pub trait FindDeclarationHere {
     }
 
     /// Get all traits implemented for `ty` here
-    fn traits_for_here(&self, ty: Class) -> Vec<Arc<TraitDeclaration>> {
+    fn traits_for_here(&self, ty: Class) -> Vec<Trait> {
         let _ = ty;
         vec![]
     }
@@ -100,7 +98,7 @@ pub trait FindDeclaration: FindDeclarationHere {
     }
 
     /// Get all traits implemented for `ty`
-    fn traits_for(&self, ty: Class) -> Vec<Arc<TraitDeclaration>> {
+    fn traits_for(&self, ty: Class) -> Vec<Trait> {
         self.traits_for_here(ty.clone())
             .into_iter()
             .chain(
@@ -146,8 +144,9 @@ pub trait FindDeclaration: FindDeclarationHere {
                 })
                 .flatten()
                 .flat_map(|tr| {
-                    tr.functions_with_n_name_parts(name_parts.len())
-                        .cloned()
+                    tr.read()
+                        .unwrap()
+                        .functions_with_n_name_parts(name_parts.len())
                         .collect::<Vec<_>>()
                 }),
         );
@@ -199,7 +198,7 @@ impl FindDeclarationHere for ModuleData {
         self.functions_with_n_name_parts(n).cloned().collect()
     }
 
-    fn traits_for_here(&self, ty: Class) -> Vec<Arc<TraitDeclaration>> {
+    fn traits_for_here(&self, ty: Class) -> Vec<Trait> {
         // TODO: find only implemented traits
         let _ = ty;
         self.types
@@ -236,7 +235,7 @@ impl<M: AsRef<ModuleData>> FindDeclarationHere for M {
         self.as_ref().functions_with_n_name_parts_here(n)
     }
 
-    fn traits_for_here(&self, ty: Class) -> Vec<Arc<TraitDeclaration>> {
+    fn traits_for_here(&self, ty: Class) -> Vec<Trait> {
         self.as_ref().traits_for_here(ty)
     }
 }

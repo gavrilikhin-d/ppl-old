@@ -8,9 +8,8 @@ use miette::NamedSource;
 use crate::hir::{Statement, Variable};
 use crate::named::Named;
 use crate::SourceFile;
-use std::sync::Arc;
 
-use super::{Class, Function, TraitDeclaration, Type};
+use super::{Class, Function, Trait, Type};
 
 /// Class or trait
 #[derive(Debug, PartialEq, Eq, Clone, From)]
@@ -18,7 +17,7 @@ pub enum ClassOrTrait {
     /// Class declaration
     Class(Class),
     /// Trait declaration
-    Trait(Arc<TraitDeclaration>),
+    Trait(Trait),
 }
 
 impl From<ClassOrTrait> for Type {
@@ -34,7 +33,7 @@ impl Named for ClassOrTrait {
     fn name(&self) -> Cow<'_, str> {
         match self {
             ClassOrTrait::Class(c) => c.read().unwrap().name().to_string().into(),
-            ClassOrTrait::Trait(t) => t.name(),
+            ClassOrTrait::Trait(t) => t.read().unwrap().name().to_string().into(),
         }
     }
 }

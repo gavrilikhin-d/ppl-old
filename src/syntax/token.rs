@@ -83,6 +83,10 @@ pub enum Token {
     #[regex(r"[-+*/=<>?!~|&^%$#\\]+", operator, priority = 0)]
     Operator(OperatorKind),
 
+    /// '&' token
+    #[token("&")]
+    Ampersand,
+
     /// Identifier
     #[regex("[_a-zA-Z][_a-zA-Z0-9]*")]
     Id,
@@ -223,17 +227,18 @@ pub enum Token {
 impl Token {
     /// Check if token is an operator
     pub fn is_operator(&self) -> bool {
-        matches!(
-            self,
-            Token::Less | Token::Greater | Token::Star | Token::Operator(_)
-        )
+        self.is_infix_operator() || matches!(self, Token::Operator(_))
     }
 
     /// Check if token is an infix operator
     pub fn is_infix_operator(&self) -> bool {
         matches!(
             self,
-            Token::Less | Token::Greater | Token::Star | Token::Operator(OperatorKind::Infix)
+            Token::Operator(OperatorKind::Infix)
+                | Token::Greater
+                | Token::Star
+                | Token::Ampersand
+                | Token::Less
         )
     }
 
@@ -275,6 +280,8 @@ impl Display for Token {
             Token::RBrace => write!(f, "}}"),
             Token::Dot => write!(f, "."),
             Token::Comma => write!(f, ","),
+            Token::Star => write!(f, "*"),
+            Token::Ampersand => write!(f, "&"),
             _ => write!(f, "{}", format!("{:?}", self).to_lowercase()),
         }
     }

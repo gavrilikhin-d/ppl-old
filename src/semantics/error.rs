@@ -1,4 +1,4 @@
-use std::{fmt::Display, sync::Arc};
+use std::fmt::Display;
 
 use miette::{Diagnostic, SourceSpan};
 use thiserror::Error;
@@ -7,7 +7,7 @@ use derive_more::From;
 
 use crate::{
     ast::FnKind,
-    hir::{TraitDeclaration, Type},
+    hir::{Trait, Type},
     SourceFile,
 };
 
@@ -359,7 +359,7 @@ pub struct NotImplemented {
     /// Type that doesn't satisfy trait requirements
     pub ty: Type,
     /// Trait, that is not implemented
-    pub tr: Arc<TraitDeclaration>,
+    pub tr: Trait,
     /// Unimplemented functions spans
     #[label(collection, "This required function isn't implemented")]
     pub unimplemented: Vec<SourceSpan>,

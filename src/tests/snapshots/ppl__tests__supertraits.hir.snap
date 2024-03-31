@@ -1,0 +1,26 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+trait Foo:
+	fn foo <:Self> -> None
+
+trait Bar:
+	fn bar <:Self> -> None
+
+trait FooBar:
+
+
+fn foo <:None> -> None:
+	return print "foo"
+
+
+fn bar <:None> -> None:
+	return println "bar"
+
+
+fn<T: FooBar> foobar <x: T> -> None:
+foo (x:T)
+bar (x:T)
+
+foobar none

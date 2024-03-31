@@ -1,0 +1,16 @@
+trait Foo:
+	fn foo <:Self>
+
+trait Bar:
+	fn bar <:Self>
+
+trait FooBar: Foo & Bar
+
+fn foo <:None> => print "foo"
+fn bar <:None> => println "bar"
+
+fn foobar <x: FooBar>:
+	foo x
+	bar x
+
+foobar none
