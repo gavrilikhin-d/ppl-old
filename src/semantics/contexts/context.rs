@@ -126,4 +126,10 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
             }
         }
     }
+
+    /// Consume this context and do some work
+    fn take_and_do<R>(self, f: impl FnOnce(&mut impl Context) -> R) -> R {
+        let context = &mut self;
+        f(context)
+    }
 }

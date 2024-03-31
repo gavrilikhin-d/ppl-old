@@ -70,7 +70,7 @@ impl AddDeclaration for FunctionContext<'_> {
         todo!("local types")
     }
 
-    fn add_trait(&mut self, _tr: Arc<TraitData>) {
+    fn add_trait(&mut self, _tr: Trait) {
         todo!("local traits")
     }
 

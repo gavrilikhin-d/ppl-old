@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    hir::{Class, Function, SelfType, TraitData, Type, Variable},
+    hir::{Class, Function, SelfType, Trait, TraitData, Type, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
 };
@@ -14,10 +14,7 @@ use super::Context;
 /// Context for lowering body of trait
 pub struct TraitContext<'p> {
     /// Trait, which is being lowered
-    pub tr: TraitData,
-
-    /// Uninitialized weak pointer to trait
-    pub trait_weak: Weak<TraitData>,
+    pub tr: Trait,
 
     /// Parent context for this function
     pub parent: &'p mut dyn Context,
@@ -38,7 +35,7 @@ impl FindDeclarationHere for TraitContext<'_> {
 
         Some(
             SelfType {
-                associated_trait: self.trait_weak.clone(),
+                associated_trait: self.tr.clone(),
             }
             .into(),
         )
@@ -46,6 +43,8 @@ impl FindDeclarationHere for TraitContext<'_> {
 
     fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Function> {
         self.tr
+            .read()
+            .unwrap()
             .functions
             .values()
             .filter(move |f| f.read().unwrap().name_parts().len() == n)
@@ -69,12 +68,16 @@ impl AddDeclaration for TraitContext<'_> {
         todo!("types in traits")
     }
 
-    fn add_trait(&mut self, _tr: Arc<TraitData>) {
+    fn add_trait(&mut self, _tr: Trait) {
         todo!("traits in traits?")
     }
 
     fn add_function(&mut self, f: Function) {
-        self.tr.functions.insert(f.name().to_string(), f);
+        self.tr
+            .write()
+            .unwrap()
+            .functions
+            .insert(f.name().to_string(), f);
     }
 
     fn add_variable(&mut self, _v: Variable) {

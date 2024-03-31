@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 
 use crate::{
     ast,
-    hir::{self, Function, Type, Typed},
+    hir::{self, Function, Trait, Type, Typed},
     syntax::Ranged,
     AddSourceLocation,
 };
@@ -141,48 +141,29 @@ impl Declare for ast::FunctionDeclaration {
 }
 
 impl Declare for ast::TraitDeclaration {
-    type Declaration = Arc<hir::TraitData>;
-    type Definition = Arc<hir::TraitData>;
+    type Declaration = Trait;
+    type Definition = Trait;
 
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
-        let mut error = None;
-        let tr = Arc::new_cyclic(|trait_weak| {
-            let mut supertraits = Vec::new();
-            for t in &self.supertraits {
-                let res = t.to_hir(context);
-                match res {
-                    Ok(t) => supertraits.push(t.referenced_type.as_trait()),
-                    Err(e) => {
-                        error = Some(e);
-                        break;
-                    }
-                }
-            }
+        let supertraits = self
+            .supertraits
+            .iter()
+            .map(|t| t.to_hir(context).map(|t| t.referenced_type.as_trait()))
+            .try_collect()?;
 
-            let mut context = TraitContext {
-                tr: hir::TraitData {
-                    keyword: self.keyword.clone(),
-                    name: self.name.clone(),
-                    supertraits,
-                    functions: IndexMap::new(),
-                },
-                trait_weak: trait_weak.clone(),
-                parent: context,
-            };
-
-            for f in &self.functions {
-                error = f.declare(&mut context).err();
-                if error.is_some() {
-                    break;
-                }
-            }
-
-            context.tr
+        let tr = Trait::new(hir::TraitData {
+            keyword: self.keyword.clone(),
+            name: self.name.clone(),
+            supertraits,
+            functions: IndexMap::new(),
         });
 
-        if let Some(error) = error {
-            return Err(error);
-        }
+        TraitContext {
+            tr: tr.clone(),
+            parent: context,
+        }.take_and_do(|context| self.functions
+            .iter()
+            .try_for_each(|f| f.declare(context)))?;
 
         context.add_trait(tr.clone());
 
@@ -194,34 +175,12 @@ impl Declare for ast::TraitDeclaration {
         declaration: Self::Declaration,
         context: &mut impl Context,
     ) -> Result<Self::Definition, Error> {
-        let mut error = None;
-        let tr = Arc::new_cyclic(|trait_weak| {
-            let mut context = TraitContext {
-                tr: hir::TraitData {
-                    keyword: self.keyword.clone(),
-                    name: self.name.clone(),
-                    supertraits: declaration.supertraits.clone(),
-                    functions: IndexMap::new(),
-                },
-                trait_weak: trait_weak.clone(),
-                parent: context,
-            };
-
-            for f in &self.functions {
-                error = f.to_hir(&mut context).err();
-                if error.is_some() {
-                    break;
-                }
-            }
-
-            context.tr
-        });
-
-        if let Some(error) = error {
-            return Err(error);
-        }
-
-        context.add_trait(tr.clone());
+        TraitContext {
+            tr: tr.clone(),
+            parent: context,
+        }.take_and_do(|context| self.functions
+            .iter()
+            .try_for_each(|f| f.define(context)))?;
 
         Ok(tr)
     }

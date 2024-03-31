@@ -15,6 +15,56 @@ use crate::{
 
 use super::Function;
 
+/// Trait data holder
+#[derive(Debug, Clone)]
+pub struct Trait {
+    inner: Arc<RwLock<TraitData>>,
+}
+
+impl Trait {
+    /// Create a new function from its data
+    pub fn new(data: TraitData) -> Self {
+        Self {
+            inner: Arc::new(RwLock::new(data)),
+        }
+    }
+
+    /// Lock function for reading
+    pub fn read(&self) -> LockResult<RwLockReadGuard<'_, TraitData>> {
+        self.inner.read()
+    }
+
+    /// Lock function for writing
+    pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, TraitData>> {
+        self.inner.write()
+    }
+}
+
+impl Display for Trait {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.read().unwrap().fmt(f)
+    }
+}
+
+impl PartialEq for Trait {
+    fn eq(&self, other: &Self) -> bool {
+        *self.read().unwrap() == *other.read().unwrap()
+    }
+}
+impl Eq for Trait {}
+
+impl Named for Trait {
+    fn name(&self) -> Cow<'_, str> {
+        self.read().unwrap().name().to_string().into()
+    }
+}
+
+impl Ranged for Trait {
+    fn range(&self) -> Range<usize> {
+        self.read().unwrap().range()
+    }
+}
+
 /// Declaration of a trait
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct TraitData {
@@ -23,7 +73,7 @@ pub struct TraitData {
     /// Trait's name
     pub name: Identifier,
     /// Supertraits
-    pub supertraits: Vec<Arc<TraitData>>,
+    pub supertraits: Vec<Trait>,
     /// Associated functions
     pub functions: IndexMap<String, Function>,
 }
@@ -64,7 +114,7 @@ impl Display for TraitData {
     }
 }
 
-impl AddSourceLocation for Arc<TraitData> {}
+impl AddSourceLocation for Trait {}
 
 impl Hash for TraitData {
     fn hash<H: Hasher>(&self, state: &mut H) {

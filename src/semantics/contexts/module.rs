@@ -50,7 +50,7 @@ impl AddDeclaration for ModuleContext<'_> {
         self.module.add_type(ty)
     }
 
-    fn add_trait(&mut self, tr: Arc<TraitData>) {
+    fn add_trait(&mut self, tr: Trait) {
         self.module.add_trait(tr)
     }
 
