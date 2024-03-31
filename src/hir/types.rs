@@ -2,12 +2,12 @@ use std::{
     borrow::Cow,
     collections::HashMap,
     fmt::{Debug, Display},
-    sync::{Arc, Weak},
+    sync::Arc,
 };
 
 use crate::{mutability::Mutable, named::Named, syntax::Identifier, AddSourceLocation};
 
-use super::{Basename, BuiltinClass, Class, Generic, Member, Trait, TraitData, TypeReference};
+use super::{Basename, BuiltinClass, Class, Generic, Member, Trait, TypeReference};
 use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
 
@@ -103,14 +103,14 @@ pub struct SelfType {
 
 impl PartialEq for SelfType {
     fn eq(&self, other: &Self) -> bool {
-        self.associated_trait.ptr_eq(&other.associated_trait)
+        self.associated_trait == other.associated_trait
     }
 }
 impl Eq for SelfType {}
 
 impl std::hash::Hash for SelfType {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.associated_trait.as_ptr().hash(state);
+        self.associated_trait.hash(state);
     }
 }
 

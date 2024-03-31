@@ -1,10 +1,7 @@
-use std::{
-    fmt::Display,
-    sync::{Arc, Weak},
-};
+use std::fmt::Display;
 
 use crate::{
-    hir::{Class, Function, SelfType, Trait, TraitData, Type, Variable},
+    hir::{Class, Function, SelfType, Trait, Type, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
 };
@@ -18,6 +15,17 @@ pub struct TraitContext<'p> {
 
     /// Parent context for this function
     pub parent: &'p mut dyn Context,
+}
+
+impl<'p> TraitContext<'p> {
+    pub fn new(tr: Trait, parent: &'p mut dyn Context) -> Self {
+        Self { tr, parent }
+    }
+
+    /// Run code in this context
+    pub fn run<R>(&mut self, f: impl FnOnce(&mut Self) -> R) -> R {
+        f(self)
+    }
 }
 
 impl Display for TraitContext<'_> {

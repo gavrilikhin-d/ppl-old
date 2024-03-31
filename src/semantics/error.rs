@@ -1,4 +1,4 @@
-use std::{fmt::Display, sync::Arc};
+use std::fmt::Display;
 
 use miette::{Diagnostic, SourceSpan};
 use thiserror::Error;
@@ -7,7 +7,7 @@ use derive_more::From;
 
 use crate::{
     ast::FnKind,
-    hir::{Trait, TraitData, Type},
+    hir::{Trait, Type},
     SourceFile,
 };
 

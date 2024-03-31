@@ -1,8 +1,8 @@
-use std::{fmt::Display, sync::Arc};
+use std::fmt::Display;
 
 use crate::{
     compilation::Compiler,
-    hir::{Class, Function, ModuleData, TraitData, Variable},
+    hir::{Class, Function, ModuleData, Trait, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration},
 };

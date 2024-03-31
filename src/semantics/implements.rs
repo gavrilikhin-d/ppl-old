@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     hir::{self, Trait, Type},
     syntax::Ranged,
@@ -28,12 +26,14 @@ pub struct ImplementsCheck<'s, S> {
 
 impl ImplementsCheck<'_, hir::Class> {
     pub fn within(self, context: &mut impl Context) -> Result<(), NotImplemented> {
-        for supertrait in &self.tr.supertraits {
+        for supertrait in &self.tr.read().unwrap().supertraits {
             self.ty.implements(supertrait.clone()).within(context)?;
         }
 
         let unimplemented: Vec<_> = self
             .tr
+            .read()
+            .unwrap()
             .functions
             .values()
             .filter(|f| {

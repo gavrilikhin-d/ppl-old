@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 use indexmap::IndexMap;
 
@@ -158,12 +158,11 @@ impl Declare for ast::TraitDeclaration {
             functions: IndexMap::new(),
         });
 
-        TraitContext {
-            tr: tr.clone(),
-            parent: context,
-        }.take_and_do(|context| self.functions
-            .iter()
-            .try_for_each(|f| f.declare(context)))?;
+        TraitContext::new(tr.clone(), context).run(|context| {
+            self.functions
+                .iter()
+                .try_for_each(|f| f.declare(context).map(|_| ()))
+        })?;
 
         context.add_trait(tr.clone());
 
@@ -175,14 +174,15 @@ impl Declare for ast::TraitDeclaration {
         declaration: Self::Declaration,
         context: &mut impl Context,
     ) -> Result<Self::Definition, Error> {
-        TraitContext {
-            tr: tr.clone(),
-            parent: context,
-        }.take_and_do(|context| self.functions
-            .iter()
-            .try_for_each(|f| f.define(context)))?;
+        TraitContext::new(declaration.clone(), context).run(|context| {
+            let funcs = context.tr.read().unwrap().functions.clone();
+            self.functions.iter().enumerate().try_for_each(|(i, f)| {
+                f.define(funcs.get_index(i).unwrap().1.clone(), context)
+                    .map(|_| ())
+            })
+        })?;
 
-        Ok(tr)
+        Ok(declaration)
     }
 }
 

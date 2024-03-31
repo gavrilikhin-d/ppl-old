@@ -1,7 +1,5 @@
-use std::sync::Arc;
-
 use crate::{
-    hir::{Class, Expression, FunctionType, GenericType, SelfType, Trait, TraitData, Type, Typed},
+    hir::{Class, Expression, FunctionType, GenericType, SelfType, Trait, Type, Typed},
     mutability::Mutable,
     semantics::error::ReferenceMutToImmutable,
     syntax::Ranged,
@@ -86,7 +84,7 @@ impl ConvertibleToRequest<'_, Class> {
                 }
 
                 let convertible = from
-                    .implements(s.associated_trait.upgrade().unwrap())
+                    .implements(s.associated_trait.clone())
                     .within(context)
                     .map(|_| true)?;
                 if convertible {
@@ -140,11 +138,13 @@ impl ConvertibleToRequest<'_, Trait> {
                     return Ok(true);
                 }
 
-                if tr.supertraits.is_empty() {
+                if tr.read().unwrap().supertraits.is_empty() {
                     return Ok(false);
                 }
 
                 let res: Vec<_> = tr
+                    .read()
+                    .unwrap()
                     .supertraits
                     .iter()
                     .cloned()
@@ -159,7 +159,9 @@ impl ConvertibleToRequest<'_, Trait> {
                 }
                 return res.into_iter().next().unwrap();
             }
-            Type::SelfType(s) => *from == s.associated_trait.upgrade().unwrap(),
+            Type::SelfType(s) => from
+                .convertible_to(s.associated_trait.into())
+                .within(context)?,
         })
     }
 }
@@ -221,18 +223,7 @@ impl ConvertibleToRequest<'_, SelfType> {
     pub fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
         let from = self.from;
         let to = self.to;
-        Ok(match to {
-            Type::Class(_) => false,
-            Type::Function(_) => false,
-            Type::SelfType(s) => *from == s,
-            Type::Generic(_) | Type::Trait(_) => from
-                .associated_trait
-                .upgrade()
-                .unwrap()
-                .convertible_to(to)
-                .within(context)?,
-            Type::Unknown => true,
-        })
+        from.associated_trait.convertible_to(to).within(context)
     }
 }
 

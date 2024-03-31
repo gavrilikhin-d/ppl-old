@@ -2,7 +2,8 @@ use std::{
     borrow::Cow,
     fmt::Display,
     hash::{Hash, Hasher},
-    sync::Arc,
+    ops::Range,
+    sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard},
 };
 
 use indexmap::IndexMap;
@@ -62,6 +63,12 @@ impl Named for Trait {
 impl Ranged for Trait {
     fn range(&self) -> Range<usize> {
         self.read().unwrap().range()
+    }
+}
+
+impl Hash for Trait {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.read().unwrap().hash(state)
     }
 }
 

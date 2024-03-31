@@ -12,7 +12,7 @@ pub use r#trait::*;
 
 use derive_more::{From, TryInto};
 
-use std::{borrow::Cow, sync::Arc};
+use std::borrow::Cow;
 
 use derive_more::Display;
 

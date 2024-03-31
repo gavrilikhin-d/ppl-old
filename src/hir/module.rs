@@ -8,9 +8,8 @@ use miette::NamedSource;
 use crate::hir::{Statement, Variable};
 use crate::named::Named;
 use crate::SourceFile;
-use std::sync::Arc;
 
-use super::{Class, Function, Trait, TraitData, Type};
+use super::{Class, Function, Trait, Type};
 
 /// Class or trait
 #[derive(Debug, PartialEq, Eq, Clone, From)]

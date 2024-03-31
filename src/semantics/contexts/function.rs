@@ -1,7 +1,7 @@
-use std::{fmt::Display, sync::Arc};
+use std::fmt::Display;
 
 use crate::{
-    hir::{Class, Function, ParameterOrVariable, TraitData, Type, Variable},
+    hir::{Class, Function, ParameterOrVariable, Trait, Type, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
 };

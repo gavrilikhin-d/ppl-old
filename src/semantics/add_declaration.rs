@@ -1,9 +1,6 @@
-use std::sync::Arc;
-
 use crate::{
     hir::{
-        Basename, Class, Function, GenericType, ModuleData, Trait, TraitData, Type, TypeReference,
-        Variable,
+        Basename, Class, Function, GenericType, ModuleData, Trait, Type, TypeReference, Variable,
     },
     named::Named,
 };

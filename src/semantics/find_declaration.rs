@@ -1,12 +1,10 @@
-use std::sync::Arc;
-
 use indexmap::IndexMap;
 
 use crate::{
     ast::CallNamePart,
     hir::{
         Class, ClassOrTrait, Expression, Function, FunctionNamePart, ModuleData, Name,
-        ParameterOrVariable, Trait, TraitData, Type, Typed,
+        ParameterOrVariable, Trait, Type, Typed,
     },
 };
 
@@ -146,7 +144,9 @@ pub trait FindDeclaration: FindDeclarationHere {
                 })
                 .flatten()
                 .flat_map(|tr| {
-                    tr.functions_with_n_name_parts(name_parts.len())
+                    tr.read()
+                        .unwrap()
+                        .functions_with_n_name_parts(name_parts.len())
                         .cloned()
                         .collect::<Vec<_>>()
                 }),
