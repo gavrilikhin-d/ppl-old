@@ -57,7 +57,7 @@ impl StartsHere for Expression {
 
 /// Parse atomic expression
 fn parse_atomic_expression(context: &mut Context<impl Lexer>) -> Result<Expression, ParseError> {
-    let expr: Expression = if Literal::starts_here(context) {
+    let mut expr: Expression = if Literal::starts_here(context) {
         Literal::parse(context)?.into()
     } else if Tuple::starts_here(context) {
         Tuple::parse(context)?.into()
@@ -84,7 +84,23 @@ fn parse_atomic_expression(context: &mut Context<impl Lexer>) -> Result<Expressi
     };
 
     if context.lexer.try_match(Token::Dot).is_ok() {
-        return Ok(MemberReference::parse_with_base(context, Box::new(expr))?.into());
+        expr = MemberReference::parse_with_base(context, Box::new(expr))?.into();
+    }
+
+    if let Ok(lbracket) = context.lexer.try_match(Token::LBracket)
+        && expr.end() == lbracket.start()
+    {
+        let lbracket = context.lexer.consume(Token::LBracket)?;
+        let mut name_parts = vec![expr.into(), lbracket.into()];
+        if context.lexer.try_match(Token::RBracket).is_err() {
+            name_parts.push(Expression::parse(context)?.into());
+        }
+        name_parts.push(context.lexer.consume(Token::RBracket)?.into());
+        return Ok(Call {
+            kind: FnKind::Function,
+            name_parts,
+        }
+        .into());
     }
 
     Ok(expr)

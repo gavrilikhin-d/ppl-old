@@ -79,12 +79,12 @@ Advice:   ☞ candidate is not viable
         × expected `I32` type, got `Rational`
       
       Error:   × I32
-           ╭─[ppl.ppl:378:5]
-       377 │ @mangle_as("i32_plus_i32")
-       378 │ fn <:I32> + <:I32> -> I32
+           ╭─[ppl.ppl:381:5]
+       380 │ @mangle_as("i32_plus_i32")
+       381 │ fn <:I32> + <:I32> -> I32
            ·     ▲
            ·     ╰── this has `I32` type
-       379 │
+       382 │
            ╰────
       Error:   × Rational
       
@@ -94,12 +94,12 @@ Advice:   ☞ candidate is not viable
         × expected `F64` type, got `Rational`
       
       Error:   × F64
-           ╭─[ppl.ppl:407:5]
-       406 │ @mangle_as("f64_plus_f64")
-       407 │ fn <:F64> + <:F64> -> F64
+           ╭─[ppl.ppl:410:5]
+       409 │ @mangle_as("f64_plus_f64")
+       410 │ fn <:F64> + <:F64> -> F64
            ·     ▲
            ·     ╰── this has `F64` type
-       408 │
+       411 │
            ╰────
       Error:   × Rational
       
