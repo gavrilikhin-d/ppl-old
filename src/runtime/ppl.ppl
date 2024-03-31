@@ -353,6 +353,9 @@ fn<T> push <x: T> to <array: ReferenceMut<Array<T>>>:
 	let value = T at (array.data + array.size)
 	value = x
 	array.size = array.size + 1
+
+fn<T> <array: Reference<Array<T>>> is empty => array.size == 0
+fn<T> <array: Reference<Array<T>>> is not empty => array.size > 0
 //=================================
 
 //=================================

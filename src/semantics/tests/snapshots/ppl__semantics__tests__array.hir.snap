@@ -3,5 +3,11 @@ source: src/semantics/tests/mod.rs
 expression: hir
 ---
 let mut arr: Array<Integer> = (Type<Integer>:Type<Integer>) [ ]
+if (&arr:ReferenceMut<Array<Integer>>) is empty:
+println "Empty"
+
 push 1 to (&arr:ReferenceMut<Array<Integer>>)
+if (&arr:ReferenceMut<Array<Integer>>) is not empty:
+println "Not empty"
+
 println (*(&arr:ReferenceMut<Array<Integer>>) [ 0 ]:Integer)
