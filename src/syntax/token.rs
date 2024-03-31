@@ -260,6 +260,7 @@ impl Token {
                 | Token::Comma
                 | Token::Assign
                 | Token::RBrace
+                | Token::RBracket
         )
     }
 }
