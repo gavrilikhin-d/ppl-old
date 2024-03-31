@@ -23,11 +23,8 @@ pub struct GenericContext<'p> {
 impl<'p> GenericContext<'p> {
     /// Create generic context for function
     pub fn for_fn(f: Function, parent: &'p mut impl Context) -> Self {
-        let mut candidate_context = GenericContext {
-            generic_parameters: f.read().unwrap().generic_types.clone(),
-            generics_mapping: HashMap::new(),
-            parent,
-        };
+        let mut candidate_context =
+            Self::for_generics(f.read().unwrap().generic_types.clone(), parent);
 
         if let Some(ty) = f
             .read()
@@ -42,6 +39,15 @@ impl<'p> GenericContext<'p> {
         return candidate_context;
     }
 
+    /// Create generic context for generic parameters
+    pub fn for_generics(generic_parameters: Vec<Type>, parent: &'p mut impl Context) -> Self {
+        Self {
+            generic_parameters,
+            generics_mapping: HashMap::new(),
+            parent,
+        }
+    }
+
     /// Generate a new unique name for generic parameter
     pub fn new_unique_name(&mut self) -> String {
         const ALPHABET: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -54,6 +60,11 @@ impl<'p> GenericContext<'p> {
             name = &ALPHABET[i..i + 1];
         }
         name.to_string()
+    }
+
+    /// Run code in this context
+    pub fn run<R>(&mut self, f: impl FnOnce(&mut Self) -> R) -> R {
+        f(self)
     }
 }
 
