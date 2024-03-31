@@ -17,18 +17,18 @@ use super::Function;
 
 /// Declaration of a trait
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct TraitDeclaration {
+pub struct TraitData {
     /// Keyword `trait`
     pub keyword: Keyword<"trait">,
     /// Trait's name
     pub name: Identifier,
     /// Supertraits
-    pub supertraits: Vec<Arc<TraitDeclaration>>,
+    pub supertraits: Vec<Arc<TraitData>>,
     /// Associated functions
     pub functions: IndexMap<String, Function>,
 }
 
-impl TraitDeclaration {
+impl TraitData {
     /// Iterate over all functions with `n` name parts
     pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = &Function> + '_ {
         self.functions
@@ -37,13 +37,13 @@ impl TraitDeclaration {
     }
 }
 
-impl Named for TraitDeclaration {
+impl Named for TraitData {
     fn name(&self) -> Cow<'_, str> {
         self.name.as_str().into()
     }
 }
 
-impl Display for TraitDeclaration {
+impl Display for TraitData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if f.alternate() {
             let indent = f.width().unwrap_or(0);
@@ -64,15 +64,15 @@ impl Display for TraitDeclaration {
     }
 }
 
-impl AddSourceLocation for Arc<TraitDeclaration> {}
+impl AddSourceLocation for Arc<TraitData> {}
 
-impl Hash for TraitDeclaration {
+impl Hash for TraitData {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
     }
 }
 
-impl Ranged for TraitDeclaration {
+impl Ranged for TraitData {
     fn start(&self) -> usize {
         self.keyword.start()
     }

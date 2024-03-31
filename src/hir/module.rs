@@ -10,7 +10,7 @@ use crate::named::Named;
 use crate::SourceFile;
 use std::sync::Arc;
 
-use super::{Class, Function, TraitDeclaration, Type};
+use super::{Class, Function, TraitData, Type};
 
 /// Class or trait
 #[derive(Debug, PartialEq, Eq, Clone, From)]
@@ -18,7 +18,7 @@ pub enum ClassOrTrait {
     /// Class declaration
     Class(Class),
     /// Trait declaration
-    Trait(Arc<TraitDeclaration>),
+    Trait(Arc<TraitData>),
 }
 
 impl From<ClassOrTrait> for Type {

@@ -13,7 +13,7 @@ where
     Self: Sized,
 {
     /// Does this class implement given trait?
-    fn implements(&self, tr: Arc<hir::TraitDeclaration>) -> ImplementsCheck<Self> {
+    fn implements(&self, tr: Arc<hir::TraitData>) -> ImplementsCheck<Self> {
         ImplementsCheck { ty: self, tr }
     }
 }
@@ -23,7 +23,7 @@ impl Implements for hir::Class {}
 /// Helper struct to do check within context
 pub struct ImplementsCheck<'s, S> {
     ty: &'s S,
-    tr: Arc<hir::TraitDeclaration>,
+    tr: Arc<hir::TraitData>,
 }
 
 impl ImplementsCheck<'_, hir::Class> {

@@ -2,7 +2,7 @@ use std::{fmt::Display, sync::Arc};
 
 use crate::{
     compilation::Compiler,
-    hir::{Class, Function, ModuleData, TraitDeclaration, Variable},
+    hir::{Class, Function, ModuleData, TraitData, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration},
 };
@@ -50,7 +50,7 @@ impl AddDeclaration for ModuleContext<'_> {
         self.module.add_type(ty)
     }
 
-    fn add_trait(&mut self, tr: Arc<TraitDeclaration>) {
+    fn add_trait(&mut self, tr: Arc<TraitData>) {
         self.module.add_trait(tr)
     }
 

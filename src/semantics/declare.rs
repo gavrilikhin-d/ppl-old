@@ -141,8 +141,8 @@ impl Declare for ast::FunctionDeclaration {
 }
 
 impl Declare for ast::TraitDeclaration {
-    type Declaration = Arc<hir::TraitDeclaration>;
-    type Definition = Arc<hir::TraitDeclaration>;
+    type Declaration = Arc<hir::TraitData>;
+    type Definition = Arc<hir::TraitData>;
 
     fn declare(&self, context: &mut impl Context) -> Result<Self::Declaration, Error> {
         let mut error = None;
@@ -160,7 +160,7 @@ impl Declare for ast::TraitDeclaration {
             }
 
             let mut context = TraitContext {
-                tr: hir::TraitDeclaration {
+                tr: hir::TraitData {
                     keyword: self.keyword.clone(),
                     name: self.name.clone(),
                     supertraits,
@@ -197,7 +197,7 @@ impl Declare for ast::TraitDeclaration {
         let mut error = None;
         let tr = Arc::new_cyclic(|trait_weak| {
             let mut context = TraitContext {
-                tr: hir::TraitDeclaration {
+                tr: hir::TraitData {
                     keyword: self.keyword.clone(),
                     name: self.name.clone(),
                     supertraits: declaration.supertraits.clone(),

@@ -6,7 +6,7 @@ use crate::{
     ast::CallNamePart,
     hir::{
         Class, ClassOrTrait, Expression, Function, FunctionNamePart, ModuleData, Name,
-        ParameterOrVariable, TraitDeclaration, Type, Typed,
+        ParameterOrVariable, TraitData, Type, Typed,
     },
 };
 
@@ -43,7 +43,7 @@ pub trait FindDeclarationHere {
     }
 
     /// Get all traits implemented for `ty` here
-    fn traits_for_here(&self, ty: Class) -> Vec<Arc<TraitDeclaration>> {
+    fn traits_for_here(&self, ty: Class) -> Vec<Arc<TraitData>> {
         let _ = ty;
         vec![]
     }
@@ -100,7 +100,7 @@ pub trait FindDeclaration: FindDeclarationHere {
     }
 
     /// Get all traits implemented for `ty`
-    fn traits_for(&self, ty: Class) -> Vec<Arc<TraitDeclaration>> {
+    fn traits_for(&self, ty: Class) -> Vec<Arc<TraitData>> {
         self.traits_for_here(ty.clone())
             .into_iter()
             .chain(
@@ -199,7 +199,7 @@ impl FindDeclarationHere for ModuleData {
         self.functions_with_n_name_parts(n).cloned().collect()
     }
 
-    fn traits_for_here(&self, ty: Class) -> Vec<Arc<TraitDeclaration>> {
+    fn traits_for_here(&self, ty: Class) -> Vec<Arc<TraitData>> {
         // TODO: find only implemented traits
         let _ = ty;
         self.types
@@ -236,7 +236,7 @@ impl<M: AsRef<ModuleData>> FindDeclarationHere for M {
         self.as_ref().functions_with_n_name_parts_here(n)
     }
 
-    fn traits_for_here(&self, ty: Class) -> Vec<Arc<TraitDeclaration>> {
+    fn traits_for_here(&self, ty: Class) -> Vec<Arc<TraitData>> {
         self.as_ref().traits_for_here(ty)
     }
 }

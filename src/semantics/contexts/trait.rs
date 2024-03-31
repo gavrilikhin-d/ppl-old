@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    hir::{Class, Function, SelfType, TraitDeclaration, Type, Variable},
+    hir::{Class, Function, SelfType, TraitData, Type, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
 };
@@ -14,10 +14,10 @@ use super::Context;
 /// Context for lowering body of trait
 pub struct TraitContext<'p> {
     /// Trait, which is being lowered
-    pub tr: TraitDeclaration,
+    pub tr: TraitData,
 
     /// Uninitialized weak pointer to trait
-    pub trait_weak: Weak<TraitDeclaration>,
+    pub trait_weak: Weak<TraitData>,
 
     /// Parent context for this function
     pub parent: &'p mut dyn Context,
@@ -69,7 +69,7 @@ impl AddDeclaration for TraitContext<'_> {
         todo!("types in traits")
     }
 
-    fn add_trait(&mut self, _tr: Arc<TraitDeclaration>) {
+    fn add_trait(&mut self, _tr: Arc<TraitData>) {
         todo!("traits in traits?")
     }
 

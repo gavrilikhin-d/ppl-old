@@ -7,7 +7,7 @@ use std::{
 
 use crate::{mutability::Mutable, named::Named, syntax::Identifier, AddSourceLocation};
 
-use super::{Basename, BuiltinClass, Class, Generic, Member, TraitDeclaration, TypeReference};
+use super::{Basename, BuiltinClass, Class, Generic, Member, TraitData, TypeReference};
 use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
 
@@ -98,7 +98,7 @@ impl FunctionTypeBuilder {
 #[derive(Debug, Clone)]
 pub struct SelfType {
     /// Trait associated with self type
-    pub associated_trait: Weak<TraitDeclaration>,
+    pub associated_trait: Weak<TraitData>,
 }
 
 impl PartialEq for SelfType {
@@ -167,7 +167,7 @@ pub enum Type {
     /// User defined type
     Class(Class),
     /// User defined trait
-    Trait(Arc<TraitDeclaration>),
+    Trait(Arc<TraitData>),
     /// Self type and trait it represents
     SelfType(SelfType),
     /// Type for generic parameters
@@ -317,7 +317,7 @@ impl Type {
     /// Convert this to trait tpy
     /// # Panics
     /// Panics if this is not a trait type
-    pub fn as_trait(self) -> Arc<TraitDeclaration> {
+    pub fn as_trait(self) -> Arc<TraitData> {
         self.try_into().unwrap()
     }
 

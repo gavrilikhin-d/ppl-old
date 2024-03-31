@@ -24,7 +24,7 @@ pub enum Declaration {
     Variable(Variable),
     Type(Class),
     Function(Function),
-    Trait(Arc<TraitDeclaration>),
+    Trait(Arc<TraitData>),
 }
 
 impl Named for Declaration {

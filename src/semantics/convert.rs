@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    hir::{Class, Expression, FunctionType, GenericType, SelfType, TraitDeclaration, Type, Typed},
+    hir::{Class, Expression, FunctionType, GenericType, SelfType, TraitData, Type, Typed},
     mutability::Mutable,
     semantics::error::ReferenceMutToImmutable,
     syntax::Ranged,
@@ -117,8 +117,8 @@ impl ConvertibleToRequest<'_, Class> {
 }
 
 // TODO: unify `fn <:Trait>` with `fn<T: Trait> <x: T>`
-impl ConvertibleTo for Arc<TraitDeclaration> {}
-impl ConvertibleToRequest<'_, Arc<TraitDeclaration>> {
+impl ConvertibleTo for Arc<TraitData> {}
+impl ConvertibleToRequest<'_, Arc<TraitData>> {
     /// Check if trait can be converted to another type within context
     pub fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
         let from = self.from;
