@@ -56,7 +56,11 @@ impl Parse for TraitDeclaration {
         let supertraits = context.parse_comma_separated(TypeReference::parse);
 
         let error_range = keyword.start()..colon.start();
-        let functions = context.parse_block(FunctionDeclaration::parse, error_range)?;
+        let functions = if supertraits.is_empty() {
+            context.parse_block(FunctionDeclaration::parse, error_range)
+        } else {
+            context.parse_maybe_empty_block(FunctionDeclaration::parse)
+        }?;
 
         Ok(TraitDeclaration {
             keyword,

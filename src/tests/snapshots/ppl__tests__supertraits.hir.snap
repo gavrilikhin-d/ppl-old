@@ -8,17 +8,19 @@ trait Foo:
 trait Bar:
 	fn bar <:Self> -> None
 
+trait FooBar:
+
 
 fn foo <:None> -> None:
 	return print "foo"
 
 
 fn bar <:None> -> None:
-println "bar"
+	return println "bar"
 
 
-fn<T: Bar> foobar <b: T> -> None:
-foo (b:T)
-bar (b:T)
+fn<T: FooBar> foobar <x: T> -> None:
+foo (x:T)
+bar (x:T)
 
 foobar none
