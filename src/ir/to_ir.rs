@@ -976,46 +976,41 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
             .map(|s| s.start())
             .unwrap_or(0);
 
-        let mut fn_context = FunctionContext::new(&mut context, execute, at);
+        FunctionContext::new(&mut context, execute, at).run(|context| {
+            for statement in self
+                .statements
+                .iter()
+                .filter(|s| !matches!(s, Statement::Declaration(_)))
+            {
+                statement.to_ir(context);
+            }
 
-        for statement in self
-            .statements
-            .iter()
-            .filter(|s| !matches!(s, Statement::Declaration(_)))
-        {
-            statement.to_ir(&mut fn_context);
-        }
+            let blocks = execute.get_basic_blocks();
 
-        let blocks = execute.get_basic_blocks();
+            let insertion_block = context.builder.get_insert_block().unwrap();
 
-        let insertion_block = fn_context.builder.get_insert_block().unwrap();
+            if !context.module_context.initializers.is_empty() {
+                let first_block = blocks.first().unwrap();
 
-        if !fn_context.module_context.initializers.is_empty() {
-            let first_block = blocks.first().unwrap();
+                let init_block = context
+                    .llvm()
+                    .prepend_basic_block(*first_block, "init_globals");
+                context.builder.position_at_end(init_block);
 
-            let init_block = fn_context
-                .llvm()
-                .prepend_basic_block(*first_block, "init_globals");
-            fn_context.builder.position_at_end(init_block);
+                let inits = context.module_context.initializers.clone();
+                for init in inits {
+                    context.set_debug_location(init.at);
+                    context.builder.build_call(init.function, &[], "").unwrap();
+                }
 
-            let inits = fn_context.module_context.initializers.clone();
-            for init in inits {
-                fn_context.set_debug_location(init.at);
-                fn_context
+                context
                     .builder
-                    .build_call(init.function, &[], "")
+                    .build_unconditional_branch(*first_block)
                     .unwrap();
             }
 
-            fn_context
-                .builder
-                .build_unconditional_branch(*first_block)
-                .unwrap();
-        }
-
-        fn_context.builder.position_at_end(insertion_block);
-
-        drop(fn_context);
+            context.builder.position_at_end(insertion_block);
+        });
 
         if with_main {
             let main = context.module.add_function(
@@ -1023,22 +1018,22 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
                 context.types().i32().fn_type(&[], false),
                 None,
             );
-            let mut fn_context = FunctionContext::new(&mut context, main, at);
+            FunctionContext::new(&mut context, main, at).run(|context| {
+                // Load 0 to return value
+                context
+                    .builder
+                    .build_store(
+                        context.return_value.unwrap(),
+                        context.llvm().i32_type().const_zero(),
+                    )
+                    .unwrap();
 
-            // Load 0 to return value
-            fn_context
-                .builder
-                .build_store(
-                    fn_context.return_value.unwrap(),
-                    fn_context.llvm().i32_type().const_zero(),
-                )
-                .unwrap();
+                // Call execute
+                context.set_debug_location(at);
+                context.builder.build_call(execute, &[], "").unwrap();
 
-            // Call execute
-            fn_context.set_debug_location(at);
-            fn_context.builder.build_call(execute, &[], "").unwrap();
-
-            fn_context.branch_to_return_block();
+                context.branch_to_return_block();
+            });
         }
 
         let module = context.take_module();

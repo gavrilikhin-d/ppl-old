@@ -40,32 +40,27 @@ impl Declare for ast::FunctionDeclaration {
         // TODO: check for collision
         let generic_parameters: Vec<Type> = self.generic_parameters.to_hir(context)?;
 
-        let mut generic_context = GenericContext {
-            parent: context,
-            generic_parameters: generic_parameters.clone(),
-            generics_mapping: HashMap::new(),
-        };
-
-        let mut name_parts: Vec<hir::FunctionNamePart> = Vec::new();
-        for part in &self.name_parts {
-            match part {
-                ast::FunctionNamePart::Text(t) => name_parts.push(t.clone().into()),
-                ast::FunctionNamePart::Parameter(p) => {
-                    name_parts.push(p.to_hir(&mut generic_context)?.into())
+        let (name_parts, return_type, generic_parameters) =
+            GenericContext::for_generics(generic_parameters, context).run(|context| {
+                let mut name_parts: Vec<hir::FunctionNamePart> = Vec::new();
+                for part in &self.name_parts {
+                    match part {
+                        ast::FunctionNamePart::Text(t) => name_parts.push(t.clone().into()),
+                        ast::FunctionNamePart::Parameter(p) => {
+                            name_parts.push(p.to_hir(context)?.into())
+                        }
+                    }
                 }
-            }
-        }
 
-        let return_type = match &self.return_type {
-            Some(ty) => ty.to_hir(&mut generic_context)?.referenced_type,
-            None if self.implicit_return => Type::Unknown,
-            None => generic_context.builtin().types().none(),
-        };
+                let return_type = match &self.return_type {
+                    Some(ty) => ty.to_hir(context)?.referenced_type,
+                    None if self.implicit_return => Type::Unknown,
+                    None => context.builtin().types().none(),
+                };
 
-        // Copy generic parameters from generic context, as we may have added new parameters
-        let generic_parameters = generic_context.generic_parameters.clone();
-
-        drop(generic_context);
+                // Copy generic parameters from generic context, as we may have added new parameters
+                Ok::<_, Error>((name_parts, return_type, context.generic_parameters.clone()))
+            })?;
 
         // TODO: error if invalid annotation
         let annotations = self
