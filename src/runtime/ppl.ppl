@@ -333,6 +333,12 @@ fn<T> <:Type<T>>[] -> Array<T>:
 
 // TODO: errors, if out of borders
 /// Get i-th element of an array
+fn<T> <array: Reference<Array<T>>> [ <i: Integer> ] -> Reference<T>:
+	let address = array.data + i * (size of T)
+	return T at address
+
+// TODO: errors, if out of borders
+/// Get i-th element of an array
 fn<T> <array: ReferenceMut<Array<T>>> [ <i: Integer> ] -> ReferenceMut<T>:
 	let address = array.data + i * (size of T)
 	return T at address
