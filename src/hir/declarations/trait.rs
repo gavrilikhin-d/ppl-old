@@ -49,7 +49,7 @@ impl Display for Trait {
 
 impl PartialEq for Trait {
     fn eq(&self, other: &Self) -> bool {
-        *self.read().unwrap() == *other.read().unwrap()
+        Arc::ptr_eq(&self.inner, &other.inner)
     }
 }
 impl Eq for Trait {}
