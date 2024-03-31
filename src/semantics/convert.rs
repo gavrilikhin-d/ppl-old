@@ -138,17 +138,17 @@ impl ConvertibleToRequest<'_, Trait> {
                     return Ok(true);
                 }
 
-                if tr.read().unwrap().supertraits.is_empty() {
+                if from.read().unwrap().supertraits.is_empty() {
                     return Ok(false);
                 }
 
-                let res: Vec<_> = tr
+                let res: Vec<_> = from
                     .read()
                     .unwrap()
                     .supertraits
                     .iter()
                     .cloned()
-                    .map(|s| from.convertible_to(s.into()).within(context))
+                    .map(|s| s.convertible_to(tr.clone().into()).within(context))
                     .collect();
                 if res
                     .iter()
