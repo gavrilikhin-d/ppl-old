@@ -53,7 +53,7 @@ impl Parse for TraitDeclaration {
 
         let colon = context.lexer.consume(Token::Colon)?;
 
-        let supertraits = context.parse_comma_separated(TypeReference::parse);
+        let supertraits = context.parse_separated(TypeReference::parse, Token::Ampersand);
 
         let error_range = keyword.start()..colon.start();
         let functions = if supertraits.is_empty() {

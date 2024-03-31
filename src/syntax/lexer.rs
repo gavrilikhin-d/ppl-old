@@ -240,7 +240,8 @@ pub trait Lexer: Iterator<Item = Token> {
     /// 				Token::Operator(OperatorKind::Postfix),
     /// 				Token::Less,
     /// 				Token::Greater,
-    ///                 Token::Star
+    ///                 Token::Star,
+    ///                 Token::Ampersand
     /// 			],
     /// 			got: Token::Integer,
     /// 			at: lexer.peek_span().into()
@@ -256,6 +257,7 @@ pub trait Lexer: Iterator<Item = Token> {
             Token::Less,
             Token::Greater,
             Token::Star,
+            Token::Ampersand,
         ])?;
         Ok(self.string_with_offset())
     }

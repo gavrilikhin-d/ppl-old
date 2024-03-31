@@ -4,7 +4,7 @@ trait Foo:
 trait Bar:
 	fn bar <:Self>
 
-trait FooBar: Foo, Bar
+trait FooBar: Foo & Bar
 
 fn foo <:None> => print "foo"
 fn bar <:None> => println "bar"
