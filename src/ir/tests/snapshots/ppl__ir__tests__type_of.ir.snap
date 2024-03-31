@@ -5,24 +5,27 @@ expression: ir
 ; ModuleID = 'type_of'
 source_filename = "type_of.ppl"
 
-%"Type<Integer>" = type { %String, %Integer }
+%"Type<String>" = type { %String, %Integer }
 %String = type { ptr }
 %Integer = type { ptr }
+%"Type<Integer>" = type { %String, %Integer }
 
-@"Type<Integer>" = global %"Type<Integer>" zeroinitializer
-@0 = private unnamed_addr constant [8 x i8] c"Integer\00", align 1
+@"Type<String>" = private global %"Type<String>" zeroinitializer
+@0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
+@"Type<Integer>" = private global %"Type<Integer>" zeroinitializer
+@1 = private unnamed_addr constant [8 x i8] c"Integer\00", align 1
 @ty = global %"Type<Integer>" zeroinitializer
 
-define void @initialize() !dbg !3 {
-  %1 = alloca %"Type<Integer>", align 8, !dbg !7
-  %"Type<Integer>.name" = getelementptr inbounds %"Type<Integer>", ptr %1, i32 0, i32 0, !dbg !7
-  %2 = call %String @string_from_c_string_and_length(ptr @0, i64 7), !dbg !8
-  store %String %2, ptr %"Type<Integer>.name", align 8, !dbg !8
-  %"Type<Integer>.size" = getelementptr inbounds %"Type<Integer>", ptr %1, i32 0, i32 1, !dbg !8
+define private void @initialize() !dbg !3 {
+  %1 = alloca %"Type<String>", align 8, !dbg !7
+  %"Type<String>.name" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 0, !dbg !7
+  %2 = call %String @string_from_c_string_and_length(ptr @0, i64 6), !dbg !8
+  store %String %2, ptr %"Type<String>.name", align 8, !dbg !8
+  %"Type<String>.size" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 1, !dbg !8
   %3 = call %Integer @integer_from_i64(i64 8), !dbg !8
-  store %Integer %3, ptr %"Type<Integer>.size", align 8, !dbg !8
-  %4 = load %"Type<Integer>", ptr %1, align 8, !dbg !8
-  store %"Type<Integer>" %4, ptr @"Type<Integer>", align 8, !dbg !8
+  store %Integer %3, ptr %"Type<String>.size", align 8, !dbg !8
+  %4 = load %"Type<String>", ptr %1, align 8, !dbg !8
+  store %"Type<String>" %4, ptr @"Type<String>", align 8, !dbg !8
   br label %return, !dbg !8
 
 return:                                           ; preds = %0
@@ -33,49 +36,66 @@ declare %String @string_from_c_string_and_length(ptr, i64)
 
 declare %Integer @integer_from_i64(i64)
 
-define void @initialize.1() !dbg !9 {
-  %1 = call %Integer @integer_from_i64(i64 1), !dbg !10
-  %2 = call %"Type<Integer>" @"type of <:Integer>"(%Integer %1), !dbg !10
-  store %"Type<Integer>" %2, ptr @ty, align 8, !dbg !10
-  br label %return, !dbg !10
+define private void @initialize.1() !dbg !9 {
+  %1 = alloca %"Type<Integer>", align 8, !dbg !10
+  %"Type<Integer>.name" = getelementptr inbounds %"Type<Integer>", ptr %1, i32 0, i32 0, !dbg !10
+  %2 = call %String @string_from_c_string_and_length(ptr @1, i64 7), !dbg !11
+  store %String %2, ptr %"Type<Integer>.name", align 8, !dbg !11
+  %"Type<Integer>.size" = getelementptr inbounds %"Type<Integer>", ptr %1, i32 0, i32 1, !dbg !11
+  %3 = call %Integer @integer_from_i64(i64 8), !dbg !11
+  store %Integer %3, ptr %"Type<Integer>.size", align 8, !dbg !11
+  %4 = load %"Type<Integer>", ptr %1, align 8, !dbg !11
+  store %"Type<Integer>" %4, ptr @"Type<Integer>", align 8, !dbg !11
+  br label %return, !dbg !11
 
 return:                                           ; preds = %0
   ret void
 }
 
-define %"Type<Integer>" @"type of <:Integer>"(%Integer %0) !dbg !11 {
+define private void @initialize.2() !dbg !12 {
+  %1 = call %Integer @integer_from_i64(i64 1), !dbg !13
+  %2 = call %"Type<Integer>" @"type of <:Integer>"(%Integer %1), !dbg !13
+  store %"Type<Integer>" %2, ptr @ty, align 8, !dbg !13
+  br label %return, !dbg !13
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define %"Type<Integer>" @"type of <:Integer>"(%Integer %0) !dbg !14 {
   %return_value = alloca %"Type<Integer>", align 8
-  %2 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !12
-  store %"Type<Integer>" %2, ptr %return_value, align 8, !dbg !12
-  br label %return, !dbg !12
+  %2 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !15
+  store %"Type<Integer>" %2, ptr %return_value, align 8, !dbg !15
+  br label %return, !dbg !15
 
 return:                                           ; preds = %1
   %3 = load %"Type<Integer>", ptr %return_value, align 8
   ret %"Type<Integer>" %3
 }
 
-define void @type_of.execute() !dbg !13 {
+define void @type_of.execute() !dbg !16 {
 init_globals:
-  call void @initialize(), !dbg !14
-  call void @initialize.1(), !dbg !15
-  br label %0, !dbg !15
+  call void @initialize(), !dbg !17
+  call void @initialize.1(), !dbg !17
+  call void @initialize.2(), !dbg !18
+  br label %0, !dbg !18
 
 0:                                                ; preds = %init_globals
-  %1 = load %"Type<Integer>", ptr @ty, align 8, !dbg !16
-  call void @"println <:Type<Integer>>"(%"Type<Integer>" %1), !dbg !16
-  br label %return, !dbg !15
+  %1 = load %"Type<Integer>", ptr @ty, align 8, !dbg !19
+  call void @"println <:Type<Integer>>"(%"Type<Integer>" %1), !dbg !19
+  br label %return, !dbg !18
 
 return:                                           ; preds = %0
   ret void
 }
 
-define void @"println <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !17 {
+define void @"println <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !20 {
   %x = alloca %"Type<Integer>", align 8
   store %"Type<Integer>" %0, ptr %x, align 8
-  %2 = load %"Type<Integer>", ptr %x, align 8, !dbg !18
-  %3 = call %String @"String from <:Type<Integer>>"(%"Type<Integer>" %2), !dbg !18
-  call void @"println <:String>"(%String %3), !dbg !18
-  br label %return, !dbg !18
+  %2 = load %"Type<Integer>", ptr %x, align 8, !dbg !21
+  %3 = call %String @"String from <:Type<Integer>>"(%"Type<Integer>" %2), !dbg !21
+  call void @"println <:String>"(%String %3), !dbg !21
+  br label %return, !dbg !21
 
 return:                                           ; preds = %1
   ret void
@@ -83,14 +103,14 @@ return:                                           ; preds = %1
 
 declare void @"println <:String>"(%String)
 
-define %String @"String from <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !19 {
+define %String @"String from <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !22 {
   %return_value = alloca %String, align 8
   %ty = alloca %"Type<Integer>", align 8
   store %"Type<Integer>" %0, ptr %ty, align 8
-  %name = getelementptr inbounds %"Type<Integer>", ptr %ty, i32 0, i32 0, !dbg !20
-  %2 = load %String, ptr %name, align 8, !dbg !20
-  store %String %2, ptr %return_value, align 8, !dbg !20
-  br label %return, !dbg !20
+  %name = getelementptr inbounds %"Type<Integer>", ptr %ty, i32 0, i32 0, !dbg !23
+  %2 = load %String, ptr %name, align 8, !dbg !23
+  store %String %2, ptr %return_value, align 8, !dbg !23
+  br label %return, !dbg !23
 
 return:                                           ; preds = %1
   %3 = load %String, ptr %return_value, align 8
@@ -109,15 +129,18 @@ return:                                           ; preds = %1
 !6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
 !7 = !DILocation(line: 1, column: 10, scope: !3)
 !8 = !DILocation(line: 0, scope: !3)
-!9 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!10 = !DILocation(line: 0, column: 19, scope: !9)
-!11 = distinct !DISubprogram(name: "type of <:Integer>", linkageName: "type of <:Integer>", scope: !9, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!12 = !DILocation(line: 1, column: 10, scope: !11)
-!13 = distinct !DISubprogram(name: "type_of.execute", linkageName: "type_of.execute", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!14 = !DILocation(line: 1, column: 10, scope: !13)
-!15 = !DILocation(line: 0, column: 9, scope: !13)
-!16 = !DILocation(line: 1, column: 8, scope: !13)
-!17 = distinct !DISubprogram(name: "println <:Type<Integer>>", linkageName: "println <:Type<Integer>>", scope: !13, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!18 = !DILocation(line: 1, column: 10, scope: !17)
-!19 = distinct !DISubprogram(name: "String from <:Type<Integer>>", linkageName: "String from <:Type<Integer>>", scope: !17, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!20 = !DILocation(line: 1, column: 10, scope: !19)
+!9 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!10 = !DILocation(line: 1, column: 10, scope: !9)
+!11 = !DILocation(line: 0, scope: !9)
+!12 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!13 = !DILocation(line: 0, column: 19, scope: !12)
+!14 = distinct !DISubprogram(name: "type of <:Integer>", linkageName: "type of <:Integer>", scope: !12, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!15 = !DILocation(line: 1, column: 10, scope: !14)
+!16 = distinct !DISubprogram(name: "type_of.execute", linkageName: "type_of.execute", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!17 = !DILocation(line: 1, column: 10, scope: !16)
+!18 = !DILocation(line: 0, column: 9, scope: !16)
+!19 = !DILocation(line: 1, column: 8, scope: !16)
+!20 = distinct !DISubprogram(name: "println <:Type<Integer>>", linkageName: "println <:Type<Integer>>", scope: !16, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!21 = !DILocation(line: 1, column: 10, scope: !20)
+!22 = distinct !DISubprogram(name: "String from <:Type<Integer>>", linkageName: "String from <:Type<Integer>>", scope: !20, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!23 = !DILocation(line: 1, column: 10, scope: !22)

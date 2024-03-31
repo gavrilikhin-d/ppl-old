@@ -54,13 +54,13 @@ fn process_single_statement<'llvm>(
 /// Read-Evaluate-Print Loop
 fn repl() {
     let mut compiler = Compiler::new();
-    let mut ast_context = ModuleContext {
-        module: hir::ModuleData::new(SourceFile::in_memory(NamedSource::new(
+    let mut ast_context = ModuleContext::new(
+        hir::ModuleData::new(SourceFile::in_memory(NamedSource::new(
             "repl",
             "".to_string(),
         ))),
-        compiler: &mut compiler,
-    };
+        &mut compiler,
+    );
 
     let llvm = inkwell::context::Context::create();
     /* TODO: settings (Optimization, etc) */

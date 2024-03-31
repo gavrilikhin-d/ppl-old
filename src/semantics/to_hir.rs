@@ -7,8 +7,8 @@ use indexmap::IndexMap;
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericType, Specialize, Type, TypeReference, Typed, Variable,
-    VariableData,
+    self, FunctionNamePart, Generic, GenericType, ModuleData, Specialize, Type, TypeReference,
+    Typed, Variable, VariableData,
 };
 use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
@@ -33,7 +33,7 @@ pub trait ToHIR {
     /// Lower to HIR without context
     fn to_hir_without_context(&self) -> Result<Self::HIR, Self::Error> {
         let mut compiler = Compiler::new();
-        let mut context = ModuleContext::new(&mut compiler);
+        let mut context = ModuleContext::new(ModuleData::default(), &mut compiler);
         self.to_hir(&mut context)
     }
 }

@@ -5,7 +5,6 @@ use indexmap::IndexMap;
 use crate::{
     ast,
     hir::{ClassData, FunctionData, ModuleData, TraitData},
-    named::Named,
     semantics::{InsertDestructors, ModuleContext, ToHIR},
     SourceFile,
 };
@@ -77,6 +76,8 @@ pub struct Compiler {
     pub traits: IndexMap<String, TraitData>,
     /// Root directory of the compiler
     pub root: PathBuf,
+    /// Import builtin module
+    pub import_builtin: bool,
 }
 
 impl Compiler {
@@ -87,6 +88,8 @@ impl Compiler {
         let mut compiler = Compiler::without_builtin().at(path);
 
         compiler.compile("ppl").unwrap();
+
+        compiler.import_builtin = true;
 
         compiler.at("")
     }
@@ -101,17 +104,8 @@ impl Compiler {
             classes: Default::default(),
             traits: Default::default(),
             root: Default::default(),
+            import_builtin: false,
         }
-    }
-
-    /// Get builtin module, if present.
-    ///
-    /// Builtin module is the first module compiled
-    pub fn builtin_module(&self) -> Option<&ModuleData> {
-        self.modules.values().next().map(|m| {
-            debug_assert!(m.name() == "ppl", "Wrong module used as builtin");
-            m
-        })
     }
 
     /// Return compiler with root directory set to `root`
@@ -177,13 +171,9 @@ impl Compiler {
         let ast = self.parse(&path)?;
 
         let source_file = SourceFile::with_path(&path).unwrap();
-        let module = ModuleData::new(source_file.clone());
 
         trace!(target: "steps", "Lowering to hir `{}`", path.display());
-        let mut context = ModuleContext {
-            module,
-            compiler: self,
-        };
+        let mut context = ModuleContext::new(ModuleData::new(source_file.clone()), self);
         let mut hir = ast
             .to_hir(&mut context)
             .map_err(|e| miette::Report::from(e).with_source_code(source_file))?;

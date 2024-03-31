@@ -88,6 +88,7 @@ impl Mutable for Literal {
 mod tests {
     use crate::{
         compilation::Compiler,
+        hir::ModuleData,
         semantics::{Context, ModuleContext},
     };
 
@@ -96,7 +97,7 @@ mod tests {
     #[test]
     fn test_literal_display() {
         let mut compiler = Compiler::new();
-        let context = ModuleContext::new(&mut compiler);
+        let context = ModuleContext::new(ModuleData::default(), &mut compiler);
         let literal_none = Literal::None {
             offset: 0,
             ty: context.builtin().types().none(),

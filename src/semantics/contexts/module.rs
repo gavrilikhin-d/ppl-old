@@ -1,10 +1,11 @@
 use std::fmt::Display;
 
 use crate::{
+    ast,
     compilation::Compiler,
     hir::{Class, Function, ModuleData, Trait, Variable},
     named::Named,
-    semantics::{AddDeclaration, FindDeclaration},
+    semantics::{AddDeclaration, FindDeclaration, ToHIR},
 };
 
 use super::Context;
@@ -25,11 +26,12 @@ impl Display for ModuleContext<'_> {
 }
 
 impl<'c> ModuleContext<'c> {
-    pub fn new(compiler: &'c mut Compiler) -> Self {
-        Self {
-            module: ModuleData::default(),
-            compiler,
+    pub fn new(module: ModuleData, compiler: &'c mut Compiler) -> Self {
+        let mut context = Self { module, compiler };
+        if context.compiler.import_builtin {
+            ast::Use::builtin_module().to_hir(&mut context).unwrap();
         }
+        context
     }
 }
 
@@ -41,7 +43,7 @@ impl AsRef<ModuleData> for ModuleContext<'_> {
 
 impl FindDeclaration for ModuleContext<'_> {
     fn parent(&self) -> Option<&dyn FindDeclaration> {
-        self.compiler.builtin_module().map(|m| m as _)
+        None
     }
 }
 

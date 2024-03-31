@@ -46,9 +46,11 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
     }
 
     /// Get module context of builtin module
-    fn builtin(&self) -> BuiltinContext {
-        let module = self.compiler().builtin_module().unwrap_or(self.module());
-        BuiltinContext { module }
+    fn builtin(&self) -> BuiltinContext
+    where
+        Self: Sized,
+    {
+        BuiltinContext { context: self }
     }
 
     /// Find concrete function for trait function

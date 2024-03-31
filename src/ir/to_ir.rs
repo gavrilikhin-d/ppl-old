@@ -1,3 +1,4 @@
+use inkwell::module::Linkage;
 use inkwell::types::BasicMetadataTypeEnum;
 
 use inkwell::values::BasicMetadataValueEnum;
@@ -121,6 +122,11 @@ impl<'llvm> DeclareGlobal<'llvm> for VariableData {
             .module
             .add_global(ty.try_into_basic_type().unwrap(), None, &self.name);
 
+        // Type variables should be local to module
+        if self.name.starts_with("Type") {
+            global.set_linkage(Linkage::Private)
+        }
+
         if self.is_immutable() {
             global.set_constant(true);
         }
@@ -157,7 +163,7 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Variable {
         let initialize = context.module.add_function(
             "initialize",
             context.llvm().void_type().fn_type(&[], false),
-            None,
+            Some(Linkage::Private),
         );
         let at = self.read().unwrap().initializer.as_ref().unwrap().start();
         context.initializers.push(Initializer {
