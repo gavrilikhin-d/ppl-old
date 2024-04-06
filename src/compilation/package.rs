@@ -23,7 +23,12 @@ impl Package {
 
     /// Access data of a package
     pub fn data<'c>(&self, compiler: &'c Compiler) -> &'c PackageData {
-        compiler.packages.get_index(self.index()).unwrap().1
+        &compiler.packages[self.index()]
+    }
+
+    /// Access data of a package for mutation
+    pub fn data_mut<'c>(&self, compiler: &'c mut Compiler) -> &'c mut PackageData {
+        &mut compiler.packages[self.index()]
     }
 }
 
