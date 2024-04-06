@@ -3,10 +3,10 @@ source: src/semantics/tests/mod.rs
 expression: hir
 ---
 println "Hello" + " " + "World!"
-println none as String
-println false as String
-println true as String
-println 0 as String
-println 0.0 as String
-println (Type<Integer>:Type<Integer>) as String
-println (Type<Array<Integer>>:Type<Array<Integer>>) as String
+println String from none
+println String from false
+println String from true
+println String from 0
+println String from 0.0
+println String from (Type<Integer>:Type<Integer>)
+println String from (Type<Array<Integer>>:Type<Array<Integer>>)
