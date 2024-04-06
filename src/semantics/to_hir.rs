@@ -747,14 +747,29 @@ impl ToHIR for ast::Use {
             panic!("Currently only module.declaration_name usage is supported");
         }
 
-        let module_name = self.path.first().unwrap().as_str();
-        let module = context.compiler_mut().compile(module_name).unwrap();
+        let compiler = context.compiler_mut();
+
+        let package_name = self.path.first().unwrap().as_str();
+        let package = compiler.compile_package(package_name).unwrap();
+
+        let current_package = compiler.current_package();
+        current_package
+            .data_mut(compiler)
+            .dependencies
+            .insert(package.clone());
 
         let name = self.path.last().unwrap().as_str();
 
         let mut functions = IndexMap::new();
         let mut variables = IndexMap::new();
         let mut types = IndexMap::new();
+
+        let module = package
+            .data(context.compiler())
+            .modules
+            .first()
+            .unwrap()
+            .clone();
 
         let module = module.data(context.compiler());
         let imported_item: hir::ImportedItem = if name == "*" {
