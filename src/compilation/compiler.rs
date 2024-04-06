@@ -11,6 +11,8 @@ use crate::{
 use log::{debug, trace};
 use miette::miette;
 
+use super::PackageData;
+
 /// Module index inside a Compiler
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Module {
@@ -66,6 +68,8 @@ impl Function {
 pub struct Compiler {
     /// ASTs of all modules
     pub asts: IndexMap<PathBuf, ast::Module>,
+    /// All packages across compilation process
+    pub packages: IndexMap<String, PackageData>,
     /// Cache of compiled modules
     pub modules: IndexMap<PathBuf, ModuleData>,
     /// Functions from all modules
@@ -108,6 +112,7 @@ impl Compiler {
     pub fn without_builtin() -> Self {
         Self {
             asts: Default::default(),
+            packages: Default::default(),
             modules: Default::default(),
             functions: Default::default(),
             classes: Default::default(),
