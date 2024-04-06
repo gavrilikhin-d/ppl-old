@@ -135,7 +135,10 @@ impl Compiler {
 
     /// Get current package
     pub fn current_package(&self) -> Package {
-        *self.package_stack.last().unwrap()
+        self.package_stack
+            .last()
+            .cloned()
+            .unwrap_or(Package::with_index(0))
     }
 
     /// Locate module by name
