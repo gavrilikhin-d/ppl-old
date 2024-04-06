@@ -1,3 +1,4 @@
+use self::commands::{Compile, New};
 use clap::{Parser, Subcommand};
 use derive_more::From;
 
@@ -12,6 +13,8 @@ pub struct Args {
 /// The subcommands of ppl
 #[derive(Subcommand, Debug, From)]
 pub enum Command {
+    /// Create new package
+    New(New),
     /// Compile single ppl file
     Compile(Compile),
 }
@@ -22,6 +25,14 @@ pub mod commands {
     use clap::Parser;
 
     use self::compile::OutputType;
+
+    /// Command to create a new package
+    #[derive(Parser, Debug)]
+    pub struct New {
+        /// New package name
+        #[arg(value_name = "package")]
+        pub package: String,
+    }
 
     /// Command to compile single ppl file
     #[derive(Parser, Debug)]
@@ -134,4 +145,3 @@ pub mod commands {
         }
     }
 }
-use self::commands::Compile;
