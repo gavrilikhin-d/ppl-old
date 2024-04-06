@@ -11,7 +11,7 @@ use crate::{
 use log::{debug, trace};
 use miette::miette;
 
-use super::PackageData;
+use super::{Package, PackageData};
 
 /// Module index inside a Compiler
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
@@ -70,6 +70,8 @@ pub struct Compiler {
     pub asts: IndexMap<PathBuf, ast::Module>,
     /// All packages across compilation process
     pub packages: IndexMap<String, PackageData>,
+    /// Stack of packages being compiled
+    pub package_stack: Vec<Package>,
     /// Cache of compiled modules
     pub modules: IndexMap<PathBuf, ModuleData>,
     /// Functions from all modules
@@ -100,7 +102,7 @@ impl Compiler {
 
         let mut compiler = Compiler::without_builtin().at(path);
 
-        compiler.compile(Self::BUILTIN_MODULE_NAME).unwrap();
+        compiler.compile_package(Self::BUILTIN_MODULE_NAME).unwrap();
 
         compiler.import_builtin = true;
 
@@ -113,6 +115,7 @@ impl Compiler {
         Self {
             asts: Default::default(),
             packages: Default::default(),
+            package_stack: Default::default(),
             modules: Default::default(),
             functions: Default::default(),
             classes: Default::default(),
@@ -128,6 +131,11 @@ impl Compiler {
             root: root.into(),
             ..self
         }
+    }
+
+    /// Get current package
+    pub fn current_package(&self) -> Package {
+        *self.package_stack.last().unwrap()
     }
 
     /// Locate module by name
@@ -171,17 +179,7 @@ impl Compiler {
     /// # Module search order
     /// 1. `{root}/{name}.ppl`
     /// 2. `{root}/{name}/mod.ppl`
-    ///
-    /// # Example
-    /// ```no_run
-    /// use ppl::compilation::Compiler;
-    ///
-    /// let mut compiler = Compiler::new().at("src");
-    /// let m1 = compiler.compile("main").unwrap();
-    /// let m2 = compiler.compile("main").unwrap();
-    /// assert_eq!(m1, m2);
-    /// ```
-    pub fn compile(&mut self, name: &str) -> miette::Result<Module> {
+    fn compile(&mut self, name: &str) -> miette::Result<Module> {
         let path = self.locate(name)?;
         let canonic_path = std::fs::canonicalize(&path).unwrap();
 
@@ -205,7 +203,37 @@ impl Compiler {
         debug!(target: &format!("{name}-hir-with-destructors"), "\n{:#}", hir);
 
         let index = self.modules.len();
+        let module = Module::with_index(index);
         self.modules.insert(canonic_path, hir);
-        Ok(Module::with_index(index))
+
+        let current_package = self.current_package();
+        current_package.data_mut(self).modules.push(module);
+
+        Ok(module)
+    }
+
+    /// Get compiled package from cache or compile it
+    pub fn compile_package(&mut self, package: &str) -> miette::Result<Package> {
+        if let Some(index) = self.packages.get_index_of(package) {
+            return Ok(Package::with_index(index));
+        }
+
+        let name = package.to_string();
+        let index = self.packages.len();
+        let package = Package::with_index(index);
+        self.packages.insert(
+            name.clone(),
+            PackageData {
+                name: name.clone(),
+                modules: Default::default(),
+                dependencies: Default::default(),
+            },
+        );
+
+        self.package_stack.push(package);
+        self.compile(&name)?;
+        self.package_stack.pop();
+
+        Ok(package)
     }
 }

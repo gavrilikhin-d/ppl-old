@@ -1,6 +1,4 @@
-use std::path::PathBuf;
-
-use indexmap::IndexMap;
+use std::collections::HashSet;
 
 use super::{Compiler, Module};
 
@@ -37,7 +35,7 @@ pub struct PackageData {
     /// Name of the package
     pub name: String,
     /// List of modules in the package
-    pub modules: IndexMap<PathBuf, Module>,
+    pub modules: Vec<Module>,
     /// List of dependencies for this package
-    pub dependencies: Vec<Package>,
+    pub dependencies: HashSet<Package>,
 }

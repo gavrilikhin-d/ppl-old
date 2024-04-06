@@ -24,7 +24,8 @@ impl Execute for Compile {
         .at(self.file.parent().unwrap());
 
         let name = self.file.file_stem().map(|n| n.to_str()).flatten().unwrap();
-        let module = compiler.compile(name)?;
+        let package = compiler.compile_package(name)?;
+        let module = package.data(&compiler).modules.first().unwrap().clone();
 
         let output_type = self.output_type.unwrap_or(OutputType::Executable);
         let filename = output_type.named(name);
