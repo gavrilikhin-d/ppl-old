@@ -1,35 +1,15 @@
 use std::fs;
 use std::path::Path;
 
-use crate::compilation::Compiler;
+use crate::driver::commands::compile::OutputType;
 use crate::ir::HIRModuleLowering;
 use crate::named::Named;
+use crate::{compilation::Compiler, driver::commands::Compile};
 use log::{debug, trace};
 use miette::miette;
 use tempdir::TempDir;
 
-use super::commands::compile::OutputType;
-use super::commands::Compile;
-use super::Command;
-
-/// Trait for executing commands
-pub trait Execute {
-    /// The output of the command execution
-    type Output = ();
-
-    /// Execute the command
-    fn execute(&self) -> Self::Output;
-}
-
-impl Execute for Command {
-    type Output = miette::Result<()>;
-
-    fn execute(&self) -> Self::Output {
-        match self {
-            Command::Compile(compile) => compile.execute(),
-        }
-    }
-}
+use super::Execute;
 
 impl Execute for Compile {
     type Output = miette::Result<()>;
