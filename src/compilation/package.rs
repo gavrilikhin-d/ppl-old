@@ -38,4 +38,6 @@ pub struct PackageData {
     pub name: String,
     /// List of modules in the package
     pub modules: IndexMap<PathBuf, Module>,
+    /// List of dependencies for this package
+    pub dependencies: Vec<Package>,
 }
