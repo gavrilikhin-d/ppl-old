@@ -270,11 +270,18 @@ impl Compiler {
         );
 
         self.package_stack.push(package);
-        let main = self.root.join("main.ppl");
+        let main = self.root.join("src/main.ppl");
+        let lib = self.root.join("src/lib.ppl");
         if main.exists() {
             self.compile("main")?;
-        } else {
+        } else if lib.exists() {
             self.compile("lib")?;
+        } else {
+            bail!(
+                "No {main} or {lib} found in package `{name}`",
+                main = main.display(),
+                lib = lib.display()
+            );
         }
         self.package_stack.pop();
         self.root = old_root;
