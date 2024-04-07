@@ -8,6 +8,7 @@ e2es! {
     constraints,
     constraints_in_constructor,
     consume_greater,
+    deps,
     deref_member_ref,
     destructor,
     empty_block,

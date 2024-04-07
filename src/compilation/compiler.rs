@@ -231,12 +231,12 @@ impl Compiler {
         }
 
         let cwd = current_dir().unwrap();
-        if cwd.ends_with(package) {
+        if cwd.is_dir() && cwd.ends_with(package) {
             return Ok(cwd);
         }
 
         let dep = cwd.join("dependencies").join(package);
-        if dep.exists() {
+        if dep.is_dir() {
             return Ok(dep);
         }
 
