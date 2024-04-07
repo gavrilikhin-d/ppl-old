@@ -11,7 +11,6 @@ source_filename = "import_all.ppl"
 
 @"Type<String>" = private global %"Type<String>" zeroinitializer
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
-@1 = private unnamed_addr constant [5 x i8] c"none\00", align 1
 
 define private void @initialize() !dbg !3 {
   %1 = alloca %"Type<String>", align 8, !dbg !7
@@ -60,26 +59,17 @@ return:                                           ; preds = %0
 
 declare void @"println <:String>"(%String)
 
-define %String @"String from <:None>"() !dbg !15 {
-  %return_value = alloca %String, align 8
-  %1 = call %String @string_from_c_string_and_length(ptr @1, i64 4), !dbg !16
-  store %String %1, ptr %return_value, align 8, !dbg !16
-  br label %return, !dbg !16
-
-return:                                           ; preds = %0
-  %2 = load %String, ptr %return_value, align 8
-  ret %String %2
-}
+declare %String @"String from <:None>"()
 
 declare void @"do nothing"()
 
-define private void @"println <:Integer>"(%Integer %0) !dbg !17 {
+define private void @"println <:Integer>"(%Integer %0) !dbg !15 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
-  %2 = load %Integer, ptr %x, align 8, !dbg !18
-  %3 = call %String @integer_as_string(%Integer %2), !dbg !18
-  call void @"println <:String>"(%String %3), !dbg !18
-  br label %return, !dbg !18
+  %2 = load %Integer, ptr %x, align 8, !dbg !16
+  %3 = call %String @integer_as_string(%Integer %2), !dbg !16
+  call void @"println <:String>"(%String %3), !dbg !16
+  br label %return, !dbg !16
 
 return:                                           ; preds = %1
   ret void
@@ -107,7 +97,5 @@ declare %Integer @"do something"()
 !12 = !DILocation(line: 3, column: 9, scope: !9)
 !13 = distinct !DISubprogram(name: "println <:None>", linkageName: "println <:None>", scope: !9, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !14 = !DILocation(line: 3, column: 22, scope: !13)
-!15 = distinct !DISubprogram(name: "String from <:None>", linkageName: "String from <:None>", scope: !13, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!15 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !9, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !16 = !DILocation(line: 3, column: 22, scope: !15)
-!17 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !9, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!18 = !DILocation(line: 3, column: 22, scope: !17)

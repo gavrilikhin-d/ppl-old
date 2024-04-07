@@ -1,10 +1,12 @@
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
+use crate::compilation::Package;
 use crate::driver::commands::compile::OutputType;
 use crate::ir::HIRModuleLowering;
 use crate::named::Named;
 use crate::{compilation::Compiler, driver::commands::Compile};
+use cmd_lib::run_cmd;
 use log::{debug, trace};
 use miette::miette;
 use tempdir::TempDir;
@@ -22,37 +24,86 @@ impl Execute for Compile {
             Compiler::new()
         }
         .at(self.file.parent().unwrap());
+        let compiler = &mut compiler;
 
         let name = self.file.file_stem().map(|n| n.to_str()).flatten().unwrap();
         let package = compiler.compile_package(name)?;
-        let module = package.data(&compiler).modules.first().unwrap().clone();
 
         let output_type = self.output_type.unwrap_or(OutputType::Executable);
-        let filename = output_type.named(name);
-        let output_file = self.output_dir.join(&filename);
+        let dependencies_dir = self.output_dir.join("deps");
+        run_cmd!(
+            mkdir -p $dependencies_dir
+        )
+        .map_err(|e| miette!("{e}"))?;
 
+        package.emit(
+            compiler,
+            self.output_dir.clone(),
+            output_type,
+            dependencies_dir,
+        )?;
+
+        Ok(())
+    }
+}
+
+trait Emit {
+    fn emit(
+        &self,
+        compiler: &mut Compiler,
+        output_dir: PathBuf,
+        output_type: OutputType,
+        dependencies_dir: PathBuf,
+    ) -> miette::Result<PathBuf>;
+}
+
+impl Emit for Package {
+    fn emit(
+        &self,
+        compiler: &mut Compiler,
+        output_dir: PathBuf,
+        output_type: OutputType,
+        dependencies_dir: PathBuf,
+    ) -> miette::Result<PathBuf> {
+        let name = &self.data(compiler).name;
+        let filename = output_type.named(name);
+        let output_file = output_dir.join(&filename);
+
+        let dependencies = self.data(compiler).dependencies.clone();
+        let dependencies: Vec<_> = dependencies
+            .iter()
+            .map(|package| {
+                package.emit(
+                    compiler,
+                    dependencies_dir.clone(),
+                    OutputType::DynamicLibrary,
+                    dependencies_dir.clone(),
+                )
+            })
+            .try_collect()?;
+
+        let module = self.data(compiler).modules.first().unwrap().clone();
         if output_type == OutputType::HIR {
-            let hir = module.data(&compiler).to_string();
+            let hir = module.data(compiler).to_string();
             fs::write(&output_file, hir).map_err(|e| miette!("{output_file:?}: {e}"))?;
-            return Ok(());
+            return Ok(output_file);
         }
 
         let with_main = output_type == OutputType::Executable;
 
         let llvm = inkwell::context::Context::create();
-        let ir = module.data(&compiler).to_ir(&llvm, with_main);
+        let ir = module.data(compiler).to_ir(&llvm, with_main, module);
         debug!(target: "ir", "{}", ir.to_string());
-
         if output_type == OutputType::IR {
             fs::write(&output_file, ir.to_string()).map_err(|e| miette!("{output_file:?}: {e}"))?;
-            return Ok(());
+            return Ok(output_file);
         }
 
         let temp_dir = TempDir::new("ppl").unwrap();
 
         let bitcode = temp_dir.path().join(filename).with_extension("bc");
         let path = module
-            .data(&compiler)
+            .data(compiler)
             .source_file()
             .path()
             .to_string_lossy()
@@ -62,17 +113,19 @@ impl Execute for Compile {
         ir.write_bitcode_to_path(&bitcode);
         if output_type == OutputType::Bitcode {
             std::fs::copy(bitcode, output_file.with_extension("bc")).unwrap();
-            return Ok(());
+            return Ok(output_file);
         }
 
-        let bitcodes: Vec<_> = compiler
+        let bitcodes: Vec<_> = self.data(compiler)
             .modules
-            .values()
-            .filter(|m| m.name() != name && m.name() != "ppl")
+            .iter()
+            .filter(|m| **m != module)
             .map(|m| {
+                let compilation_module = m.clone();
+                let m = m.data(compiler);
                 let llvm = inkwell::context::Context::create();
                 let with_main = false;
-                let ir = m.to_ir(&llvm, with_main);
+                let ir = m.to_ir(&llvm, with_main, compilation_module);
                 let filename = m.name().to_string();
                 let bitcode = temp_dir.path().join(filename).with_extension("bc");
                 trace!(target: "steps", "generating bitcode for {} => {}", m.source_file().path().to_string_lossy(), bitcode.display());
@@ -97,13 +150,9 @@ impl Execute for Compile {
             OutputType::DynamicLibrary => clang.arg("-dynamiclib"),
             OutputType::Executable => &mut clang,
         }
-        .args(&[
-            "-L",
-            lib,
-            "-lruntime",
-            if !self.no_core { "-lppl" } else { "" },
-        ])
+        .args(&["-L", lib, "-lruntime"])
         .args(&bitcodes)
+        .args(dependencies)
         .args(&["-o", output_file.to_str().unwrap()])
         .arg("-Wno-override-module")
         .arg("-g")
@@ -111,6 +160,6 @@ impl Execute for Compile {
         .status()
         .map_err(|e| miette!("{output_file:?}: {e}"))?;
 
-        Ok(())
+        Ok(output_file)
     }
 }

@@ -1,4 +1,4 @@
-use self::commands::{Compile, New};
+use self::commands::{Build, Compile, New};
 use clap::{Parser, Subcommand};
 use derive_more::From;
 
@@ -15,6 +15,8 @@ pub struct Args {
 pub enum Command {
     /// Create new package
     New(New),
+    /// Build package
+    Build(Build),
     /// Compile single ppl file
     Compile(Compile),
 }
@@ -33,6 +35,10 @@ pub mod commands {
         #[arg(value_name = "package")]
         pub package: String,
     }
+
+    /// Command to build a package
+    #[derive(Parser, Debug)]
+    pub struct Build {}
 
     /// Command to compile single ppl file
     #[derive(Parser, Debug)]

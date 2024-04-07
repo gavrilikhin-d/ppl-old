@@ -5,10 +5,13 @@ use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use derive_more::From;
 
+use crate::compilation::Module;
 use crate::hir::{FunctionType, Generic, Statement, Type, TypeReference, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::{Identifier, Keyword, Ranged};
+
+use super::Trait;
 
 /// Declaration of a function parameter
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -157,6 +160,12 @@ pub struct FunctionData {
     /// Optional body of a function
     pub body: Vec<Statement>,
 
+    /// Module where function is defined
+    pub module: Module,
+
+    /// Trait this function defined in
+    pub tr: Option<Trait>,
+
     /// Mangled name to use instead of default
     pub(crate) mangled_name: Option<String>,
     /// Cached format for name of function
@@ -167,8 +176,8 @@ pub struct FunctionData {
 
 impl FunctionData {
     /// Create a new builder for a function declaration
-    pub fn build(keyword: Keyword<"fn">) -> FunctionBuilder {
-        FunctionBuilder::new(keyword)
+    pub fn build(module: Module, keyword: Keyword<"fn">) -> FunctionBuilder {
+        FunctionBuilder::new(module, keyword)
     }
 
     /// Get name parts of function
@@ -324,6 +333,8 @@ impl Display for FunctionData {
 
 /// Builder for a function declaration
 pub struct FunctionBuilder {
+    /// Module where function is defined
+    module: Module,
     /// Keyword `fn`
     keyword: Keyword<"fn">,
     /// Generic parameters of a function
@@ -338,8 +349,9 @@ pub struct FunctionBuilder {
 
 impl FunctionBuilder {
     /// Create a new builder for a function
-    pub fn new(keyword: Keyword<"fn">) -> Self {
+    pub fn new(module: Module, keyword: Keyword<"fn">) -> Self {
         FunctionBuilder {
+            module,
             keyword,
             generic_types: Vec::new(),
             name_parts: Vec::new(),
@@ -402,6 +414,8 @@ impl FunctionBuilder {
         let name_format = self.build_name_format();
         let name = self.build_name();
         FunctionData {
+            module: self.module,
+            tr: None,
             keyword: self.keyword,
             generic_types: self.generic_types,
             name_parts: self.name_parts,
@@ -418,6 +432,7 @@ impl FunctionBuilder {
 mod tests {
     use crate::{
         ast,
+        compilation::Module,
         hir::{
             FunctionData, GenericType, Parameter, Return, Statement, TypeReference,
             VariableReference,
@@ -459,7 +474,7 @@ mod tests {
         };
         assert_eq!(
             *hir.read().unwrap(),
-            FunctionData::build(Keyword::<"fn">::at(0))
+            FunctionData::build(Module::with_index(0), Keyword::<"fn">::at(0))
                 .with_generic_types(vec![ty.clone().into()])
                 .with_name(vec![param.clone().into()])
                 .with_body(vec![Statement::Return(Return::Implicit {

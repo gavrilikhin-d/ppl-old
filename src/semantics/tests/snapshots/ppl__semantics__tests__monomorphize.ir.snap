@@ -14,8 +14,6 @@ source_filename = "monomorphize.ppl"
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
 @p = global %"Point<Integer>" zeroinitializer
 @x = global %Integer zeroinitializer
-@1 = private unnamed_addr constant [5 x i8] c"true\00", align 1
-@2 = private unnamed_addr constant [6 x i8] c"false\00", align 1
 
 define private void @initialize() !dbg !3 {
   %1 = alloca %"Type<String>", align 8, !dbg !7
@@ -98,30 +96,7 @@ return:                                           ; preds = %1
 
 declare void @"println <:String>"(%String)
 
-define %String @"String from <:Bool>"(i1 %0) !dbg !23 {
-  %return_value = alloca %String, align 8
-  %x = alloca i1, align 1
-  store i1 %0, ptr %x, align 1
-  br label %if.condition, !dbg !24
-
-if.condition:                                     ; preds = %1
-  %2 = load i1, ptr %x, align 1, !dbg !24
-  br i1 %2, label %if.body, label %5, !dbg !24
-
-if.body:                                          ; preds = %if.condition
-  %3 = call %String @string_from_c_string_and_length(ptr @1, i64 4), !dbg !24
-  store %String %3, ptr %return_value, align 8, !dbg !24
-  br label %return, !dbg !24
-
-return:                                           ; preds = %5, %if.body
-  %4 = load %String, ptr %return_value, align 8
-  ret %String %4
-
-5:                                                ; preds = %if.condition
-  %6 = call %String @string_from_c_string_and_length(ptr @2, i64 5), !dbg !24
-  store %String %6, ptr %return_value, align 8, !dbg !24
-  br label %return, !dbg !24
-}
+declare %String @"String from <:Bool>"(i1)
 
 declare i1 @integer_eq_integer(%Integer, %Integer)
 
@@ -151,5 +126,3 @@ declare i1 @integer_eq_integer(%Integer, %Integer)
 !20 = !DILocation(line: 5, column: 13, scope: !15)
 !21 = distinct !DISubprogram(name: "println <:Bool>", linkageName: "println <:Bool>", scope: !15, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !22 = !DILocation(line: 5, column: 14, scope: !21)
-!23 = distinct !DISubprogram(name: "String from <:Bool>", linkageName: "String from <:Bool>", scope: !21, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!24 = !DILocation(line: 5, column: 14, scope: !23)

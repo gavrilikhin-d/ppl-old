@@ -81,6 +81,7 @@ impl AddDeclaration for TraitContext<'_> {
     }
 
     fn add_function(&mut self, f: Function) {
+        f.write().unwrap().tr = Some(self.tr.clone());
         self.tr
             .write()
             .unwrap()

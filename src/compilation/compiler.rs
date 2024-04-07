@@ -72,6 +72,8 @@ pub struct Compiler {
     pub packages: IndexMap<String, PackageData>,
     /// Stack of packages being compiled
     pub package_stack: Vec<Package>,
+    /// Stack of modules being compiled
+    pub modules_stack: Vec<Module>,
     /// Cache of compiled modules
     pub modules: IndexMap<PathBuf, ModuleData>,
     /// Functions from all modules
@@ -116,6 +118,7 @@ impl Compiler {
             asts: Default::default(),
             packages: Default::default(),
             package_stack: Default::default(),
+            modules_stack: Default::default(),
             modules: Default::default(),
             functions: Default::default(),
             classes: Default::default(),
@@ -139,6 +142,14 @@ impl Compiler {
             .last()
             .cloned()
             .unwrap_or(Package::with_index(0))
+    }
+
+    /// Get current package
+    pub fn current_module(&self) -> Module {
+        self.modules_stack
+            .last()
+            .cloned()
+            .unwrap_or(Module::with_index(0))
     }
 
     /// Locate module by name
@@ -192,7 +203,17 @@ impl Compiler {
 
         let ast = self.parse(&path)?;
 
+        let index = self.modules.len();
+        let module = Module::with_index(index);
+
+        self.modules_stack.push(module);
+
+        let current_package = self.current_package();
+        current_package.data_mut(self).modules.push(module);
+
         let source_file = SourceFile::with_path(&path).unwrap();
+        let data = ModuleData::new(source_file.clone());
+        self.modules.insert(canonic_path, data.clone());
 
         trace!(target: "steps", "Lowering to hir `{}`", path.display());
         let mut context = ModuleContext::new(ModuleData::new(source_file.clone()), self);
@@ -205,12 +226,9 @@ impl Compiler {
         hir.insert_destructors(&mut context);
         debug!(target: &format!("{name}-hir-with-destructors"), "\n{:#}", hir);
 
-        let index = self.modules.len();
-        let module = Module::with_index(index);
-        self.modules.insert(canonic_path, hir);
+        self.modules[module.index()] = hir;
 
-        let current_package = self.current_package();
-        current_package.data_mut(self).modules.push(module);
+        self.modules_stack.pop();
 
         Ok(module)
     }
