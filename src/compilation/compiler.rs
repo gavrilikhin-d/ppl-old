@@ -193,7 +193,7 @@ impl Compiler {
     /// # Module search order
     /// 1. `{root}/{name}.ppl`
     /// 2. `{root}/{name}/mod.ppl`
-    fn compile(&mut self, name: &str) -> miette::Result<Module> {
+    pub(crate) fn compile(&mut self, name: &str) -> miette::Result<Module> {
         let path = self.locate(name)?;
         let canonic_path = std::fs::canonicalize(&path).unwrap();
 

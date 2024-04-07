@@ -749,27 +749,31 @@ impl ToHIR for ast::Use {
 
         let compiler = context.compiler_mut();
 
-        let package_name = self.path.first().unwrap().as_str();
-        let package = compiler.compile_package(package_name).unwrap();
+        let first_part = self.path.first().unwrap().as_str();
+        let module = if compiler.locate(first_part).is_ok() {
+            compiler.compile(first_part).unwrap()
+        } else {
+            let package = compiler.compile_package(package_name).unwrap();
 
-        let current_package = compiler.current_package();
-        current_package
-            .data_mut(compiler)
-            .dependencies
-            .insert(package.clone());
+            let current_package = compiler.current_package();
+            current_package
+                .data_mut(compiler)
+                .dependencies
+                .insert(package.clone());
+
+            package
+                .data(context.compiler())
+                .modules
+                .first()
+                .unwrap()
+                .clone()
+        };
 
         let name = self.path.last().unwrap().as_str();
 
         let mut functions = IndexMap::new();
         let mut variables = IndexMap::new();
         let mut types = IndexMap::new();
-
-        let module = package
-            .data(context.compiler())
-            .modules
-            .first()
-            .unwrap()
-            .clone();
 
         let module = module.data(context.compiler());
         let imported_item: hir::ImportedItem = if name == "*" {
