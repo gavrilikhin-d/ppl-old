@@ -176,14 +176,22 @@ impl ConvertibleToRequest<'_, GenericType> {
             Type::Unknown => true,
             Type::Class(_) => false,
             Type::Function(_) => false,
-            Type::SelfType(_) | Type::Trait(_) => {
+            Type::SelfType(SelfType {
+                associated_trait: tr,
+            })
+            | Type::Trait(tr) => {
                 if let Some(constraint) = &from.constraint {
                     constraint
                         .referenced_type
-                        .convertible_to(to)
+                        .convertible_to(tr.into())
                         .within(context)?
                 } else {
-                    false
+                    return Err(NotImplemented {
+                        ty: from.clone().into(),
+                        tr,
+                        unimplemented: vec![],
+                    }
+                    .into());
                 }
             }
             Type::Generic(g) => {
