@@ -3,7 +3,7 @@ source: src/tests/mod.rs
 expression: ir
 ---
 ; ModuleID = 'main'
-source_filename = "src/main.ppl"
+source_filename = "/Users/gavrilikhin_d/Code/ppl/src/tests/plus_assign/src/main.ppl"
 
 %"Type<String>" = type { %String, %Integer }
 %String = type { ptr }
@@ -149,7 +149,7 @@ declare %String @clone_string(%String)
 
 !0 = !{i32 2, !"Debug Info Version", i32 3}
 !1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "ppl", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, sysroot: "/")
-!2 = !DIFile(filename: "src/main.ppl", directory: ".")
+!2 = !DIFile(filename: "/Users/gavrilikhin_d/Code/ppl/src/tests/plus_assign/src/main.ppl", directory: ".")
 !3 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !2, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !4 = !DISubroutineType(types: !5)
 !5 = !{!6}

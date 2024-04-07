@@ -56,9 +56,8 @@ pub mod internal {
         let temp_dir_path = temp_dir.path().to_str().unwrap();
 
         let ppl = concat!(env!("CARGO_MANIFEST_DIR"), "/target/debug/ppl");
-        let file = format!("{name}.ppl");
         let output = std::process::Command::new(ppl)
-            .args(&["compile", &file])
+            .args(&["build"])
             .args(&["--output-dir", temp_dir_path])
             .current_dir(dir)
             .output()
@@ -74,9 +73,8 @@ pub mod internal {
 
     pub fn hir(temp_dir: &TempDir, name: &str, dir: &Path) -> String {
         let ppl = concat!(env!("CARGO_MANIFEST_DIR"), "/target/debug/ppl");
-        let file = format!("{name}.ppl");
         std::process::Command::new(ppl)
-            .args(&["compile", &file])
+            .args(&["build"])
             .args(&["--output-dir", temp_dir.path().to_str().unwrap()])
             .args(&["--emit", "hir"])
             .current_dir(dir)
@@ -90,9 +88,8 @@ pub mod internal {
 
     pub fn ir(temp_dir: &TempDir, name: &str, dir: &Path) -> String {
         let ppl = concat!(env!("CARGO_MANIFEST_DIR"), "/target/debug/ppl");
-        let file = format!("{name}.ppl");
         std::process::Command::new(ppl)
-            .args(&["compile", &file])
+            .args(&["build"])
             .args(&["--output-dir", temp_dir.path().to_str().unwrap()])
             .args(&["--emit", "ir"])
             .current_dir(dir)
