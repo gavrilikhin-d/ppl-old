@@ -1,4 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::{
+    env::current_dir,
+    path::{Path, PathBuf},
+};
 
 use indexmap::IndexMap;
 
@@ -9,7 +12,7 @@ use crate::{
     SourceFile,
 };
 use log::{debug, trace};
-use miette::miette;
+use miette::{bail, miette};
 
 use super::{Package, PackageData};
 
@@ -89,22 +92,15 @@ pub struct Compiler {
 }
 
 impl Compiler {
-    /// Name of builtin module
-    pub const BUILTIN_MODULE_NAME: &'static str = "ppl";
-    /// Directory of builtin module
-    pub const BUILTIN_MODULE_DIR: &'static str =
-        concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime");
-    /// Path of builtin module
-    pub const BUILTIN_MODULE_PATH: &'static str =
-        concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime/ppl.ppl");
+    /// Location of PPL package
+    pub const PPL_PACKAGE: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/ppl");
 
     /// Create new compiler with empty cache
     pub fn new() -> Self {
-        let path = Path::new(Self::BUILTIN_MODULE_DIR);
-
+        let path = Path::new(Self::PPL_PACKAGE);
         let mut compiler = Compiler::without_builtin().at(path);
 
-        compiler.compile_package(Self::BUILTIN_MODULE_NAME).unwrap();
+        compiler.compile_package("ppl").unwrap();
 
         compiler.import_builtin = true;
 
@@ -155,17 +151,13 @@ impl Compiler {
     /// Locate module by name
     ///
     /// # Module search order
-    /// 1. `{root}/{name}.ppl`
-    /// 2. `{root}/{name}/mod.ppl`
+    /// 1. `{root}/src/{name}.ppl`
+    /// 2. `{root}/src/{name}/mod.ppl`
     pub fn locate(&mut self, name: &str) -> miette::Result<PathBuf> {
-        let variants = if name == Self::BUILTIN_MODULE_NAME {
-            vec![Self::BUILTIN_MODULE_PATH.into()]
-        } else {
-            vec![
-                self.root.join(format!("{name}.ppl")),
-                self.root.join(name).join("mod.ppl"),
-            ]
-        };
+        let variants = vec![
+            self.root.join("src").join(format!("{name}.ppl")),
+            self.root.join("src").join(name).join("mod.ppl"),
+        ];
 
         variants
             .iter()
@@ -191,9 +183,9 @@ impl Compiler {
     /// Get compiled module from cache or compile it
     ///
     /// # Module search order
-    /// 1. `{root}/{name}.ppl`
-    /// 2. `{root}/{name}/mod.ppl`
-    fn compile(&mut self, name: &str) -> miette::Result<Module> {
+    /// 1. `{root}/src/{name}.ppl`
+    /// 2. `{root}/src/{name}/mod.ppl`
+    pub(crate) fn compile(&mut self, name: &str) -> miette::Result<Module> {
         let path = self.locate(name)?;
         let canonic_path = std::fs::canonicalize(&path).unwrap();
 
@@ -233,6 +225,28 @@ impl Compiler {
         Ok(module)
     }
 
+    fn locate_package(&mut self, package: &str) -> miette::Result<PathBuf> {
+        if package == "ppl" {
+            return Ok(Self::PPL_PACKAGE.into());
+        }
+
+        let cwd = current_dir().unwrap();
+        if cwd.is_dir() && cwd.ends_with(package) {
+            return Ok(cwd);
+        }
+
+        let dep = cwd.join("dependencies").join(package);
+        if dep.is_dir() {
+            return Ok(dep);
+        }
+
+        bail!(
+            "Package `{package}` not found in {} or {}",
+            cwd.display(),
+            dep.display()
+        )
+    }
+
     /// Get compiled package from cache or compile it
     pub fn compile_package(&mut self, package: &str) -> miette::Result<Package> {
         if let Some(index) = self.packages.get_index_of(package) {
@@ -242,9 +256,13 @@ impl Compiler {
         let name = package.to_string();
         let index = self.packages.len();
         let package = Package::with_index(index);
+        let old_root = self.root.clone();
+        let root = self.locate_package(&name)?;
+        self.root = root.clone();
         self.packages.insert(
             name.clone(),
             PackageData {
+                root,
                 name: name.clone(),
                 modules: Default::default(),
                 dependencies: Default::default(),
@@ -252,8 +270,21 @@ impl Compiler {
         );
 
         self.package_stack.push(package);
-        self.compile(&name)?;
+        let main = self.root.join("src/main.ppl");
+        let lib = self.root.join("src/lib.ppl");
+        if main.exists() {
+            self.compile("main")?;
+        } else if lib.exists() {
+            self.compile("lib")?;
+        } else {
+            bail!(
+                "No {main} or {lib} found in package `{name}`",
+                main = main.display(),
+                lib = lib.display()
+            );
+        }
         self.package_stack.pop();
+        self.root = old_root;
 
         Ok(package)
     }

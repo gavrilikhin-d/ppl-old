@@ -1,0 +1,11 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+type Point<T>:
+	x: T
+	y: T
+
+let p: Point<Integer> = Point<Integer> { x: 1, y: 2 }
+let x: Integer = clone (p:Point<Integer>).x
+println clone (x:Integer) == 1

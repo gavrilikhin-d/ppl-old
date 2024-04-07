@@ -23,6 +23,3 @@ pub use parse::*;
 
 mod precedence;
 pub use precedence::*;
-
-#[cfg(test)]
-mod tests;

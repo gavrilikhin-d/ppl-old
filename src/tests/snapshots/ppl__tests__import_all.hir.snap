@@ -1,0 +1,7 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+use utils.*
+println do nothing
+println do something

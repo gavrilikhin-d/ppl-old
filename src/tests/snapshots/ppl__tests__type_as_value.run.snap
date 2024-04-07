@@ -1,0 +1,10 @@
+---
+source: src/tests/mod.rs
+expression: run_log
+---
+true
+true
+None
+Type<Integer>
+true
+Integer

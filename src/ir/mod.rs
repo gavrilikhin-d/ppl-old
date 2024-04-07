@@ -14,6 +14,3 @@ mod context;
 pub use context::*;
 
 pub(crate) mod inkwell;
-
-#[cfg(test)]
-mod tests;

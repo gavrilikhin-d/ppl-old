@@ -1,0 +1,6 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+use helper.*
+say hello

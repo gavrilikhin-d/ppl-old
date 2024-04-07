@@ -1,0 +1,8 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+fn foo -> None:
+	return println "foo"
+
+foo

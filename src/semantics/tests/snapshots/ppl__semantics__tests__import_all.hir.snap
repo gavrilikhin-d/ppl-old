@@ -1,7 +1,0 @@
----
-source: src/semantics/tests/mod.rs
-expression: hir
----
-use lib.*
-println do nothing
-println do something

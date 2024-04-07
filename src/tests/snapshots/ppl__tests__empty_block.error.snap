@@ -1,0 +1,12 @@
+---
+source: src/tests/mod.rs
+expression: err
+---
+Error: parser::empty_block
+
+  × empty blocks are disallowed
+   ╭─[/Users/gavrilikhin_d/Code/ppl/src/tests/empty_block/src/main.ppl:1:1]
+ 1 │ loop:
+   · ──┬─
+   ·   ╰── this item has empty block
+   ╰────

@@ -1,0 +1,23 @@
+---
+source: src/tests/mod.rs
+expression: err
+---
+Error: semantics::type_mismatch
+
+  × expected `T` type, got `Rational`
+
+Error:   × T
+   ╭─[main.ppl:2:5]
+ 1 │ type Point<T>:
+ 2 │     x, y: T
+   ·        ┬
+   ·        ╰── this has `T` type
+ 3 │ 
+   ╰────
+Error:   × Rational
+   ╭─[main.ppl:4:18]
+ 3 │ 
+ 4 │ Point { x: 1, y: 0.1 }
+   ·                  ─┬─
+   ·                   ╰── this has `Rational` type
+   ╰────

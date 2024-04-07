@@ -1,0 +1,13 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+type Point:
+	x: Integer
+	y: Integer
+
+
+fn x of <p: Reference<Point>> -> Integer:
+	return (*p:Point).x
+
+println x of (&Point { x: 1, y: 2 }:Reference<Point>)

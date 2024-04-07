@@ -1,0 +1,15 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+let x: Integer = 1
+
+fn get x -> Integer:
+	return (x:Integer)
+
+let y: Integer = get x
+
+fn get y -> Integer:
+	return (y:Integer)
+
+println clone (y:Integer)
