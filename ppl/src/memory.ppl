@@ -1,0 +1,34 @@
+use core.*
+
+/// Address in memory
+type MemoryAddress:
+	value: Integer
+
+/// Interpret and integer as memory address
+fn <value: Integer> as MemoryAddress => MemoryAddress { value }
+
+/// Get another memory address by adding offset to this one
+fn <address: MemoryAddress> + <offset: Integer> -> MemoryAddress:
+	let value = address.value + offset
+	return MemoryAddress { value }
+
+/// Convert `MemoryAddress` to `String`
+@mangle_as("memory_address_as_string")
+fn String from <address: MemoryAddress> -> String
+
+/// Allocate `n` bytes of memory.
+/// Warning: memory is uninitialized!
+@mangle_as("allocate_n_bytes")
+fn allocate <n: Integer> bytes -> MemoryAddress
+
+/// Allocate memory for `n` elements of type `T`
+fn<T> allocate <n: Integer> <:Type<T>> => allocate n * (size of T) bytes
+
+/// Free previously allocated memory
+@mangle_as("free_memory")
+fn free <address: MemoryAddress>
+
+// TODO: use `@` instead of `at`
+/// Value of specific type at memory address
+@mangle_as("read_memory")
+fn<T> <ty: Type<T>> at <address: MemoryAddress> -> ReferenceMut<T>
