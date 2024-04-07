@@ -1,3 +1,4 @@
+mod build;
 mod compile;
 mod new;
 
@@ -19,6 +20,7 @@ impl Execute for Command {
         match self {
             Command::Compile(compile) => compile.execute(),
             Command::New(new) => new.execute(),
+            Command::Build(build) => build.execute(),
         }
     }
 }
