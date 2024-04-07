@@ -1,0 +1,7 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+let mut if: Integer = 1
+destroy (if:Integer)
+(if:Integer) = 2

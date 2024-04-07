@@ -10,7 +10,7 @@ macro_rules! e2e {
             use tempdir::TempDir;
 
             // Compile-time check that file exists
-            include_bytes!(concat!(stringify!($name), "/", stringify!($name), ".ppl"));
+            include_bytes!(concat!(stringify!($name), "/src/main.ppl"));
 
             let temp_dir = TempDir::new("ppl").unwrap();
             let file = file!();

@@ -1,0 +1,7 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+type A
+let a: A = A {  }
+println type of (a:A)

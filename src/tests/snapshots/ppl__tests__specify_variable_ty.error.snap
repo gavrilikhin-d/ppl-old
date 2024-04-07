@@ -1,0 +1,22 @@
+---
+source: src/tests/mod.rs
+expression: err
+---
+Error: semantics::type_mismatch
+
+  × expected `String` type, got `Integer`
+
+Error:   × String
+   ╭─[main.ppl:4:5]
+ 3 │ let z: Integer = y
+ 4 │ let error: String = 3
+   ·     ──┬──
+   ·       ╰── this has `String` type
+   ╰────
+Error:   × Integer
+   ╭─[main.ppl:4:21]
+ 3 │ let z: Integer = y
+ 4 │ let error: String = 3
+   ·                     ┬
+   ·                     ╰── this has `Integer` type
+   ╰────

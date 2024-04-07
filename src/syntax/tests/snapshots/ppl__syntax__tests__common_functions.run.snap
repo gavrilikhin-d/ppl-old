@@ -1,5 +1,0 @@
----
-source: src/syntax/tests/mod.rs
-expression: run_log
----
-foo

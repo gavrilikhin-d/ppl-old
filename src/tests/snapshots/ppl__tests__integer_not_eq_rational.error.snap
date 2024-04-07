@@ -1,0 +1,30 @@
+---
+source: src/tests/mod.rs
+expression: err
+---
+Error: semantics::no_function
+
+  × no operator `<:Integer> != <:Rational>`
+   ╭─[main.ppl:1:1]
+ 1 │ 1 != 1.0
+   · ┬ ─┬ ─┬─
+   · │  │  ╰── <:Rational>
+   · │  ╰── for this operator
+   · ╰── <:Integer>
+   ╰────
+
+Advice:   ☞ candidate is not viable
+  ╰─▶ semantics::type_mismatch
+      
+        × expected `Self` type, got `Rational`
+      
+      Error:   × Self
+      Error:   × Rational
+      
+Advice:   ☞ candidate is not viable
+  ╰─▶ semantics::type_mismatch
+      
+        × expected `Self` type, got `Rational`
+      
+      Error:   × Self
+      Error:   × Rational

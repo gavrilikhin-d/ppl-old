@@ -1,0 +1,125 @@
+---
+source: src/tests/mod.rs
+expression: ir
+---
+; ModuleID = 'main'
+source_filename = "src/main.ppl"
+
+%"Type<String>" = type { %String, %Integer }
+%String = type { ptr }
+%Integer = type { ptr }
+
+@"Type<String>" = private global %"Type<String>" zeroinitializer
+@0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
+@res = global %Integer zeroinitializer
+
+define private void @initialize() !dbg !3 {
+  %1 = alloca %"Type<String>", align 8, !dbg !7
+  %"Type<String>.name" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 0, !dbg !7
+  %2 = call %String @string_from_c_string_and_length(ptr @0, i64 6), !dbg !8
+  store %String %2, ptr %"Type<String>.name", align 8, !dbg !8
+  %"Type<String>.size" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 1, !dbg !8
+  %3 = call %Integer @integer_from_i64(i64 8), !dbg !8
+  store %Integer %3, ptr %"Type<String>.size", align 8, !dbg !8
+  %4 = load %"Type<String>", ptr %1, align 8, !dbg !8
+  store %"Type<String>" %4, ptr @"Type<String>", align 8, !dbg !8
+  br label %return, !dbg !8
+
+return:                                           ; preds = %0
+  ret void
+}
+
+declare %String @string_from_c_string_and_length(ptr, i64)
+
+declare %Integer @integer_from_i64(i64)
+
+define void @"required <:Integer>"(%Integer %0) !dbg !9 {
+  %x = alloca %Integer, align 8
+  store %Integer %0, ptr %x, align 8
+  br label %return, !dbg !10
+
+return:                                           ; preds = %1
+  ret void
+}
+
+define private void @initialize.1() !dbg !11 {
+  %1 = call %Integer @integer_from_i64(i64 1), !dbg !12
+  %2 = call %Integer @"default <:Integer>"(%Integer %1), !dbg !12
+  store %Integer %2, ptr @res, align 8, !dbg !12
+  br label %return, !dbg !12
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define %Integer @"default <:Integer>"(%Integer %0) !dbg !13 {
+  %return_value = alloca %Integer, align 8
+  %x = alloca %Integer, align 8
+  store %Integer %0, ptr %x, align 8
+  %2 = load %Integer, ptr %x, align 8, !dbg !14
+  store %Integer %2, ptr %return_value, align 8, !dbg !14
+  br label %return, !dbg !14
+
+return:                                           ; preds = %1
+  %3 = load %Integer, ptr %return_value, align 8
+  ret %Integer %3
+}
+
+define void @main.execute() !dbg !15 {
+init_globals:
+  call void @initialize(), !dbg !16
+  call void @initialize.1(), !dbg !17
+  br label %0, !dbg !17
+
+0:                                                ; preds = %init_globals
+  %1 = load %Integer, ptr @res, align 8, !dbg !18
+  %2 = call %Integer @clone_integer(%Integer %1), !dbg !18
+  call void @"println <:Integer>"(%Integer %2), !dbg !18
+  br label %return, !dbg !17
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define private void @"println <:Integer>"(%Integer %0) !dbg !19 {
+  %x = alloca %Integer, align 8
+  store %Integer %0, ptr %x, align 8
+  %2 = load %Integer, ptr %x, align 8, !dbg !20
+  %3 = call %String @integer_as_string(%Integer %2), !dbg !20
+  call void @"println <:String>"(%String %3), !dbg !20
+  br label %return, !dbg !20
+
+return:                                           ; preds = %1
+  ret void
+}
+
+declare void @"println <:String>"(%String)
+
+declare %String @integer_as_string(%Integer)
+
+declare %Integer @clone_integer(%Integer)
+
+!llvm.module.flags = !{!0}
+!llvm.dbg.cu = !{!1}
+
+!0 = !{i32 2, !"Debug Info Version", i32 3}
+!1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "ppl", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, sysroot: "/")
+!2 = !DIFile(filename: "src/main.ppl", directory: ".")
+!3 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !2, file: !2, line: 10, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!4 = !DISubroutineType(types: !5)
+!5 = !{!6}
+!6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
+!7 = !DILocation(line: 10, column: 11, scope: !3)
+!8 = !DILocation(line: 0, scope: !3)
+!9 = distinct !DISubprogram(name: "required <:Integer>", linkageName: "required <:Integer>", scope: !2, file: !2, line: 6, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!10 = !DILocation(line: 6, column: 28, scope: !9)
+!11 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, line: 9, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!12 = !DILocation(line: 9, column: 18, scope: !11)
+!13 = distinct !DISubprogram(name: "default <:Integer>", linkageName: "default <:Integer>", scope: !11, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!14 = !DILocation(line: 3, column: 25, scope: !13)
+!15 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 10, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!16 = !DILocation(line: 10, column: 11, scope: !15)
+!17 = !DILocation(line: 9, column: 10, scope: !15)
+!18 = !DILocation(line: 10, column: 8, scope: !15)
+!19 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !15, file: !2, line: 10, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!20 = !DILocation(line: 10, column: 11, scope: !19)

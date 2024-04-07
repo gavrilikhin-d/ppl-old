@@ -1,0 +1,13 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+type Destructible
+
+fn destroy <:Destructible> -> None:
+	return println "destructor"
+
+let mut x: Destructible = Destructible {  }
+destroy (x:Destructible)
+(x:Destructible) = Destructible {  }
+println "done"

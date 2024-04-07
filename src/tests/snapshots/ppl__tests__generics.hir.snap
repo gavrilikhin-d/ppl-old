@@ -1,0 +1,21 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+type Point<T>:
+	x: T
+	y: T
+
+
+fn<T> x of <p: Point<T>> -> T:
+	return (p:Point<T>).x
+
+let x: Integer = x of Point<Integer> { x: 0, y: 0 }
+
+fn<T> id <x: T> -> T:
+	return (x:T)
+
+println clone (x:Integer) == 0
+println id 1 == 1
+println id "hello"
+id Point<Integer> { x: 0, y: 0 }
