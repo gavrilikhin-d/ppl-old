@@ -27,6 +27,11 @@ Advice:   ☞ candidate is not viable
        223 │
            ╰────
       Error:   × Rational
+         ╭─[main.ppl:1:6]
+       1 │ 1 != 1.0
+         ·      ─┬─
+         ·       ╰── this has `Rational` type
+         ╰────
       
 Advice:   ☞ candidate is not viable
   ╰─▶ semantics::type_mismatch
@@ -42,3 +47,8 @@ Advice:   ☞ candidate is not viable
        223 │
            ╰────
       Error:   × Rational
+         ╭─[main.ppl:1:6]
+       1 │ 1 != 1.0
+         ·      ─┬─
+         ·       ╰── this has `Rational` type
+         ╰────

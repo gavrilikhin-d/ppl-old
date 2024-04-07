@@ -35,6 +35,15 @@ impl ConvertibleToRequest<'_, Type> {
     pub fn within(self, context: &mut impl Context) -> Result<bool, NotImplemented> {
         let from = self.from.without_ref();
         let to = self.to.without_ref();
+
+        if let Some(specialized) = context.get_specialized(from.clone()) {
+            return specialized.convertible_to(to).within(context);
+        }
+
+        if let Some(specialized) = context.get_specialized(to.clone()) {
+            return from.convertible_to(specialized).within(context);
+        }
+
         match from {
             Type::Unknown => unreachable!(
                 "Trying to check if not inferred type is convertible to some other type"
@@ -79,10 +88,6 @@ impl ConvertibleToRequest<'_, Class> {
             }
             Type::Trait(tr) => from.implements(tr.clone()).within(context).map(|_| true)?,
             Type::SelfType(s) => {
-                if let Some(specialized) = context.get_specialized(s.clone().into()) {
-                    return from.convertible_to(specialized).within(context);
-                }
-
                 let convertible = from
                     .implements(s.associated_trait.clone())
                     .within(context)
@@ -93,10 +98,6 @@ impl ConvertibleToRequest<'_, Class> {
                 convertible
             }
             Type::Generic(g) => {
-                if let Some(specialized) = context.get_specialized(g.clone().into()) {
-                    return from.convertible_to(specialized).within(context);
-                }
-
                 let convertible = if let Some(constraint) = &g.constraint {
                     from.convertible_to(constraint.referenced_type.clone())
                         .within(context)?

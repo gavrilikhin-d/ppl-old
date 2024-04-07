@@ -140,12 +140,17 @@ impl Compiler {
             .unwrap_or(Package::with_index(0))
     }
 
-    /// Get current package
+    /// Get current module
     pub fn current_module(&self) -> Module {
         self.modules_stack
             .last()
             .cloned()
             .unwrap_or(Module::with_index(0))
+    }
+
+    /// Get current source file
+    pub fn current_file(&self) -> &SourceFile {
+        self.current_module().data(self).source_file()
     }
 
     /// Locate module by name

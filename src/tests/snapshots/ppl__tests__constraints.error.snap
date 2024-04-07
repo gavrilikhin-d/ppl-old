@@ -44,6 +44,13 @@ Advice:   ☞ candidate is not viable
        13 │     foo a
           ╰────
       Error:   × Bool
+          ╭─[main.ppl:17:10]
+       16 │ baz none none
+       17 │ baz none true
+          ·          ──┬─
+          ·            ╰── this has `Bool` type
+       18 │ baz true none
+          ╰────
       
 semantics::no_function
 
@@ -71,3 +78,10 @@ Advice:   ☞ candidate is not viable
        13 │     foo a
           ╰────
       Error:   × None
+          ╭─[main.ppl:18:10]
+       17 │ baz none true
+       18 │ baz true none
+          ·          ──┬─
+          ·            ╰── this has `None` type
+       19 │ baz true true
+          ╰────

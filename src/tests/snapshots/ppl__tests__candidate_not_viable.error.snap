@@ -27,6 +27,11 @@ Advice:   ☞ candidate is not viable
        89 │
           ╰────
       Error:   × Rational
+         ╭─[main.ppl:1:1]
+       1 │ 0.1 + 2
+         · ─┬─
+         ·  ╰── this has `Rational` type
+         ╰────
       
 Advice:   ☞ candidate is not viable
   ╰─▶ semantics::type_mismatch
@@ -42,6 +47,11 @@ Advice:   ☞ candidate is not viable
        153 │
            ╰────
       Error:   × Integer
+         ╭─[main.ppl:1:7]
+       1 │ 0.1 + 2
+         ·       ┬
+         ·       ╰── this has `Integer` type
+         ╰────
       
 Advice:   ☞ candidate is not viable
   ╰─▶ semantics::type_mismatch
@@ -57,6 +67,11 @@ Advice:   ☞ candidate is not viable
        186 │
            ╰────
       Error:   × Rational
+         ╭─[main.ppl:1:1]
+       1 │ 0.1 + 2
+         · ─┬─
+         ·  ╰── this has `Rational` type
+         ╰────
       
 Advice:   ☞ candidate is not viable
   ╰─▶ semantics::type_mismatch
@@ -72,6 +87,11 @@ Advice:   ☞ candidate is not viable
        290 │
            ╰────
       Error:   × Integer
+         ╭─[main.ppl:1:7]
+       1 │ 0.1 + 2
+         ·       ┬
+         ·       ╰── this has `Integer` type
+         ╰────
       
 Advice:   ☞ candidate is not viable
   ╰─▶ semantics::type_mismatch
@@ -87,3 +107,8 @@ Advice:   ☞ candidate is not viable
        290 │
            ╰────
       Error:   × Integer
+         ╭─[main.ppl:1:7]
+       1 │ 0.1 + 2
+         ·       ┬
+         ·       ╰── this has `Integer` type
+         ╰────

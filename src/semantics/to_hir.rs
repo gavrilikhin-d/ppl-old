@@ -170,42 +170,44 @@ impl ToHIR for ast::Call {
                 .source_file()
                 .clone();
 
-            let mut candidate_context = GenericContext::for_fn(f.clone(), context);
-
             let mut args = Vec::new();
             let mut failed = false;
-            for (i, f_part) in f.read().unwrap().name_parts().iter().enumerate() {
-                match f_part {
-                    FunctionNamePart::Text(_) => continue,
-                    FunctionNamePart::Parameter(p) => {
-                        let arg = args_cache[i].as_ref().unwrap();
+            GenericContext::for_fn(f.clone(), context).run(|context| {
+                for (i, f_part) in f.read().unwrap().name_parts().iter().enumerate() {
+                    match f_part {
+                        FunctionNamePart::Text(_) => continue,
+                        FunctionNamePart::Parameter(p) => {
+                            let arg = args_cache[i].as_ref().unwrap();
 
-                        let arg = WithSourceLocation {
-                            value: arg.clone(),
-                            source_location: SourceLocation {
-                                source_file: None,
-                                at: arg.range().into(),
-                            },
-                        }
-                        .convert_to(p.ty().at(SourceLocation {
-                            at: p.name.range().into(),
-                            source_file: Some(source_file.clone()),
-                        }))
-                        .within(&mut candidate_context);
-                        match arg {
-                            Ok(arg) => {
-                                args.push(arg);
+                            let arg_source_file = context.compiler().current_file().clone();
+
+                            let arg = WithSourceLocation {
+                                value: arg.clone(),
+                                source_location: SourceLocation {
+                                    source_file: Some(arg_source_file),
+                                    at: arg.range().into(),
+                                },
                             }
-                            Err(err) => {
-                                candidates_not_viable
-                                    .push(CandidateNotViable { reason: err.into() });
-                                failed = true;
-                                break;
+                            .convert_to(p.ty().at(SourceLocation {
+                                at: p.name.range().into(),
+                                source_file: Some(source_file.clone()),
+                            }))
+                            .within(context);
+                            match arg {
+                                Ok(arg) => {
+                                    args.push(arg);
+                                }
+                                Err(err) => {
+                                    candidates_not_viable
+                                        .push(CandidateNotViable { reason: err.into() });
+                                    failed = true;
+                                    break;
+                                }
                             }
                         }
                     }
                 }
-            }
+            });
 
             if !failed {
                 if f.read().unwrap().return_type == Type::Unknown {
