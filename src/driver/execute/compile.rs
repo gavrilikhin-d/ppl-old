@@ -86,7 +86,7 @@ impl Emit for Package {
         let with_main = output_type == OutputType::Executable;
 
         let llvm = inkwell::context::Context::create();
-        let ir = module.data(compiler).to_ir(&llvm, with_main);
+        let ir = module.data(compiler).to_ir(&llvm, with_main, module);
         debug!(target: "ir", "{}", ir.to_string());
         if output_type == OutputType::IR {
             fs::write(&output_file, ir.to_string()).map_err(|e| miette!("{output_file:?}: {e}"))?;
@@ -114,10 +114,11 @@ impl Emit for Package {
             .modules
             .iter()
             .map(|m| {
+                let compilation_module = m.clone();
                 let m = m.data(compiler);
                 let llvm = inkwell::context::Context::create();
                 let with_main = false;
-                let ir = m.to_ir(&llvm, with_main);
+                let ir = m.to_ir(&llvm, with_main, compilation_module);
                 let filename = m.name().to_string();
                 let bitcode = temp_dir.path().join(filename).with_extension("bc");
                 trace!(target: "steps", "generating bitcode for {} => {}", m.source_file().path().to_string_lossy(), bitcode.display());

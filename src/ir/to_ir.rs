@@ -5,6 +5,7 @@ use inkwell::values::BasicMetadataValueEnum;
 use log::trace;
 
 use super::inkwell::*;
+use crate::compilation;
 use crate::hir::*;
 use crate::ir::Initializer;
 use crate::mutability::Mutable;
@@ -299,7 +300,9 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for FunctionData {
 
         let f = self.declare_global(context);
 
-        self.emit_body(context);
+        if self.module == context.compilation_module || self.is_generic() {
+            self.emit_body(context);
+        }
 
         f
     }
@@ -315,7 +318,9 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for FunctionData {
         // TODO: limit function visibility, capture variables, etc.
         let f = self.declare_global(context.module_context);
 
-        self.emit_body(context.module_context);
+        if self.module == context.module_context.compilation_module || self.is_generic() {
+            self.emit_body(context.module_context);
+        }
 
         f
     }
@@ -943,6 +948,7 @@ pub trait HIRModuleLowering<'llvm> {
         &self,
         llvm: &'llvm inkwell::context::Context,
         with_main: bool,
+        compilation_module: compilation::Module,
     ) -> inkwell::module::Module<'llvm>;
 }
 
@@ -952,6 +958,7 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
         &self,
         llvm: &'llvm inkwell::context::Context,
         with_main: bool,
+        compilation_module: compilation::Module,
     ) -> inkwell::module::Module<'llvm> {
         trace!(target: "lower_to_ir", "{self}");
 
@@ -960,7 +967,7 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
         let module = llvm.create_module(&name);
         module.set_source_file_name(&self.source_file.path().to_string_lossy());
 
-        let mut context = ModuleContext::new(module, self.source_file());
+        let mut context = ModuleContext::new(compilation_module, module, self.source_file());
 
         // First emit special variables with type info
         for variable in self

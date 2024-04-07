@@ -13,7 +13,7 @@ use ppl::driver::commands::compile::OutputType;
 use ppl::driver::{self, Execute};
 use ppl::hir;
 use ppl::ir::HIRModuleLowering;
-use ppl::semantics::{ModuleContext, Monomorphize, ToHIR};
+use ppl::semantics::{Context, ModuleContext, Monomorphize, ToHIR};
 use ppl::syntax::{InteractiveLexer, Lexer, Parse};
 use ppl::Reporter;
 use ppl::{ast::*, SourceFile};
@@ -37,7 +37,11 @@ fn process_single_statement<'llvm>(
     ast_lowering_context.module.statements = vec![hir];
 
     let with_main = true;
-    let module = ast_lowering_context.module.to_ir(llvm, with_main);
+    let module = ast_lowering_context.module.to_ir(
+        llvm,
+        with_main,
+        ast_lowering_context.compiler().current_module(),
+    );
     debug!(target: "ir", "{}", module.to_string());
 
     module.verify().unwrap();

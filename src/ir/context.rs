@@ -3,6 +3,7 @@ use indexmap::IndexMap;
 use inkwell::basic_block::BasicBlock;
 
 use crate::{
+    compilation,
     hir::{ParameterOrVariable, Statement},
     named::Named,
     SourceFile,
@@ -43,6 +44,8 @@ pub struct Initializer<'llvm> {
 pub struct ModuleContext<'llvm, 's> {
     /// Currently built module
     pub module: inkwell::module::Module<'llvm>,
+    /// Corresponding compilation module
+    pub compilation_module: compilation::Module,
     /// Initializers for global variables
     pub initializers: Vec<Initializer<'llvm>>,
     /// Debug information builder
@@ -51,9 +54,14 @@ pub struct ModuleContext<'llvm, 's> {
 
 impl<'llvm, 's> ModuleContext<'llvm, 's> {
     /// Initialize context for lowering HIR module to LLVM IR
-    pub fn new(module: inkwell::module::Module<'llvm>, source_file: &'s SourceFile) -> Self {
+    pub fn new(
+        compilation_module: compilation::Module,
+        module: inkwell::module::Module<'llvm>,
+        source_file: &'s SourceFile,
+    ) -> Self {
         let debug_info = DebugInfo::new(&module, source_file);
         Self {
+            compilation_module,
             module,
             initializers: vec![],
             debug_info,
