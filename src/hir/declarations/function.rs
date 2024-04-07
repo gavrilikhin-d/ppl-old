@@ -11,6 +11,8 @@ use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::{Identifier, Keyword, Ranged};
 
+use super::Trait;
+
 /// Declaration of a function parameter
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Parameter {
@@ -160,6 +162,9 @@ pub struct FunctionData {
 
     /// Module where function is defined
     pub module: Module,
+
+    /// Trait this function defined in
+    pub tr: Option<Trait>,
 
     /// Mangled name to use instead of default
     pub(crate) mangled_name: Option<String>,
@@ -410,6 +415,7 @@ impl FunctionBuilder {
         let name = self.build_name();
         FunctionData {
             module: self.module,
+            tr: None,
             keyword: self.keyword,
             generic_types: self.generic_types,
             name_parts: self.name_parts,

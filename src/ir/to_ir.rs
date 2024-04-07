@@ -300,7 +300,10 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for FunctionData {
 
         let f = self.declare_global(context);
 
-        if self.module == context.compilation_module || self.is_generic() {
+        if self.module == context.compilation_module
+            || !self.generic_types.is_empty()
+            || self.tr.is_some()
+        {
             self.emit_body(context);
         }
 
@@ -318,7 +321,10 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for FunctionData {
         // TODO: limit function visibility, capture variables, etc.
         let f = self.declare_global(context.module_context);
 
-        if self.module == context.module_context.compilation_module || self.is_generic() {
+        if self.module == context.module_context.compilation_module
+            || !self.generic_types.is_empty()
+            || self.tr.is_some()
+        {
             self.emit_body(context.module_context);
         }
 
