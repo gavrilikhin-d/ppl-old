@@ -753,7 +753,7 @@ impl ToHIR for ast::Use {
         let module = if compiler.locate(first_part).is_ok() {
             compiler.compile(first_part).unwrap()
         } else {
-            let package = compiler.compile_package(package_name).unwrap();
+            let package = compiler.compile_package(first_part).unwrap();
 
             let current_package = compiler.current_package();
             current_package

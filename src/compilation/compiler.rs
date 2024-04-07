@@ -89,22 +89,15 @@ pub struct Compiler {
 }
 
 impl Compiler {
-    /// Name of builtin module
-    pub const BUILTIN_MODULE_NAME: &'static str = "ppl";
-    /// Directory of builtin module
-    pub const BUILTIN_MODULE_DIR: &'static str =
-        concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime");
-    /// Path of builtin module
-    pub const BUILTIN_MODULE_PATH: &'static str =
-        concat!(env!("CARGO_MANIFEST_DIR"), "/src/runtime/ppl.ppl");
+    /// Location of PPL package
+    pub const PPL_PACKAGE: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/ppl");
 
     /// Create new compiler with empty cache
     pub fn new() -> Self {
-        let path = Path::new(Self::BUILTIN_MODULE_DIR);
-
+        let path = Path::new(Self::PPL_PACKAGE);
         let mut compiler = Compiler::without_builtin().at(path);
 
-        compiler.compile_package(Self::BUILTIN_MODULE_NAME).unwrap();
+        compiler.compile_package("ppl").unwrap();
 
         compiler.import_builtin = true;
 
@@ -158,14 +151,10 @@ impl Compiler {
     /// 1. `{root}/{name}.ppl`
     /// 2. `{root}/{name}/mod.ppl`
     pub fn locate(&mut self, name: &str) -> miette::Result<PathBuf> {
-        let variants = if name == Self::BUILTIN_MODULE_NAME {
-            vec![Self::BUILTIN_MODULE_PATH.into()]
-        } else {
-            vec![
-                self.root.join(format!("{name}.ppl")),
-                self.root.join(name).join("mod.ppl"),
-            ]
-        };
+        let variants = vec![
+            self.root.join(format!("{name}.ppl")),
+            self.root.join(name).join("mod.ppl"),
+        ];
 
         variants
             .iter()
@@ -251,9 +240,17 @@ impl Compiler {
             },
         );
 
+        let old_root = self.root.clone();
+        self.root = self.root.join("src");
         self.package_stack.push(package);
-        self.compile(&name)?;
+        let main = self.root.join("main.ppl");
+        if main.exists() {
+            self.compile("main")?;
+        } else {
+            self.compile("lib")?;
+        }
         self.package_stack.pop();
+        self.root = old_root;
 
         Ok(package)
     }
