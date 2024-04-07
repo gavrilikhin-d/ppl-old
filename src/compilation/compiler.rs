@@ -1,4 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::{
+    env::current_dir,
+    path::{Path, PathBuf},
+};
 
 use indexmap::IndexMap;
 
@@ -9,7 +12,7 @@ use crate::{
     SourceFile,
 };
 use log::{debug, trace};
-use miette::miette;
+use miette::{bail, miette};
 
 use super::{Package, PackageData};
 
@@ -148,12 +151,12 @@ impl Compiler {
     /// Locate module by name
     ///
     /// # Module search order
-    /// 1. `{root}/{name}.ppl`
-    /// 2. `{root}/{name}/mod.ppl`
+    /// 1. `{root}/src/{name}.ppl`
+    /// 2. `{root}/src/{name}/mod.ppl`
     pub fn locate(&mut self, name: &str) -> miette::Result<PathBuf> {
         let variants = vec![
-            self.root.join(format!("{name}.ppl")),
-            self.root.join(name).join("mod.ppl"),
+            self.root.join("src").join(format!("{name}.ppl")),
+            self.root.join("src").join(name).join("mod.ppl"),
         ];
 
         variants
@@ -180,8 +183,8 @@ impl Compiler {
     /// Get compiled module from cache or compile it
     ///
     /// # Module search order
-    /// 1. `{root}/{name}.ppl`
-    /// 2. `{root}/{name}/mod.ppl`
+    /// 1. `{root}/src/{name}.ppl`
+    /// 2. `{root}/src/{name}/mod.ppl`
     pub(crate) fn compile(&mut self, name: &str) -> miette::Result<Module> {
         let path = self.locate(name)?;
         let canonic_path = std::fs::canonicalize(&path).unwrap();
@@ -222,6 +225,28 @@ impl Compiler {
         Ok(module)
     }
 
+    fn locate_package(&mut self, package: &str) -> miette::Result<PathBuf> {
+        if package == "ppl" {
+            return Ok(Self::PPL_PACKAGE.into());
+        }
+
+        let cwd = current_dir().unwrap();
+        if cwd.ends_with(package) {
+            return Ok(cwd);
+        }
+
+        let dep = cwd.join("dependencies").join(package);
+        if dep.exists() {
+            return Ok(dep);
+        }
+
+        bail!(
+            "Package `{package}` not found in {} or {}",
+            cwd.display(),
+            dep.display()
+        )
+    }
+
     /// Get compiled package from cache or compile it
     pub fn compile_package(&mut self, package: &str) -> miette::Result<Package> {
         if let Some(index) = self.packages.get_index_of(package) {
@@ -231,17 +256,19 @@ impl Compiler {
         let name = package.to_string();
         let index = self.packages.len();
         let package = Package::with_index(index);
+        let old_root = self.root.clone();
+        let root = self.locate_package(&name)?;
+        self.root = root.clone();
         self.packages.insert(
             name.clone(),
             PackageData {
+                root,
                 name: name.clone(),
                 modules: Default::default(),
                 dependencies: Default::default(),
             },
         );
 
-        let old_root = self.root.clone();
-        self.root = self.root.join("src");
         self.package_stack.push(package);
         let main = self.root.join("main.ppl");
         if main.exists() {

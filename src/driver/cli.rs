@@ -1,4 +1,4 @@
-use self::commands::{Build, Compile, New};
+use self::commands::{Build, New};
 use clap::{Parser, Subcommand};
 use derive_more::From;
 
@@ -17,8 +17,6 @@ pub enum Command {
     New(New),
     /// Build package
     Build(Build),
-    /// Compile single ppl file
-    Compile(Compile),
 }
 
 pub mod commands {
@@ -38,24 +36,13 @@ pub mod commands {
 
     /// Command to build a package
     #[derive(Parser, Debug)]
-    pub struct Build {}
-
-    /// Command to compile single ppl file
-    #[derive(Parser, Debug)]
-    pub struct Compile {
-        /// File to compile
-        #[arg(value_name = "file")]
-        pub file: PathBuf,
+    pub struct Build {
         /// Directory where compiler output will be placed.
-        #[arg(long, value_name = "dir", default_value = ".")]
+        #[arg(long, value_name = "dir", default_value = "target")]
         pub output_dir: PathBuf,
         /// Output type of compilation
         #[arg(long = "emit", value_name = "output type")]
         pub output_type: Option<OutputType>,
-        /// Compile without core library.
-        /// Used for compiling core library itself.
-        #[arg(long, default_value = "false")]
-        pub no_core: bool,
     }
 
     pub mod compile {

@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, path::PathBuf};
 
 use super::{Compiler, Module};
 
@@ -34,6 +34,8 @@ impl Package {
 pub struct PackageData {
     /// Name of the package
     pub name: String,
+    /// Root directory of the package
+    pub root: PathBuf,
     /// List of modules in the package
     pub modules: Vec<Module>,
     /// List of dependencies for this package
