@@ -17,7 +17,7 @@ macro_rules! e2e {
             let name = stringify!($name);
             let dir = Path::new(file).parent().unwrap().join(name);
 
-            let res = $crate::e2e::internal::compile(&temp_dir, name, &dir);
+            let res = $crate::e2e::internal::compile(&temp_dir, &dir);
             if let Err(err) = res {
                 assert_snapshot!(concat!(stringify!($name), ".error"), err);
                 return;
@@ -52,7 +52,7 @@ pub mod internal {
 
     use crate::driver::commands::compile::OutputType;
 
-    pub fn compile(temp_dir: &TempDir, name: &str, dir: &Path) -> Result<(), String> {
+    pub fn compile(temp_dir: &TempDir, dir: &Path) -> Result<(), String> {
         let temp_dir_path = temp_dir.path().to_str().unwrap();
 
         let ppl = concat!(env!("CARGO_MANIFEST_DIR"), "/target/debug/ppl");

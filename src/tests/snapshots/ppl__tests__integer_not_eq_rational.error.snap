@@ -19,6 +19,13 @@ Advice:   ☞ candidate is not viable
         × expected `Self` type, got `Rational`
       
       Error:   × Self
+           ╭─[core.ppl:222:19]
+       221 │
+       222 │     fn <x: Self> != <y: Self> => not (x == y)
+           ·                      ┬
+           ·                      ╰── this has `Self` type
+       223 │
+           ╰────
       Error:   × Rational
       
 Advice:   ☞ candidate is not viable
@@ -27,4 +34,11 @@ Advice:   ☞ candidate is not viable
         × expected `Self` type, got `Rational`
       
       Error:   × Self
+           ╭─[core.ppl:222:19]
+       221 │
+       222 │     fn <x: Self> != <y: Self> => not (x == y)
+           ·                      ┬
+           ·                      ╰── this has `Self` type
+       223 │
+           ╰────
       Error:   × Rational

@@ -162,18 +162,13 @@ impl ToHIR for ast::Call {
 
         let mut candidates_not_viable = Vec::new();
         for f in candidates {
-            let mut modules = context.compiler().modules.values().collect::<Vec<_>>();
-            modules.push(context.module());
-
-            let source_file = modules
-                .iter()
-                .find(|m| {
-                    m.iter_functions()
-                        .find(|function| function.name() == f.name())
-                        .is_some()
-                })
-                .map(|m| m.source_file())
-                .cloned();
+            let source_file = f
+                .read()
+                .unwrap()
+                .module
+                .data(context.compiler())
+                .source_file()
+                .clone();
 
             let mut candidate_context = GenericContext::for_fn(f.clone(), context);
 
@@ -194,7 +189,7 @@ impl ToHIR for ast::Call {
                         }
                         .convert_to(p.ty().at(SourceLocation {
                             at: p.name.range().into(),
-                            source_file: source_file.clone().map(Into::into),
+                            source_file: Some(source_file.clone()),
                         }))
                         .within(&mut candidate_context);
                         match arg {
