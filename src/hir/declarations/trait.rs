@@ -86,20 +86,21 @@ pub struct TraitData {
 }
 
 impl TraitData {
-    /// Iterate over all functions with `n` name parts
-    pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = Function> + '_ {
-        let mut functions: Vec<_> = self
-            .functions
-            .values()
-            .filter(move |f| f.read().unwrap().name_parts().len() == n)
-            .cloned()
-            .collect();
+    /// Iterate over all functions
+    pub fn all_functions(&self) -> impl Iterator<Item = Function> + '_ {
+        let mut functions: Vec<_> = self.functions.values().cloned().collect();
 
         self.supertraits
             .iter()
-            .for_each(|tr| functions.extend(tr.read().unwrap().functions_with_n_name_parts(n)));
+            .for_each(|tr| functions.extend(tr.read().unwrap().all_functions()));
 
         functions.into_iter()
+    }
+
+    /// Iterate over all functions with `n` name parts
+    pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = Function> + '_ {
+        self.all_functions()
+            .filter(move |f| f.read().unwrap().name_parts().len() == n)
     }
 }
 
