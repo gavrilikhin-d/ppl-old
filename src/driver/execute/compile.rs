@@ -6,6 +6,7 @@ use crate::driver::commands::compile::OutputType;
 use crate::ir::HIRModuleLowering;
 use crate::named::Named;
 use crate::{compilation::Compiler, driver::commands::Compile};
+use cmd_lib::run_cmd;
 use log::{debug, trace};
 use miette::miette;
 use tempdir::TempDir;
@@ -30,6 +31,11 @@ impl Execute for Compile {
 
         let output_type = self.output_type.unwrap_or(OutputType::Executable);
         let dependencies_dir = self.output_dir.join("deps");
+        run_cmd!(
+            mkdir -p $dependencies_dir
+        )
+        .map_err(|e| miette!("{e}"))?;
+
         package.emit(
             compiler,
             self.output_dir.clone(),
@@ -113,6 +119,7 @@ impl Emit for Package {
         let bitcodes: Vec<_> = self.data(compiler)
             .modules
             .iter()
+            .filter(|m| **m != module)
             .map(|m| {
                 let compilation_module = m.clone();
                 let m = m.data(compiler);
