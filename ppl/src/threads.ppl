@@ -1,0 +1,5 @@
+use core.*
+
+/// Force this thread to sleep for at least `ms` milliseconds
+@mangle_as("sleep_ms")
+fn sleep <ms: Integer> ms

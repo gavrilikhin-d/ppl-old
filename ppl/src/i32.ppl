@@ -1,0 +1,26 @@
+use core.*
+
+@builtin
+type I32
+
+fn + <x: I32> => x
+
+@mangle_as("minus_i32")
+fn - <:I32> -> I32
+
+@mangle_as("i32_plus_i32")
+fn <:I32> + <:I32> -> I32
+
+fn <x: I32> - <y: I32> => x + -y
+
+/// Convert `I32` to `String`
+@mangle_as("i32_as_string")
+fn String from <:I32> -> String
+
+/// Convert `I32` to `Integer`
+@mangle_as("integer_from_i32")
+fn Integer from <:I32> -> Integer
+
+/// Convert `Integer` to `I32
+@mangle_as("integer_as_i32")
+fn <:Integer> as I32 -> I32
