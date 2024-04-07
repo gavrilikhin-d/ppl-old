@@ -1,9 +1,7 @@
 extern crate ast_derive;
 use ast_derive::AST;
 
-use crate::syntax::{
-    error::ParseError, Context, Identifier, Lexer, Parse, Ranged, Token,
-};
+use crate::syntax::{error::ParseError, Context, Identifier, Lexer, Parse, Ranged, Token};
 
 use super::{Expression, TypeReference, VariableReference};
 
@@ -120,7 +118,7 @@ mod tests {
             res,
             Constructor {
                 ty: TypeReference {
-                    name: Identifier::from("Empty"),
+                    name: Identifier::from("Empty").into(),
                     generic_parameters: Vec::new(),
                 },
                 lbrace: 6,
@@ -137,7 +135,7 @@ mod tests {
             res,
             Constructor {
                 ty: TypeReference {
-                    name: Identifier::from("Point"),
+                    name: Identifier::from("Point").into(),
                     generic_parameters: Vec::new(),
                 },
                 lbrace: 6,
@@ -145,14 +143,14 @@ mod tests {
                     Initializer {
                         name: None,
                         value: VariableReference {
-                            name: Identifier::from("x").at(7)
+                            name: Identifier::from("x").at(7).into()
                         }
                         .into(),
                     },
                     Initializer {
                         name: None,
                         value: VariableReference {
-                            name: Identifier::from("y").at(10)
+                            name: Identifier::from("y").at(10).into()
                         }
                         .into(),
                     },
@@ -169,7 +167,7 @@ mod tests {
             res,
             Constructor {
                 ty: TypeReference {
-                    name: Identifier::from("Point"),
+                    name: Identifier::from("Point").into(),
                     generic_parameters: Vec::new(),
                 },
                 lbrace: 6,

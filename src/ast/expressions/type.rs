@@ -1,15 +1,57 @@
 extern crate ast_derive;
+use std::fmt::Display;
+
 use ast_derive::AST;
 
 use crate::syntax::{
-    error::ParseError, Context, Identifier, Lexer, Parse, Ranged, StartsHere, Token,
+    error::ParseError, Context, Identifier, Keyword, Lexer, Parse, Ranged, StartsHere, Token,
 };
+
+use derive_more::From;
+
+#[derive(Debug, PartialEq, Eq, Clone, From)]
+pub enum Typename {
+    Identifier(Identifier),
+    Reference {
+        ampersand: Keyword<"&">,
+        mutable: Option<Keyword<"mut">>,
+    },
+}
+
+impl Display for Typename {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Typename::Identifier(name) => write!(f, "{name}"),
+            Typename::Reference { mutable, .. } => {
+                write!(f, "&{}", mutable.map_or("", |_| "mut"))
+            }
+        }
+    }
+}
+
+impl Ranged for Typename {
+    fn start(&self) -> usize {
+        match self {
+            Typename::Identifier(name) => name.start(),
+            Typename::Reference { ampersand, .. } => ampersand.start(),
+        }
+    }
+
+    fn end(&self) -> usize {
+        match self {
+            Typename::Identifier(name) => name.end(),
+            Typename::Reference { mutable, ampersand } => mutable
+                .as_ref()
+                .map_or_else(|| ampersand.end(), |m| m.end()),
+        }
+    }
+}
 
 /// AST for type reference
 #[derive(Debug, PartialEq, Eq, AST, Clone)]
 pub struct TypeReference {
     /// Referenced type name
-    pub name: Identifier,
+    pub name: Typename,
     /// Generic parameters
     pub generic_parameters: Vec<TypeReference>,
 }
@@ -35,8 +77,15 @@ impl Parse for TypeReference {
 
     /// Parse type reference using lexer
     fn parse(context: &mut Context<impl Lexer>) -> Result<Self, Self::Err> {
-        let name = context.consume_id()?;
+        if let Ok(ampersand) = context.consume_keyword::<"&">() {
+            let mutable = context.consume_keyword::<"mut">().ok();
+            return Ok(TypeReference {
+                name: Typename::Reference { ampersand, mutable },
+                generic_parameters: vec![TypeReference::parse(context)?],
+            });
+        }
 
+        let name = context.consume_id()?;
         let mut generic_parameters = Vec::new();
         if context.lexer.consume(Token::Less).is_ok() {
             loop {
@@ -49,7 +98,7 @@ impl Parse for TypeReference {
         }
 
         Ok(TypeReference {
-            name,
+            name: name.into(),
             generic_parameters,
         })
     }
@@ -78,7 +127,7 @@ mod tests {
         assert_eq!(
             res,
             Ok(TypeReference {
-                name: Identifier::from("Foo"),
+                name: Identifier::from("Foo").into(),
                 generic_parameters: Vec::new(),
             })
         );
@@ -92,14 +141,14 @@ mod tests {
         assert_eq!(
             res,
             Ok(TypeReference {
-                name: Identifier::from("Foo").at(0),
+                name: Identifier::from("Foo").at(0).into(),
                 generic_parameters: vec![
                     TypeReference {
-                        name: Identifier::from("Bar").at(4),
+                        name: Identifier::from("Bar").at(4).into(),
                         generic_parameters: Vec::new(),
                     },
                     TypeReference {
-                        name: Identifier::from("Baz").at(9),
+                        name: Identifier::from("Baz").at(9).into(),
                         generic_parameters: Vec::new(),
                     },
                 ],
@@ -115,11 +164,11 @@ mod tests {
         assert_eq!(
             res,
             Ok(TypeReference {
-                name: Identifier::from("Foo").at(0),
+                name: Identifier::from("Foo").at(0).into(),
                 generic_parameters: vec![TypeReference {
-                    name: Identifier::from("Bar").at(4),
+                    name: Identifier::from("Bar").at(4).into(),
                     generic_parameters: [TypeReference {
-                        name: Identifier::from("Baz").at(8),
+                        name: Identifier::from("Baz").at(8).into(),
                         generic_parameters: Vec::new(),
                     }]
                     .into(),

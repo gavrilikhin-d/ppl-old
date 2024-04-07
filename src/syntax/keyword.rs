@@ -35,6 +35,7 @@ impl<const KEYWORD: &'static str> Keyword<KEYWORD> {
             "while" => Token::While,
             "trait" => Token::Trait,
             "use" => Token::Use,
+            "&" => Token::Ampersand,
             _ => panic!("Unknown keyword: {}", KEYWORD),
         }
     }

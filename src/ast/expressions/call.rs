@@ -4,7 +4,7 @@ use ast_derive::AST;
 
 use derive_more::{From, TryInto};
 
-use super::{parse_binary_expression, Expression};
+use super::{parse_binary_expression, Expression, TypeReference, Typename};
 
 use crate::syntax::{
     error::ParseError, Context, Identifier, Lexer, Parse, Ranged, StartsHere, StringWithOffset,
@@ -50,7 +50,10 @@ impl Parse for CallNamePart {
         let expr = parse_binary_expression(context)?;
         Ok(match expr {
             Expression::VariableReference(var) => var.name.into(),
-            Expression::TypeReference(ty) if ty.generic_parameters.len() == 0 => ty.name.into(),
+            Expression::TypeReference(TypeReference {
+                name: Typename::Identifier(name),
+                generic_parameters,
+            }) if generic_parameters.len() == 0 => name.into(),
             _ => expr.into(),
         })
     }

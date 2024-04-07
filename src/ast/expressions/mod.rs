@@ -209,7 +209,7 @@ impl Parse for Expression {
                 if t.as_str().chars().nth(0).unwrap().is_uppercase() {
                     TypeReference {
                         generic_parameters: vec![],
-                        name: t.clone(),
+                        name: t.clone().into(),
                     }
                     .into()
                 } else {

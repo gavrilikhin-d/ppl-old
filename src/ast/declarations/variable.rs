@@ -126,9 +126,9 @@ fn test_variable_declaration() {
         var,
         VariableDeclaration {
             keyword: Keyword::<"let">::at(0),
-            name: Identifier::from("x").at(4),
+            name: Identifier::from("x").at(4).into(),
             ty: Some(TypeReference {
-                name: Identifier::from("Integer").at(7),
+                name: Identifier::from("Integer").at(7).into(),
                 generic_parameters: vec![]
             }),
             initializer: Literal::Integer {
@@ -149,7 +149,7 @@ fn test_variable_declaration() {
             keyword: Keyword::<"let">::at(0),
             name: Identifier::from("x").at(8),
             ty: Some(TypeReference {
-                name: Identifier::from("Integer").at(11),
+                name: Identifier::from("Integer").at(11).into(),
                 generic_parameters: vec![]
             }),
             initializer: Literal::Integer {
