@@ -270,6 +270,8 @@ type Reference<T>
 
 /// Get reference to a value
 fn<T> reference to <ref: Reference<T>> => ref
+
+fn<T> dereference <ref: Reference<T>> -> T => ref
 //=================================
 
 //=================================
