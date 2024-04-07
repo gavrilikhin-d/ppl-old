@@ -288,7 +288,13 @@ impl ToHIR for ast::TypeReference {
 
     /// Lower [`ast::TypeReference`] to [`hir::TypeReference`] within lowering context
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
-        let ty = context.find_type(&self.name);
+        let name = match self.name {
+            ast::Typename::Identifier(ref name) => name.as_str(),
+            ast::Typename::Reference { mutable, .. } if mutable.is_some() => "ReferenceMut",
+            ast::Typename::Reference { .. } => "Reference",
+        };
+
+        let ty = context.find_type(name);
         if ty.is_none() {
             return Err(UnknownType {
                 name: self.name.clone().to_string(),

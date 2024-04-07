@@ -16,17 +16,17 @@ fn<T> <:Type<T>>[] -> Array<T>:
 
 // TODO: errors, if out of borders
 /// Get i-th element of an array
-fn<T> <array: Reference<Array<T>>> [ <i: Integer> ] -> Reference<T>:
+fn<T> <array: &Array<T>> [ <i: Integer> ] -> &T:
 	let address = array.data + i * (size of T)
 	return T at address
 
 // TODO: errors, if out of borders
 /// Get i-th element of an array
-fn<T> <array: ReferenceMut<Array<T>>> [ <i: Integer> ] -> ReferenceMut<T>:
+fn<T> <array: &mut Array<T>> [ <i: Integer> ] -> &mut T:
 	let address = array.data + i * (size of T)
 	return T at address
 
-fn<T> push <x: T> to <array: ReferenceMut<Array<T>>>:
+fn<T> push <x: T> to <array: &mut Array<T>>:
 	if array.size == array.capacity:
 		let new_capacity = array.capacity * 2
 		let new_data = allocate new_capacity T
@@ -43,5 +43,5 @@ fn<T> push <x: T> to <array: ReferenceMut<Array<T>>>:
 	value = x
 	array.size = array.size + 1
 
-fn<T> <array: Reference<Array<T>>> is empty => array.size == 0
-fn<T> <array: Reference<Array<T>>> is not empty => array.size > 0
+fn<T> <array: &Array<T>> is empty => array.size == 0
+fn<T> <array: &Array<T>> is not empty => array.size > 0

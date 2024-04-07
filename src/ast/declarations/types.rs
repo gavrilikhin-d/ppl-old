@@ -172,15 +172,15 @@ mod tests {
             TypeDeclaration {
                 keyword: Keyword::<"type">::at(0),
                 annotations: vec![],
-                name: Identifier::from("Point").at(5),
+                name: Identifier::from("Point").at(5).into(),
                 generic_parameters: vec![GenericParameter {
-                    name: Identifier::from("U").at(11),
+                    name: Identifier::from("U").at(11).into(),
                     constraint: None,
                 }],
                 members: vec![Member {
                     name: Identifier::from("x").at(16),
                     ty: TypeReference {
-                        name: Identifier::from("U").at(18),
+                        name: Identifier::from("U").at(18).into(),
                         generic_parameters: Vec::new(),
                     },
                 },],
@@ -193,20 +193,20 @@ mod tests {
         assert_eq!(
             type_decl,
             TypeDeclaration {
-                keyword: Keyword::<"type">::at(0),
+                keyword: Keyword::<"type">::at(0).into(),
                 annotations: vec![],
-                name: Identifier::from("Point").at(5),
+                name: Identifier::from("Point").at(5).into(),
                 generic_parameters: vec![GenericParameter {
-                    name: Identifier::from("U").at(11),
+                    name: Identifier::from("U").at(11).into(),
                     constraint: Some(TypeReference {
-                        name: Identifier::from("A").at(14),
+                        name: Identifier::from("A").at(14).into(),
                         generic_parameters: Vec::new()
                     })
                 }],
                 members: vec![Member {
-                    name: Identifier::from("x").at(19),
+                    name: Identifier::from("x").at(19).into(),
                     ty: TypeReference {
-                        name: Identifier::from("U").at(21),
+                        name: Identifier::from("U").at(21).into(),
                         generic_parameters: Vec::new(),
                     },
                 },],
@@ -221,23 +221,23 @@ mod tests {
             .unwrap();
 
         let ty = TypeReference {
-            name: Identifier::from("Integer").at(19),
+            name: Identifier::from("Integer").at(19).into(),
             generic_parameters: Vec::new(),
         };
         assert_eq!(
             type_decl,
             TypeDeclaration {
-                keyword: Keyword::<"type">::at(0),
+                keyword: Keyword::<"type">::at(0).into(),
                 annotations: vec![],
-                name: Identifier::from("Point").at(5),
+                name: Identifier::from("Point").at(5).into(),
                 generic_parameters: vec![],
                 members: vec![
                     Member {
-                        name: Identifier::from("x").at(13),
+                        name: Identifier::from("x").at(13).into(),
                         ty: ty.clone(),
                     },
                     Member {
-                        name: Identifier::from("y").at(16),
+                        name: Identifier::from("y").at(16).into(),
                         ty: ty.clone(),
                     },
                 ],
