@@ -27,12 +27,5 @@ jobs:
         version: "17.0"
     - name: Build compiler
       run: cargo build --verbose
-    - name: Build core library
-      run: >
-        cargo run --
-          compile src/runtime/ppl.ppl
-          --emit dynamic-library
-          --output-dir target/debug/deps
-          --no-core
     - name: Run tests
       run: cargo test --verbose
