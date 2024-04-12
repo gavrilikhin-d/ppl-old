@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::{ffi::c_char, io::Write};
 
 /// PPL's String type.
 /// Wrapper around pointer to [`std::string::String`].
@@ -19,7 +19,7 @@ pub struct String {
 /// Construct [`String`](ppl::semantics::Type::String) from a C string
 /// and length
 #[no_mangle]
-pub extern "C" fn string_from_c_string_and_length(str: *const i8, _len: u64) -> String {
+pub extern "C" fn string_from_c_string_and_length(str: *const c_char, _len: u64) -> String {
     let c_str = unsafe { core::ffi::CStr::from_ptr(str) };
     let str = c_str.to_str().unwrap();
     let boxed = Box::new(str.to_string());

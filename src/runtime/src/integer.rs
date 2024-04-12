@@ -1,3 +1,5 @@
+use std::ffi::c_char;
+
 use rug::ops::Pow;
 
 use crate::{Rational, String};
@@ -47,7 +49,7 @@ pub extern "C" fn integer_from_u64(value: u64) -> Integer {
 
 /// Construct [`Integer`](ppl::semantics::Type::Integer) from a C string
 #[no_mangle]
-pub extern "C" fn integer_from_c_string(str: *const i8) -> Integer {
+pub extern "C" fn integer_from_c_string(str: *const c_char) -> Integer {
     debug_assert!(!str.is_null());
 
     let c_str = unsafe { core::ffi::CStr::from_ptr(str) };
