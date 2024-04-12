@@ -10,13 +10,14 @@ use log::debug;
 use miette::NamedSource;
 use ppl::compilation::Compiler;
 use ppl::driver::commands::compile::OutputType;
-use ppl::driver::{self, Execute};
+use ppl::driver::{self, commands, Execute};
 use ppl::hir;
 use ppl::ir::HIRModuleLowering;
 use ppl::semantics::{Context, ModuleContext, Monomorphize, ToHIR};
 use ppl::syntax::{InteractiveLexer, Lexer, Parse};
 use ppl::Reporter;
 use ppl::{ast::*, SourceFile};
+use tempdir::TempDir;
 
 extern crate runtime;
 
@@ -73,11 +74,19 @@ fn repl() {
         .create_jit_execution_engine(OptimizationLevel::None)
         .unwrap();
 
-    // TODO: env var for runtime path
-    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let lib_path = manifest_dir
-        .join("target/debug/deps")
-        .join(OutputType::DynamicLibrary.named("ppl"));
+    let tmp = TempDir::new("ppl").unwrap();
+
+    let ppl_packet_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("ppl");
+    std::env::set_current_dir(&ppl_packet_dir).unwrap();
+
+    commands::Build {
+        output_dir: tmp.path().to_path_buf(),
+        output_type: None,
+    }
+    .execute()
+    .unwrap();
+
+    let lib_path = tmp.path().join(OutputType::DynamicLibrary.named("ppl"));
     inkwell::support::load_library_permanently(&lib_path).expect(&format!(
         "Failed to load core library at: {}",
         lib_path.display()

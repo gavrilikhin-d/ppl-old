@@ -1,3 +1,5 @@
+use std::ffi::c_char;
+
 use rug::{ops::Pow, Integer};
 
 use crate::String;
@@ -20,7 +22,7 @@ pub struct Rational {
 
 /// Construct [`Rational`](ppl::semantics::Type::Rational) from a C string
 #[no_mangle]
-pub extern "C" fn rational_from_c_string(str: *const i8) -> Rational {
+pub extern "C" fn rational_from_c_string(str: *const c_char) -> Rational {
     debug_assert!(!str.is_null());
 
     let c_str = unsafe { core::ffi::CStr::from_ptr(str) };
