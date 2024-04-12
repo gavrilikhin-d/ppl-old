@@ -152,6 +152,7 @@ impl Emit for Package {
         let lib_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/debug/deps");
         let lib = lib_path.to_str().unwrap();
 
+        trace!(target: "steps", "assembling {}", output_file.display());
         match output_type {
             OutputType::HIR => unreachable!("HIR is already written"),
             OutputType::IR => unreachable!("IR is already written"),
@@ -160,7 +161,13 @@ impl Emit for Package {
             OutputType::Object => clang.arg("-c"),
             OutputType::Assembler => clang.arg("-S"),
             OutputType::StaticLibrary => clang.args(&["-c", "-fPIC"]),
-            OutputType::DynamicLibrary => clang.arg("-dynamiclib"),
+            OutputType::DynamicLibrary => {
+                if cfg!(target_os = "macos") {
+                    clang.arg("-dynamiclib")
+                } else {
+                    clang.args(&["-shared", "-fPIC"])
+                }
+            }
             OutputType::Executable => &mut clang,
         }
         .args(&["-L", lib, "-lruntime"])
@@ -171,6 +178,8 @@ impl Emit for Package {
         .arg("-g")
         .arg("-fsanitize=address")
         .status()
+        .map_err(|e| miette!("{output_file:?}: {e}"))?
+        .exit_ok()
         .map_err(|e| miette!("{output_file:?}: {e}"))?;
 
         Ok(output_file)
