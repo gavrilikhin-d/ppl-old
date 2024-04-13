@@ -63,6 +63,15 @@ impl Generic for ParameterOrVariable {
     }
 }
 
+impl Ranged for ParameterOrVariable {
+    fn range(&self) -> std::ops::Range<usize> {
+        match self {
+            ParameterOrVariable::Variable(variable) => variable.range(),
+            ParameterOrVariable::Parameter(parameter) => parameter.range(),
+        }
+    }
+}
+
 /// AST for variable reference
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VariableReference {
