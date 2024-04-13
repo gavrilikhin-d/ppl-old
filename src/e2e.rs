@@ -9,6 +9,8 @@ macro_rules! e2e {
             use insta::assert_snapshot;
             use tempdir::TempDir;
 
+            use miette::miette;
+
             // Compile-time check that file exists
             include_bytes!(concat!(stringify!($name), "/src/main.ppl"));
 
@@ -23,14 +25,15 @@ macro_rules! e2e {
                 return;
             }
 
-            let run_log = $crate::e2e::internal::run(&temp_dir, name, &dir);
-            assert_snapshot!(concat!(stringify!($name), ".run"), run_log);
-
             let hir = $crate::e2e::internal::hir(&temp_dir, name, &dir);
             assert_snapshot!(concat!(stringify!($name), ".hir"), hir);
 
             let ir = $crate::e2e::internal::ir(&temp_dir, name, &dir);
             assert_snapshot!(concat!(stringify!($name), ".ir"), ir);
+
+            let (run_log, status) = $crate::e2e::internal::run(&temp_dir, name, &dir);
+            assert_snapshot!(concat!(stringify!($name), ".run"), run_log);
+            status.exit_ok().map_err(|e| miette!("{e}")).unwrap();
         }
     };
 }
@@ -46,11 +49,13 @@ macro_rules! e2es {
 
 #[cfg(test)]
 pub mod internal {
-    use std::path::Path;
+    use std::{path::Path, process::ExitStatus};
 
     use tempdir::TempDir;
 
     use crate::driver::commands::compile::OutputType;
+
+    use miette::miette;
 
     pub fn compile(temp_dir: &TempDir, dir: &Path) -> Result<(), String> {
         let temp_dir_path = temp_dir.path().to_str().unwrap();
@@ -61,7 +66,8 @@ pub mod internal {
             .args(&["--output-dir", temp_dir_path])
             .current_dir(dir)
             .output()
-            .expect("failed to run command");
+            .map_err(|e| miette!("{e}"))
+            .unwrap();
 
         let stderr = String::from_utf8(output.stderr).expect("stderr is not utf8");
         if !stderr.is_empty() {
@@ -79,6 +85,7 @@ pub mod internal {
             .args(&["--emit", "hir"])
             .current_dir(dir)
             .status()
+            .map_err(|e| miette!("{e}"))
             .unwrap();
 
         let hir = temp_dir.path().join(OutputType::HIR.named(name));
@@ -94,6 +101,7 @@ pub mod internal {
             .args(&["--emit", "ir"])
             .current_dir(dir)
             .status()
+            .map_err(|e| miette!("{e}"))
             .unwrap();
 
         let ir = temp_dir.path().join(OutputType::IR.named(name));
@@ -101,21 +109,20 @@ pub mod internal {
         std::fs::read_to_string(&ir).expect("failed to read IR")
     }
 
-    pub fn run(temp_dir: &TempDir, name: &str, dir: &Path) -> String {
+    pub fn run(temp_dir: &TempDir, name: &str, dir: &Path) -> (String, ExitStatus) {
         let exe = temp_dir.path().join(OutputType::Executable.named(name));
 
         let output = std::process::Command::new(exe)
             .current_dir(&dir)
             .output()
-            .expect("failed to run executable");
+            .map_err(|e| miette!("{e}"))
+            .unwrap();
 
         let stdout = String::from_utf8(output.stdout).expect("stdout is not utf8");
         let stderr = String::from_utf8(output.stderr).expect("stderr is not utf8");
 
         let run_log = format!("{stdout}{stderr}");
 
-        output.status.exit_ok().unwrap();
-
-        run_log
+        (run_log, output.status)
     }
 }
