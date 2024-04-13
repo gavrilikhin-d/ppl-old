@@ -100,9 +100,12 @@ impl Emit for Package {
 
         let module = self.data(compiler).modules.first().unwrap().clone();
         if output_type == OutputType::HIR {
-            let hir = module.data(compiler).to_string();
-            fs::write(&output_file, hir)
-                .map_err(|e| miette!("Can't write {output_file:?}: {e}"))?;
+            let modules = self.data(compiler).modules.clone();
+            for m in modules {
+                let hir = m.data(compiler).to_string();
+                let hir_file = output_dir.join(OutputType::HIR.named(&m.data(compiler).name()));
+                fs::write(&hir_file, hir).map_err(|e| miette!("Can't write {hir_file:?}: {e}"))?;
+            }
             return Ok(output_file);
         }
 
