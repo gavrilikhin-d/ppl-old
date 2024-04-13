@@ -5,7 +5,7 @@ expression: err
 Error: lexer::invalid_indentation
 
   × using spaces instead of tabs for indentation
-   ╭─[/Users/gavrilikhin_d/Code/ppl/src/tests/invalid_indentation/src/main.ppl:2:1]
+   ╭─[src/main.ppl:2:1]
  1 │ loop:
  2 │     println "Spaces suck"
    · ──┬─

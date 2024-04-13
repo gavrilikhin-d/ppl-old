@@ -230,6 +230,7 @@ impl Compiler {
         Ok(module)
     }
 
+    /// Locates package by name. Returns relative path (except for `ppl` package)
     fn locate_package(&mut self, package: &str) -> miette::Result<PathBuf> {
         if package == "ppl" {
             return Ok(Self::PPL_PACKAGE.into());
@@ -237,10 +238,10 @@ impl Compiler {
 
         let cwd = current_dir().unwrap();
         if cwd.is_dir() && cwd.ends_with(package) {
-            return Ok(cwd);
+            return Ok("".into());
         }
 
-        let dep = cwd.join("dependencies").join(package);
+        let dep = Path::new("dependencies").join(package);
         if dep.is_dir() {
             return Ok(dep);
         }
