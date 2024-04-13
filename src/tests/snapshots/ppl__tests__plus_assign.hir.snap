@@ -9,3 +9,5 @@ println clone (value:Rational)
 println clone (value:Rational)
 (&str:ReferenceMut<String>) += " World!"
 println clone (str:String)
+destroy (value:Rational)
+destroy (str:String)

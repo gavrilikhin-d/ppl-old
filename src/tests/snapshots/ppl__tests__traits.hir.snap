@@ -11,7 +11,9 @@ trait Test:
 
 
 fn required <x: Integer> -> None:
+destroy (x:Integer)
 	return none
 
 let res: Integer = default 1
 println clone (res:Integer)
+destroy (res:Integer)

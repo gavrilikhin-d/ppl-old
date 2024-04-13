@@ -3,10 +3,13 @@ source: src/tests/mod.rs
 expression: hir
 ---
 fn <x: Integer> plus two -> Integer:
+destroy (x:Integer)
 	return sum clone (x:Integer) 2
 
 
 fn sum <x: Integer> <y: Integer> -> Integer:
+destroy (x:Integer)
+destroy (y:Integer)
 	return clone (x:Integer) + clone (y:Integer)
 
 println 2 plus two

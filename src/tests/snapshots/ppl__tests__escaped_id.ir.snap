@@ -53,6 +53,8 @@ init_globals:
   call void @destroy_integer(%Integer %1), !dbg !14
   %2 = call %Integer @integer_from_i64(i64 2), !dbg !15
   store %Integer %2, ptr @if, align 8, !dbg !15
+  %3 = load %Integer, ptr @if, align 8, !dbg !16
+  call void @destroy_integer(%Integer %3), !dbg !16
   br label %return, !dbg !13
 
 return:                                           ; preds = %0
@@ -80,3 +82,4 @@ declare void @destroy_integer(%Integer)
 !13 = !DILocation(line: 0, column: 15, scope: !11)
 !14 = !DILocation(line: 1, scope: !11)
 !15 = !DILocation(line: 1, column: 7, scope: !11)
+!16 = !DILocation(line: 0, scope: !11)

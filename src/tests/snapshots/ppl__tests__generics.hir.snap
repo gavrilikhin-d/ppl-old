@@ -19,3 +19,4 @@ println clone (x:Integer) == 0
 println id 1 == 1
 println id "hello"
 id Point<Integer> { x: 0, y: 0 }
+destroy (x:Integer)

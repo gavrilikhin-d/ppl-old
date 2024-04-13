@@ -85,19 +85,23 @@ init_globals:
   %1 = load %Integer, ptr @y, align 8, !dbg !21
   %2 = call %Integer @clone_integer(%Integer %1), !dbg !21
   call void @"println <:Integer>"(%Integer %2), !dbg !21
+  %3 = load %Integer, ptr @x, align 8, !dbg !22
+  call void @destroy_integer(%Integer %3), !dbg !22
+  %4 = load %Integer, ptr @y, align 8, !dbg !23
+  call void @destroy_integer(%Integer %4), !dbg !23
   br label %return, !dbg !20
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @"println <:Integer>"(%Integer %0) !dbg !22 {
+define private void @"println <:Integer>"(%Integer %0) !dbg !24 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
-  %2 = load %Integer, ptr %x, align 8, !dbg !23
-  %3 = call %String @integer_as_string(%Integer %2), !dbg !23
-  call void @"println <:String>"(%String %3), !dbg !23
-  br label %return, !dbg !23
+  %2 = load %Integer, ptr %x, align 8, !dbg !25
+  %3 = call %String @integer_as_string(%Integer %2), !dbg !25
+  call void @"println <:String>"(%String %3), !dbg !25
+  br label %return, !dbg !25
 
 return:                                           ; preds = %1
   ret void
@@ -108,6 +112,8 @@ declare void @"println <:String>"(%String)
 declare %String @integer_as_string(%Integer)
 
 declare %Integer @clone_integer(%Integer)
+
+declare void @destroy_integer(%Integer)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
@@ -134,5 +140,7 @@ declare %Integer @clone_integer(%Integer)
 !19 = !DILocation(line: 0, column: 8, scope: !17)
 !20 = !DILocation(line: 3, column: 8, scope: !17)
 !21 = !DILocation(line: 6, column: 8, scope: !17)
-!22 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !17, file: !2, line: 6, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!23 = !DILocation(line: 6, column: 9, scope: !22)
+!22 = !DILocation(line: 0, scope: !17)
+!23 = !DILocation(line: 3, scope: !17)
+!24 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !17, file: !2, line: 6, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!25 = !DILocation(line: 6, column: 9, scope: !24)

@@ -37,34 +37,42 @@ define %Integer @"<:Integer> plus two"(%Integer %0) !dbg !9 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !10
-  %3 = call %Integer @clone_integer(%Integer %2), !dbg !10
-  %4 = call %Integer @integer_from_i64(i64 2), !dbg !11
-  %5 = call %Integer @"sum <:Integer> <:Integer>"(%Integer %3, %Integer %4), !dbg !11
-  store %Integer %5, ptr %return_value, align 8, !dbg !11
-  br label %return, !dbg !11
+  call void @destroy_integer(%Integer %2), !dbg !10
+  %3 = load %Integer, ptr %x, align 8, !dbg !11
+  %4 = call %Integer @clone_integer(%Integer %3), !dbg !11
+  %5 = call %Integer @integer_from_i64(i64 2), !dbg !12
+  %6 = call %Integer @"sum <:Integer> <:Integer>"(%Integer %4, %Integer %5), !dbg !12
+  store %Integer %6, ptr %return_value, align 8, !dbg !12
+  br label %return, !dbg !12
 
 return:                                           ; preds = %1
-  %6 = load %Integer, ptr %return_value, align 8
-  ret %Integer %6
+  %7 = load %Integer, ptr %return_value, align 8
+  ret %Integer %7
 }
 
-define %Integer @"sum <:Integer> <:Integer>"(%Integer %0, %Integer %1) !dbg !12 {
+declare void @destroy_integer(%Integer)
+
+define %Integer @"sum <:Integer> <:Integer>"(%Integer %0, %Integer %1) !dbg !13 {
   %return_value = alloca %Integer, align 8
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %y = alloca %Integer, align 8
   store %Integer %1, ptr %y, align 8
-  %3 = load %Integer, ptr %x, align 8, !dbg !13
-  %4 = call %Integer @clone_integer(%Integer %3), !dbg !13
-  %5 = load %Integer, ptr %y, align 8, !dbg !14
-  %6 = call %Integer @clone_integer(%Integer %5), !dbg !14
-  %7 = call %Integer @integer_plus_integer(%Integer %4, %Integer %6), !dbg !14
-  store %Integer %7, ptr %return_value, align 8, !dbg !14
-  br label %return, !dbg !14
+  %3 = load %Integer, ptr %x, align 8, !dbg !14
+  call void @destroy_integer(%Integer %3), !dbg !14
+  %4 = load %Integer, ptr %y, align 8, !dbg !15
+  call void @destroy_integer(%Integer %4), !dbg !15
+  %5 = load %Integer, ptr %x, align 8, !dbg !16
+  %6 = call %Integer @clone_integer(%Integer %5), !dbg !16
+  %7 = load %Integer, ptr %y, align 8, !dbg !17
+  %8 = call %Integer @clone_integer(%Integer %7), !dbg !17
+  %9 = call %Integer @integer_plus_integer(%Integer %6, %Integer %8), !dbg !17
+  store %Integer %9, ptr %return_value, align 8, !dbg !17
+  br label %return, !dbg !17
 
 return:                                           ; preds = %2
-  %8 = load %Integer, ptr %return_value, align 8
-  ret %Integer %8
+  %10 = load %Integer, ptr %return_value, align 8
+  ret %Integer %10
 }
 
 declare %Integer @clone_integer(%Integer)
@@ -73,28 +81,28 @@ declare %Integer @"sum <:Integer> <:Integer>.1"(%Integer, %Integer)
 
 declare %Integer @integer_plus_integer(%Integer, %Integer)
 
-define void @main.execute() !dbg !15 {
+define void @main.execute() !dbg !18 {
 init_globals:
-  call void @initialize(), !dbg !16
-  br label %0, !dbg !16
+  call void @initialize(), !dbg !19
+  br label %0, !dbg !19
 
 0:                                                ; preds = %init_globals
-  %1 = call %Integer @integer_from_i64(i64 2), !dbg !17
-  %2 = call %Integer @"<:Integer> plus two"(%Integer %1), !dbg !17
-  call void @"println <:Integer>"(%Integer %2), !dbg !17
-  br label %return, !dbg !16
+  %1 = call %Integer @integer_from_i64(i64 2), !dbg !20
+  %2 = call %Integer @"<:Integer> plus two"(%Integer %1), !dbg !20
+  call void @"println <:Integer>"(%Integer %2), !dbg !20
+  br label %return, !dbg !19
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @"println <:Integer>"(%Integer %0) !dbg !18 {
+define private void @"println <:Integer>"(%Integer %0) !dbg !21 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
-  %2 = load %Integer, ptr %x, align 8, !dbg !19
-  %3 = call %String @integer_as_string(%Integer %2), !dbg !19
-  call void @"println <:String>"(%String %3), !dbg !19
-  br label %return, !dbg !19
+  %2 = load %Integer, ptr %x, align 8, !dbg !22
+  %3 = call %String @integer_as_string(%Integer %2), !dbg !22
+  call void @"println <:String>"(%String %3), !dbg !22
+  br label %return, !dbg !22
 
 return:                                           ; preds = %1
   ret void
@@ -117,13 +125,16 @@ declare %String @integer_as_string(%Integer)
 !7 = !DILocation(line: 4, column: 20, scope: !3)
 !8 = !DILocation(line: 0, scope: !3)
 !9 = distinct !DISubprogram(name: "<:Integer> plus two", linkageName: "<:Integer> plus two", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!10 = !DILocation(line: 0, column: 32, scope: !9)
-!11 = !DILocation(line: 0, column: 34, scope: !9)
-!12 = distinct !DISubprogram(name: "sum <:Integer> <:Integer>", linkageName: "sum <:Integer> <:Integer>", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!13 = !DILocation(line: 2, column: 47, scope: !12)
-!14 = !DILocation(line: 2, column: 51, scope: !12)
-!15 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!16 = !DILocation(line: 4, column: 20, scope: !15)
-!17 = !DILocation(line: 4, column: 9, scope: !15)
-!18 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !15, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!10 = !DILocation(line: 0, column: 3, scope: !9)
+!11 = !DILocation(line: 0, column: 32, scope: !9)
+!12 = !DILocation(line: 0, column: 34, scope: !9)
+!13 = distinct !DISubprogram(name: "sum <:Integer> <:Integer>", linkageName: "sum <:Integer> <:Integer>", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!14 = !DILocation(line: 2, column: 7, scope: !13)
+!15 = !DILocation(line: 2, column: 20, scope: !13)
+!16 = !DILocation(line: 2, column: 47, scope: !13)
+!17 = !DILocation(line: 2, column: 51, scope: !13)
+!18 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !19 = !DILocation(line: 4, column: 20, scope: !18)
+!20 = !DILocation(line: 4, column: 9, scope: !18)
+!21 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !18, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!22 = !DILocation(line: 4, column: 20, scope: !21)

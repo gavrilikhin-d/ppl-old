@@ -13,3 +13,5 @@ fn get y -> Integer:
 	return (y:Integer)
 
 println clone (y:Integer)
+destroy (x:Integer)
+destroy (y:Integer)

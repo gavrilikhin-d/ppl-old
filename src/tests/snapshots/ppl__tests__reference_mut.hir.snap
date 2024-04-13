@@ -8,3 +8,4 @@ println (*y:Integer)
 (y:ReferenceMut<Integer>) = 2
 println (*y:Integer)
 println clone (x:Integer)
+destroy (x:Integer)

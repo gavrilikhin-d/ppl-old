@@ -10,3 +10,5 @@ destroy (y:Integer)
 (y:Integer) = 2
 println clone (x:Integer)
 println clone (y:Integer)
+destroy (x:Integer)
+destroy (y:Integer)

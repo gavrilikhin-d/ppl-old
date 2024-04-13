@@ -76,19 +76,21 @@ init_globals:
   %3 = call %Integer @integer_from_i64(i64 1), !dbg !20
   %4 = call i1 @integer_eq_integer(%Integer %2, %Integer %3), !dbg !20
   call void @"println <:Bool>"(i1 %4), !dbg !20
+  %5 = load %Integer, ptr @x, align 8, !dbg !21
+  call void @destroy_integer(%Integer %5), !dbg !21
   br label %return, !dbg !18
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @"println <:Bool>"(i1 %0) !dbg !21 {
+define private void @"println <:Bool>"(i1 %0) !dbg !22 {
   %x = alloca i1, align 1
   store i1 %0, ptr %x, align 1
-  %2 = load i1, ptr %x, align 1, !dbg !22
-  %3 = call %String @"String from <:Bool>"(i1 %2), !dbg !22
-  call void @"println <:String>"(%String %3), !dbg !22
-  br label %return, !dbg !22
+  %2 = load i1, ptr %x, align 1, !dbg !23
+  %3 = call %String @"String from <:Bool>"(i1 %2), !dbg !23
+  call void @"println <:String>"(%String %3), !dbg !23
+  br label %return, !dbg !23
 
 return:                                           ; preds = %1
   ret void
@@ -99,6 +101,8 @@ declare void @"println <:String>"(%String)
 declare %String @"String from <:Bool>"(i1)
 
 declare i1 @integer_eq_integer(%Integer, %Integer)
+
+declare void @destroy_integer(%Integer)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
@@ -124,5 +128,6 @@ declare i1 @integer_eq_integer(%Integer, %Integer)
 !18 = !DILocation(line: 4, column: 8, scope: !15)
 !19 = !DILocation(line: 5, column: 8, scope: !15)
 !20 = !DILocation(line: 5, column: 13, scope: !15)
-!21 = distinct !DISubprogram(name: "println <:Bool>", linkageName: "println <:Bool>", scope: !15, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!22 = !DILocation(line: 5, column: 14, scope: !21)
+!21 = !DILocation(line: 4, scope: !15)
+!22 = distinct !DISubprogram(name: "println <:Bool>", linkageName: "println <:Bool>", scope: !15, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!23 = !DILocation(line: 5, column: 14, scope: !22)
