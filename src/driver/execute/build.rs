@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use cmd_lib::run_cmd;
+use cmd_lib::{run_cmd, run_fun};
 use log::{debug, trace};
 use miette::{bail, miette};
 use tempdir::TempDir;
@@ -80,7 +80,10 @@ impl Emit for Package {
     ) -> miette::Result<PathBuf> {
         let name = &self.data(compiler).name;
         let filename = output_type.named(name);
-        let output_file = output_dir.join(&filename);
+        let output_file = output_dir
+            .canonicalize()
+            .map_err(|e| miette!("Can't canonicalize output folder: {e}"))?
+            .join(&filename);
 
         let dependencies = self.data(compiler).dependencies.clone();
         let dependencies: Vec<_> = dependencies
@@ -98,7 +101,8 @@ impl Emit for Package {
         let module = self.data(compiler).modules.first().unwrap().clone();
         if output_type == OutputType::HIR {
             let hir = module.data(compiler).to_string();
-            fs::write(&output_file, hir).map_err(|e| miette!("{output_file:?}: {e}"))?;
+            fs::write(&output_file, hir)
+                .map_err(|e| miette!("Can't write {output_file:?}: {e}"))?;
             return Ok(output_file);
         }
 
@@ -108,11 +112,12 @@ impl Emit for Package {
         let ir = module.data(compiler).to_ir(&llvm, with_main, module);
         debug!(target: "ir", "{}", ir.to_string());
         if output_type == OutputType::IR {
-            fs::write(&output_file, ir.to_string()).map_err(|e| miette!("{output_file:?}: {e}"))?;
+            fs::write(&output_file, ir.to_string())
+                .map_err(|e| miette!("Can't write {output_file:?}: {e}"))?;
             return Ok(output_file);
         }
 
-        let temp_dir = TempDir::new("ppl").unwrap();
+        let temp_dir = TempDir::new("ppl").map_err(|e| miette!("Can't create tmp folder: {e}"))?;
 
         let bitcode = temp_dir.path().join(filename).with_extension("bc");
         let path = module
@@ -125,7 +130,13 @@ impl Emit for Package {
 
         ir.write_bitcode_to_path(&bitcode);
         if output_type == OutputType::Bitcode {
-            std::fs::copy(bitcode, output_file.with_extension("bc")).unwrap();
+            fs::copy(&bitcode, &output_file).map_err(|e| {
+                miette!(
+                    "Can't copy {} to {}: {e}",
+                    bitcode.display(),
+                    output_file.display()
+                )
+            })?;
             return Ok(output_file);
         }
 
@@ -148,12 +159,17 @@ impl Emit for Package {
             .chain(std::iter::once(bitcode.to_string_lossy().to_string()))
             .collect();
 
-        let mut clang = std::process::Command::new("clang");
+        let mut clang = std::process::Command::new("clang-17");
+
+        let clang_version = run_fun!("clang-17" "--version")
+            .map_err(|e| miette!("Valid clang-17 installation not found in path: {e}"))?;
+        debug!(target: "clang", "clang version: {}", clang_version);
+
         let lib_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/debug/deps");
         let lib = lib_path.to_str().unwrap();
 
         trace!(target: "steps", "assembling {}", output_file.display());
-        match output_type {
+        let command = match output_type {
             OutputType::HIR => unreachable!("HIR is already written"),
             OutputType::IR => unreachable!("IR is already written"),
             OutputType::Bitcode => unreachable!("IR is already written"),
@@ -173,14 +189,22 @@ impl Emit for Package {
         .args(&["-L", lib, "-lruntime"])
         .args(&bitcodes)
         .args(dependencies)
-        .args(&["-o", output_file.to_str().unwrap()])
         .arg("-Wno-override-module")
         .arg("-g")
         .arg("-fsanitize=address")
-        .status()
-        .map_err(|e| miette!("{output_file:?}: {e}"))?
-        .exit_ok()
-        .map_err(|e| miette!("{output_file:?}: {e}"))?;
+        .args(&["-o", output_file.to_str().unwrap()]);
+
+        trace!(target: "steps", "running {:?}", command);
+        command
+            .status()
+            .map_err(|e| miette!("Error while assembling {}: {e}", output_file.display()))?
+            .exit_ok()
+            .map_err(|e| {
+                miette!(
+                    "Error in exit status for assembling {}: {e}",
+                    output_file.display()
+                )
+            })?;
 
         Ok(output_file)
     }
