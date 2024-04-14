@@ -53,10 +53,8 @@ fn with_destructors(
                             .else_ifs
                             .iter()
                             .map(|else_if| hir::ElseIf {
-                                else_keyword: else_if.else_keyword.clone(),
-                                if_keyword: else_if.if_keyword.clone(),
-                                condition: else_if.condition.clone(),
                                 body: with_destructors(&else_if.body, kill.clone(), context),
+                                ..else_if.clone()
                             })
                             .collect(),
                         ..if_stmt.clone()
@@ -133,10 +131,8 @@ pub trait InsertDestructors {
 
 impl InsertDestructors for hir::ModuleData {
     fn insert_destructors(&mut self, context: &mut impl Context) {
-        for func in self.iter_functions_mut() {
-            trace!(target: "steps", "Inserting destructors in: {func}");
-            func.insert_destructors(context);
-        }
+        self.iter_functions_mut()
+            .for_each(|f| f.insert_destructors(context));
         let kill = vec![];
         self.statements = with_destructors(&self.statements, kill, context);
     }
@@ -144,8 +140,16 @@ impl InsertDestructors for hir::ModuleData {
 
 impl InsertDestructors for Function {
     fn insert_destructors(&mut self, context: &mut impl Context) {
+        if !self.read().unwrap().is_definition() {
+            return;
+        }
+
+        trace!(target: "steps", "Inserting destructors in: {self}");
+
         let kill = self.read().unwrap().parameters().map(Into::into).collect();
         let body = with_destructors(&self.read().unwrap().body, kill, context);
         self.write().unwrap().body = body;
+
+        trace!(target: "steps", "After inserting destructors: {self}");
     }
 }
