@@ -2,7 +2,8 @@ use log::trace;
 
 use crate::{
     hir::{
-        self, Call, Expression, Function, ParameterOrVariable, Statement, Typed, VariableReference,
+        self, Call, Expression, FunctionData, ParameterOrVariable, Statement, Typed,
+        VariableReference,
     },
     syntax::Ranged,
 };
@@ -85,6 +86,10 @@ fn with_destructors(
                 decls.push(v.clone().into());
                 new_statements.push(stmt.clone());
             }
+            Declaration(hir::Declaration::Function(f)) => {
+                f.write().unwrap().insert_destructors(context);
+                new_statements.push(stmt.clone());
+            }
             Return(ret) => {
                 if let Some(hir::Expression::VariableReference(VariableReference {
                     variable,
@@ -131,24 +136,21 @@ pub trait InsertDestructors {
 
 impl InsertDestructors for hir::ModuleData {
     fn insert_destructors(&mut self, context: &mut impl Context) {
-        self.iter_functions_mut()
-            .for_each(|f| f.insert_destructors(context));
         let kill = vec![];
         self.statements = with_destructors(&self.statements, kill, context);
     }
 }
 
-impl InsertDestructors for Function {
+impl InsertDestructors for FunctionData {
     fn insert_destructors(&mut self, context: &mut impl Context) {
-        if !self.read().unwrap().is_definition() {
+        if !self.is_definition() {
             return;
         }
 
         trace!(target: "steps", "Inserting destructors in: {self}");
 
-        let kill = self.read().unwrap().parameters().map(Into::into).collect();
-        let body = with_destructors(&self.read().unwrap().body, kill, context);
-        self.write().unwrap().body = body;
+        let kill = self.parameters().map(Into::into).collect();
+        self.body = with_destructors(&self.body, kill, context);
 
         trace!(target: "steps", "After inserting destructors: {self}");
     }
