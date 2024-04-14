@@ -77,7 +77,7 @@ pub mod internal {
         Ok(())
     }
 
-    pub fn hir(temp_dir: &TempDir, name: &str, dir: &Path) -> String {
+    pub fn hir(temp_dir: &TempDir, _name: &str, dir: &Path) -> String {
         let ppl = concat!(env!("CARGO_MANIFEST_DIR"), "/target/debug/ppl");
         std::process::Command::new(ppl)
             .args(&["build"])
@@ -88,7 +88,7 @@ pub mod internal {
             .map_err(|e| miette!("{e}"))
             .unwrap();
 
-        let hir = temp_dir.path().join(OutputType::HIR.named(name));
+        let hir = temp_dir.path().join(OutputType::HIR.named("main"));
 
         std::fs::read_to_string(&hir).expect("failed to read HIR")
     }
