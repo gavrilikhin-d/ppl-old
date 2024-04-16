@@ -68,6 +68,8 @@ init_globals:
   store ptr %2, ptr @x, align 8, !dbg !17
   %3 = call %String @string_from_c_string_and_length(ptr @2, i64 4), !dbg !18
   call void @"println <:String>"(%String %3), !dbg !18
+  %4 = load ptr, ptr @x, align 8, !dbg !19
+  call void @"destroy <:Destructible>"(ptr %4), !dbg !19
   br label %return, !dbg !15
 
 return:                                           ; preds = %0
@@ -96,3 +98,4 @@ return:                                           ; preds = %0
 !16 = !DILocation(line: 5, scope: !13)
 !17 = !DILocation(line: 5, column: 4, scope: !13)
 !18 = !DILocation(line: 7, column: 8, scope: !13)
+!19 = !DILocation(line: 4, scope: !13)

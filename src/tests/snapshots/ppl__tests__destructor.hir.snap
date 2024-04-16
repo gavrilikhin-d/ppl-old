@@ -11,3 +11,4 @@ let mut x: Destructible = Destructible {  }
 destroy (x:Destructible)
 (x:Destructible) = Destructible {  }
 println "done"
+destroy (x:Destructible)
