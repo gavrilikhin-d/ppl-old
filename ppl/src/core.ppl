@@ -184,7 +184,7 @@ type String:
 @mangle_as("string_plus_string")
 fn <:String> + <:String> -> String
 
-/// Prints string to stdout with newline
+/// Prints string to stdout
 @mangle_as("print_string")
 fn print <:String>
 
