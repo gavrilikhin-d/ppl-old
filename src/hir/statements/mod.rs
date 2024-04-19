@@ -2,6 +2,7 @@ mod assignment;
 pub use assignment::*;
 
 mod ret;
+use derive_visitor::DriveMut;
 pub use ret::*;
 
 mod r#if;
@@ -18,10 +19,13 @@ pub use r#use::*;
 
 use derive_more::{Display, From, TryInto};
 
-use crate::{hir::{Declaration, Expression}, syntax::Ranged};
+use crate::{
+    hir::{Declaration, Expression},
+    syntax::Ranged,
+};
 
 /// Any PPL statement
-#[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto)]
+#[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto, DriveMut)]
 pub enum Statement {
     Declaration(Declaration),
     Expression(Expression),

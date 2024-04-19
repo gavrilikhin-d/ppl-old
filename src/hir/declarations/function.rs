@@ -4,6 +4,7 @@ use std::ops::Range;
 use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use derive_more::From;
+use derive_visitor::DriveMut;
 
 use crate::compilation::Module;
 use crate::hir::{FunctionType, Generic, Statement, Type, TypeReference, Typed};
@@ -14,13 +15,16 @@ use crate::syntax::{Identifier, Keyword, Ranged};
 use super::Trait;
 
 /// Declaration of a function parameter
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct Parameter {
     /// Type's name
+    #[drive(skip)]
     pub name: Identifier,
     /// Type of parameter
+    #[drive(skip)]
     pub ty: TypeReference,
     /// Range of the whole parameter
+    #[drive(skip)]
     pub range: Range<usize>,
 }
 
@@ -58,9 +62,11 @@ impl Mutable for Parameter {
 }
 
 /// Part of a function name
-#[derive(Debug, PartialEq, Eq, Clone, From)]
+#[derive(Debug, PartialEq, Eq, Clone, From, DriveMut)]
 pub enum FunctionNamePart {
+    #[drive(skip)]
     Text(Identifier),
+    #[drive(skip)]
     Parameter(Arc<Parameter>),
 }
 
@@ -145,32 +151,46 @@ impl Ranged for Function {
     }
 }
 
+impl DriveMut for Function {
+    fn drive_mut<V: derive_visitor::VisitorMut>(&mut self, visitor: &mut V) {
+        self.write().unwrap().drive_mut(visitor)
+    }
+}
+
 /// Declaration (or definition) of a function
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct FunctionData {
     /// Keyword `fn`
+    #[drive(skip)]
     pub keyword: Keyword<"fn">,
     /// Generic parameters of a function
+    #[drive(skip)]
     pub generic_types: Vec<Type>,
     /// Type's name
     pub name_parts: Vec<FunctionNamePart>,
     /// Type of returned value
+    #[drive(skip)]
     pub return_type: Type,
 
     /// Optional body of a function
     pub body: Vec<Statement>,
 
     /// Module where function is defined
+    #[drive(skip)]
     pub module: Module,
 
     /// Trait this function defined in
+    #[drive(skip)]
     pub tr: Option<Trait>,
 
     /// Mangled name to use instead of default
+    #[drive(skip)]
     pub(crate) mangled_name: Option<String>,
     /// Cached format for name of function
+    #[drive(skip)]
     pub(crate) name_format: String,
     /// Cached name of function
+    #[drive(skip)]
     pub(crate) name: String,
 }
 

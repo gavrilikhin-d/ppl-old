@@ -1,9 +1,14 @@
 use std::fmt::Display;
 
-use crate::{hir::Expression, syntax::{Keyword, Ranged}};
+use derive_visitor::DriveMut;
+
+use crate::{
+    hir::Expression,
+    syntax::{Keyword, Ranged},
+};
 
 /// Return statement
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub enum Return {
     /// Implicit return
     Implicit {
@@ -13,6 +18,7 @@ pub enum Return {
     /// Explicit return
     Explicit {
         /// Keyword `return`
+        #[drive(skip)]
         keyword: Keyword<"return">,
         /// Returned value
         value: Option<Expression>,
@@ -68,7 +74,9 @@ impl Ranged for Return {
     fn end(&self) -> usize {
         match self {
             Return::Implicit { value } => value.end(),
-            Return::Explicit { keyword, value,  } => value.as_ref().map_or(keyword.end(), |v| v.end()),
+            Return::Explicit { keyword, value } => {
+                value.as_ref().map_or(keyword.end(), |v| v.end())
+            }
         }
     }
 }

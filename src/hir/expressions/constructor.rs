@@ -1,3 +1,5 @@
+use derive_visitor::DriveMut;
+
 use crate::hir::{Generic, Member, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
@@ -8,13 +10,16 @@ use std::sync::Arc;
 
 use super::{Expression, TypeReference};
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct Initializer {
     /// Range of name of member reference
+    #[drive(skip)]
     pub span: Range<usize>,
     /// Index of referenced member
+    #[drive(skip)]
     pub index: usize,
     /// Initialized member
+    #[drive(skip)]
     pub member: Arc<Member>,
     /// Value to initialize with
     pub value: Expression,
@@ -48,13 +53,15 @@ impl Generic for Initializer {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct Constructor {
     /// Type of constructed object
+    #[drive(skip)]
     pub ty: TypeReference,
     /// Initializers of constructed object
     pub initializers: Vec<Initializer>,
     /// Location of rbrace
+    #[drive(skip)]
     pub rbrace: usize,
 }
 

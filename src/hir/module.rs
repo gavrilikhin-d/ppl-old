@@ -1,3 +1,4 @@
+use derive_visitor::DriveMut;
 use indexmap::IndexMap;
 use std::borrow::Cow;
 use std::fmt::Display;
@@ -42,18 +43,22 @@ pub type Format = String;
 pub type Name = String;
 
 /// Module with PPL code
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct ModuleData {
     /// Source file for this module
+    #[drive(skip)]
     pub source_file: SourceFile,
 
     /// Variables, visible in this module
+    #[drive(skip)]
     pub variables: IndexMap<Name, Variable>,
 
     /// Types, visible in this module
+    #[drive(skip)]
     pub types: IndexMap<Name, ClassOrTrait>,
 
     /// Functions, visible in this module
+    #[drive(skip)]
     pub functions: IndexMap<Format, IndexMap<Name, Function>>,
 
     /// Statements in this module
