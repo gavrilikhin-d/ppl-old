@@ -1,4 +1,6 @@
 mod assignment;
+use std::fmt::Debug;
+
 pub use assignment::*;
 
 mod ret;
@@ -24,6 +26,31 @@ use crate::{
     syntax::Ranged,
 };
 
+/// Block of statements
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
+pub struct Block {
+    pub statements: Vec<Statement>,
+}
+
+impl std::fmt::Display for Block {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for statement in &self.statements {
+            std::fmt::Display::fmt(&statement, f)?;
+        }
+        Ok(())
+    }
+}
+
+impl Ranged for Block {
+    fn start(&self) -> usize {
+        self.statements.first().unwrap().start()
+    }
+
+    fn end(&self) -> usize {
+        self.statements.last().unwrap().end()
+    }
+}
+
 /// Any PPL statement
 #[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto, DriveMut)]
 pub enum Statement {
@@ -35,6 +62,7 @@ pub enum Statement {
     Loop(Loop),
     While(While),
     Use(Use),
+    Block(Block),
 }
 
 impl Ranged for Statement {
@@ -48,6 +76,7 @@ impl Ranged for Statement {
             Statement::Loop(r#loop) => r#loop.range(),
             Statement::While(r#while) => r#while.range(),
             Statement::Use(r#use) => r#use.range(),
+            Statement::Block(block) => block.range(),
         }
     }
 }

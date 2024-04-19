@@ -75,6 +75,15 @@ fn with_destructors(statements: &[Statement], context: &mut impl Context) -> Vec
                 );
                 continue;
             }
+            Block(b) => {
+                new_statements.push(
+                    hir::Block {
+                        statements: with_destructors(&b.statements, context),
+                    }
+                    .into(),
+                );
+                continue;
+            }
             Expression(_) | Return(_) | Use(_) | Declaration(_) => { /* Do nothing */ }
         }
         new_statements.push(stmt.clone());
