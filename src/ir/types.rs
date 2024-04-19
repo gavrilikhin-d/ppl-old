@@ -83,8 +83,8 @@ impl<'llvm> Types<'llvm> {
 
     /// LLVM IR for [`Class`](Type::Class) type
     pub fn opaque(&self, name: &str) -> PointerType<'llvm> {
-        self.get_or_add_opaque_struct(name)
-            .ptr_type(AddressSpace::default())
+        self.get_or_add_opaque_struct(name);
+        self.llvm.ptr_type(AddressSpace::default())
     }
 
     /// LLVM IR for [`None`](Type::None) type
@@ -109,6 +109,6 @@ impl<'llvm> Types<'llvm> {
 
     /// LLVM IR for C string type
     pub fn c_string(&self) -> PointerType<'llvm> {
-        self.llvm.i8_type().ptr_type(AddressSpace::default())
+        self.llvm.ptr_type(AddressSpace::default())
     }
 }
