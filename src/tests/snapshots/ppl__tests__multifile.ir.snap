@@ -11,6 +11,7 @@ source_filename = "src/main.ppl"
 
 @"Type<String>" = private global %"Type<String>" zeroinitializer
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
+@"$tmp0@35" = global %String zeroinitializer
 @1 = private unnamed_addr constant [6 x i8] c"World\00", align 1
 
 define private void @initialize() !dbg !3 {
@@ -33,24 +34,35 @@ declare %String @string_from_c_string_and_length(ptr, i64)
 
 declare %Integer @integer_from_i64(i64)
 
-define void @main.execute() !dbg !9 {
-init_globals:
-  call void @initialize(), !dbg !10
-  br label %0, !dbg !10
-
-0:                                                ; preds = %init_globals
-  %1 = call %String @string_from_c_string_and_length(ptr @1, i64 5), !dbg !11
-  %"$tmp0@35" = alloca %String, align 8, !dbg !11
-  store %String %1, ptr %"$tmp0@35", align 8, !dbg !11
-  %2 = load %String, ptr %"$tmp0@35", align 8, !dbg !11
-  call void @"greet <:String>"(%String %2), !dbg !11
+define private void @initialize.1() !dbg !9 {
+  %1 = call %String @string_from_c_string_and_length(ptr @1, i64 5), !dbg !10
+  store %String %1, ptr @"$tmp0@35", align 8, !dbg !10
   br label %return, !dbg !10
 
 return:                                           ; preds = %0
   ret void
 }
 
+define void @main.execute() !dbg !11 {
+init_globals:
+  call void @initialize(), !dbg !12
+  call void @initialize.1(), !dbg !13
+  br label %0, !dbg !13
+
+0:                                                ; preds = %init_globals
+  %1 = load %String, ptr @"$tmp0@35", align 8, !dbg !13
+  call void @"greet <:String>"(%String %1), !dbg !13
+  %2 = load %String, ptr @"$tmp0@35", align 8, !dbg !13
+  call void @destroy_string(%String %2), !dbg !13
+  br label %return, !dbg !13
+
+return:                                           ; preds = %0
+  ret void
+}
+
 declare void @"greet <:String>"(%String)
+
+declare void @destroy_string(%String)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
@@ -64,6 +76,8 @@ declare void @"greet <:String>"(%String)
 !6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
 !7 = !DILocation(line: 2, column: 13, scope: !3)
 !8 = !DILocation(line: 0, scope: !3)
-!9 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!10 = !DILocation(line: 2, column: 13, scope: !9)
-!11 = !DILocation(line: 2, column: 6, scope: !9)
+!9 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!10 = !DILocation(line: 2, column: 6, scope: !9)
+!11 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!12 = !DILocation(line: 2, column: 13, scope: !11)
+!13 = !DILocation(line: 2, column: 6, scope: !11)

@@ -2,16 +2,22 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let x: Integer = 1
+let $tmp0@8: Integer = 1
+let x: Integer = ($tmp0@8:Integer)
 
 fn get x -> Integer:
 	return (x:Integer)
 
-let y: Integer = get x
+let $tmp0@33: Integer = get x
+let y: Integer = ($tmp0@33:Integer)
 
 fn get y -> Integer:
 	return (y:Integer)
 
-println clone (y:Integer)
+let $tmp0@62: Integer = clone (y:Integer)
+println ($tmp0@62:Integer)
+destroy ($tmp0@8:Integer)
 destroy (x:Integer)
+destroy ($tmp0@33:Integer)
 destroy (y:Integer)
+destroy ($tmp0@62:Integer)

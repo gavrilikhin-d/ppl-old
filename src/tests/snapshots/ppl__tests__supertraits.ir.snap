@@ -39,12 +39,16 @@ define void @"foo <:None>"() !dbg !9 {
   %"$tmp0@105" = alloca %String, align 8, !dbg !10
   store %String %1, ptr %"$tmp0@105", align 8, !dbg !10
   %2 = load %String, ptr %"$tmp0@105", align 8, !dbg !10
-  call void @print_string(%String %2), !dbg !10
+  call void @destroy_string(%String %2), !dbg !10
+  %3 = load %String, ptr %"$tmp0@105", align 8, !dbg !10
+  call void @print_string(%String %3), !dbg !10
   br label %return, !dbg !10
 
 return:                                           ; preds = %0
   ret void
 }
+
+declare void @destroy_string(%String)
 
 declare void @print_string(%String)
 
@@ -53,7 +57,9 @@ define void @"bar <:None>"() !dbg !11 {
   %"$tmp0@137" = alloca %String, align 8, !dbg !12
   store %String %1, ptr %"$tmp0@137", align 8, !dbg !12
   %2 = load %String, ptr %"$tmp0@137", align 8, !dbg !12
-  call void @"println <:String>"(%String %2), !dbg !12
+  call void @destroy_string(%String %2), !dbg !12
+  %3 = load %String, ptr %"$tmp0@137", align 8, !dbg !12
+  call void @"println <:String>"(%String %3), !dbg !12
   br label %return, !dbg !12
 
 return:                                           ; preds = %0

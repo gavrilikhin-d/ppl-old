@@ -6,3 +6,4 @@ use utils.*
 println do nothing
 let $tmp0@43: Integer = do something
 println ($tmp0@43:Integer)
+destroy ($tmp0@43:Integer)

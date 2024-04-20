@@ -5,5 +5,5 @@ expression: hir
 let $tmp0@19: Integer = 1
 let $tmp1@9: Type<Integer> = type of ($tmp0@19:Integer)
 let ty: Type<Integer> = ($tmp1@9:Type<Integer>)
-
 println (ty:Type<Integer>)
+destroy ($tmp0@19:Integer)

@@ -5,18 +5,18 @@ expression: hir
 let $tmp0@23: Integer = 1
 let $tmp1@14: MemoryAddress = allocate ($tmp0@23:Integer) (Type<Integer>:Type<Integer>)
 let address: MemoryAddress = ($tmp1@14:MemoryAddress)
-
 let $tmp0@41: ReferenceMut<Integer> = (Type<Integer>:Type<Integer>) at (address:MemoryAddress)
 let x: ReferenceMut<Integer> = ($tmp0@41:ReferenceMut<Integer>)
-
 let $tmp0@64: Integer = 0
 (x:ReferenceMut<Integer>) = ($tmp0@64:Integer)
-
 let $tmp0@74: Integer = (*x:Integer)
 println ($tmp0@74:Integer)
-
 let $tmp0@80: Integer = 1
 (x:ReferenceMut<Integer>) = ($tmp0@80:Integer)
-
 let $tmp0@90: Integer = (*x:Integer)
 println ($tmp0@90:Integer)
+destroy ($tmp0@23:Integer)
+destroy ($tmp0@64:Integer)
+destroy ($tmp0@74:Integer)
+destroy ($tmp0@80:Integer)
+destroy ($tmp0@90:Integer)

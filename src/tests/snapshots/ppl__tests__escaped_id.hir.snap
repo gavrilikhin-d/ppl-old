@@ -4,12 +4,9 @@ expression: hir
 ---
 let $tmp0@15: Integer = 1
 let mut if: Integer = ($tmp0@15:Integer)
-
 let $tmp0@24: Integer = 2
 destroy (if:Integer)
-<<<<<<< HEAD
-(if:Integer) = 2
-destroy (if:Integer)
-=======
 (if:Integer) = ($tmp0@24:Integer)
->>>>>>> tmp
+destroy ($tmp0@15:Integer)
+destroy (if:Integer)
+destroy ($tmp0@24:Integer)

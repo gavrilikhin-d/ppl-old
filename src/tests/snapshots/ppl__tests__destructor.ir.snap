@@ -12,6 +12,10 @@ source_filename = "src/main.ppl"
 @"Type<String>" = private global %"Type<String>" zeroinitializer
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
 @1 = private unnamed_addr constant [11 x i8] c"destructor\00", align 1
+@"$tmp0@83" = global ptr null
+@x = global ptr null
+@"$tmp0@103" = global ptr null
+@"$tmp0@128" = global %String zeroinitializer
 @2 = private unnamed_addr constant [5 x i8] c"done\00", align 1
 
 define private void @initialize() !dbg !3 {
@@ -39,52 +43,80 @@ define void @"destroy <:Destructible>"(ptr %0) !dbg !9 {
   %"$tmp0@57" = alloca %String, align 8, !dbg !10
   store %String %2, ptr %"$tmp0@57", align 8, !dbg !10
   %3 = load %String, ptr %"$tmp0@57", align 8, !dbg !10
-  call void @"println <:String>"(%String %3), !dbg !10
+  call void @destroy_string(%String %3), !dbg !10
+  %4 = load %String, ptr %"$tmp0@57", align 8, !dbg !10
+  call void @"println <:String>"(%String %4), !dbg !10
   br label %return, !dbg !10
 
 return:                                           ; preds = %1
   ret void
 }
 
+declare void @destroy_string(%String)
+
 declare void @"println <:String>"(%String)
 
-define void @main.execute() !dbg !11 {
+define private void @initialize.1() !dbg !11 {
+  %1 = alloca ptr, align 8, !dbg !12
+  store ptr %1, ptr @"$tmp0@83", align 8, !dbg !12
+  br label %return, !dbg !12
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define private void @initialize.2() !dbg !13 {
+  %1 = load ptr, ptr @"$tmp0@83", align 8, !dbg !14
+  store ptr %1, ptr @x, align 8, !dbg !14
+  br label %return, !dbg !14
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define private void @initialize.3() !dbg !15 {
+  %1 = alloca ptr, align 8, !dbg !16
+  store ptr %1, ptr @"$tmp0@103", align 8, !dbg !16
+  br label %return, !dbg !16
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define private void @initialize.4() !dbg !17 {
+  %1 = call %String @string_from_c_string_and_length(ptr @2, i64 4), !dbg !18
+  store %String %1, ptr @"$tmp0@128", align 8, !dbg !18
+  br label %return, !dbg !18
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define void @main.execute() !dbg !19 {
 init_globals:
-  call void @initialize(), !dbg !12
-  br label %0, !dbg !12
+  call void @initialize(), !dbg !20
+  call void @initialize.1(), !dbg !21
+  call void @initialize.2(), !dbg !21
+  call void @initialize.3(), !dbg !22
+  call void @initialize.4(), !dbg !23
+  br label %0, !dbg !23
 
 0:                                                ; preds = %init_globals
-<<<<<<< HEAD
-  %1 = load ptr, ptr @x, align 8, !dbg !16
-  call void @"destroy <:Destructible>"(ptr %1), !dbg !16
-  %2 = alloca ptr, align 8, !dbg !17
-  store ptr %2, ptr @x, align 8, !dbg !17
-  %3 = call %String @string_from_c_string_and_length(ptr @2, i64 4), !dbg !18
-  call void @"println <:String>"(%String %3), !dbg !18
-  %4 = load ptr, ptr @x, align 8, !dbg !19
-  call void @"destroy <:Destructible>"(ptr %4), !dbg !19
-  br label %return, !dbg !15
-=======
-  %1 = alloca ptr, align 8, !dbg !13
-  %"$tmp0@83" = alloca ptr, align 8, !dbg !13
-  store ptr %1, ptr %"$tmp0@83", align 8, !dbg !13
-  %2 = load ptr, ptr %"$tmp0@83", align 8, !dbg !13
-  %x = alloca ptr, align 8, !dbg !13
-  store ptr %2, ptr %x, align 8, !dbg !13
-  %3 = alloca ptr, align 8, !dbg !14
-  %"$tmp0@103" = alloca ptr, align 8, !dbg !14
-  store ptr %3, ptr %"$tmp0@103", align 8, !dbg !14
-  %4 = load ptr, ptr %x, align 8, !dbg !15
-  call void @"destroy <:Destructible>"(ptr %4), !dbg !15
-  %5 = load ptr, ptr %"$tmp0@103", align 8, !dbg !14
-  store ptr %5, ptr %x, align 8, !dbg !14
-  %6 = call %String @string_from_c_string_and_length(ptr @2, i64 4), !dbg !16
-  %"$tmp0@128" = alloca %String, align 8, !dbg !16
-  store %String %6, ptr %"$tmp0@128", align 8, !dbg !16
-  %7 = load %String, ptr %"$tmp0@128", align 8, !dbg !16
-  call void @"println <:String>"(%String %7), !dbg !16
-  br label %return, !dbg !12
->>>>>>> tmp
+  %1 = load ptr, ptr @x, align 8, !dbg !24
+  call void @"destroy <:Destructible>"(ptr %1), !dbg !24
+  %2 = load ptr, ptr @"$tmp0@103", align 8, !dbg !22
+  store ptr %2, ptr @x, align 8, !dbg !22
+  %3 = load %String, ptr @"$tmp0@128", align 8, !dbg !23
+  call void @"println <:String>"(%String %3), !dbg !23
+  %4 = load ptr, ptr @"$tmp0@83", align 8, !dbg !21
+  call void @"destroy <:Destructible>"(ptr %4), !dbg !21
+  %5 = load ptr, ptr @x, align 8, !dbg !25
+  call void @"destroy <:Destructible>"(ptr %5), !dbg !25
+  %6 = load ptr, ptr @"$tmp0@103", align 8, !dbg !22
+  call void @"destroy <:Destructible>"(ptr %6), !dbg !22
+  %7 = load %String, ptr @"$tmp0@128", align 8, !dbg !23
+  call void @destroy_string(%String %7), !dbg !23
+  br label %return, !dbg !23
 
 return:                                           ; preds = %0
   ret void
@@ -104,21 +136,18 @@ return:                                           ; preds = %0
 !8 = !DILocation(line: 0, scope: !3)
 !9 = distinct !DISubprogram(name: "destroy <:Destructible>", linkageName: "destroy <:Destructible>", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !10 = !DILocation(line: 2, column: 38, scope: !9)
-<<<<<<< HEAD
 !11 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !12 = !DILocation(line: 4, column: 12, scope: !11)
-!13 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!14 = !DILocation(line: 7, column: 14, scope: !13)
-!15 = !DILocation(line: 4, column: 12, scope: !13)
-!16 = !DILocation(line: 5, scope: !13)
-!17 = !DILocation(line: 5, column: 4, scope: !13)
-!18 = !DILocation(line: 7, column: 8, scope: !13)
-!19 = !DILocation(line: 4, scope: !13)
-=======
-!11 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!12 = !DILocation(line: 7, column: 14, scope: !11)
-!13 = !DILocation(line: 4, column: 12, scope: !11)
-!14 = !DILocation(line: 5, column: 4, scope: !11)
-!15 = !DILocation(line: 5, scope: !11)
-!16 = !DILocation(line: 7, column: 8, scope: !11)
->>>>>>> tmp
+!13 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !2, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!14 = !DILocation(line: 4, column: 12, scope: !13)
+!15 = distinct !DISubprogram(name: "initialize.3", linkageName: "initialize.3", scope: !2, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!16 = !DILocation(line: 5, column: 4, scope: !15)
+!17 = distinct !DISubprogram(name: "initialize.4", linkageName: "initialize.4", scope: !2, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!18 = !DILocation(line: 7, column: 8, scope: !17)
+!19 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!20 = !DILocation(line: 7, column: 14, scope: !19)
+!21 = !DILocation(line: 4, column: 12, scope: !19)
+!22 = !DILocation(line: 5, column: 4, scope: !19)
+!23 = !DILocation(line: 7, column: 8, scope: !19)
+!24 = !DILocation(line: 5, scope: !19)
+!25 = !DILocation(line: 4, scope: !19)

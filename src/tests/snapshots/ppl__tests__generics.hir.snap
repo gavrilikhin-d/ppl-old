@@ -16,35 +16,36 @@ let $tmp2@71: Point<Integer> = Point<Integer> { x: ($tmp0@82:Integer), y: ($tmp1
 let $tmp3@66: Integer = x of ($tmp2@71:Point<Integer>)
 let x: Integer = ($tmp3@66:Integer)
 
-
 fn<T> id <x: T> -> T:
 	return (x:T)
 
-<<<<<<< HEAD
-println clone (x:Integer) == 0
-println id 1 == 1
-println id "hello"
-id Point<Integer> { x: 0, y: 0 }
-destroy (x:Integer)
-=======
 let $tmp0@100: Integer = clone (x:Integer)
 let $tmp1@105: Integer = 0
 let $tmp2@100: Bool = ($tmp0@100:Integer) == ($tmp1@105:Integer)
 println ($tmp2@100:Bool)
-
 let $tmp0@142: Integer = 1
 let $tmp1@139: Integer = id ($tmp0@142:Integer)
 let $tmp2@148: Integer = 1
 let $tmp3@138: Bool = ($tmp1@139:Integer) == ($tmp2@148:Integer)
 println ($tmp3@138:Bool)
-
 let $tmp0@162: String = "hello"
 let $tmp1@159: String = id ($tmp0@162:String)
 println ($tmp1@159:String)
-
 let $tmp0@185: Integer = 0
 let $tmp1@191: Integer = 0
 let $tmp2@174: Point<Integer> = Point<Integer> { x: ($tmp0@185:Integer), y: ($tmp1@191:Integer) }
 let $tmp3@171: Point<Integer> = id ($tmp2@174:Point<Integer>)
 $tmp3@171
->>>>>>> tmp
+destroy ($tmp0@82:Integer)
+destroy ($tmp1@88:Integer)
+destroy ($tmp3@66:Integer)
+destroy (x:Integer)
+destroy ($tmp0@100:Integer)
+destroy ($tmp1@105:Integer)
+destroy ($tmp0@142:Integer)
+destroy ($tmp1@139:Integer)
+destroy ($tmp2@148:Integer)
+destroy ($tmp0@162:String)
+destroy ($tmp1@159:String)
+destroy ($tmp0@185:Integer)
+destroy ($tmp1@191:Integer)

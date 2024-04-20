@@ -5,6 +5,5 @@ expression: hir
 type A
 let $tmp0@15: A = A {  }
 let a: A = ($tmp0@15:A)
-
 let $tmp0@29: Type<A> = type of (a:A)
 println ($tmp0@29:Type<A>)
