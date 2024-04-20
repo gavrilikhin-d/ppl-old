@@ -727,6 +727,11 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Statement {
         trace!(target: "to_ir", "{self}");
 
         match self {
+            Statement::Block(b) => {
+                for stmt in &b.statements {
+                    stmt.to_ir(context);
+                }
+            }
             Statement::Declaration(d) => d.to_ir(context),
 
             Statement::Assignment(_)
@@ -768,6 +773,11 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Statement {
         trace!(target: "to_ir", "{self}");
 
         match self {
+            Statement::Block(b) => {
+                for stmt in &b.statements {
+                    stmt.to_ir(context);
+                }
+            }
             Statement::Declaration(d) => d.to_ir(context),
             Statement::Assignment(a) => {
                 a.to_ir(context);

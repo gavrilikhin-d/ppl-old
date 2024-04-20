@@ -24,12 +24,13 @@ pretty_assertions = "1.4.0"
 unescaper = "0.1.4"
 tempdir = "0.3.7"
 indexmap = "2.2.6"
-gimli = { version = "0.28.1", default-features = false }
+gimli = { version = "0.29.0", default-features = false }
 insta = "1.38.0"
 cmd_lib = "1.9.3"
+derive-visitor = "0.3.0"
 
 [build-dependencies]
 clap = { version = "4.5.4", features = ["derive"] }
-clap_complete = "4.5.1"
+clap_complete = "4.5.2"
 clap_complete_fig = "4.5.0"
 derive_more = "0.99.17"

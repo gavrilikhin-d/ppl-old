@@ -5,4 +5,6 @@ expression: hir
 type Point<U>:
 	x: U
 
-Point<Integer> { x: 1 }
+let $tmp0@42: Integer = 1
+let $tmp1@22: Point<Integer> = Point<Integer> { x: ($tmp0@42:Integer) }
+$tmp1@22

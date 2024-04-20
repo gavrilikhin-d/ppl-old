@@ -1,9 +1,11 @@
 use std::fmt::Display;
 
+use derive_visitor::DriveMut;
+
 use crate::{hir::Expression, syntax::Ranged};
 
 /// Assignment of a value to a reference
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct Assignment {
     /// Reference to assign to
     pub target: Expression,

@@ -2,11 +2,38 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-println 0
-println + 1
-println - 2
-println 2 + 1
-println 2 ^ 2
-println 5 - 0
-println 2 * 3
-println 14 / 2
+let $tmp0@8: Integer = 0
+println ($tmp0@8:Integer)
+
+let $tmp0@19: Integer = 1
+let $tmp1@18: Integer = + ($tmp0@19:Integer)
+println ($tmp1@18:Integer)
+
+let $tmp0@30: Integer = 2
+let $tmp1@29: Integer = - ($tmp0@30:Integer)
+println ($tmp1@29:Integer)
+
+let $tmp0@40: Integer = 2
+let $tmp1@44: Integer = 1
+let $tmp2@40: Integer = ($tmp0@40:Integer) + ($tmp1@44:Integer)
+println ($tmp2@40:Integer)
+
+let $tmp0@54: Integer = 2
+let $tmp1@58: Integer = 2
+let $tmp2@54: Integer = ($tmp0@54:Integer) ^ ($tmp1@58:Integer)
+println ($tmp2@54:Integer)
+
+let $tmp0@68: Integer = 5
+let $tmp1@72: Integer = 0
+let $tmp2@68: Integer = ($tmp0@68:Integer) - ($tmp1@72:Integer)
+println ($tmp2@68:Integer)
+
+let $tmp0@82: Integer = 2
+let $tmp1@86: Integer = 3
+let $tmp2@82: Integer = ($tmp0@82:Integer) * ($tmp1@86:Integer)
+println ($tmp2@82:Integer)
+
+let $tmp0@96: Integer = 14
+let $tmp1@101: Integer = 2
+let $tmp2@96: Rational = ($tmp0@96:Integer) / ($tmp1@101:Integer)
+println ($tmp2@96:Rational)

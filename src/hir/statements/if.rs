@@ -1,15 +1,19 @@
 use std::fmt::Display;
 
+use derive_visitor::DriveMut;
+
 use crate::syntax::{Keyword, Ranged};
 
 use super::{Expression, Statement};
 
 /// HIR for else-if statement
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct ElseIf {
     /// Keyword `else`
+    #[drive(skip)]
     pub else_keyword: Keyword<"else">,
     /// Keyword `if`
+    #[drive(skip)]
     pub if_keyword: Keyword<"if">,
     /// Condition of else-if statement
     pub condition: Expression,
@@ -28,9 +32,10 @@ impl Ranged for ElseIf {
 }
 
 /// HIR for else block
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct Else {
     /// Keyword `else`
+    #[drive(skip)]
     pub keyword: Keyword<"else">,
     /// Body of else block
     pub body: Vec<Statement>,
@@ -47,9 +52,10 @@ impl Ranged for Else {
 }
 
 /// HIR for if-statement
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct If {
     /// Keyword `if`
+    #[drive(skip)]
     pub keyword: Keyword<"if">,
     /// Condition of if-statement
     pub condition: Expression,

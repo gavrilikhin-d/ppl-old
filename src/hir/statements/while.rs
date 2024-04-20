@@ -1,11 +1,17 @@
 use std::fmt::Display;
 
-use crate::{hir::{Expression, Statement}, syntax::{Keyword, Ranged}};
+use derive_visitor::DriveMut;
+
+use crate::{
+    hir::{Expression, Statement},
+    syntax::{Keyword, Ranged},
+};
 
 /// While loop
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct While {
     /// Keyword `while`
+    #[drive(skip)]
     pub keyword: Keyword<"while">,
     /// Condition of a loop
     pub condition: Expression,

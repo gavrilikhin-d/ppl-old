@@ -35,9 +35,15 @@ fn with_destructors(
         }
     }
 
-    for stmt in statements {
+    for stmt in statements.iter().flat_map(|stmt| match stmt {
+        Statement::Block(b) => b.statements.iter(),
+        _ => std::iter::once(stmt),
+    }) {
         use Statement::*;
         match stmt {
+            Block(b) => {
+                unreachable!("Block should be flattened")
+            }
             Assignment(a) => {
                 destroy(&mut new_statements, a.target.clone(), context);
                 new_statements.push(stmt.clone());

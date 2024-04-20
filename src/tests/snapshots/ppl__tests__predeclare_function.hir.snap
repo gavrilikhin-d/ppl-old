@@ -3,6 +3,7 @@ source: src/tests/mod.rs
 expression: hir
 ---
 fn <x: Integer> plus two -> Integer:
+<<<<<<< HEAD
 destroy (x:Integer)
 	return sum clone (x:Integer) 2
 
@@ -11,5 +12,22 @@ fn sum <x: Integer> <y: Integer> -> Integer:
 destroy (x:Integer)
 destroy (y:Integer)
 	return clone (x:Integer) + clone (y:Integer)
+=======
+	let $tmp0@32: Integer = clone (x:Integer)
+	let $tmp1@34: Integer = 2
+	let $tmp2@28: Integer = sum ($tmp0@32:Integer) ($tmp1@34:Integer)
+	return ($tmp2@28:Integer)
 
-println 2 plus two
+
+
+fn sum <x: Integer> <y: Integer> -> Integer:
+	let $tmp0@84: Integer = clone (x:Integer)
+	let $tmp1@88: Integer = clone (y:Integer)
+	let $tmp2@84: Integer = ($tmp0@84:Integer) + ($tmp1@88:Integer)
+	return ($tmp2@84:Integer)
+>>>>>>> tmp
+
+
+let $tmp0@100: Integer = 2
+let $tmp1@100: Integer = ($tmp0@100:Integer) plus two
+println ($tmp1@100:Integer)

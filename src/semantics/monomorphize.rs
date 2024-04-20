@@ -37,6 +37,7 @@ impl Monomorphize for Statement {
             Statement::While(l) => l.monomorphize(context),
             Statement::Return(ret) => ret.monomorphize(context),
             Statement::Declaration(d) => d.monomorphize(context),
+            Statement::Block(b) => b.statements.monomorphize(context),
             Statement::Use(_) => return,
         }
     }

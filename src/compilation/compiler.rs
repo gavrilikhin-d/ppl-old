@@ -3,12 +3,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use derive_visitor::DriveMut;
 use indexmap::IndexMap;
 
 use crate::{
     ast,
     hir::{ClassData, FunctionData, ModuleData, TraitData},
-    semantics::{InsertDestructors, ModuleContext, ToHIR},
+    semantics::{InsertDestructors, ModuleContext, TemporariesInserter, ToHIR},
     SourceFile,
 };
 use log::{debug, trace};
@@ -220,6 +221,7 @@ impl Compiler {
         debug!(target: &format!("{name}-hir"), "\n{:#}", hir);
 
         trace!(target: "steps", "Inserting destructors `{}`", path.display());
+        hir.drive_mut(&mut TemporariesInserter::new());
         hir.insert_destructors(&mut context);
         debug!(target: &format!("{name}-hir-with-destructors"), "\n{:#}", hir);
 

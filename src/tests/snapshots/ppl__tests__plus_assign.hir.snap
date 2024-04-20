@@ -2,6 +2,7 @@
 source: src/tests/mod.rs
 expression: hir
 ---
+<<<<<<< HEAD
 let mut value: Rational = 0.0
 let mut str: String = "Hello"
 println clone (value:Rational)
@@ -11,3 +12,27 @@ println clone (value:Rational)
 println clone (str:String)
 destroy (value:Rational)
 destroy (str:String)
+=======
+let $tmp0@16: Rational = 0.0
+let mut value: Rational = ($tmp0@16:Rational)
+
+let $tmp0@76: String = "Hello"
+let mut str: String = ($tmp0@76:String)
+
+let $tmp0@28: Rational = clone (value:Rational)
+println ($tmp0@28:Rational)
+
+let $tmp0@34: ReferenceMut<Rational> = (&value:ReferenceMut<Rational>)
+let $tmp1@43: Rational = 1.0
+($tmp0@34:ReferenceMut<Rational>) += ($tmp1@43:Rational)
+
+let $tmp0@55: Rational = clone (value:Rational)
+println ($tmp0@55:Rational)
+
+let $tmp0@84: ReferenceMut<String> = (&str:ReferenceMut<String>)
+let $tmp1@91: String = " World!"
+($tmp0@84:ReferenceMut<String>) += ($tmp1@91:String)
+
+let $tmp0@109: String = clone (str:String)
+println ($tmp0@109:String)
+>>>>>>> tmp

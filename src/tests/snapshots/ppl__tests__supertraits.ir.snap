@@ -36,7 +36,10 @@ declare %Integer @integer_from_i64(i64)
 
 define void @"foo <:None>"() !dbg !9 {
   %1 = call %String @string_from_c_string_and_length(ptr @1, i64 3), !dbg !10
-  call void @print_string(%String %1), !dbg !10
+  %"$tmp0@105" = alloca %String, align 8, !dbg !10
+  store %String %1, ptr %"$tmp0@105", align 8, !dbg !10
+  %2 = load %String, ptr %"$tmp0@105", align 8, !dbg !10
+  call void @print_string(%String %2), !dbg !10
   br label %return, !dbg !10
 
 return:                                           ; preds = %0
@@ -47,7 +50,10 @@ declare void @print_string(%String)
 
 define void @"bar <:None>"() !dbg !11 {
   %1 = call %String @string_from_c_string_and_length(ptr @2, i64 3), !dbg !12
-  call void @"println <:String>"(%String %1), !dbg !12
+  %"$tmp0@137" = alloca %String, align 8, !dbg !12
+  store %String %1, ptr %"$tmp0@137", align 8, !dbg !12
+  %2 = load %String, ptr %"$tmp0@137", align 8, !dbg !12
+  call void @"println <:String>"(%String %2), !dbg !12
   br label %return, !dbg !12
 
 return:                                           ; preds = %0

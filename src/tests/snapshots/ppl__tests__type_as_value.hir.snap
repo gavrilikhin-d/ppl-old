@@ -3,11 +3,29 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let x: Type<Integer> = (Type<Integer>:Type<Integer>)
-let y: Integer = clone (Type<Integer>:Type<Integer>).size
-println size of (Type<None>:Type<None>) == 0
-println size of (Type<Bool>:Type<Bool>) == 1
-println String from (Type<None>:Type<None>)
-println String from (Type<Type<Integer>>:Type<Type<Integer>>)
-println clone (y:Integer) == size of (Type<Integer>:Type<Integer>)
+let $tmp0@144: Integer = clone (Type<Integer>:Type<Integer>).size
+let y: Integer = ($tmp0@144:Integer)
+
+let $tmp0@9: Integer = size of (Type<None>:Type<None>)
+let $tmp1@26: Integer = 0
+let $tmp2@8: Bool = ($tmp0@9:Integer) == ($tmp1@26:Integer)
+println ($tmp2@8:Bool)
+
+let $tmp0@37: Integer = size of (Type<Bool>:Type<Bool>)
+let $tmp1@54: Integer = 1
+let $tmp2@36: Bool = ($tmp0@37:Integer) == ($tmp1@54:Integer)
+println ($tmp2@36:Bool)
+
+let $tmp0@65: String = String from (Type<None>:Type<None>)
+println ($tmp0@65:String)
+
+let $tmp0@92: String = String from (Type<Type<Integer>>:Type<Type<Integer>>)
+println ($tmp0@92:String)
+
+let $tmp0@165: Integer = clone (y:Integer)
+let $tmp1@171: Integer = size of (Type<Integer>:Type<Integer>)
+let $tmp2@165: Bool = ($tmp0@165:Integer) == ($tmp1@171:Integer)
+println ($tmp2@165:Bool)
+
 println (Type<Integer>:Type<Integer>)
 destroy (y:Integer)

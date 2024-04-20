@@ -1,3 +1,5 @@
+use derive_visitor::DriveMut;
+
 use crate::hir::{Expression, Function, FunctionNamePart, Generic, Type, Typed};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
@@ -5,14 +7,17 @@ use std::fmt::Display;
 use std::ops::Range;
 
 /// AST for function call
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct Call {
     /// Range of function call
+    #[drive(skip)]
     pub range: Range<usize>,
 
     /// Called function
+    #[drive(skip)]
     pub function: Function,
     /// Generic version of called function
+    #[drive(skip)]
     pub generic: Option<Function>,
 
     /// Arguments to the function call

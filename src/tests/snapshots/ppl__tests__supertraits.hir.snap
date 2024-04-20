@@ -12,11 +12,15 @@ trait FooBar:
 
 
 fn foo <:None> -> None:
-	return print "foo"
+	let $tmp0@105: String = "foo"
+	return print ($tmp0@105:String)
+
 
 
 fn bar <:None> -> None:
-	return println "bar"
+	let $tmp0@137: String = "bar"
+	return println ($tmp0@137:String)
+
 
 
 fn<T: FooBar> foobar <x: T> -> None:
