@@ -13,8 +13,8 @@ fn destroy <:Destructible> -> None:
 let mut x: Destructible = Destructible {  }
 destroy (x:Destructible)
 (x:Destructible) = Destructible {  }
-let $tmp0@128: String = "done"
-let $tmp1@120: None = println ($tmp0@128:String)
-$tmp1@120
+let $tmp0@154: String = "done"
+let $tmp1@146: None = println ($tmp0@154:String)
+$tmp1@146
 destroy (x:Destructible)
-destroy ($tmp0@128:String)
+destroy ($tmp0@154:String)
