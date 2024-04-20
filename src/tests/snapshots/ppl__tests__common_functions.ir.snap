@@ -51,13 +51,22 @@ declare void @"println <:String>"(%String)
 
 declare void @destroy_string(%String)
 
-define void @main.execute() !dbg !12 {
+define private void @initialize.1() !dbg !12 {
+  call void @foo(), !dbg !13
+  br label %return, !dbg !13
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define void @main.execute() !dbg !14 {
 init_globals:
-  call void @initialize(), !dbg !13
-  br label %0, !dbg !13
+  call void @initialize(), !dbg !15
+  call void @initialize.1(), !dbg !16
+  br label %0, !dbg !16
 
 0:                                                ; preds = %init_globals
-  br label %return, !dbg !13
+  br label %return, !dbg !16
 
 return:                                           ; preds = %0
   ret void
@@ -78,5 +87,8 @@ return:                                           ; preds = %0
 !9 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !10 = !DILocation(line: 0, column: 18, scope: !9)
 !11 = !DILocation(line: 0, column: 10, scope: !9)
-!12 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!13 = !DILocation(line: 1, column: 5, scope: !12)
+!12 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!13 = !DILocation(line: 1, scope: !12)
+!14 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!15 = !DILocation(line: 1, column: 5, scope: !14)
+!16 = !DILocation(line: 1, scope: !14)

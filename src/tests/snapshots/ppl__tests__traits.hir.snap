@@ -11,9 +11,7 @@ trait Test:
 
 
 fn required <x: Integer> -> None:
-	let $tmp0@124: None = none
-	destroy (x:Integer)
-	return ($tmp0@124:None)
+	return none
 
 let $tmp0@149: Integer = 1
 let res: Integer = default ($tmp0@149:Integer)

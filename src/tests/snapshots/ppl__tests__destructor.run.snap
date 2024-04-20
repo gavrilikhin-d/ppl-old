@@ -2,5 +2,6 @@
 source: src/tests/mod.rs
 expression: run_log
 ---
-destructor
 done
+destructor
+destructor
