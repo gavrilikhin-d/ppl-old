@@ -41,7 +41,10 @@ init_globals:
   call void @"do nothing"(), !dbg !11
   call void @"println <:None>"(), !dbg !11
   %1 = call %Integer @"do something"(), !dbg !12
-  call void @"println <:Integer>"(%Integer %1), !dbg !12
+  %"$tmp0@43" = alloca %Integer, align 8, !dbg !12
+  store %Integer %1, ptr %"$tmp0@43", align 8, !dbg !12
+  %2 = load %Integer, ptr %"$tmp0@43", align 8, !dbg !12
+  call void @"println <:Integer>"(%Integer %2), !dbg !12
   br label %return, !dbg !10
 
 return:                                           ; preds = %0
@@ -50,34 +53,37 @@ return:                                           ; preds = %0
 
 define private void @"println <:None>"() !dbg !13 {
   %1 = call %String @"String from <:None>"(), !dbg !14
-  call void @"println <:String>"(%String %1), !dbg !14
+  %"$tmp0@4557" = alloca %String, align 8, !dbg !14
+  store %String %1, ptr %"$tmp0@4557", align 8, !dbg !14
+  %2 = load %String, ptr %"$tmp0@4557", align 8, !dbg !14
+  call void @"println <:String>"(%String %2), !dbg !14
   br label %return, !dbg !14
 
 return:                                           ; preds = %0
   ret void
 }
 
-declare void @"println <:String>"(%String)
-
 declare %String @"String from <:None>"()
 
+declare void @"println <:String>"(%String)
+
 declare void @"do nothing"()
+
+declare %Integer @"do something"()
 
 define private void @"println <:Integer>"(%Integer %0) !dbg !15 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
-  %2 = load %Integer, ptr %x, align 8, !dbg !16
-  %3 = call %String @integer_as_string(%Integer %2), !dbg !16
+  %2 = call %String @"String from <:None>"(), !dbg !16
+  %"$tmp0@4557" = alloca %String, align 8, !dbg !16
+  store %String %2, ptr %"$tmp0@4557", align 8, !dbg !16
+  %3 = load %String, ptr %"$tmp0@4557", align 8, !dbg !16
   call void @"println <:String>"(%String %3), !dbg !16
   br label %return, !dbg !16
 
 return:                                           ; preds = %1
   ret void
 }
-
-declare %String @integer_as_string(%Integer)
-
-declare %Integer @"do something"()
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}

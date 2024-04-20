@@ -6,6 +6,15 @@ type Point<T>:
 	x: T
 	y: T
 
-let p: Point<Integer> = Point<Integer> { x: 1, y: 2 }
-let x: Integer = clone (p:Point<Integer>).x
-println clone (x:Integer) == 1
+let $tmp0@44: Integer = 1
+let $tmp1@50: Integer = 2
+let $tmp2@33: Point<Integer> = Point<Integer> { x: ($tmp0@44:Integer), y: ($tmp1@50:Integer) }
+let p: Point<Integer> = ($tmp2@33:Point<Integer>)
+
+let $tmp0@62: Integer = clone (p:Point<Integer>).x
+let x: Integer = ($tmp0@62:Integer)
+
+let $tmp0@74: Integer = clone (x:Integer)
+let $tmp1@79: Integer = 1
+let $tmp2@74: Bool = ($tmp0@74:Integer) == ($tmp1@79:Integer)
+println ($tmp2@74:Bool)

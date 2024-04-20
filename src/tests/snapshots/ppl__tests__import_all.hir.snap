@@ -4,4 +4,5 @@ expression: hir
 ---
 use utils.*
 println do nothing
-println do something
+let $tmp0@43: Integer = do something
+println ($tmp0@43:Integer)

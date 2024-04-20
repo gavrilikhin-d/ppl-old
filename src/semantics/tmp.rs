@@ -27,7 +27,8 @@ impl TemporariesInserter {
         if matches!(
             expr,
             Expression::VariableReference(_) | Expression::MemberReference(_)
-        ) {
+        ) || expr.ty().is_none()
+        {
             return;
         }
 

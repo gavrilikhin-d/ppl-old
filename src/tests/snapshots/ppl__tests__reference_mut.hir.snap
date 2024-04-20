@@ -2,9 +2,21 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let mut x: Integer = 1
-let y: ReferenceMut<Integer> = reference to mutable (&x:ReferenceMut<Integer>)
-println (*y:Integer)
-(y:ReferenceMut<Integer>) = 2
-println (*y:Integer)
-println clone (x:Integer)
+let $tmp0@12: Integer = 1
+let mut x: Integer = ($tmp0@12:Integer)
+
+let $tmp0@43: ReferenceMut<Integer> = (&x:ReferenceMut<Integer>)
+let $tmp1@22: ReferenceMut<Integer> = reference to mutable ($tmp0@43:ReferenceMut<Integer>)
+let y: ReferenceMut<Integer> = ($tmp1@22:ReferenceMut<Integer>)
+
+let $tmp0@53: Integer = (*y:Integer)
+println ($tmp0@53:Integer)
+
+let $tmp0@59: Integer = 2
+(y:ReferenceMut<Integer>) = ($tmp0@59:Integer)
+
+let $tmp0@69: Integer = (*y:Integer)
+println ($tmp0@69:Integer)
+
+let $tmp0@79: Integer = clone (x:Integer)
+println ($tmp0@79:Integer)

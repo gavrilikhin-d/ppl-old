@@ -2,11 +2,34 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-println "Hello" + " " + "World!"
-println String from none
-println String from false
-println String from true
-println String from 0
-println String from 0.0
-println String from (Type<Integer>:Type<Integer>)
-println String from (Type<Array<Integer>>:Type<Array<Integer>>)
+let $tmp0@8: String = "Hello"
+let $tmp1@18: String = " "
+let $tmp2@8: String = ($tmp0@8:String) + ($tmp1@18:String)
+let $tmp3@24: String = "World!"
+let $tmp4@8: String = ($tmp2@8:String) + ($tmp3@24:String)
+println ($tmp4@8:String)
+
+let $tmp0@42: String = String from none
+println ($tmp0@42:String)
+
+let $tmp0@81: Bool = false
+let $tmp1@69: String = String from ($tmp0@81:Bool)
+println ($tmp1@69:String)
+
+let $tmp0@109: Bool = true
+let $tmp1@97: String = String from ($tmp0@109:Bool)
+println ($tmp1@97:String)
+
+let $tmp0@136: Integer = 0
+let $tmp1@124: String = String from ($tmp0@136:Integer)
+println ($tmp1@124:String)
+
+let $tmp0@160: Rational = 0.0
+let $tmp1@148: String = String from ($tmp0@160:Rational)
+println ($tmp1@148:String)
+
+let $tmp0@174: String = String from (Type<Integer>:Type<Integer>)
+println ($tmp0@174:String)
+
+let $tmp0@204: String = String from (Type<Array<Integer>>:Type<Array<Integer>>)
+println ($tmp0@204:String)
