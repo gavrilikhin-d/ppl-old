@@ -193,31 +193,36 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Variable {
 }
 
 impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Variable {
-    type IR = inkwell::values::PointerValue<'llvm>;
+    type IR = Option<inkwell::values::PointerValue<'llvm>>;
 
     /// Lower local [`VariableDeclaration`] to LLVM IR
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
-        let ty = self
-            .ty()
-            .to_ir(context)
-            .try_into_basic_type()
-            .expect("non-basic type local variable");
         let value = self
             .read()
             .unwrap()
             .initializer
             .as_ref()
             .expect("Currently all variables have initializers")
+            .to_ir(context);
+
+        if self.ty().is_none() {
+            return None;
+        }
+
+        let ty = self
+            .ty()
             .to_ir(context)
-            .expect("initializer return None or Void");
+            .try_into_basic_type()
+            .expect("non-basic type local variable");
+
         let alloca = context.builder.build_alloca(ty, &self.name()).unwrap();
-        context.builder.build_store(alloca, value).unwrap();
+        context.builder.build_store(alloca, value.unwrap()).unwrap();
         context
             .variables
             .insert(self.name().to_string(), alloca.clone());
-        alloca
+        Some(alloca)
     }
 }
 
