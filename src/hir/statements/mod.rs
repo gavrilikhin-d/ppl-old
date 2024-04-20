@@ -36,6 +36,7 @@ impl std::fmt::Display for Block {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for statement in &self.statements {
             std::fmt::Display::fmt(&statement, f)?;
+            writeln!(f)?;
         }
         Ok(())
     }
