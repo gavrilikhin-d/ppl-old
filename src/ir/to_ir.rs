@@ -144,22 +144,6 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Variable {
         trace!(target: "to_ir", "{self}");
 
         let global = self.read().unwrap().declare_global(context);
-        if global.is_none() {
-            return None;
-        }
-        let global = global.unwrap();
-
-        // TODO: check that we can initialize without function
-        global.set_constant(false);
-
-        global.set_initializer(
-            &self
-                .ty()
-                .to_ir(context)
-                .try_into_basic_type()
-                .expect("non-basic type global initializer")
-                .const_zero(),
-        );
 
         let initialize = context.module.add_function(
             "initialize",
@@ -180,6 +164,24 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Variable {
             .as_ref()
             .expect("Currently all variables have initializers")
             .to_ir(&mut f_context);
+
+        if global.is_none() {
+            return None;
+        }
+        let global = global.unwrap();
+
+        // TODO: check that we can initialize without function
+        global.set_constant(false);
+
+        global.set_initializer(
+            &self
+                .ty()
+                .to_ir(f_context.module_context)
+                .try_into_basic_type()
+                .expect("non-basic type global initializer")
+                .const_zero(),
+        );
+
         f_context
             .builder
             .build_store(
