@@ -2,6 +2,7 @@ use inkwell::module::Linkage;
 use inkwell::types::BasicMetadataTypeEnum;
 
 use inkwell::values::BasicMetadataValueEnum;
+use inkwell::values::CallSiteValue;
 use log::trace;
 
 use super::inkwell::*;
@@ -964,6 +965,15 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for While {
     }
 }
 
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Initializer<'llvm> {
+    type IR = CallSiteValue<'llvm>;
+
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
+        context.set_debug_location(self.at);
+        context.builder.build_call(self.function, &[], "").unwrap()
+    }
+}
+
 /// Trait for lowering HIR Module to LLVM IR
 pub trait HIRModuleLowering<'llvm> {
     /// Lower [`Module`] to LLVM IR
@@ -1009,13 +1019,16 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
         let at = self.statements.first().map(|s| s.start()).unwrap_or(0);
 
         FunctionContext::new(&mut context, execute, at).run(|context| {
+            for init in context.module_context.initializers.clone() {
+                init.to_ir(context);
+            }
+
             for statement in &self.statements {
                 if matches!(statement, Statement::Declaration(_)) {
                     statement.to_ir(context.module_context);
                     if matches!(statement, Statement::Declaration(Declaration::Variable(_))) {
                         let init = context.module_context.initializers.last().unwrap().clone();
-                        context.set_debug_location(init.at);
-                        context.builder.build_call(init.function, &[], "").unwrap();
+                        init.to_ir(context);
                     }
                 } else {
                     statement.to_ir(context);
