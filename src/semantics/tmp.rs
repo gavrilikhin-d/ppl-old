@@ -31,10 +31,12 @@ impl TemporariesInserter {
             return;
         }
 
+        let index = self.temporaries.len();
+        let offset = expr.start();
         let tmp = Variable::new(VariableData {
-            keyword: Keyword::<"let">::at(expr.start()),
+            keyword: Keyword::<"let">::at(offset),
             mutability: Mutability::Immutable,
-            name: Identifier::from(format!("$tmp{}", self.temporaries.len())).at(expr.start()),
+            name: Identifier::from(format!("$tmp{index}@{offset}")).at(offset),
             type_reference: None,
             ty: expr.ty(),
             initializer: Some(expr.clone()),
