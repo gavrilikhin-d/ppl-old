@@ -163,12 +163,8 @@ impl InsertDestructors for FunctionData {
 
         trace!(target: "steps", "Inserting destructors in: {self}");
 
-        // FIXME: handle unnamed parameters too
-        let kill = self
-            .parameters()
-            .filter(|p| !p.name.is_empty())
-            .map(Into::into)
-            .collect();
+        // FIXME: handle parameters
+        let kill = vec![];
         self.body = with_destructors(&self.body, kill, context);
 
         trace!(target: "steps", "After inserting destructors: {self}");
