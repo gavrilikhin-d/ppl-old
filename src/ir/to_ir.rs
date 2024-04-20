@@ -1001,59 +1001,26 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
             variable.to_ir(&mut context);
         }
 
-        for d in self.statements.iter().filter_map(|s| match s {
-            Statement::Declaration(d) if !d.is_temporary_variable() => Some(d),
-            _ => None,
-        }) {
-            d.to_ir(&mut context);
-        }
-
         let execute = context.module.add_function(
             &format!("{name}.execute"),
             context.types().none().fn_type(&[], false),
             None,
         );
-        let at = self
-            .statements
-            .iter()
-            .find(|s| !matches!(s, Statement::Declaration(_)))
-            .map(|s| s.start())
-            .unwrap_or(0);
+        let at = self.statements.first().map(|s| s.start()).unwrap_or(0);
 
         FunctionContext::new(&mut context, execute, at).run(|context| {
-            for statement in self
-                .statements
-                .iter()
-                .filter(|s| !matches!(s, Statement::Declaration(_)) || s.is_temporary_variable())
-            {
-                statement.to_ir(context);
-            }
-
-            let blocks = execute.get_basic_blocks();
-
-            let insertion_block = context.builder.get_insert_block().unwrap();
-
-            if !context.module_context.initializers.is_empty() {
-                let first_block = blocks.first().unwrap();
-
-                let init_block = context
-                    .llvm()
-                    .prepend_basic_block(*first_block, "init_globals");
-                context.builder.position_at_end(init_block);
-
-                let inits = context.module_context.initializers.clone();
-                for init in inits {
-                    context.set_debug_location(init.at);
-                    context.builder.build_call(init.function, &[], "").unwrap();
+            for statement in &self.statements {
+                if matches!(statement, Statement::Declaration(_)) {
+                    statement.to_ir(context.module_context);
+                    if matches!(statement, Statement::Declaration(Declaration::Variable(_))) {
+                        let init = context.module_context.initializers.last().unwrap().clone();
+                        context.set_debug_location(init.at);
+                        context.builder.build_call(init.function, &[], "").unwrap();
+                    }
+                } else {
+                    statement.to_ir(context);
                 }
-
-                context
-                    .builder
-                    .build_unconditional_branch(*first_block)
-                    .unwrap();
             }
-
-            context.builder.position_at_end(insertion_block);
         });
 
         if with_main {
