@@ -24,7 +24,10 @@ impl TemporariesInserter {
     }
 
     fn exit_expression(&mut self, expr: &mut Expression) {
-        if matches!(expr, Expression::VariableReference(_)) {
+        if matches!(
+            expr,
+            Expression::VariableReference(_) | Expression::MemberReference(_)
+        ) {
             return;
         }
 
