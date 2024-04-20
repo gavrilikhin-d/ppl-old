@@ -66,6 +66,16 @@ pub enum Statement {
     Block(Block),
 }
 
+impl Statement {
+    /// Is this a declaration for temporary variable?
+    pub fn is_temporary_variable(&self) -> bool {
+        match self {
+            Statement::Declaration(d) => d.is_temporary_variable(),
+            _ => false,
+        }
+    }
+}
+
 impl Ranged for Statement {
     fn range(&self) -> std::ops::Range<usize> {
         match self {

@@ -32,6 +32,11 @@ impl Variable {
     pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, VariableData>> {
         self.inner.write()
     }
+
+    /// Is this a temporary variable?
+    pub fn is_temporary(&self) -> bool {
+        self.read().unwrap().is_temporary()
+    }
 }
 
 impl Display for Variable {
@@ -104,6 +109,13 @@ pub struct VariableData {
     pub ty: Type,
     /// Initializer for variable
     pub initializer: Option<Expression>,
+}
+
+impl VariableData {
+    /// Is this a temporary variable?
+    pub fn is_temporary(&self) -> bool {
+        self.name.starts_with("$tmp")
+    }
 }
 
 impl Display for VariableData {

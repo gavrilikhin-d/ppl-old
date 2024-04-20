@@ -1001,12 +1001,11 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
             variable.to_ir(&mut context);
         }
 
-        for statement in self
-            .statements
-            .iter()
-            .filter(|s| matches!(s, Statement::Declaration(_)))
-        {
-            statement.to_ir(&mut context);
+        for d in self.statements.iter().filter_map(|s| match s {
+            Statement::Declaration(d) if !d.is_temporary_variable() => Some(d),
+            _ => None,
+        }) {
+            d.to_ir(&mut context);
         }
 
         let execute = context.module.add_function(
@@ -1025,7 +1024,7 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
             for statement in self
                 .statements
                 .iter()
-                .filter(|s| !matches!(s, Statement::Declaration(_)))
+                .filter(|s| !matches!(s, Statement::Declaration(_)) || s.is_temporary_variable())
             {
                 statement.to_ir(context);
             }

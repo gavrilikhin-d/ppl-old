@@ -29,6 +29,16 @@ pub enum Declaration {
     Trait(Trait),
 }
 
+impl Declaration {
+    /// Is this a declaration for temporary variable?
+    pub fn is_temporary_variable(&self) -> bool {
+        match self {
+            Declaration::Variable(v) => v.is_temporary(),
+            _ => false,
+        }
+    }
+}
+
 impl Named for Declaration {
     fn name(&self) -> Cow<'_, str> {
         match self {
