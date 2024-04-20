@@ -43,7 +43,9 @@ impl TemporariesInserter {
 
         if matches!(
             expr,
-            Expression::VariableReference(_) | Expression::MemberReference(_)
+            Expression::VariableReference(_)
+                | Expression::MemberReference(_)
+                | Expression::ImplicitConversion(_)
         ) {
             return;
         }
