@@ -3,19 +3,14 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let mut x: Integer = 1
-let $tmp0@43: ReferenceMut<Integer> = (&x:ReferenceMut<Integer>)
-let y: ReferenceMut<Integer> = reference to mutable ($tmp0@43:ReferenceMut<Integer>)
-let $tmp0@53: Integer = (*y:Integer)
-let $tmp1@45: None = println ($tmp0@53:Integer)
-$tmp1@45
+let y: ReferenceMut<Integer> = reference to mutable (&x:ReferenceMut<Integer>)
+let $tmp0@45: None = println (*y:Integer)
+$tmp0@45
 (y:ReferenceMut<Integer>) = 2
-let $tmp0@69: Integer = (*y:Integer)
-let $tmp1@61: None = println ($tmp0@69:Integer)
-$tmp1@61
+let $tmp0@61: None = println (*y:Integer)
+$tmp0@61
 let $tmp0@79: Integer = clone (x:Integer)
 let $tmp1@71: None = println ($tmp0@79:Integer)
 $tmp1@71
 destroy (x:Integer)
-destroy ($tmp0@53:Integer)
-destroy ($tmp0@69:Integer)
 destroy ($tmp0@79:Integer)

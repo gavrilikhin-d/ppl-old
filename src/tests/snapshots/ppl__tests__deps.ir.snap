@@ -32,28 +32,23 @@ declare %String @string_from_c_string_and_length(ptr, i64)
 
 declare %Integer @integer_from_i64(i64)
 
-define private void @initialize.1() !dbg !9 {
-  call void @"say hello"(), !dbg !10
+define void @main.execute() !dbg !9 {
+  call void @initialize.1(), !dbg !10
   br label %return, !dbg !10
 
 return:                                           ; preds = %0
   ret void
 }
 
-declare void @"say hello"()
-
-define void @main.execute() !dbg !11 {
-init_globals:
-  call void @initialize(), !dbg !12
-  call void @initialize.1(), !dbg !13
-  br label %0, !dbg !13
-
-0:                                                ; preds = %init_globals
-  br label %return, !dbg !13
+define private void @initialize.1() !dbg !11 {
+  call void @"say hello"(), !dbg !12
+  br label %return, !dbg !12
 
 return:                                           ; preds = %0
   ret void
 }
+
+declare void @"say hello"()
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
@@ -67,8 +62,7 @@ return:                                           ; preds = %0
 !6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
 !7 = !DILocation(line: 3, scope: !3)
 !8 = !DILocation(line: 0, scope: !3)
-!9 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!9 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !10 = !DILocation(line: 2, scope: !9)
-!11 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!12 = !DILocation(line: 3, scope: !11)
-!13 = !DILocation(line: 2, scope: !11)
+!11 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!12 = !DILocation(line: 2, scope: !11)

@@ -17,12 +17,10 @@ source_filename = "src/main.ppl"
 @str = global %String zeroinitializer
 @2 = private unnamed_addr constant [6 x i8] c"Hello\00", align 1
 @"$tmp0@28" = global %Rational zeroinitializer
-@"$tmp0@34" = global ptr null
-@"$tmp1@43" = global %Rational zeroinitializer
+@"$tmp0@43" = global %Rational zeroinitializer
 @3 = private unnamed_addr constant [2 x i8] c"1\00", align 1
 @"$tmp0@55" = global %Rational zeroinitializer
-@"$tmp0@84" = global ptr null
-@"$tmp1@91" = global %String zeroinitializer
+@"$tmp0@91" = global %String zeroinitializer
 @4 = private unnamed_addr constant [8 x i8] c" World!\00", align 1
 @"$tmp0@109" = global %String zeroinitializer
 
@@ -46,10 +44,43 @@ declare %String @string_from_c_string_and_length(ptr, i64)
 
 declare %Integer @integer_from_i64(i64)
 
-define private void @initialize.1() !dbg !9 {
-  %1 = call %Rational @rational_from_c_string(ptr @1), !dbg !10
-  store %Rational %1, ptr @value, align 8, !dbg !10
-  br label %return, !dbg !10
+define void @main.execute() !dbg !9 {
+  call void @initialize.1(), !dbg !10
+  call void @initialize.2(), !dbg !11
+  call void @initialize.3(), !dbg !12
+  call void @initialize.4(), !dbg !13
+  call void @initialize.5(), !dbg !14
+  call void @initialize.6(), !dbg !15
+  call void @initialize.7(), !dbg !16
+  call void @initialize.8(), !dbg !17
+  call void @initialize.9(), !dbg !18
+  call void @initialize.10(), !dbg !19
+  call void @initialize.11(), !dbg !20
+  call void @initialize.12(), !dbg !21
+  %1 = load %Rational, ptr @value, align 8, !dbg !22
+  call void @destroy_rational(%Rational %1), !dbg !22
+  %2 = load %String, ptr @str, align 8, !dbg !23
+  call void @destroy_string(%String %2), !dbg !23
+  %3 = load %Rational, ptr @"$tmp0@28", align 8, !dbg !12
+  call void @destroy_rational(%Rational %3), !dbg !12
+  %4 = load %Rational, ptr @"$tmp0@43", align 8, !dbg !14
+  call void @destroy_rational(%Rational %4), !dbg !14
+  %5 = load %Rational, ptr @"$tmp0@55", align 8, !dbg !16
+  call void @destroy_rational(%Rational %5), !dbg !16
+  %6 = load %String, ptr @"$tmp0@91", align 8, !dbg !18
+  call void @destroy_string(%String %6), !dbg !18
+  %7 = load %String, ptr @"$tmp0@109", align 8, !dbg !20
+  call void @destroy_string(%String %7), !dbg !20
+  br label %return, !dbg !20
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define private void @initialize.1() !dbg !24 {
+  %1 = call %Rational @rational_from_c_string(ptr @1), !dbg !25
+  store %Rational %1, ptr @value, align 8, !dbg !25
+  br label %return, !dbg !25
 
 return:                                           ; preds = %0
   ret void
@@ -57,20 +88,20 @@ return:                                           ; preds = %0
 
 declare %Rational @rational_from_c_string(ptr)
 
-define private void @initialize.2() !dbg !11 {
-  %1 = call %String @string_from_c_string_and_length(ptr @2, i64 5), !dbg !12
-  store %String %1, ptr @str, align 8, !dbg !12
-  br label %return, !dbg !12
+define private void @initialize.2() !dbg !26 {
+  %1 = call %String @string_from_c_string_and_length(ptr @2, i64 5), !dbg !27
+  store %String %1, ptr @str, align 8, !dbg !27
+  br label %return, !dbg !27
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @initialize.3() !dbg !13 {
-  %1 = load %Rational, ptr @value, align 8, !dbg !14
-  %2 = call %Rational @clone_rational(%Rational %1), !dbg !14
-  store %Rational %2, ptr @"$tmp0@28", align 8, !dbg !14
-  br label %return, !dbg !14
+define private void @initialize.3() !dbg !28 {
+  %1 = load %Rational, ptr @value, align 8, !dbg !29
+  %2 = call %Rational @clone_rational(%Rational %1), !dbg !29
+  store %Rational %2, ptr @"$tmp0@28", align 8, !dbg !29
+  br label %return, !dbg !29
 
 return:                                           ; preds = %0
   ret void
@@ -78,55 +109,136 @@ return:                                           ; preds = %0
 
 declare %Rational @clone_rational(%Rational)
 
-define private void @initialize.4() !dbg !15 {
-  store ptr @value, ptr @"$tmp0@34", align 8, !dbg !16
-  br label %return, !dbg !16
+define private void @initialize.4() !dbg !30 {
+  %1 = load %Rational, ptr @"$tmp0@28", align 8, !dbg !31
+  call void @"println <:Rational>"(%Rational %1), !dbg !31
+  br label %return, !dbg !31
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @initialize.5() !dbg !17 {
-  %1 = call %Rational @rational_from_c_string(ptr @3), !dbg !18
-  store %Rational %1, ptr @"$tmp1@43", align 8, !dbg !18
-  br label %return, !dbg !18
+define private void @"println <:Rational>"(%Rational %0) !dbg !32 {
+  %x = alloca %Rational, align 8
+  store %Rational %0, ptr %x, align 8
+  %2 = load %Rational, ptr %x, align 8, !dbg !33
+  %3 = call %String @rational_as_string(%Rational %2), !dbg !33
+  %"$tmp0@4544" = alloca %String, align 8, !dbg !33
+  store %String %3, ptr %"$tmp0@4544", align 8, !dbg !33
+  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !33
+  call void @"println <:String>"(%String %4), !dbg !33
+  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !33
+  call void @destroy_string(%String %5), !dbg !33
+  br label %return, !dbg !33
+
+return:                                           ; preds = %1
+  ret void
+}
+
+declare %String @rational_as_string(%Rational)
+
+declare void @"println <:String>"(%String)
+
+declare void @destroy_string(%String)
+
+define private void @initialize.5() !dbg !34 {
+  %1 = call %Rational @rational_from_c_string(ptr @3), !dbg !35
+  store %Rational %1, ptr @"$tmp0@43", align 8, !dbg !35
+  br label %return, !dbg !35
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @initialize.6() !dbg !19 {
-  %1 = load %Rational, ptr @value, align 8, !dbg !20
-  %2 = call %Rational @clone_rational(%Rational %1), !dbg !20
-  store %Rational %2, ptr @"$tmp0@55", align 8, !dbg !20
-  br label %return, !dbg !20
+define private void @initialize.6() !dbg !36 {
+  %1 = load %Rational, ptr @"$tmp0@43", align 8, !dbg !37
+  call void @"<:ReferenceMut<Rational>> += <:Rational>"(ptr @value, %Rational %1), !dbg !37
+  br label %return, !dbg !37
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @initialize.7() !dbg !21 {
-  store ptr @str, ptr @"$tmp0@84", align 8, !dbg !22
-  br label %return, !dbg !22
+define void @"<:ReferenceMut<Rational>> += <:Rational>"(ptr %0, %Rational %1) !dbg !38 {
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
+  %other = alloca %Rational, align 8
+  store %Rational %1, ptr %other, align 8
+  %3 = load ptr, ptr %self, align 8, !dbg !39
+  %4 = load ptr, ptr %self, align 8, !dbg !39
+  %5 = load %Rational, ptr %4, align 8, !dbg !39
+  %6 = load %Rational, ptr %other, align 8, !dbg !39
+  %7 = call %Rational @rational_plus_rational(%Rational %5, %Rational %6), !dbg !39
+  store %Rational %7, ptr %3, align 8, !dbg !39
+  br label %return, !dbg !39
+
+return:                                           ; preds = %2
+  ret void
+}
+
+declare %Rational @rational_plus_rational(%Rational, %Rational)
+
+define private void @initialize.7() !dbg !40 {
+  %1 = load %Rational, ptr @value, align 8, !dbg !41
+  %2 = call %Rational @clone_rational(%Rational %1), !dbg !41
+  store %Rational %2, ptr @"$tmp0@55", align 8, !dbg !41
+  br label %return, !dbg !41
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @initialize.8() !dbg !23 {
-  %1 = call %String @string_from_c_string_and_length(ptr @4, i64 7), !dbg !24
-  store %String %1, ptr @"$tmp1@91", align 8, !dbg !24
-  br label %return, !dbg !24
+define private void @initialize.8() !dbg !42 {
+  %1 = load %Rational, ptr @"$tmp0@55", align 8, !dbg !43
+  call void @"println <:Rational>"(%Rational %1), !dbg !43
+  br label %return, !dbg !43
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @initialize.9() !dbg !25 {
-  %1 = load %String, ptr @str, align 8, !dbg !26
-  %2 = call %String @clone_string(%String %1), !dbg !26
-  store %String %2, ptr @"$tmp0@109", align 8, !dbg !26
-  br label %return, !dbg !26
+define private void @initialize.9() !dbg !44 {
+  %1 = call %String @string_from_c_string_and_length(ptr @4, i64 7), !dbg !45
+  store %String %1, ptr @"$tmp0@91", align 8, !dbg !45
+  br label %return, !dbg !45
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define private void @initialize.10() !dbg !46 {
+  %1 = load %String, ptr @"$tmp0@91", align 8, !dbg !47
+  call void @"<:ReferenceMut<String>> += <:String>"(ptr @str, %String %1), !dbg !47
+  br label %return, !dbg !47
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define void @"<:ReferenceMut<String>> += <:String>"(ptr %0, %String %1) !dbg !48 {
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
+  %other = alloca %String, align 8
+  store %String %1, ptr %other, align 8
+  %3 = load ptr, ptr %self, align 8, !dbg !49
+  %4 = load ptr, ptr %self, align 8, !dbg !49
+  %5 = load %String, ptr %4, align 8, !dbg !49
+  %6 = load %String, ptr %other, align 8, !dbg !49
+  %7 = call %String @string_plus_string(%String %5, %String %6), !dbg !49
+  store %String %7, ptr %3, align 8, !dbg !49
+  br label %return, !dbg !49
+
+return:                                           ; preds = %2
+  ret void
+}
+
+declare %String @string_plus_string(%String, %String)
+
+define private void @initialize.11() !dbg !50 {
+  %1 = load %String, ptr @str, align 8, !dbg !51
+  %2 = call %String @clone_string(%String %1), !dbg !51
+  store %String %2, ptr @"$tmp0@109", align 8, !dbg !51
+  br label %return, !dbg !51
 
 return:                                           ; preds = %0
   ret void
@@ -134,44 +246,16 @@ return:                                           ; preds = %0
 
 declare %String @clone_string(%String)
 
-define void @main.execute() !dbg !27 {
-init_globals:
-  call void @initialize(), !dbg !28
-  call void @initialize.1(), !dbg !29
-  call void @initialize.2(), !dbg !30
-  call void @initialize.3(), !dbg !31
-  call void @initialize.4(), !dbg !32
-  call void @initialize.5(), !dbg !33
-  call void @initialize.6(), !dbg !34
-  call void @initialize.7(), !dbg !35
-  call void @initialize.8(), !dbg !36
-  call void @initialize.9(), !dbg !37
-  br label %0, !dbg !37
-
-0:                                                ; preds = %init_globals
-  %1 = load %Rational, ptr @value, align 8, !dbg !38
-  call void @destroy_rational(%Rational %1), !dbg !38
-  %2 = load %String, ptr @str, align 8, !dbg !39
-  call void @destroy_string(%String %2), !dbg !39
-  %3 = load %Rational, ptr @"$tmp0@28", align 8, !dbg !31
-  call void @destroy_rational(%Rational %3), !dbg !31
-  %4 = load %Rational, ptr @"$tmp1@43", align 8, !dbg !33
-  call void @destroy_rational(%Rational %4), !dbg !33
-  %5 = load %Rational, ptr @"$tmp0@55", align 8, !dbg !34
-  call void @destroy_rational(%Rational %5), !dbg !34
-  %6 = load %String, ptr @"$tmp1@91", align 8, !dbg !36
-  call void @destroy_string(%String %6), !dbg !36
-  %7 = load %String, ptr @"$tmp0@109", align 8, !dbg !37
-  call void @destroy_string(%String %7), !dbg !37
-  br label %return, !dbg !37
+define private void @initialize.12() !dbg !52 {
+  %1 = load %String, ptr @"$tmp0@109", align 8, !dbg !53
+  call void @"println <:String>"(%String %1), !dbg !53
+  br label %return, !dbg !53
 
 return:                                           ; preds = %0
   ret void
 }
 
 declare void @destroy_rational(%Rational)
-
-declare void @destroy_string(%String)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
@@ -185,34 +269,48 @@ declare void @destroy_string(%String)
 !6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
 !7 = !DILocation(line: 7, column: 11, scope: !3)
 !8 = !DILocation(line: 0, scope: !3)
-!9 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!9 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !10 = !DILocation(line: 0, column: 16, scope: !9)
-!11 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !2, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!12 = !DILocation(line: 5, column: 14, scope: !11)
-!13 = distinct !DISubprogram(name: "initialize.3", linkageName: "initialize.3", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!14 = !DILocation(line: 1, column: 8, scope: !13)
-!15 = distinct !DISubprogram(name: "initialize.4", linkageName: "initialize.4", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!16 = !DILocation(line: 2, scope: !15)
-!17 = distinct !DISubprogram(name: "initialize.5", linkageName: "initialize.5", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!18 = !DILocation(line: 2, column: 9, scope: !17)
-!19 = distinct !DISubprogram(name: "initialize.6", linkageName: "initialize.6", scope: !2, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!20 = !DILocation(line: 3, column: 8, scope: !19)
-!21 = distinct !DISubprogram(name: "initialize.7", linkageName: "initialize.7", scope: !2, file: !2, line: 6, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!22 = !DILocation(line: 6, scope: !21)
-!23 = distinct !DISubprogram(name: "initialize.8", linkageName: "initialize.8", scope: !2, file: !2, line: 6, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!24 = !DILocation(line: 6, column: 7, scope: !23)
-!25 = distinct !DISubprogram(name: "initialize.9", linkageName: "initialize.9", scope: !2, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!26 = !DILocation(line: 7, column: 8, scope: !25)
-!27 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!28 = !DILocation(line: 7, column: 11, scope: !27)
-!29 = !DILocation(line: 0, column: 16, scope: !27)
-!30 = !DILocation(line: 5, column: 14, scope: !27)
-!31 = !DILocation(line: 1, column: 8, scope: !27)
-!32 = !DILocation(line: 2, scope: !27)
-!33 = !DILocation(line: 2, column: 9, scope: !27)
-!34 = !DILocation(line: 3, column: 8, scope: !27)
-!35 = !DILocation(line: 6, scope: !27)
-!36 = !DILocation(line: 6, column: 7, scope: !27)
-!37 = !DILocation(line: 7, column: 8, scope: !27)
-!38 = !DILocation(line: 0, scope: !27)
-!39 = !DILocation(line: 5, scope: !27)
+!11 = !DILocation(line: 5, column: 14, scope: !9)
+!12 = !DILocation(line: 1, column: 8, scope: !9)
+!13 = !DILocation(line: 1, scope: !9)
+!14 = !DILocation(line: 2, column: 9, scope: !9)
+!15 = !DILocation(line: 2, scope: !9)
+!16 = !DILocation(line: 3, column: 8, scope: !9)
+!17 = !DILocation(line: 3, scope: !9)
+!18 = !DILocation(line: 6, column: 7, scope: !9)
+!19 = !DILocation(line: 6, scope: !9)
+!20 = !DILocation(line: 7, column: 8, scope: !9)
+!21 = !DILocation(line: 7, scope: !9)
+!22 = !DILocation(line: 0, scope: !9)
+!23 = !DILocation(line: 5, scope: !9)
+!24 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!25 = !DILocation(line: 0, column: 16, scope: !24)
+!26 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !9, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!27 = !DILocation(line: 5, column: 14, scope: !26)
+!28 = distinct !DISubprogram(name: "initialize.3", linkageName: "initialize.3", scope: !9, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!29 = !DILocation(line: 1, column: 8, scope: !28)
+!30 = distinct !DISubprogram(name: "initialize.4", linkageName: "initialize.4", scope: !9, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!31 = !DILocation(line: 1, column: 8, scope: !30)
+!32 = distinct !DISubprogram(name: "println <:Rational>", linkageName: "println <:Rational>", scope: !30, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!33 = !DILocation(line: 7, column: 11, scope: !32)
+!34 = distinct !DISubprogram(name: "initialize.5", linkageName: "initialize.5", scope: !9, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!35 = !DILocation(line: 2, column: 9, scope: !34)
+!36 = distinct !DISubprogram(name: "initialize.6", linkageName: "initialize.6", scope: !9, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!37 = !DILocation(line: 2, column: 9, scope: !36)
+!38 = distinct !DISubprogram(name: "<:ReferenceMut<Rational>> += <:Rational>", linkageName: "<:ReferenceMut<Rational>> += <:Rational>", scope: !36, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!39 = !DILocation(line: 7, column: 11, scope: !38)
+!40 = distinct !DISubprogram(name: "initialize.7", linkageName: "initialize.7", scope: !9, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!41 = !DILocation(line: 3, column: 8, scope: !40)
+!42 = distinct !DISubprogram(name: "initialize.8", linkageName: "initialize.8", scope: !9, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!43 = !DILocation(line: 3, column: 8, scope: !42)
+!44 = distinct !DISubprogram(name: "initialize.9", linkageName: "initialize.9", scope: !9, file: !2, line: 6, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!45 = !DILocation(line: 6, column: 7, scope: !44)
+!46 = distinct !DISubprogram(name: "initialize.10", linkageName: "initialize.10", scope: !9, file: !2, line: 6, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!47 = !DILocation(line: 6, column: 7, scope: !46)
+!48 = distinct !DISubprogram(name: "<:ReferenceMut<String>> += <:String>", linkageName: "<:ReferenceMut<String>> += <:String>", scope: !46, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!49 = !DILocation(line: 7, column: 11, scope: !48)
+!50 = distinct !DISubprogram(name: "initialize.11", linkageName: "initialize.11", scope: !9, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!51 = !DILocation(line: 7, column: 8, scope: !50)
+!52 = distinct !DISubprogram(name: "initialize.12", linkageName: "initialize.12", scope: !9, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!53 = !DILocation(line: 7, column: 8, scope: !52)

@@ -6,13 +6,9 @@ let $tmp0@23: Integer = 1
 let address: MemoryAddress = allocate ($tmp0@23:Integer) (Type<Integer>:Type<Integer>)
 let x: ReferenceMut<Integer> = (Type<Integer>:Type<Integer>) at (address:MemoryAddress)
 (x:ReferenceMut<Integer>) = 0
-let $tmp0@74: Integer = (*x:Integer)
-let $tmp1@66: None = println ($tmp0@74:Integer)
-$tmp1@66
+let $tmp0@66: None = println (*x:Integer)
+$tmp0@66
 (x:ReferenceMut<Integer>) = 1
-let $tmp0@90: Integer = (*x:Integer)
-let $tmp1@82: None = println ($tmp0@90:Integer)
-$tmp1@82
+let $tmp0@82: None = println (*x:Integer)
+$tmp0@82
 destroy ($tmp0@23:Integer)
-destroy ($tmp0@74:Integer)
-destroy ($tmp0@90:Integer)
