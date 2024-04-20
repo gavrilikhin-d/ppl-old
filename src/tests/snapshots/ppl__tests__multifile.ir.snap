@@ -35,29 +35,30 @@ declare %String @string_from_c_string_and_length(ptr, i64)
 declare %Integer @integer_from_i64(i64)
 
 define void @main.execute() !dbg !9 {
-  call void @initialize.1(), !dbg !10
-  call void @initialize.2(), !dbg !11
-  %1 = load %String, ptr @"$tmp0@35", align 8, !dbg !10
-  call void @destroy_string(%String %1), !dbg !10
-  br label %return, !dbg !10
+  call void @initialize(), !dbg !10
+  call void @initialize.1(), !dbg !11
+  call void @initialize.2(), !dbg !12
+  %1 = load %String, ptr @"$tmp0@35", align 8, !dbg !11
+  call void @destroy_string(%String %1), !dbg !11
+  br label %return, !dbg !11
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @initialize.1() !dbg !12 {
-  %1 = call %String @string_from_c_string_and_length(ptr @1, i64 5), !dbg !13
-  store %String %1, ptr @"$tmp0@35", align 8, !dbg !13
-  br label %return, !dbg !13
+define private void @initialize.1() !dbg !13 {
+  %1 = call %String @string_from_c_string_and_length(ptr @1, i64 5), !dbg !14
+  store %String %1, ptr @"$tmp0@35", align 8, !dbg !14
+  br label %return, !dbg !14
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @initialize.2() !dbg !14 {
-  %1 = load %String, ptr @"$tmp0@35", align 8, !dbg !15
-  call void @"greet <:String>"(%String %1), !dbg !15
-  br label %return, !dbg !15
+define private void @initialize.2() !dbg !15 {
+  %1 = load %String, ptr @"$tmp0@35", align 8, !dbg !16
+  call void @"greet <:String>"(%String %1), !dbg !16
+  br label %return, !dbg !16
 
 return:                                           ; preds = %0
   ret void
@@ -80,9 +81,10 @@ declare void @destroy_string(%String)
 !7 = !DILocation(line: 2, column: 13, scope: !3)
 !8 = !DILocation(line: 0, scope: !3)
 !9 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!10 = !DILocation(line: 2, column: 6, scope: !9)
-!11 = !DILocation(line: 2, scope: !9)
-!12 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!13 = !DILocation(line: 2, column: 6, scope: !12)
-!14 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !9, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!15 = !DILocation(line: 2, column: 6, scope: !14)
+!10 = !DILocation(line: 2, column: 13, scope: !9)
+!11 = !DILocation(line: 2, column: 6, scope: !9)
+!12 = !DILocation(line: 2, scope: !9)
+!13 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!14 = !DILocation(line: 2, column: 6, scope: !13)
+!15 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !9, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!16 = !DILocation(line: 2, column: 6, scope: !15)
