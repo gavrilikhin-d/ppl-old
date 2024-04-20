@@ -38,27 +38,26 @@ define void @foo() !dbg !9 {
   %"$tmp0@18" = alloca %String, align 8, !dbg !10
   store %String %1, ptr %"$tmp0@18", align 8, !dbg !10
   %2 = load %String, ptr %"$tmp0@18", align 8, !dbg !10
-  call void @destroy_string(%String %2), !dbg !10
+  call void @"println <:String>"(%String %2), !dbg !10
   %3 = load %String, ptr %"$tmp0@18", align 8, !dbg !10
-  call void @"println <:String>"(%String %3), !dbg !10
-  br label %return, !dbg !10
+  call void @destroy_string(%String %3), !dbg !10
+  br label %return, !dbg !11
 
 return:                                           ; preds = %0
   ret void
 }
 
-declare void @destroy_string(%String)
-
 declare void @"println <:String>"(%String)
 
-define void @main.execute() !dbg !11 {
+declare void @destroy_string(%String)
+
+define void @main.execute() !dbg !12 {
 init_globals:
-  call void @initialize(), !dbg !12
-  br label %0, !dbg !12
+  call void @initialize(), !dbg !13
+  br label %0, !dbg !13
 
 0:                                                ; preds = %init_globals
-  call void @foo(), !dbg !13
-  br label %return, !dbg !12
+  br label %return, !dbg !13
 
 return:                                           ; preds = %0
   ret void
@@ -78,6 +77,6 @@ return:                                           ; preds = %0
 !8 = !DILocation(line: 0, scope: !3)
 !9 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !10 = !DILocation(line: 0, column: 18, scope: !9)
-!11 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!12 = !DILocation(line: 1, column: 5, scope: !11)
-!13 = !DILocation(line: 1, scope: !11)
+!11 = !DILocation(line: 0, column: 10, scope: !9)
+!12 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!13 = !DILocation(line: 1, column: 5, scope: !12)

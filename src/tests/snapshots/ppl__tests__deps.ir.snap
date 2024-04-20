@@ -38,14 +38,11 @@ init_globals:
   br label %0, !dbg !10
 
 0:                                                ; preds = %init_globals
-  call void @"say hello"(), !dbg !11
   br label %return, !dbg !10
 
 return:                                           ; preds = %0
   ret void
 }
-
-declare void @"say hello"()
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
@@ -61,4 +58,3 @@ declare void @"say hello"()
 !8 = !DILocation(line: 0, scope: !3)
 !9 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !10 = !DILocation(line: 3, scope: !9)
-!11 = !DILocation(line: 2, scope: !9)

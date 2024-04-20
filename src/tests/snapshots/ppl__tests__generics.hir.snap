@@ -22,15 +22,18 @@ fn<T> id <x: T> -> T:
 let $tmp0@100: Integer = clone (x:Integer)
 let $tmp1@105: Integer = 0
 let $tmp2@100: Bool = ($tmp0@100:Integer) == ($tmp1@105:Integer)
-println ($tmp2@100:Bool)
+let $tmp3@92: None = println ($tmp2@100:Bool)
+$tmp3@92
 let $tmp0@142: Integer = 1
 let $tmp1@139: Integer = id ($tmp0@142:Integer)
 let $tmp2@148: Integer = 1
 let $tmp3@138: Bool = ($tmp1@139:Integer) == ($tmp2@148:Integer)
-println ($tmp3@138:Bool)
+let $tmp4@130: None = println ($tmp3@138:Bool)
+$tmp4@130
 let $tmp0@162: String = "hello"
 let $tmp1@159: String = id ($tmp0@162:String)
-println ($tmp1@159:String)
+let $tmp2@150: None = println ($tmp1@159:String)
+$tmp2@150
 let $tmp0@185: Integer = 0
 let $tmp1@191: Integer = 0
 let $tmp2@174: Point<Integer> = Point<Integer> { x: ($tmp0@185:Integer), y: ($tmp1@191:Integer) }

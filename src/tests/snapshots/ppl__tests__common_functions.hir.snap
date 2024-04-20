@@ -4,7 +4,9 @@ expression: hir
 ---
 fn foo -> None:
 	let $tmp0@18: String = "foo"
-	return println ($tmp0@18:String)
+	let $tmp1@10: None = println ($tmp0@18:String)
+destroy ($tmp0@18:String)
+	return ($tmp1@10:None)
 
-
-foo
+let $tmp0@24: None = foo
+$tmp0@24

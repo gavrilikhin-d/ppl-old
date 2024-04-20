@@ -51,53 +51,11 @@ init_globals:
   br label %0, !dbg !13
 
 0:                                                ; preds = %init_globals
-  call void @"do nothing"(), !dbg !14
-  call void @"println <:None>"(), !dbg !14
   %1 = load %Integer, ptr @"$tmp0@43", align 8, !dbg !13
-  call void @"println <:Integer>"(%Integer %1), !dbg !13
-  %2 = load %Integer, ptr @"$tmp0@43", align 8, !dbg !13
-  call void @destroy_integer(%Integer %2), !dbg !13
+  call void @destroy_integer(%Integer %1), !dbg !13
   br label %return, !dbg !13
 
 return:                                           ; preds = %0
-  ret void
-}
-
-define private void @"println <:None>"() !dbg !15 {
-  %1 = call %String @"String from <:None>"(), !dbg !16
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !16
-  store %String %1, ptr %"$tmp0@4544", align 8, !dbg !16
-  %2 = load %String, ptr %"$tmp0@4544", align 8, !dbg !16
-  call void @destroy_string(%String %2), !dbg !16
-  %3 = load %String, ptr %"$tmp0@4544", align 8, !dbg !16
-  call void @"println <:String>"(%String %3), !dbg !16
-  br label %return, !dbg !16
-
-return:                                           ; preds = %0
-  ret void
-}
-
-declare %String @"String from <:None>"()
-
-declare void @destroy_string(%String)
-
-declare void @"println <:String>"(%String)
-
-declare void @"do nothing"()
-
-define private void @"println <:Integer>"(%Integer %0) !dbg !17 {
-  %x = alloca %Integer, align 8
-  store %Integer %0, ptr %x, align 8
-  %2 = call %String @"String from <:None>"(), !dbg !18
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !18
-  store %String %2, ptr %"$tmp0@4544", align 8, !dbg !18
-  %3 = load %String, ptr %"$tmp0@4544", align 8, !dbg !18
-  call void @destroy_string(%String %3), !dbg !18
-  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !18
-  call void @"println <:String>"(%String %4), !dbg !18
-  br label %return, !dbg !18
-
-return:                                           ; preds = %1
   ret void
 }
 
@@ -120,8 +78,3 @@ declare void @destroy_integer(%Integer)
 !11 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !12 = !DILocation(line: 3, column: 22, scope: !11)
 !13 = !DILocation(line: 3, column: 9, scope: !11)
-!14 = !DILocation(line: 2, column: 9, scope: !11)
-!15 = distinct !DISubprogram(name: "println <:None>", linkageName: "println <:None>", scope: !11, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!16 = !DILocation(line: 3, column: 22, scope: !15)
-!17 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !11, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!18 = !DILocation(line: 3, column: 22, scope: !17)

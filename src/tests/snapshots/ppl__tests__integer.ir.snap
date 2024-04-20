@@ -286,104 +286,48 @@ init_globals:
 
 0:                                                ; preds = %init_globals
   %1 = load %Integer, ptr @"$tmp0@8", align 8, !dbg !56
-  call void @"println <:Integer>"(%Integer %1), !dbg !56
-  %2 = load %Integer, ptr @"$tmp1@18", align 8, !dbg !58
-  call void @"println <:Integer>"(%Integer %2), !dbg !58
-  %3 = load %Integer, ptr @"$tmp1@29", align 8, !dbg !60
-  call void @"println <:Integer>"(%Integer %3), !dbg !60
-  %4 = load %Integer, ptr @"$tmp2@40", align 8, !dbg !61
-  call void @"println <:Integer>"(%Integer %4), !dbg !61
-  %5 = load %Integer, ptr @"$tmp2@54", align 8, !dbg !63
-  call void @"println <:Integer>"(%Integer %5), !dbg !63
-  %6 = load %Integer, ptr @"$tmp2@68", align 8, !dbg !65
-  call void @"println <:Integer>"(%Integer %6), !dbg !65
-  %7 = load %Integer, ptr @"$tmp2@82", align 8, !dbg !67
-  call void @"println <:Integer>"(%Integer %7), !dbg !67
-  %8 = load %Rational, ptr @"$tmp2@96", align 8, !dbg !69
-  call void @"println <:Rational>"(%Rational %8), !dbg !69
-  %9 = load %Integer, ptr @"$tmp0@8", align 8, !dbg !56
-  call void @destroy_integer(%Integer %9), !dbg !56
-  %10 = load %Integer, ptr @"$tmp0@19", align 8, !dbg !57
-  call void @destroy_integer(%Integer %10), !dbg !57
-  %11 = load %Integer, ptr @"$tmp1@18", align 8, !dbg !58
-  call void @destroy_integer(%Integer %11), !dbg !58
-  %12 = load %Integer, ptr @"$tmp0@30", align 8, !dbg !59
-  call void @destroy_integer(%Integer %12), !dbg !59
-  %13 = load %Integer, ptr @"$tmp1@29", align 8, !dbg !60
-  call void @destroy_integer(%Integer %13), !dbg !60
-  %14 = load %Integer, ptr @"$tmp0@40", align 8, !dbg !61
-  call void @destroy_integer(%Integer %14), !dbg !61
-  %15 = load %Integer, ptr @"$tmp1@44", align 8, !dbg !62
-  call void @destroy_integer(%Integer %15), !dbg !62
-  %16 = load %Integer, ptr @"$tmp2@40", align 8, !dbg !61
-  call void @destroy_integer(%Integer %16), !dbg !61
-  %17 = load %Integer, ptr @"$tmp0@54", align 8, !dbg !63
-  call void @destroy_integer(%Integer %17), !dbg !63
-  %18 = load %Integer, ptr @"$tmp1@58", align 8, !dbg !64
-  call void @destroy_integer(%Integer %18), !dbg !64
-  %19 = load %Integer, ptr @"$tmp2@54", align 8, !dbg !63
-  call void @destroy_integer(%Integer %19), !dbg !63
-  %20 = load %Integer, ptr @"$tmp0@68", align 8, !dbg !65
-  call void @destroy_integer(%Integer %20), !dbg !65
-  %21 = load %Integer, ptr @"$tmp1@72", align 8, !dbg !66
-  call void @destroy_integer(%Integer %21), !dbg !66
-  %22 = load %Integer, ptr @"$tmp2@68", align 8, !dbg !65
-  call void @destroy_integer(%Integer %22), !dbg !65
-  %23 = load %Integer, ptr @"$tmp0@82", align 8, !dbg !67
-  call void @destroy_integer(%Integer %23), !dbg !67
-  %24 = load %Integer, ptr @"$tmp1@86", align 8, !dbg !68
-  call void @destroy_integer(%Integer %24), !dbg !68
-  %25 = load %Integer, ptr @"$tmp2@82", align 8, !dbg !67
-  call void @destroy_integer(%Integer %25), !dbg !67
-  %26 = load %Integer, ptr @"$tmp0@96", align 8, !dbg !69
-  call void @destroy_integer(%Integer %26), !dbg !69
-  %27 = load %Integer, ptr @"$tmp1@101", align 8, !dbg !70
-  call void @destroy_integer(%Integer %27), !dbg !70
-  %28 = load %Rational, ptr @"$tmp2@96", align 8, !dbg !69
-  call void @destroy_rational(%Rational %28), !dbg !69
+  call void @destroy_integer(%Integer %1), !dbg !56
+  %2 = load %Integer, ptr @"$tmp0@19", align 8, !dbg !57
+  call void @destroy_integer(%Integer %2), !dbg !57
+  %3 = load %Integer, ptr @"$tmp1@18", align 8, !dbg !58
+  call void @destroy_integer(%Integer %3), !dbg !58
+  %4 = load %Integer, ptr @"$tmp0@30", align 8, !dbg !59
+  call void @destroy_integer(%Integer %4), !dbg !59
+  %5 = load %Integer, ptr @"$tmp1@29", align 8, !dbg !60
+  call void @destroy_integer(%Integer %5), !dbg !60
+  %6 = load %Integer, ptr @"$tmp0@40", align 8, !dbg !61
+  call void @destroy_integer(%Integer %6), !dbg !61
+  %7 = load %Integer, ptr @"$tmp1@44", align 8, !dbg !62
+  call void @destroy_integer(%Integer %7), !dbg !62
+  %8 = load %Integer, ptr @"$tmp2@40", align 8, !dbg !61
+  call void @destroy_integer(%Integer %8), !dbg !61
+  %9 = load %Integer, ptr @"$tmp0@54", align 8, !dbg !63
+  call void @destroy_integer(%Integer %9), !dbg !63
+  %10 = load %Integer, ptr @"$tmp1@58", align 8, !dbg !64
+  call void @destroy_integer(%Integer %10), !dbg !64
+  %11 = load %Integer, ptr @"$tmp2@54", align 8, !dbg !63
+  call void @destroy_integer(%Integer %11), !dbg !63
+  %12 = load %Integer, ptr @"$tmp0@68", align 8, !dbg !65
+  call void @destroy_integer(%Integer %12), !dbg !65
+  %13 = load %Integer, ptr @"$tmp1@72", align 8, !dbg !66
+  call void @destroy_integer(%Integer %13), !dbg !66
+  %14 = load %Integer, ptr @"$tmp2@68", align 8, !dbg !65
+  call void @destroy_integer(%Integer %14), !dbg !65
+  %15 = load %Integer, ptr @"$tmp0@82", align 8, !dbg !67
+  call void @destroy_integer(%Integer %15), !dbg !67
+  %16 = load %Integer, ptr @"$tmp1@86", align 8, !dbg !68
+  call void @destroy_integer(%Integer %16), !dbg !68
+  %17 = load %Integer, ptr @"$tmp2@82", align 8, !dbg !67
+  call void @destroy_integer(%Integer %17), !dbg !67
+  %18 = load %Integer, ptr @"$tmp0@96", align 8, !dbg !69
+  call void @destroy_integer(%Integer %18), !dbg !69
+  %19 = load %Integer, ptr @"$tmp1@101", align 8, !dbg !70
+  call void @destroy_integer(%Integer %19), !dbg !70
+  %20 = load %Rational, ptr @"$tmp2@96", align 8, !dbg !69
+  call void @destroy_rational(%Rational %20), !dbg !69
   br label %return, !dbg !69
 
 return:                                           ; preds = %0
-  ret void
-}
-
-define private void @"println <:Integer>"(%Integer %0) !dbg !71 {
-  %x = alloca %Integer, align 8
-  store %Integer %0, ptr %x, align 8
-  %2 = load %Integer, ptr %x, align 8, !dbg !72
-  %3 = call %String @integer_as_string(%Integer %2), !dbg !72
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !72
-  store %String %3, ptr %"$tmp0@4544", align 8, !dbg !72
-  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !72
-  call void @destroy_string(%String %4), !dbg !72
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !72
-  call void @"println <:String>"(%String %5), !dbg !72
-  br label %return, !dbg !72
-
-return:                                           ; preds = %1
-  ret void
-}
-
-declare %String @integer_as_string(%Integer)
-
-declare void @destroy_string(%String)
-
-declare void @"println <:String>"(%String)
-
-define private void @"println <:Rational>"(%Rational %0) !dbg !73 {
-  %x = alloca %Rational, align 8
-  store %Rational %0, ptr %x, align 8
-  %2 = load %Integer, ptr %x, align 8, !dbg !74
-  %3 = call %String @integer_as_string(%Integer %2), !dbg !74
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !74
-  store %String %3, ptr %"$tmp0@4544", align 8, !dbg !74
-  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !74
-  call void @destroy_string(%String %4), !dbg !74
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !74
-  call void @"println <:String>"(%String %5), !dbg !74
-  br label %return, !dbg !74
-
-return:                                           ; preds = %1
   ret void
 }
 
@@ -465,7 +409,3 @@ declare void @destroy_rational(%Rational)
 !68 = !DILocation(line: 6, column: 12, scope: !54)
 !69 = !DILocation(line: 7, column: 8, scope: !54)
 !70 = !DILocation(line: 7, column: 13, scope: !54)
-!71 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !54, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!72 = !DILocation(line: 7, column: 14, scope: !71)
-!73 = distinct !DISubprogram(name: "println <:Rational>", linkageName: "println <:Rational>", scope: !54, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!74 = !DILocation(line: 7, column: 14, scope: !73)

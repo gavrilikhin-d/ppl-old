@@ -6,4 +6,5 @@ type A
 let $tmp0@15: A = A {  }
 let a: A = ($tmp0@15:A)
 let $tmp0@29: Type<A> = type of (a:A)
-println ($tmp0@29:Type<A>)
+let $tmp1@20: None = println ($tmp0@29:Type<A>)
+$tmp1@20

@@ -683,148 +683,78 @@ init_globals:
 
 0:                                                ; preds = %init_globals
   %1 = load %Rational, ptr @"$tmp0@8", align 8, !dbg !118
-  call void @"println <:Rational>"(%Rational %1), !dbg !118
-  %2 = load %Rational, ptr @"$tmp1@20", align 8, !dbg !120
-  call void @"println <:Rational>"(%Rational %2), !dbg !120
-  %3 = load %Rational, ptr @"$tmp1@33", align 8, !dbg !122
-  call void @"println <:Rational>"(%Rational %3), !dbg !122
-  %4 = load %Rational, ptr @"$tmp2@46", align 8, !dbg !123
-  call void @"println <:Rational>"(%Rational %4), !dbg !123
-  %5 = load %Rational, ptr @"$tmp2@64", align 8, !dbg !125
-  call void @"println <:Rational>"(%Rational %5), !dbg !125
-  %6 = load %Rational, ptr @"$tmp2@82", align 8, !dbg !127
-  call void @"println <:Rational>"(%Rational %6), !dbg !127
-  %7 = load %Rational, ptr @"$tmp4@100", align 8, !dbg !129
-  call void @"println <:Rational>"(%Rational %7), !dbg !129
-  %8 = load i1, ptr @"$tmp2@122", align 1, !dbg !132
-  call void @"println <:Bool>"(i1 %8), !dbg !132
-  %9 = load i1, ptr @"$tmp2@141", align 1, !dbg !134
-  call void @"println <:Bool>"(i1 %9), !dbg !134
-  %10 = load i1, ptr @"$tmp2@160", align 1, !dbg !136
-  call void @"println <:Bool>"(i1 %10), !dbg !136
-  %11 = load i1, ptr @"$tmp2@178", align 1, !dbg !138
-  call void @"println <:Bool>"(i1 %11), !dbg !138
-  %12 = load i1, ptr @"$tmp2@196", align 1, !dbg !140
-  call void @"println <:Bool>"(i1 %12), !dbg !140
-  %13 = load i1, ptr @"$tmp2@216", align 1, !dbg !142
-  call void @"println <:Bool>"(i1 %13), !dbg !142
-  %14 = load i1, ptr @"$tmp2@235", align 1, !dbg !144
-  call void @"println <:Bool>"(i1 %14), !dbg !144
-  %15 = load i1, ptr @"$tmp2@254", align 1, !dbg !146
-  call void @"println <:Bool>"(i1 %15), !dbg !146
-  %16 = load %Rational, ptr @"$tmp0@8", align 8, !dbg !118
-  call void @destroy_rational(%Rational %16), !dbg !118
-  %17 = load %Rational, ptr @"$tmp0@21", align 8, !dbg !119
-  call void @destroy_rational(%Rational %17), !dbg !119
-  %18 = load %Rational, ptr @"$tmp1@20", align 8, !dbg !120
-  call void @destroy_rational(%Rational %18), !dbg !120
-  %19 = load %Rational, ptr @"$tmp0@34", align 8, !dbg !121
-  call void @destroy_rational(%Rational %19), !dbg !121
-  %20 = load %Rational, ptr @"$tmp1@33", align 8, !dbg !122
-  call void @destroy_rational(%Rational %20), !dbg !122
-  %21 = load %Rational, ptr @"$tmp0@46", align 8, !dbg !123
-  call void @destroy_rational(%Rational %21), !dbg !123
-  %22 = load %Rational, ptr @"$tmp1@52", align 8, !dbg !124
-  call void @destroy_rational(%Rational %22), !dbg !124
-  %23 = load %Rational, ptr @"$tmp2@46", align 8, !dbg !123
-  call void @destroy_rational(%Rational %23), !dbg !123
-  %24 = load %Rational, ptr @"$tmp0@64", align 8, !dbg !125
-  call void @destroy_rational(%Rational %24), !dbg !125
-  %25 = load %Rational, ptr @"$tmp1@70", align 8, !dbg !126
-  call void @destroy_rational(%Rational %25), !dbg !126
-  %26 = load %Rational, ptr @"$tmp2@64", align 8, !dbg !125
-  call void @destroy_rational(%Rational %26), !dbg !125
-  %27 = load %Rational, ptr @"$tmp0@82", align 8, !dbg !127
-  call void @destroy_rational(%Rational %27), !dbg !127
-  %28 = load %Rational, ptr @"$tmp1@88", align 8, !dbg !128
-  call void @destroy_rational(%Rational %28), !dbg !128
-  %29 = load %Rational, ptr @"$tmp2@82", align 8, !dbg !127
-  call void @destroy_rational(%Rational %29), !dbg !127
-  %30 = load %Rational, ptr @"$tmp0@100", align 8, !dbg !129
-  call void @destroy_rational(%Rational %30), !dbg !129
-  %31 = load %Integer, ptr @"$tmp1@107", align 8, !dbg !130
-  call void @destroy_integer(%Integer %31), !dbg !130
-  %32 = load %Integer, ptr @"$tmp2@111", align 8, !dbg !131
-  call void @destroy_integer(%Integer %32), !dbg !131
-  %33 = load %Rational, ptr @"$tmp3@107", align 8, !dbg !130
-  call void @destroy_rational(%Rational %33), !dbg !130
-  %34 = load %Rational, ptr @"$tmp4@100", align 8, !dbg !129
-  call void @destroy_rational(%Rational %34), !dbg !129
-  %35 = load %Rational, ptr @"$tmp0@122", align 8, !dbg !132
-  call void @destroy_rational(%Rational %35), !dbg !132
-  %36 = load %Rational, ptr @"$tmp1@129", align 8, !dbg !133
-  call void @destroy_rational(%Rational %36), !dbg !133
-  %37 = load %Rational, ptr @"$tmp0@141", align 8, !dbg !134
-  call void @destroy_rational(%Rational %37), !dbg !134
-  %38 = load %Rational, ptr @"$tmp1@148", align 8, !dbg !135
-  call void @destroy_rational(%Rational %38), !dbg !135
-  %39 = load %Rational, ptr @"$tmp0@160", align 8, !dbg !136
-  call void @destroy_rational(%Rational %39), !dbg !136
-  %40 = load %Rational, ptr @"$tmp1@166", align 8, !dbg !137
-  call void @destroy_rational(%Rational %40), !dbg !137
-  %41 = load %Rational, ptr @"$tmp0@178", align 8, !dbg !138
-  call void @destroy_rational(%Rational %41), !dbg !138
-  %42 = load %Rational, ptr @"$tmp1@184", align 8, !dbg !139
-  call void @destroy_rational(%Rational %42), !dbg !139
-  %43 = load %Rational, ptr @"$tmp0@196", align 8, !dbg !140
-  call void @destroy_rational(%Rational %43), !dbg !140
-  %44 = load %Rational, ptr @"$tmp1@203", align 8, !dbg !141
-  call void @destroy_rational(%Rational %44), !dbg !141
-  %45 = load %Rational, ptr @"$tmp0@216", align 8, !dbg !142
-  call void @destroy_rational(%Rational %45), !dbg !142
-  %46 = load %Rational, ptr @"$tmp1@223", align 8, !dbg !143
-  call void @destroy_rational(%Rational %46), !dbg !143
-  %47 = load %Rational, ptr @"$tmp0@235", align 8, !dbg !144
-  call void @destroy_rational(%Rational %47), !dbg !144
-  %48 = load %Rational, ptr @"$tmp1@242", align 8, !dbg !145
-  call void @destroy_rational(%Rational %48), !dbg !145
-  %49 = load %Rational, ptr @"$tmp0@254", align 8, !dbg !146
-  call void @destroy_rational(%Rational %49), !dbg !146
-  %50 = load %Rational, ptr @"$tmp1@261", align 8, !dbg !147
-  call void @destroy_rational(%Rational %50), !dbg !147
+  call void @destroy_rational(%Rational %1), !dbg !118
+  %2 = load %Rational, ptr @"$tmp0@21", align 8, !dbg !119
+  call void @destroy_rational(%Rational %2), !dbg !119
+  %3 = load %Rational, ptr @"$tmp1@20", align 8, !dbg !120
+  call void @destroy_rational(%Rational %3), !dbg !120
+  %4 = load %Rational, ptr @"$tmp0@34", align 8, !dbg !121
+  call void @destroy_rational(%Rational %4), !dbg !121
+  %5 = load %Rational, ptr @"$tmp1@33", align 8, !dbg !122
+  call void @destroy_rational(%Rational %5), !dbg !122
+  %6 = load %Rational, ptr @"$tmp0@46", align 8, !dbg !123
+  call void @destroy_rational(%Rational %6), !dbg !123
+  %7 = load %Rational, ptr @"$tmp1@52", align 8, !dbg !124
+  call void @destroy_rational(%Rational %7), !dbg !124
+  %8 = load %Rational, ptr @"$tmp2@46", align 8, !dbg !123
+  call void @destroy_rational(%Rational %8), !dbg !123
+  %9 = load %Rational, ptr @"$tmp0@64", align 8, !dbg !125
+  call void @destroy_rational(%Rational %9), !dbg !125
+  %10 = load %Rational, ptr @"$tmp1@70", align 8, !dbg !126
+  call void @destroy_rational(%Rational %10), !dbg !126
+  %11 = load %Rational, ptr @"$tmp2@64", align 8, !dbg !125
+  call void @destroy_rational(%Rational %11), !dbg !125
+  %12 = load %Rational, ptr @"$tmp0@82", align 8, !dbg !127
+  call void @destroy_rational(%Rational %12), !dbg !127
+  %13 = load %Rational, ptr @"$tmp1@88", align 8, !dbg !128
+  call void @destroy_rational(%Rational %13), !dbg !128
+  %14 = load %Rational, ptr @"$tmp2@82", align 8, !dbg !127
+  call void @destroy_rational(%Rational %14), !dbg !127
+  %15 = load %Rational, ptr @"$tmp0@100", align 8, !dbg !129
+  call void @destroy_rational(%Rational %15), !dbg !129
+  %16 = load %Integer, ptr @"$tmp1@107", align 8, !dbg !130
+  call void @destroy_integer(%Integer %16), !dbg !130
+  %17 = load %Integer, ptr @"$tmp2@111", align 8, !dbg !131
+  call void @destroy_integer(%Integer %17), !dbg !131
+  %18 = load %Rational, ptr @"$tmp3@107", align 8, !dbg !130
+  call void @destroy_rational(%Rational %18), !dbg !130
+  %19 = load %Rational, ptr @"$tmp4@100", align 8, !dbg !129
+  call void @destroy_rational(%Rational %19), !dbg !129
+  %20 = load %Rational, ptr @"$tmp0@122", align 8, !dbg !132
+  call void @destroy_rational(%Rational %20), !dbg !132
+  %21 = load %Rational, ptr @"$tmp1@129", align 8, !dbg !133
+  call void @destroy_rational(%Rational %21), !dbg !133
+  %22 = load %Rational, ptr @"$tmp0@141", align 8, !dbg !134
+  call void @destroy_rational(%Rational %22), !dbg !134
+  %23 = load %Rational, ptr @"$tmp1@148", align 8, !dbg !135
+  call void @destroy_rational(%Rational %23), !dbg !135
+  %24 = load %Rational, ptr @"$tmp0@160", align 8, !dbg !136
+  call void @destroy_rational(%Rational %24), !dbg !136
+  %25 = load %Rational, ptr @"$tmp1@166", align 8, !dbg !137
+  call void @destroy_rational(%Rational %25), !dbg !137
+  %26 = load %Rational, ptr @"$tmp0@178", align 8, !dbg !138
+  call void @destroy_rational(%Rational %26), !dbg !138
+  %27 = load %Rational, ptr @"$tmp1@184", align 8, !dbg !139
+  call void @destroy_rational(%Rational %27), !dbg !139
+  %28 = load %Rational, ptr @"$tmp0@196", align 8, !dbg !140
+  call void @destroy_rational(%Rational %28), !dbg !140
+  %29 = load %Rational, ptr @"$tmp1@203", align 8, !dbg !141
+  call void @destroy_rational(%Rational %29), !dbg !141
+  %30 = load %Rational, ptr @"$tmp0@216", align 8, !dbg !142
+  call void @destroy_rational(%Rational %30), !dbg !142
+  %31 = load %Rational, ptr @"$tmp1@223", align 8, !dbg !143
+  call void @destroy_rational(%Rational %31), !dbg !143
+  %32 = load %Rational, ptr @"$tmp0@235", align 8, !dbg !144
+  call void @destroy_rational(%Rational %32), !dbg !144
+  %33 = load %Rational, ptr @"$tmp1@242", align 8, !dbg !145
+  call void @destroy_rational(%Rational %33), !dbg !145
+  %34 = load %Rational, ptr @"$tmp0@254", align 8, !dbg !146
+  call void @destroy_rational(%Rational %34), !dbg !146
+  %35 = load %Rational, ptr @"$tmp1@261", align 8, !dbg !147
+  call void @destroy_rational(%Rational %35), !dbg !147
   br label %return, !dbg !146
 
 return:                                           ; preds = %0
-  ret void
-}
-
-define private void @"println <:Rational>"(%Rational %0) !dbg !148 {
-  %x = alloca %Rational, align 8
-  store %Rational %0, ptr %x, align 8
-  %2 = load %Rational, ptr %x, align 8, !dbg !149
-  %3 = call %String @rational_as_string(%Rational %2), !dbg !149
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !149
-  store %String %3, ptr %"$tmp0@4544", align 8, !dbg !149
-  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !149
-  call void @destroy_string(%String %4), !dbg !149
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !149
-  call void @"println <:String>"(%String %5), !dbg !149
-  br label %return, !dbg !149
-
-return:                                           ; preds = %1
-  ret void
-}
-
-declare %String @rational_as_string(%Rational)
-
-declare void @destroy_string(%String)
-
-declare void @"println <:String>"(%String)
-
-define private void @"println <:Bool>"(i1 %0) !dbg !150 {
-  %x = alloca i1, align 1
-  store i1 %0, ptr %x, align 1
-  %2 = load %Rational, ptr %x, align 8, !dbg !151
-  %3 = call %String @rational_as_string(%Rational %2), !dbg !151
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !151
-  store %String %3, ptr %"$tmp0@4544", align 8, !dbg !151
-  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !151
-  call void @destroy_string(%String %4), !dbg !151
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !151
-  call void @"println <:String>"(%String %5), !dbg !151
-  br label %return, !dbg !151
-
-return:                                           ; preds = %1
   ret void
 }
 
@@ -983,7 +913,3 @@ declare void @destroy_integer(%Integer)
 !145 = !DILocation(line: 13, column: 15, scope: !116)
 !146 = !DILocation(line: 14, column: 8, scope: !116)
 !147 = !DILocation(line: 14, column: 15, scope: !116)
-!148 = distinct !DISubprogram(name: "println <:Rational>", linkageName: "println <:Rational>", scope: !116, file: !2, line: 14, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!149 = !DILocation(line: 14, column: 18, scope: !148)
-!150 = distinct !DISubprogram(name: "println <:Bool>", linkageName: "println <:Bool>", scope: !116, file: !2, line: 14, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!151 = !DILocation(line: 14, column: 18, scope: !150)

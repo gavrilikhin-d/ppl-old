@@ -26,7 +26,7 @@ source_filename = "src/main.ppl"
 @"$tmp3@24" = global %String zeroinitializer
 @5 = private unnamed_addr constant [7 x i8] c"World!\00", align 1
 @"$tmp4@8" = global %String zeroinitializer
-@"$tmp0@42" = global %String zeroinitializer
+@"$tmp1@42" = global %String zeroinitializer
 @"$tmp0@81" = global i1 false
 @"$tmp1@69" = global %String zeroinitializer
 @"$tmp0@109" = global i1 false
@@ -144,7 +144,7 @@ return:                                           ; preds = %0
 
 define private void @initialize.8() !dbg !27 {
   %1 = call %String @"String from <:None>"(), !dbg !28
-  store %String %1, ptr @"$tmp0@42", align 8, !dbg !28
+  store %String %1, ptr @"$tmp1@42", align 8, !dbg !28
   br label %return, !dbg !28
 
 return:                                           ; preds = %0
@@ -307,57 +307,39 @@ init_globals:
   br label %0, !dbg !70
 
 0:                                                ; preds = %init_globals
-  %1 = load %String, ptr @"$tmp4@8", align 8, !dbg !57
-  call void @"println <:String>"(%String %1), !dbg !57
-  %2 = load %String, ptr @"$tmp0@42", align 8, !dbg !60
-  call void @"println <:String>"(%String %2), !dbg !60
-  %3 = load %String, ptr @"$tmp1@69", align 8, !dbg !62
-  call void @"println <:String>"(%String %3), !dbg !62
-  %4 = load %String, ptr @"$tmp1@97", align 8, !dbg !64
-  call void @"println <:String>"(%String %4), !dbg !64
-  %5 = load %String, ptr @"$tmp1@124", align 8, !dbg !66
-  call void @"println <:String>"(%String %5), !dbg !66
-  %6 = load %String, ptr @"$tmp1@148", align 8, !dbg !68
-  call void @"println <:String>"(%String %6), !dbg !68
-  %7 = load %String, ptr @"$tmp0@174", align 8, !dbg !69
-  call void @"println <:String>"(%String %7), !dbg !69
-  %8 = load %String, ptr @"$tmp0@204", align 8, !dbg !70
-  call void @"println <:String>"(%String %8), !dbg !70
-  %9 = load %String, ptr @"$tmp0@8", align 8, !dbg !57
-  call void @destroy_string(%String %9), !dbg !57
-  %10 = load %String, ptr @"$tmp1@18", align 8, !dbg !58
-  call void @destroy_string(%String %10), !dbg !58
-  %11 = load %String, ptr @"$tmp2@8", align 8, !dbg !57
-  call void @destroy_string(%String %11), !dbg !57
-  %12 = load %String, ptr @"$tmp3@24", align 8, !dbg !59
-  call void @destroy_string(%String %12), !dbg !59
-  %13 = load %String, ptr @"$tmp4@8", align 8, !dbg !57
-  call void @destroy_string(%String %13), !dbg !57
-  %14 = load %String, ptr @"$tmp0@42", align 8, !dbg !60
-  call void @destroy_string(%String %14), !dbg !60
-  %15 = load %String, ptr @"$tmp1@69", align 8, !dbg !62
-  call void @destroy_string(%String %15), !dbg !62
-  %16 = load %String, ptr @"$tmp1@97", align 8, !dbg !64
-  call void @destroy_string(%String %16), !dbg !64
-  %17 = load %Integer, ptr @"$tmp0@136", align 8, !dbg !65
-  call void @destroy_integer(%Integer %17), !dbg !65
-  %18 = load %String, ptr @"$tmp1@124", align 8, !dbg !66
-  call void @destroy_string(%String %18), !dbg !66
-  %19 = load %Rational, ptr @"$tmp0@160", align 8, !dbg !67
-  call void @destroy_rational(%Rational %19), !dbg !67
-  %20 = load %String, ptr @"$tmp1@148", align 8, !dbg !68
-  call void @destroy_string(%String %20), !dbg !68
-  %21 = load %String, ptr @"$tmp0@174", align 8, !dbg !69
-  call void @destroy_string(%String %21), !dbg !69
-  %22 = load %String, ptr @"$tmp0@204", align 8, !dbg !70
-  call void @destroy_string(%String %22), !dbg !70
+  %1 = load %String, ptr @"$tmp0@8", align 8, !dbg !57
+  call void @destroy_string(%String %1), !dbg !57
+  %2 = load %String, ptr @"$tmp1@18", align 8, !dbg !58
+  call void @destroy_string(%String %2), !dbg !58
+  %3 = load %String, ptr @"$tmp2@8", align 8, !dbg !57
+  call void @destroy_string(%String %3), !dbg !57
+  %4 = load %String, ptr @"$tmp3@24", align 8, !dbg !59
+  call void @destroy_string(%String %4), !dbg !59
+  %5 = load %String, ptr @"$tmp4@8", align 8, !dbg !57
+  call void @destroy_string(%String %5), !dbg !57
+  %6 = load %String, ptr @"$tmp1@42", align 8, !dbg !60
+  call void @destroy_string(%String %6), !dbg !60
+  %7 = load %String, ptr @"$tmp1@69", align 8, !dbg !62
+  call void @destroy_string(%String %7), !dbg !62
+  %8 = load %String, ptr @"$tmp1@97", align 8, !dbg !64
+  call void @destroy_string(%String %8), !dbg !64
+  %9 = load %Integer, ptr @"$tmp0@136", align 8, !dbg !65
+  call void @destroy_integer(%Integer %9), !dbg !65
+  %10 = load %String, ptr @"$tmp1@124", align 8, !dbg !66
+  call void @destroy_string(%String %10), !dbg !66
+  %11 = load %Rational, ptr @"$tmp0@160", align 8, !dbg !67
+  call void @destroy_rational(%Rational %11), !dbg !67
+  %12 = load %String, ptr @"$tmp1@148", align 8, !dbg !68
+  call void @destroy_string(%String %12), !dbg !68
+  %13 = load %String, ptr @"$tmp0@174", align 8, !dbg !69
+  call void @destroy_string(%String %13), !dbg !69
+  %14 = load %String, ptr @"$tmp0@204", align 8, !dbg !70
+  call void @destroy_string(%String %14), !dbg !70
   br label %return, !dbg !70
 
 return:                                           ; preds = %0
   ret void
 }
-
-declare void @"println <:String>"(%String)
 
 declare void @destroy_string(%String)
 

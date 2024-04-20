@@ -15,7 +15,8 @@ let $tmp1@97: Integer = 2
 let $tmp2@80: Point = Point { x: ($tmp0@91:Integer), y: ($tmp1@97:Integer) }
 let $tmp3@80: Reference<Point> = (&$tmp2@80:Reference<Point>)
 let $tmp4@75: Integer = x of ($tmp3@80:Reference<Point>)
-println ($tmp4@75:Integer)
+let $tmp5@66: None = println ($tmp4@75:Integer)
+$tmp5@66
 destroy ($tmp0@91:Integer)
 destroy ($tmp1@97:Integer)
 destroy ($tmp4@75:Integer)

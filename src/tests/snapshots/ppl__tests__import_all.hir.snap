@@ -3,7 +3,10 @@ source: src/tests/mod.rs
 expression: hir
 ---
 use utils.*
-println do nothing
+let $tmp0@22: None = do nothing
+let $tmp1@13: None = println ($tmp0@22:None)
+$tmp1@13
 let $tmp0@43: Integer = do something
-println ($tmp0@43:Integer)
+let $tmp1@34: None = println ($tmp0@43:Integer)
+$tmp1@34
 destroy ($tmp0@43:Integer)

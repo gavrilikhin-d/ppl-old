@@ -10,11 +10,13 @@ let x: ReferenceMut<Integer> = ($tmp0@41:ReferenceMut<Integer>)
 let $tmp0@64: Integer = 0
 (x:ReferenceMut<Integer>) = ($tmp0@64:Integer)
 let $tmp0@74: Integer = (*x:Integer)
-println ($tmp0@74:Integer)
+let $tmp1@66: None = println ($tmp0@74:Integer)
+$tmp1@66
 let $tmp0@80: Integer = 1
 (x:ReferenceMut<Integer>) = ($tmp0@80:Integer)
 let $tmp0@90: Integer = (*x:Integer)
-println ($tmp0@90:Integer)
+let $tmp1@82: None = println ($tmp0@90:Integer)
+$tmp1@82
 destroy ($tmp0@23:Integer)
 destroy ($tmp0@64:Integer)
 destroy ($tmp0@74:Integer)

@@ -15,7 +15,8 @@ let x: Integer = ($tmp0@62:Integer)
 let $tmp0@74: Integer = clone (x:Integer)
 let $tmp1@79: Integer = 1
 let $tmp2@74: Bool = ($tmp0@74:Integer) == ($tmp1@79:Integer)
-println ($tmp2@74:Bool)
+let $tmp3@66: None = println ($tmp2@74:Bool)
+$tmp3@66
 destroy ($tmp0@44:Integer)
 destroy ($tmp1@50:Integer)
 destroy ($tmp0@62:Integer)

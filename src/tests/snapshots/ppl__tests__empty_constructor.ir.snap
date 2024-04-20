@@ -106,48 +106,11 @@ init_globals:
   br label %0, !dbg !23
 
 0:                                                ; preds = %init_globals
-  %1 = load %"Type<A>", ptr @"$tmp0@29", align 8, !dbg !23
-  call void @"println <:Type<A>>"(%"Type<A>" %1), !dbg !23
   br label %return, !dbg !23
 
 return:                                           ; preds = %0
   ret void
 }
-
-define private void @"println <:Type<A>>"(%"Type<A>" %0) !dbg !24 {
-  %x = alloca %"Type<A>", align 8
-  store %"Type<A>" %0, ptr %x, align 8
-  %2 = load %"Type<A>", ptr %x, align 8, !dbg !25
-  %3 = call %String @"String from <:Type<A>>"(%"Type<A>" %2), !dbg !25
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !25
-  store %String %3, ptr %"$tmp0@4544", align 8, !dbg !25
-  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !25
-  call void @destroy_string(%String %4), !dbg !25
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !25
-  call void @"println <:String>"(%String %5), !dbg !25
-  br label %return, !dbg !25
-
-return:                                           ; preds = %1
-  ret void
-}
-
-define private %String @"String from <:Type<A>>"(%"Type<A>" %0) !dbg !26 {
-  %return_value = alloca %String, align 8
-  %ty = alloca %"Type<A>", align 8
-  store %"Type<A>" %0, ptr %ty, align 8
-  %name = getelementptr inbounds %"Type<A>", ptr %ty, i32 0, i32 0, !dbg !27
-  %2 = load %String, ptr %name, align 8, !dbg !27
-  store %String %2, ptr %return_value, align 8, !dbg !27
-  br label %return, !dbg !27
-
-return:                                           ; preds = %1
-  %3 = load %String, ptr %return_value, align 8
-  ret %String %3
-}
-
-declare void @destroy_string(%String)
-
-declare void @"println <:String>"(%String)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
@@ -176,7 +139,3 @@ declare void @"println <:String>"(%String)
 !21 = !DILocation(line: 2, column: 21, scope: !20)
 !22 = !DILocation(line: 1, column: 8, scope: !20)
 !23 = !DILocation(line: 2, column: 9, scope: !20)
-!24 = distinct !DISubprogram(name: "println <:Type<A>>", linkageName: "println <:Type<A>>", scope: !20, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!25 = !DILocation(line: 2, column: 21, scope: !24)
-!26 = distinct !DISubprogram(name: "String from <:Type<A>>", linkageName: "String from <:Type<A>>", scope: !24, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!27 = !DILocation(line: 2, column: 21, scope: !26)
