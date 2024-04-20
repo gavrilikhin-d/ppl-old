@@ -454,8 +454,8 @@ return:                                           ; preds = %0
 define private void @"println <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !98 {
   %x = alloca %"Type<Integer>", align 8
   store %"Type<Integer>" %0, ptr %x, align 8
-  %2 = load i1, ptr %x, align 1, !dbg !99
-  %3 = call %String @"String from <:Bool>"(i1 %2), !dbg !99
+  %2 = load %"Type<Integer>", ptr %x, align 8, !dbg !99
+  %3 = call %String @"String from <:Type<Integer>>"(%"Type<Integer>" %2), !dbg !99
   %"$tmp0@4544" = alloca %String, align 8, !dbg !99
   store %String %3, ptr %"$tmp0@4544", align 8, !dbg !99
   %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !99
@@ -466,6 +466,20 @@ define private void @"println <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !98 {
 
 return:                                           ; preds = %1
   ret void
+}
+
+define private %String @"String from <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !100 {
+  %return_value = alloca %String, align 8
+  %ty = alloca %"Type<Integer>", align 8
+  store %"Type<Integer>" %0, ptr %ty, align 8
+  %name = getelementptr inbounds %"Type<Integer>", ptr %ty, i32 0, i32 0, !dbg !101
+  %2 = load %String, ptr %name, align 8, !dbg !101
+  store %String %2, ptr %return_value, align 8, !dbg !101
+  br label %return, !dbg !101
+
+return:                                           ; preds = %1
+  %3 = load %String, ptr %return_value, align 8
+  ret %String %3
 }
 
 declare void @destroy_integer(%Integer)
@@ -573,3 +587,5 @@ declare void @destroy_integer(%Integer)
 !97 = !DILocation(line: 8, column: 8, scope: !96)
 !98 = distinct !DISubprogram(name: "println <:Type<Integer>>", linkageName: "println <:Type<Integer>>", scope: !96, file: !2, line: 8, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !99 = !DILocation(line: 8, column: 15, scope: !98)
+!100 = distinct !DISubprogram(name: "String from <:Type<Integer>>", linkageName: "String from <:Type<Integer>>", scope: !98, file: !2, line: 8, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!101 = !DILocation(line: 8, column: 15, scope: !100)
