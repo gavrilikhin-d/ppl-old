@@ -63,13 +63,19 @@ define %Integer @"x of <:Reference<Point>>"(ptr %0) !dbg !16 {
   %2 = load ptr, ptr %p, align 8, !dbg !17
   %x = getelementptr inbounds %Point, ptr %2, i32 0, i32 0, !dbg !17
   %3 = load %Integer, ptr %x, align 8, !dbg !17
-  store %Integer %3, ptr %return_value, align 8, !dbg !17
+  %4 = call %Integer @clone_integer(%Integer %3), !dbg !17
+  %"$tmp0@61" = alloca %Integer, align 8, !dbg !17
+  store %Integer %4, ptr %"$tmp0@61", align 8, !dbg !17
+  %5 = load %Integer, ptr %"$tmp0@61", align 8, !dbg !17
+  store %Integer %5, ptr %return_value, align 8, !dbg !17
   br label %return, !dbg !17
 
 return:                                           ; preds = %1
-  %4 = load %Integer, ptr %return_value, align 8
-  ret %Integer %4
+  %6 = load %Integer, ptr %return_value, align 8
+  ret %Integer %6
 }
+
+declare %Integer @clone_integer(%Integer)
 
 define private void @initialize.1() !dbg !18 {
   %1 = call %Integer @integer_from_i64(i64 1), !dbg !19

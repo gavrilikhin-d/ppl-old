@@ -65,13 +65,19 @@ return:                                           ; preds = %0
 define %Integer @"get x"() !dbg !19 {
   %return_value = alloca %Integer, align 8
   %1 = load %Integer, ptr @x, align 8, !dbg !20
-  store %Integer %1, ptr %return_value, align 8, !dbg !20
+  %2 = call %Integer @clone_integer(%Integer %1), !dbg !20
+  %"$tmp0@22" = alloca %Integer, align 8, !dbg !20
+  store %Integer %2, ptr %"$tmp0@22", align 8, !dbg !20
+  %3 = load %Integer, ptr %"$tmp0@22", align 8, !dbg !20
+  store %Integer %3, ptr %return_value, align 8, !dbg !20
   br label %return, !dbg !20
 
 return:                                           ; preds = %0
-  %2 = load %Integer, ptr %return_value, align 8
-  ret %Integer %2
+  %4 = load %Integer, ptr %return_value, align 8
+  ret %Integer %4
 }
+
+declare %Integer @clone_integer(%Integer)
 
 define private void @initialize.2() !dbg !21 {
   %1 = call %Integer @"get x"(), !dbg !22
@@ -85,12 +91,16 @@ return:                                           ; preds = %0
 define %Integer @"get y"() !dbg !23 {
   %return_value = alloca %Integer, align 8
   %1 = load %Integer, ptr @y, align 8, !dbg !24
-  store %Integer %1, ptr %return_value, align 8, !dbg !24
+  %2 = call %Integer @clone_integer(%Integer %1), !dbg !24
+  %"$tmp0@51" = alloca %Integer, align 8, !dbg !24
+  store %Integer %2, ptr %"$tmp0@51", align 8, !dbg !24
+  %3 = load %Integer, ptr %"$tmp0@51", align 8, !dbg !24
+  store %Integer %3, ptr %return_value, align 8, !dbg !24
   br label %return, !dbg !24
 
 return:                                           ; preds = %0
-  %2 = load %Integer, ptr %return_value, align 8
-  ret %Integer %2
+  %4 = load %Integer, ptr %return_value, align 8
+  ret %Integer %4
 }
 
 define private void @initialize.3() !dbg !25 {
@@ -102,8 +112,6 @@ define private void @initialize.3() !dbg !25 {
 return:                                           ; preds = %0
   ret void
 }
-
-declare %Integer @clone_integer(%Integer)
 
 define private void @initialize.4() !dbg !27 {
   %1 = load %Integer, ptr @"$tmp0@62", align 8, !dbg !28

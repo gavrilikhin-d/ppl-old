@@ -144,12 +144,16 @@ define private %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !3
   store %"Type<Integer>" %0, ptr %ty, align 8
   %size = getelementptr inbounds %"Type<Integer>", ptr %ty, i32 0, i32 1, !dbg !32
   %2 = load %Integer, ptr %size, align 8, !dbg !32
-  store %Integer %2, ptr %return_value, align 8, !dbg !32
+  %3 = call %Integer @clone_integer(%Integer %2), !dbg !32
+  %"$tmp0@5440" = alloca %Integer, align 8, !dbg !32
+  store %Integer %3, ptr %"$tmp0@5440", align 8, !dbg !32
+  %4 = load %Integer, ptr %"$tmp0@5440", align 8, !dbg !32
+  store %Integer %4, ptr %return_value, align 8, !dbg !32
   br label %return, !dbg !32
 
 return:                                           ; preds = %1
-  %3 = load %Integer, ptr %return_value, align 8
-  ret %Integer %3
+  %5 = load %Integer, ptr %return_value, align 8
+  ret %Integer %5
 }
 
 declare %Integer @integer_star_integer(%Integer, %Integer)

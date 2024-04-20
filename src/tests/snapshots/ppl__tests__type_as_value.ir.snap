@@ -207,12 +207,16 @@ define private %Integer @"size of <:Type<None>>"(%"Type<None>" %0) !dbg !51 {
   store %"Type<None>" %0, ptr %ty, align 8
   %size = getelementptr inbounds %"Type<None>", ptr %ty, i32 0, i32 1, !dbg !52
   %2 = load %Integer, ptr %size, align 8, !dbg !52
-  store %Integer %2, ptr %return_value, align 8, !dbg !52
+  %3 = call %Integer @clone_integer(%Integer %2), !dbg !52
+  %"$tmp0@5440" = alloca %Integer, align 8, !dbg !52
+  store %Integer %3, ptr %"$tmp0@5440", align 8, !dbg !52
+  %4 = load %Integer, ptr %"$tmp0@5440", align 8, !dbg !52
+  store %Integer %4, ptr %return_value, align 8, !dbg !52
   br label %return, !dbg !52
 
 return:                                           ; preds = %1
-  %3 = load %Integer, ptr %return_value, align 8
-  ret %Integer %3
+  %5 = load %Integer, ptr %return_value, align 8
+  ret %Integer %5
 }
 
 define private void @initialize.8() !dbg !53 {
@@ -285,12 +289,16 @@ define private %Integer @"size of <:Type<Bool>>"(%"Type<Bool>" %0) !dbg !64 {
   store %"Type<Bool>" %0, ptr %ty, align 8
   %size = getelementptr inbounds %"Type<Bool>", ptr %ty, i32 0, i32 1, !dbg !65
   %2 = load %Integer, ptr %size, align 8, !dbg !65
-  store %Integer %2, ptr %return_value, align 8, !dbg !65
+  %3 = call %Integer @clone_integer(%Integer %2), !dbg !65
+  %"$tmp0@5440" = alloca %Integer, align 8, !dbg !65
+  store %Integer %3, ptr %"$tmp0@5440", align 8, !dbg !65
+  %4 = load %Integer, ptr %"$tmp0@5440", align 8, !dbg !65
+  store %Integer %4, ptr %return_value, align 8, !dbg !65
   br label %return, !dbg !65
 
 return:                                           ; preds = %1
-  %3 = load %Integer, ptr %return_value, align 8
-  ret %Integer %3
+  %5 = load %Integer, ptr %return_value, align 8
+  ret %Integer %5
 }
 
 define private void @initialize.12() !dbg !66 {
@@ -338,13 +346,19 @@ define private %String @"String from <:Type<None>>"(%"Type<None>" %0) !dbg !75 {
   store %"Type<None>" %0, ptr %ty, align 8
   %name = getelementptr inbounds %"Type<None>", ptr %ty, i32 0, i32 0, !dbg !76
   %2 = load %String, ptr %name, align 8, !dbg !76
-  store %String %2, ptr %return_value, align 8, !dbg !76
+  %3 = call %String @clone_string(%String %2), !dbg !76
+  %"$tmp0@5372" = alloca %String, align 8, !dbg !76
+  store %String %3, ptr %"$tmp0@5372", align 8, !dbg !76
+  %4 = load %String, ptr %"$tmp0@5372", align 8, !dbg !76
+  store %String %4, ptr %return_value, align 8, !dbg !76
   br label %return, !dbg !76
 
 return:                                           ; preds = %1
-  %3 = load %String, ptr %return_value, align 8
-  ret %String %3
+  %5 = load %String, ptr %return_value, align 8
+  ret %String %5
 }
+
+declare %String @clone_string(%String)
 
 define private void @initialize.16() !dbg !77 {
   %1 = load %String, ptr @"$tmp0@65", align 8, !dbg !78
@@ -371,12 +385,16 @@ define private %String @"String from <:Type<Type<Integer>>>"(%"Type<Type<Integer
   store %"Type<Type<Integer>>" %0, ptr %ty, align 8
   %name = getelementptr inbounds %"Type<Type<Integer>>", ptr %ty, i32 0, i32 0, !dbg !82
   %2 = load %String, ptr %name, align 8, !dbg !82
-  store %String %2, ptr %return_value, align 8, !dbg !82
+  %3 = call %String @clone_string(%String %2), !dbg !82
+  %"$tmp0@5372" = alloca %String, align 8, !dbg !82
+  store %String %3, ptr %"$tmp0@5372", align 8, !dbg !82
+  %4 = load %String, ptr %"$tmp0@5372", align 8, !dbg !82
+  store %String %4, ptr %return_value, align 8, !dbg !82
   br label %return, !dbg !82
 
 return:                                           ; preds = %1
-  %3 = load %String, ptr %return_value, align 8
-  ret %String %3
+  %5 = load %String, ptr %return_value, align 8
+  ret %String %5
 }
 
 define private void @initialize.18() !dbg !83 {
@@ -414,12 +432,16 @@ define private %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !8
   store %"Type<Integer>" %0, ptr %ty, align 8
   %size = getelementptr inbounds %"Type<Integer>", ptr %ty, i32 0, i32 1, !dbg !90
   %2 = load %Integer, ptr %size, align 8, !dbg !90
-  store %Integer %2, ptr %return_value, align 8, !dbg !90
+  %3 = call %Integer @clone_integer(%Integer %2), !dbg !90
+  %"$tmp0@5440" = alloca %Integer, align 8, !dbg !90
+  store %Integer %3, ptr %"$tmp0@5440", align 8, !dbg !90
+  %4 = load %Integer, ptr %"$tmp0@5440", align 8, !dbg !90
+  store %Integer %4, ptr %return_value, align 8, !dbg !90
   br label %return, !dbg !90
 
 return:                                           ; preds = %1
-  %3 = load %Integer, ptr %return_value, align 8
-  ret %Integer %3
+  %5 = load %Integer, ptr %return_value, align 8
+  ret %Integer %5
 }
 
 define private void @initialize.21() !dbg !91 {
@@ -474,12 +496,16 @@ define private %String @"String from <:Type<Integer>>"(%"Type<Integer>" %0) !dbg
   store %"Type<Integer>" %0, ptr %ty, align 8
   %name = getelementptr inbounds %"Type<Integer>", ptr %ty, i32 0, i32 0, !dbg !101
   %2 = load %String, ptr %name, align 8, !dbg !101
-  store %String %2, ptr %return_value, align 8, !dbg !101
+  %3 = call %String @clone_string(%String %2), !dbg !101
+  %"$tmp0@5372" = alloca %String, align 8, !dbg !101
+  store %String %3, ptr %"$tmp0@5372", align 8, !dbg !101
+  %4 = load %String, ptr %"$tmp0@5372", align 8, !dbg !101
+  store %String %4, ptr %return_value, align 8, !dbg !101
   br label %return, !dbg !101
 
 return:                                           ; preds = %1
-  %3 = load %String, ptr %return_value, align 8
-  ret %String %3
+  %5 = load %String, ptr %return_value, align 8
+  ret %String %5
 }
 
 declare void @destroy_integer(%Integer)
