@@ -26,6 +26,9 @@ pub struct Call {
 
 impl Display for Call {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let indent = "\t".repeat(f.width().unwrap_or(0));
+        write!(f, "{indent}")?;
+
         let mut arg = self.args.iter();
 
         write!(
