@@ -35,13 +35,21 @@ fn with_destructors(
         }
     }
 
-    for stmt in statements.iter().flat_map(|stmt| match stmt {
-        Statement::Block(b) => b.statements.iter(),
-        _ => std::iter::once(stmt),
-    }) {
+    let mut stmts = vec![];
+    for stmt in statements {
+        match stmt {
+            Statement::Block(b) => {
+                stmts.extend(b.statements.iter().map(|stmt| stmt));
+            }
+            _ => {
+                stmts.push(stmt);
+            }
+        }
+    }
+    for stmt in stmts {
         use Statement::*;
         match stmt {
-            Block(b) => {
+            Block(_) => {
                 unreachable!("Block should be flattened")
             }
             Assignment(a) => {
