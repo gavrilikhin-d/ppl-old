@@ -4,18 +4,25 @@ use derive_visitor::VisitorMut;
 
 use crate::{
     hir::{
-        Block, Declaration, Expression, Statement, Typed, Variable, VariableData, VariableReference,
+        self, Block, Declaration, Expression, Statement, Typed, Variable, VariableData,
+        VariableReference,
     },
     mutability::Mutability,
     syntax::{Identifier, Keyword, Ranged},
 };
+
+enum InsideOf {
+    Assignment,
+    VariableDeclaration,
+    Return,
+}
 
 #[derive(VisitorMut)]
 #[visitor(Expression, Statement)]
 pub struct TemporariesInserter {
     temporaries: Vec<Variable>,
     depth: usize,
-    is_in_assignment_or_var: bool,
+    inside_of: Option<InsideOf>,
 }
 
 impl TemporariesInserter {
@@ -23,7 +30,7 @@ impl TemporariesInserter {
         Self {
             temporaries: Vec::new(),
             depth: 0,
-            is_in_assignment_or_var: false,
+            inside_of: None,
         }
     }
 
@@ -37,7 +44,22 @@ impl TemporariesInserter {
         if matches!(
             expr,
             Expression::VariableReference(_) | Expression::MemberReference(_)
-        ) || self.is_in_assignment_or_var && self.depth == 0
+        ) {
+            return;
+        }
+
+        if self.depth == 0
+            && matches!(self.inside_of, Some(InsideOf::Return))
+            && matches!(expr, Expression::Literal(_))
+        {
+            return;
+        }
+
+        if self.depth == 0
+            && matches!(
+                self.inside_of,
+                Some(InsideOf::Assignment | InsideOf::VariableDeclaration)
+            )
         {
             return;
         }
@@ -61,14 +83,17 @@ impl TemporariesInserter {
     }
 
     fn enter_statement(&mut self, stmt: &Statement) {
-        self.is_in_assignment_or_var = matches!(
-            stmt,
-            Statement::Assignment(_) | Statement::Declaration(Declaration::Variable(_))
-        );
+        use Statement::*;
+        self.inside_of = match stmt {
+            Return(_) => Some(InsideOf::Return),
+            Assignment(_) => Some(InsideOf::Assignment),
+            Declaration(hir::Declaration::Variable(_)) => Some(InsideOf::VariableDeclaration),
+            _ => None,
+        }
     }
 
     fn exit_statement(&mut self, stmt: &mut Statement) {
-        self.is_in_assignment_or_var = false;
+        self.inside_of = None;
 
         if self.temporaries.is_empty() {
             return;
