@@ -2,10 +2,8 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let $tmp0@16: Rational = 0.0
-let mut value: Rational = ($tmp0@16:Rational)
-let $tmp0@76: String = "Hello"
-let mut str: String = ($tmp0@76:String)
+let mut value: Rational = 0.0
+let mut str: String = "Hello"
 let $tmp0@28: Rational = clone (value:Rational)
 let $tmp1@20: None = println ($tmp0@28:Rational)
 $tmp1@20
@@ -23,9 +21,7 @@ $tmp2@84
 let $tmp0@109: String = clone (str:String)
 let $tmp1@101: None = println ($tmp0@109:String)
 $tmp1@101
-destroy ($tmp0@16:Rational)
 destroy (value:Rational)
-destroy ($tmp0@76:String)
 destroy (str:String)
 destroy ($tmp0@28:Rational)
 destroy ($tmp1@43:Rational)

@@ -15,7 +15,6 @@ source_filename = "src/main.ppl"
 @"Type<Integer>" = private global %"Type<Integer>" zeroinitializer
 @1 = private unnamed_addr constant [8 x i8] c"Integer\00", align 1
 @"$tmp0@19" = global %Integer zeroinitializer
-@"$tmp1@9" = global %"Type<Integer>" zeroinitializer
 @ty = global %"Type<Integer>" zeroinitializer
 
 define private void @initialize() !dbg !3 {
@@ -66,7 +65,7 @@ return:                                           ; preds = %0
 define private void @initialize.3() !dbg !14 {
   %1 = load %Integer, ptr @"$tmp0@19", align 8, !dbg !15
   %2 = call %"Type<Integer>" @"type of <:Integer>"(%Integer %1), !dbg !15
-  store %"Type<Integer>" %2, ptr @"$tmp1@9", align 8, !dbg !15
+  store %"Type<Integer>" %2, ptr @ty, align 8, !dbg !15
   br label %return, !dbg !15
 
 return:                                           ; preds = %0
@@ -87,28 +86,18 @@ return:                                           ; preds = %1
   ret %"Type<Integer>" %4
 }
 
-define private void @initialize.4() !dbg !18 {
-  %1 = load %"Type<Integer>", ptr @"$tmp1@9", align 8, !dbg !19
-  store %"Type<Integer>" %1, ptr @ty, align 8, !dbg !19
-  br label %return, !dbg !19
-
-return:                                           ; preds = %0
-  ret void
-}
-
-define void @main.execute() !dbg !20 {
+define void @main.execute() !dbg !18 {
 init_globals:
-  call void @initialize(), !dbg !21
-  call void @initialize.1(), !dbg !21
-  call void @initialize.2(), !dbg !22
-  call void @initialize.3(), !dbg !23
-  call void @initialize.4(), !dbg !23
-  br label %0, !dbg !23
+  call void @initialize(), !dbg !19
+  call void @initialize.1(), !dbg !19
+  call void @initialize.2(), !dbg !20
+  call void @initialize.3(), !dbg !21
+  br label %0, !dbg !21
 
 0:                                                ; preds = %init_globals
-  %1 = load %Integer, ptr @"$tmp0@19", align 8, !dbg !22
-  call void @destroy_integer(%Integer %1), !dbg !22
-  br label %return, !dbg !23
+  %1 = load %Integer, ptr @"$tmp0@19", align 8, !dbg !20
+  call void @destroy_integer(%Integer %1), !dbg !20
+  br label %return, !dbg !21
 
 return:                                           ; preds = %0
   ret void
@@ -137,9 +126,7 @@ declare void @destroy_integer(%Integer)
 !15 = !DILocation(line: 0, column: 19, scope: !14)
 !16 = distinct !DISubprogram(name: "type of <:Integer>", linkageName: "type of <:Integer>", scope: !14, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !17 = !DILocation(line: 1, column: 10, scope: !16)
-!18 = distinct !DISubprogram(name: "initialize.4", linkageName: "initialize.4", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!19 = !DILocation(line: 0, column: 9, scope: !18)
-!20 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!21 = !DILocation(line: 1, column: 10, scope: !20)
-!22 = !DILocation(line: 0, column: 19, scope: !20)
-!23 = !DILocation(line: 0, column: 9, scope: !20)
+!18 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!19 = !DILocation(line: 1, column: 10, scope: !18)
+!20 = !DILocation(line: 0, column: 19, scope: !18)
+!21 = !DILocation(line: 0, column: 9, scope: !18)

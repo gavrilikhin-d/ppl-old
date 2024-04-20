@@ -3,22 +3,16 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let $tmp0@23: Integer = 1
-let $tmp1@14: MemoryAddress = allocate ($tmp0@23:Integer) (Type<Integer>:Type<Integer>)
-let address: MemoryAddress = ($tmp1@14:MemoryAddress)
-let $tmp0@41: ReferenceMut<Integer> = (Type<Integer>:Type<Integer>) at (address:MemoryAddress)
-let x: ReferenceMut<Integer> = ($tmp0@41:ReferenceMut<Integer>)
-let $tmp0@64: Integer = 0
-(x:ReferenceMut<Integer>) = ($tmp0@64:Integer)
+let address: MemoryAddress = allocate ($tmp0@23:Integer) (Type<Integer>:Type<Integer>)
+let x: ReferenceMut<Integer> = (Type<Integer>:Type<Integer>) at (address:MemoryAddress)
+(x:ReferenceMut<Integer>) = 0
 let $tmp0@74: Integer = (*x:Integer)
 let $tmp1@66: None = println ($tmp0@74:Integer)
 $tmp1@66
-let $tmp0@80: Integer = 1
-(x:ReferenceMut<Integer>) = ($tmp0@80:Integer)
+(x:ReferenceMut<Integer>) = 1
 let $tmp0@90: Integer = (*x:Integer)
 let $tmp1@82: None = println ($tmp0@90:Integer)
 $tmp1@82
 destroy ($tmp0@23:Integer)
-destroy ($tmp0@64:Integer)
 destroy ($tmp0@74:Integer)
-destroy ($tmp0@80:Integer)
 destroy ($tmp0@90:Integer)

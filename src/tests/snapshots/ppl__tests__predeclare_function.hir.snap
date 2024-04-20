@@ -6,9 +6,9 @@ fn <x: Integer> plus two -> Integer:
 	let $tmp0@32: Integer = clone (x:Integer)
 	let $tmp1@34: Integer = 2
 	let $tmp2@28: Integer = sum ($tmp0@32:Integer) ($tmp1@34:Integer)
-destroy (x:Integer)
-destroy ($tmp0@32:Integer)
-destroy ($tmp1@34:Integer)
+	destroy (x:Integer)
+	destroy ($tmp0@32:Integer)
+	destroy ($tmp1@34:Integer)
 	return ($tmp2@28:Integer)
 
 
@@ -16,10 +16,10 @@ fn sum <x: Integer> <y: Integer> -> Integer:
 	let $tmp0@84: Integer = clone (x:Integer)
 	let $tmp1@88: Integer = clone (y:Integer)
 	let $tmp2@84: Integer = ($tmp0@84:Integer) + ($tmp1@88:Integer)
-destroy (x:Integer)
-destroy (y:Integer)
-destroy ($tmp0@84:Integer)
-destroy ($tmp1@88:Integer)
+	destroy (x:Integer)
+	destroy (y:Integer)
+	destroy ($tmp0@84:Integer)
+	destroy ($tmp1@88:Integer)
 	return ($tmp2@84:Integer)
 
 let $tmp0@100: Integer = 2

@@ -14,7 +14,6 @@ source_filename = "src/main.ppl"
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
 @"Type<A>" = private global %"Type<A>" zeroinitializer
 @1 = private unnamed_addr constant [2 x i8] c"A\00", align 1
-@"$tmp0@15" = global ptr null
 @a = global ptr null
 @"$tmp0@29" = global %"Type<A>" zeroinitializer
 
@@ -56,7 +55,7 @@ return:                                           ; preds = %0
 
 define private void @initialize.2() !dbg !12 {
   %1 = alloca ptr, align 8, !dbg !13
-  store ptr %1, ptr @"$tmp0@15", align 8, !dbg !13
+  store ptr %1, ptr @a, align 8, !dbg !13
   br label %return, !dbg !13
 
 return:                                           ; preds = %0
@@ -64,49 +63,39 @@ return:                                           ; preds = %0
 }
 
 define private void @initialize.3() !dbg !14 {
-  %1 = load ptr, ptr @"$tmp0@15", align 8, !dbg !15
-  store ptr %1, ptr @a, align 8, !dbg !15
+  %1 = load ptr, ptr @a, align 8, !dbg !15
+  %2 = call %"Type<A>" @"type of <:A>"(ptr %1), !dbg !15
+  store %"Type<A>" %2, ptr @"$tmp0@29", align 8, !dbg !15
   br label %return, !dbg !15
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @initialize.4() !dbg !16 {
-  %1 = load ptr, ptr @a, align 8, !dbg !17
-  %2 = call %"Type<A>" @"type of <:A>"(ptr %1), !dbg !17
-  store %"Type<A>" %2, ptr @"$tmp0@29", align 8, !dbg !17
-  br label %return, !dbg !17
-
-return:                                           ; preds = %0
-  ret void
-}
-
-define private %"Type<A>" @"type of <:A>"(ptr %0) !dbg !18 {
+define private %"Type<A>" @"type of <:A>"(ptr %0) !dbg !16 {
   %return_value = alloca %"Type<A>", align 8
-  %2 = load %"Type<A>", ptr @"Type<A>", align 8, !dbg !19
-  %"$tmp0@5497" = alloca %"Type<A>", align 8, !dbg !19
-  store %"Type<A>" %2, ptr %"$tmp0@5497", align 8, !dbg !19
-  %3 = load %"Type<A>", ptr %"$tmp0@5497", align 8, !dbg !19
-  store %"Type<A>" %3, ptr %return_value, align 8, !dbg !19
-  br label %return, !dbg !19
+  %2 = load %"Type<A>", ptr @"Type<A>", align 8, !dbg !17
+  %"$tmp0@5497" = alloca %"Type<A>", align 8, !dbg !17
+  store %"Type<A>" %2, ptr %"$tmp0@5497", align 8, !dbg !17
+  %3 = load %"Type<A>", ptr %"$tmp0@5497", align 8, !dbg !17
+  store %"Type<A>" %3, ptr %return_value, align 8, !dbg !17
+  br label %return, !dbg !17
 
 return:                                           ; preds = %1
   %4 = load %"Type<A>", ptr %return_value, align 8
   ret %"Type<A>" %4
 }
 
-define void @main.execute() !dbg !20 {
+define void @main.execute() !dbg !18 {
 init_globals:
-  call void @initialize(), !dbg !21
-  call void @initialize.1(), !dbg !21
-  call void @initialize.2(), !dbg !22
-  call void @initialize.3(), !dbg !22
-  call void @initialize.4(), !dbg !23
-  br label %0, !dbg !23
+  call void @initialize(), !dbg !19
+  call void @initialize.1(), !dbg !19
+  call void @initialize.2(), !dbg !20
+  call void @initialize.3(), !dbg !21
+  br label %0, !dbg !21
 
 0:                                                ; preds = %init_globals
-  br label %return, !dbg !23
+  br label %return, !dbg !21
 
 return:                                           ; preds = %0
   ret void
@@ -129,13 +118,11 @@ return:                                           ; preds = %0
 !11 = !DILocation(line: 0, scope: !9)
 !12 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !13 = !DILocation(line: 1, column: 8, scope: !12)
-!14 = distinct !DISubprogram(name: "initialize.3", linkageName: "initialize.3", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!15 = !DILocation(line: 1, column: 8, scope: !14)
-!16 = distinct !DISubprogram(name: "initialize.4", linkageName: "initialize.4", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!17 = !DILocation(line: 2, column: 19, scope: !16)
-!18 = distinct !DISubprogram(name: "type of <:A>", linkageName: "type of <:A>", scope: !16, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!14 = distinct !DISubprogram(name: "initialize.3", linkageName: "initialize.3", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!15 = !DILocation(line: 2, column: 19, scope: !14)
+!16 = distinct !DISubprogram(name: "type of <:A>", linkageName: "type of <:A>", scope: !14, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!17 = !DILocation(line: 2, column: 21, scope: !16)
+!18 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !19 = !DILocation(line: 2, column: 21, scope: !18)
-!20 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!21 = !DILocation(line: 2, column: 21, scope: !20)
-!22 = !DILocation(line: 1, column: 8, scope: !20)
-!23 = !DILocation(line: 2, column: 9, scope: !20)
+!20 = !DILocation(line: 1, column: 8, scope: !18)
+!21 = !DILocation(line: 2, column: 9, scope: !18)

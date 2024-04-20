@@ -7,18 +7,14 @@ type Destructible
 fn destroy <:Destructible> -> None:
 	let $tmp0@57: String = "destructor"
 	let $tmp1@49: None = println ($tmp0@57:String)
-destroy ($tmp0@57:String)
+	destroy ($tmp0@57:String)
 	return ($tmp1@49:None)
 
-let $tmp0@83: Destructible = Destructible {  }
-let mut x: Destructible = ($tmp0@83:Destructible)
-let $tmp0@103: Destructible = Destructible {  }
+let mut x: Destructible = Destructible {  }
 destroy (x:Destructible)
-(x:Destructible) = ($tmp0@103:Destructible)
+(x:Destructible) = Destructible {  }
 let $tmp0@128: String = "done"
 let $tmp1@120: None = println ($tmp0@128:String)
 $tmp1@120
-destroy ($tmp0@83:Destructible)
 destroy (x:Destructible)
-destroy ($tmp0@103:Destructible)
 destroy ($tmp0@128:String)

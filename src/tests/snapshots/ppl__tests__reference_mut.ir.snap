@@ -11,13 +11,10 @@ source_filename = "src/main.ppl"
 
 @"Type<String>" = private global %"Type<String>" zeroinitializer
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
-@"$tmp0@12" = global %Integer zeroinitializer
 @x = global %Integer zeroinitializer
 @"$tmp0@43" = global ptr null
-@"$tmp1@22" = global ptr null
 @y = global ptr null
 @"$tmp0@53" = global %Integer zeroinitializer
-@"$tmp0@59" = global %Integer zeroinitializer
 @"$tmp0@69" = global %Integer zeroinitializer
 @"$tmp0@79" = global %Integer zeroinitializer
 
@@ -43,7 +40,7 @@ declare %Integer @integer_from_i64(i64)
 
 define private void @initialize.1() !dbg !9 {
   %1 = call %Integer @integer_from_i64(i64 1), !dbg !10
-  store %Integer %1, ptr @"$tmp0@12", align 8, !dbg !10
+  store %Integer %1, ptr @x, align 8, !dbg !10
   br label %return, !dbg !10
 
 return:                                           ; preds = %0
@@ -51,8 +48,7 @@ return:                                           ; preds = %0
 }
 
 define private void @initialize.2() !dbg !11 {
-  %1 = load %Integer, ptr @"$tmp0@12", align 8, !dbg !12
-  store %Integer %1, ptr @x, align 8, !dbg !12
+  store ptr @x, ptr @"$tmp0@43", align 8, !dbg !12
   br label %return, !dbg !12
 
 return:                                           ; preds = %0
@@ -60,38 +56,41 @@ return:                                           ; preds = %0
 }
 
 define private void @initialize.3() !dbg !13 {
-  store ptr @x, ptr @"$tmp0@43", align 8, !dbg !14
+  %1 = call ptr @"reference to mutable <:ReferenceMut<Integer>>"(ptr @"$tmp0@43"), !dbg !14
+  store ptr %1, ptr @y, align 8, !dbg !14
   br label %return, !dbg !14
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @initialize.4() !dbg !15 {
-  %1 = call ptr @"reference to mutable <:ReferenceMut<Integer>>"(ptr @"$tmp0@43"), !dbg !16
-  store ptr %1, ptr @"$tmp1@22", align 8, !dbg !16
-  br label %return, !dbg !16
-
-return:                                           ; preds = %0
-  ret void
-}
-
-define private ptr @"reference to mutable <:ReferenceMut<Integer>>"(ptr %0) !dbg !17 {
+define private ptr @"reference to mutable <:ReferenceMut<Integer>>"(ptr %0) !dbg !15 {
   %return_value = alloca ptr, align 8
   %ref = alloca ptr, align 8
   store ptr %0, ptr %ref, align 8
-  %2 = load ptr, ptr %ref, align 8, !dbg !18
-  store ptr %2, ptr %return_value, align 8, !dbg !18
-  br label %return, !dbg !18
+  %2 = load ptr, ptr %ref, align 8, !dbg !16
+  store ptr %2, ptr %return_value, align 8, !dbg !16
+  br label %return, !dbg !16
 
 return:                                           ; preds = %1
   %3 = load ptr, ptr %return_value, align 8
   ret ptr %3
 }
 
+define private void @initialize.4() !dbg !17 {
+  %1 = load ptr, ptr @y, align 8, !dbg !18
+  %2 = load %Integer, ptr %1, align 8, !dbg !18
+  store %Integer %2, ptr @"$tmp0@53", align 8, !dbg !18
+  br label %return, !dbg !18
+
+return:                                           ; preds = %0
+  ret void
+}
+
 define private void @initialize.5() !dbg !19 {
-  %1 = load ptr, ptr @"$tmp1@22", align 8, !dbg !20
-  store ptr %1, ptr @y, align 8, !dbg !20
+  %1 = load ptr, ptr @y, align 8, !dbg !20
+  %2 = load %Integer, ptr %1, align 8, !dbg !20
+  store %Integer %2, ptr @"$tmp0@69", align 8, !dbg !20
   br label %return, !dbg !20
 
 return:                                           ; preds = %0
@@ -99,39 +98,10 @@ return:                                           ; preds = %0
 }
 
 define private void @initialize.6() !dbg !21 {
-  %1 = load ptr, ptr @y, align 8, !dbg !22
-  %2 = load %Integer, ptr %1, align 8, !dbg !22
-  store %Integer %2, ptr @"$tmp0@53", align 8, !dbg !22
+  %1 = load %Integer, ptr @x, align 8, !dbg !22
+  %2 = call %Integer @clone_integer(%Integer %1), !dbg !22
+  store %Integer %2, ptr @"$tmp0@79", align 8, !dbg !22
   br label %return, !dbg !22
-
-return:                                           ; preds = %0
-  ret void
-}
-
-define private void @initialize.7() !dbg !23 {
-  %1 = call %Integer @integer_from_i64(i64 2), !dbg !24
-  store %Integer %1, ptr @"$tmp0@59", align 8, !dbg !24
-  br label %return, !dbg !24
-
-return:                                           ; preds = %0
-  ret void
-}
-
-define private void @initialize.8() !dbg !25 {
-  %1 = load ptr, ptr @y, align 8, !dbg !26
-  %2 = load %Integer, ptr %1, align 8, !dbg !26
-  store %Integer %2, ptr @"$tmp0@69", align 8, !dbg !26
-  br label %return, !dbg !26
-
-return:                                           ; preds = %0
-  ret void
-}
-
-define private void @initialize.9() !dbg !27 {
-  %1 = load %Integer, ptr @x, align 8, !dbg !28
-  %2 = call %Integer @clone_integer(%Integer %1), !dbg !28
-  store %Integer %2, ptr @"$tmp0@79", align 8, !dbg !28
-  br label %return, !dbg !28
 
 return:                                           ; preds = %0
   ret void
@@ -139,37 +109,30 @@ return:                                           ; preds = %0
 
 declare %Integer @clone_integer(%Integer)
 
-define void @main.execute() !dbg !29 {
+define void @main.execute() !dbg !23 {
 init_globals:
-  call void @initialize(), !dbg !30
-  call void @initialize.1(), !dbg !31
-  call void @initialize.2(), !dbg !31
-  call void @initialize.3(), !dbg !32
-  call void @initialize.4(), !dbg !33
-  call void @initialize.5(), !dbg !33
-  call void @initialize.6(), !dbg !34
-  call void @initialize.7(), !dbg !35
-  call void @initialize.8(), !dbg !36
-  call void @initialize.9(), !dbg !37
-  br label %0, !dbg !37
+  call void @initialize(), !dbg !24
+  call void @initialize.1(), !dbg !25
+  call void @initialize.2(), !dbg !26
+  call void @initialize.3(), !dbg !27
+  call void @initialize.4(), !dbg !28
+  call void @initialize.5(), !dbg !29
+  call void @initialize.6(), !dbg !30
+  br label %0, !dbg !30
 
 0:                                                ; preds = %init_globals
-  %1 = load ptr, ptr @y, align 8, !dbg !38
-  %2 = load %Integer, ptr @"$tmp0@59", align 8, !dbg !35
-  store %Integer %2, ptr %1, align 8, !dbg !35
-  %3 = load %Integer, ptr @"$tmp0@12", align 8, !dbg !31
-  call void @destroy_integer(%Integer %3), !dbg !31
-  %4 = load %Integer, ptr @x, align 8, !dbg !39
-  call void @destroy_integer(%Integer %4), !dbg !39
-  %5 = load %Integer, ptr @"$tmp0@53", align 8, !dbg !34
-  call void @destroy_integer(%Integer %5), !dbg !34
-  %6 = load %Integer, ptr @"$tmp0@59", align 8, !dbg !35
-  call void @destroy_integer(%Integer %6), !dbg !35
-  %7 = load %Integer, ptr @"$tmp0@69", align 8, !dbg !36
-  call void @destroy_integer(%Integer %7), !dbg !36
-  %8 = load %Integer, ptr @"$tmp0@79", align 8, !dbg !37
-  call void @destroy_integer(%Integer %8), !dbg !37
-  br label %return, !dbg !37
+  %1 = load ptr, ptr @y, align 8, !dbg !31
+  %2 = call %Integer @integer_from_i64(i64 2), !dbg !32
+  store %Integer %2, ptr %1, align 8, !dbg !32
+  %3 = load %Integer, ptr @x, align 8, !dbg !33
+  call void @destroy_integer(%Integer %3), !dbg !33
+  %4 = load %Integer, ptr @"$tmp0@53", align 8, !dbg !28
+  call void @destroy_integer(%Integer %4), !dbg !28
+  %5 = load %Integer, ptr @"$tmp0@69", align 8, !dbg !29
+  call void @destroy_integer(%Integer %5), !dbg !29
+  %6 = load %Integer, ptr @"$tmp0@79", align 8, !dbg !30
+  call void @destroy_integer(%Integer %6), !dbg !30
+  br label %return, !dbg !30
 
 return:                                           ; preds = %0
   ret void
@@ -191,32 +154,26 @@ declare void @destroy_integer(%Integer)
 !8 = !DILocation(line: 0, scope: !3)
 !9 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !10 = !DILocation(line: 0, column: 12, scope: !9)
-!11 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!12 = !DILocation(line: 0, column: 12, scope: !11)
+!11 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!12 = !DILocation(line: 1, column: 29, scope: !11)
 !13 = distinct !DISubprogram(name: "initialize.3", linkageName: "initialize.3", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !14 = !DILocation(line: 1, column: 29, scope: !13)
-!15 = distinct !DISubprogram(name: "initialize.4", linkageName: "initialize.4", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!16 = !DILocation(line: 1, column: 29, scope: !15)
-!17 = distinct !DISubprogram(name: "reference to mutable <:ReferenceMut<Integer>>", linkageName: "reference to mutable <:ReferenceMut<Integer>>", scope: !15, file: !2, line: 6, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!18 = !DILocation(line: 6, scope: !17)
-!19 = distinct !DISubprogram(name: "initialize.5", linkageName: "initialize.5", scope: !2, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!20 = !DILocation(line: 1, column: 8, scope: !19)
-!21 = distinct !DISubprogram(name: "initialize.6", linkageName: "initialize.6", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!22 = !DILocation(line: 2, column: 8, scope: !21)
-!23 = distinct !DISubprogram(name: "initialize.7", linkageName: "initialize.7", scope: !2, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!24 = !DILocation(line: 3, column: 4, scope: !23)
-!25 = distinct !DISubprogram(name: "initialize.8", linkageName: "initialize.8", scope: !2, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!26 = !DILocation(line: 4, column: 8, scope: !25)
-!27 = distinct !DISubprogram(name: "initialize.9", linkageName: "initialize.9", scope: !2, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!28 = !DILocation(line: 5, column: 8, scope: !27)
-!29 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!30 = !DILocation(line: 6, scope: !29)
-!31 = !DILocation(line: 0, column: 12, scope: !29)
-!32 = !DILocation(line: 1, column: 29, scope: !29)
-!33 = !DILocation(line: 1, column: 8, scope: !29)
-!34 = !DILocation(line: 2, column: 8, scope: !29)
-!35 = !DILocation(line: 3, column: 4, scope: !29)
-!36 = !DILocation(line: 4, column: 8, scope: !29)
-!37 = !DILocation(line: 5, column: 8, scope: !29)
-!38 = !DILocation(line: 3, scope: !29)
-!39 = !DILocation(line: 0, scope: !29)
+!15 = distinct !DISubprogram(name: "reference to mutable <:ReferenceMut<Integer>>", linkageName: "reference to mutable <:ReferenceMut<Integer>>", scope: !13, file: !2, line: 6, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!16 = !DILocation(line: 6, scope: !15)
+!17 = distinct !DISubprogram(name: "initialize.4", linkageName: "initialize.4", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!18 = !DILocation(line: 2, column: 8, scope: !17)
+!19 = distinct !DISubprogram(name: "initialize.5", linkageName: "initialize.5", scope: !2, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!20 = !DILocation(line: 4, column: 8, scope: !19)
+!21 = distinct !DISubprogram(name: "initialize.6", linkageName: "initialize.6", scope: !2, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!22 = !DILocation(line: 5, column: 8, scope: !21)
+!23 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!24 = !DILocation(line: 6, scope: !23)
+!25 = !DILocation(line: 0, column: 12, scope: !23)
+!26 = !DILocation(line: 1, column: 29, scope: !23)
+!27 = !DILocation(line: 1, column: 8, scope: !23)
+!28 = !DILocation(line: 2, column: 8, scope: !23)
+!29 = !DILocation(line: 4, column: 8, scope: !23)
+!30 = !DILocation(line: 5, column: 8, scope: !23)
+!31 = !DILocation(line: 3, scope: !23)
+!32 = !DILocation(line: 3, column: 4, scope: !23)
+!33 = !DILocation(line: 0, scope: !23)

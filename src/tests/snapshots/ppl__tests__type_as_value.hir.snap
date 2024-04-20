@@ -3,8 +3,7 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let x: Type<Integer> = (Type<Integer>:Type<Integer>)
-let $tmp0@144: Integer = clone (Type<Integer>:Type<Integer>).size
-let y: Integer = ($tmp0@144:Integer)
+let y: Integer = clone (Type<Integer>:Type<Integer>).size
 let $tmp0@9: Integer = size of (Type<None>:Type<None>)
 let $tmp1@26: Integer = 0
 let $tmp2@8: Bool = ($tmp0@9:Integer) == ($tmp1@26:Integer)
@@ -28,7 +27,6 @@ let $tmp3@157: None = println ($tmp2@165:Bool)
 $tmp3@157
 let $tmp0@188: None = println (Type<Integer>:Type<Integer>)
 $tmp0@188
-destroy ($tmp0@144:Integer)
 destroy (y:Integer)
 destroy ($tmp0@9:Integer)
 destroy ($tmp1@26:Integer)

@@ -3,8 +3,7 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let $tmp0@19: Integer = 1
-let $tmp1@9: Type<Integer> = type of ($tmp0@19:Integer)
-let ty: Type<Integer> = ($tmp1@9:Type<Integer>)
+let ty: Type<Integer> = type of ($tmp0@19:Integer)
 let $tmp0@21: None = println (ty:Type<Integer>)
 $tmp0@21
 destroy ($tmp0@19:Integer)

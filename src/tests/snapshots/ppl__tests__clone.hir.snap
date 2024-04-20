@@ -2,31 +2,25 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let $tmp0@12: Integer = 1
-let mut x: Integer = ($tmp0@12:Integer)
-let $tmp0@26: Integer = clone (x:Integer)
-let mut y: Integer = ($tmp0@26:Integer)
+let mut x: Integer = 1
+let mut y: Integer = clone (x:Integer)
 let $tmp0@36: Integer = clone (x:Integer)
 let $tmp1@28: None = println ($tmp0@36:Integer)
 $tmp1@28
 let $tmp0@46: Integer = clone (y:Integer)
 let $tmp1@38: None = println ($tmp0@46:Integer)
 $tmp1@38
-let $tmp0@52: Integer = 2
 destroy (y:Integer)
-(y:Integer) = ($tmp0@52:Integer)
+(y:Integer) = 2
 let $tmp0@62: Integer = clone (x:Integer)
 let $tmp1@54: None = println ($tmp0@62:Integer)
 $tmp1@54
 let $tmp0@72: Integer = clone (y:Integer)
 let $tmp1@64: None = println ($tmp0@72:Integer)
 $tmp1@64
-destroy ($tmp0@12:Integer)
 destroy (x:Integer)
-destroy ($tmp0@26:Integer)
 destroy (y:Integer)
 destroy ($tmp0@36:Integer)
 destroy ($tmp0@46:Integer)
-destroy ($tmp0@52:Integer)
 destroy ($tmp0@62:Integer)
 destroy ($tmp0@72:Integer)

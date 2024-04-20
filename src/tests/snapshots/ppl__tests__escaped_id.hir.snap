@@ -2,11 +2,7 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let $tmp0@15: Integer = 1
-let mut if: Integer = ($tmp0@15:Integer)
-let $tmp0@24: Integer = 2
+let mut if: Integer = 1
 destroy (if:Integer)
-(if:Integer) = ($tmp0@24:Integer)
-destroy ($tmp0@15:Integer)
+(if:Integer) = 2
 destroy (if:Integer)
-destroy ($tmp0@24:Integer)

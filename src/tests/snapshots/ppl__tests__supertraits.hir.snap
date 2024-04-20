@@ -14,14 +14,14 @@ trait FooBar:
 fn foo <:None> -> None:
 	let $tmp0@105: String = "foo"
 	let $tmp1@99: None = print ($tmp0@105:String)
-destroy ($tmp0@105:String)
+	destroy ($tmp0@105:String)
 	return ($tmp1@99:None)
 
 
 fn bar <:None> -> None:
 	let $tmp0@137: String = "bar"
 	let $tmp1@129: None = println ($tmp0@137:String)
-destroy ($tmp0@137:String)
+	destroy ($tmp0@137:String)
 	return ($tmp1@129:None)
 
 

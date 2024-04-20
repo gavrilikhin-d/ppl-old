@@ -12,7 +12,6 @@ source_filename = "src/main.ppl"
 @"Type<String>" = private global %"Type<String>" zeroinitializer
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
 @"$tmp0@149" = global %Integer zeroinitializer
-@"$tmp1@141" = global %Integer zeroinitializer
 @res = global %Integer zeroinitializer
 @"$tmp0@159" = global %Integer zeroinitializer
 
@@ -61,7 +60,7 @@ return:                                           ; preds = %0
 define private void @initialize.2() !dbg !14 {
   %1 = load %Integer, ptr @"$tmp0@149", align 8, !dbg !15
   %2 = call %Integer @"default <:Integer>"(%Integer %1), !dbg !15
-  store %Integer %2, ptr @"$tmp1@141", align 8, !dbg !15
+  store %Integer %2, ptr @res, align 8, !dbg !15
   br label %return, !dbg !15
 
 return:                                           ; preds = %0
@@ -82,19 +81,10 @@ return:                                           ; preds = %1
 }
 
 define private void @initialize.3() !dbg !18 {
-  %1 = load %Integer, ptr @"$tmp1@141", align 8, !dbg !19
-  store %Integer %1, ptr @res, align 8, !dbg !19
+  %1 = load %Integer, ptr @res, align 8, !dbg !19
+  %2 = call %Integer @clone_integer(%Integer %1), !dbg !19
+  store %Integer %2, ptr @"$tmp0@159", align 8, !dbg !19
   br label %return, !dbg !19
-
-return:                                           ; preds = %0
-  ret void
-}
-
-define private void @initialize.4() !dbg !20 {
-  %1 = load %Integer, ptr @res, align 8, !dbg !21
-  %2 = call %Integer @clone_integer(%Integer %1), !dbg !21
-  store %Integer %2, ptr @"$tmp0@159", align 8, !dbg !21
-  br label %return, !dbg !21
 
 return:                                           ; preds = %0
   ret void
@@ -102,25 +92,22 @@ return:                                           ; preds = %0
 
 declare %Integer @clone_integer(%Integer)
 
-define void @main.execute() !dbg !22 {
+define void @main.execute() !dbg !20 {
 init_globals:
-  call void @initialize(), !dbg !23
-  call void @initialize.1(), !dbg !24
-  call void @initialize.2(), !dbg !25
-  call void @initialize.3(), !dbg !25
-  call void @initialize.4(), !dbg !26
-  br label %0, !dbg !26
+  call void @initialize(), !dbg !21
+  call void @initialize.1(), !dbg !22
+  call void @initialize.2(), !dbg !23
+  call void @initialize.3(), !dbg !24
+  br label %0, !dbg !24
 
 0:                                                ; preds = %init_globals
-  %1 = load %Integer, ptr @"$tmp0@149", align 8, !dbg !24
-  call void @destroy_integer(%Integer %1), !dbg !24
-  %2 = load %Integer, ptr @"$tmp1@141", align 8, !dbg !25
+  %1 = load %Integer, ptr @"$tmp0@149", align 8, !dbg !22
+  call void @destroy_integer(%Integer %1), !dbg !22
+  %2 = load %Integer, ptr @res, align 8, !dbg !25
   call void @destroy_integer(%Integer %2), !dbg !25
-  %3 = load %Integer, ptr @res, align 8, !dbg !27
-  call void @destroy_integer(%Integer %3), !dbg !27
-  %4 = load %Integer, ptr @"$tmp0@159", align 8, !dbg !26
-  call void @destroy_integer(%Integer %4), !dbg !26
-  br label %return, !dbg !26
+  %3 = load %Integer, ptr @"$tmp0@159", align 8, !dbg !24
+  call void @destroy_integer(%Integer %3), !dbg !24
+  br label %return, !dbg !24
 
 return:                                           ; preds = %0
   ret void
@@ -147,13 +134,11 @@ return:                                           ; preds = %0
 !15 = !DILocation(line: 9, column: 18, scope: !14)
 !16 = distinct !DISubprogram(name: "default <:Integer>", linkageName: "default <:Integer>", scope: !14, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !17 = !DILocation(line: 3, column: 25, scope: !16)
-!18 = distinct !DISubprogram(name: "initialize.3", linkageName: "initialize.3", scope: !2, file: !2, line: 9, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!19 = !DILocation(line: 9, column: 10, scope: !18)
-!20 = distinct !DISubprogram(name: "initialize.4", linkageName: "initialize.4", scope: !2, file: !2, line: 10, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!21 = !DILocation(line: 10, column: 8, scope: !20)
-!22 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 10, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!23 = !DILocation(line: 10, column: 11, scope: !22)
-!24 = !DILocation(line: 9, column: 18, scope: !22)
-!25 = !DILocation(line: 9, column: 10, scope: !22)
-!26 = !DILocation(line: 10, column: 8, scope: !22)
-!27 = !DILocation(line: 9, scope: !22)
+!18 = distinct !DISubprogram(name: "initialize.3", linkageName: "initialize.3", scope: !2, file: !2, line: 10, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!19 = !DILocation(line: 10, column: 8, scope: !18)
+!20 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, line: 10, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!21 = !DILocation(line: 10, column: 11, scope: !20)
+!22 = !DILocation(line: 9, column: 18, scope: !20)
+!23 = !DILocation(line: 9, column: 10, scope: !20)
+!24 = !DILocation(line: 10, column: 8, scope: !20)
+!25 = !DILocation(line: 9, scope: !20)

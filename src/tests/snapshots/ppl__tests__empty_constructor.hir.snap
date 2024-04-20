@@ -3,8 +3,7 @@ source: src/tests/mod.rs
 expression: hir
 ---
 type A
-let $tmp0@15: A = A {  }
-let a: A = ($tmp0@15:A)
+let a: A = A {  }
 let $tmp0@29: Type<A> = type of (a:A)
 let $tmp1@20: None = println ($tmp0@29:Type<A>)
 $tmp1@20
