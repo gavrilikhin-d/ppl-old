@@ -70,12 +70,10 @@ impl Monomorphize for Variable {
         let from = self.to_string();
         trace!(target: "monomorphizing", "{from}");
 
-        self.write().unwrap().ty.monomorphize(context);
-        self.write()
-            .unwrap()
-            .initializer
-            .as_mut()
-            .map(|i| i.monomorphize(context));
+        let mut data = self.read().unwrap().clone();
+        data.ty.monomorphize(context);
+        data.initializer.as_mut().map(|i| i.monomorphize(context));
+        *self = Variable::new(data);
 
         debug!(target: "monomorphized-from", "{from}");
         debug!(target: "monomorphized-to", "{self}");
