@@ -11,23 +11,34 @@ use crate::{
 };
 
 #[derive(VisitorMut)]
-#[visitor(Expression(exit), Statement(exit))]
+#[visitor(Expression, Statement)]
 pub struct TemporariesInserter {
     temporaries: Vec<Variable>,
+    depth: usize,
+    is_in_assignment_or_var: bool,
 }
 
 impl TemporariesInserter {
     pub fn new() -> Self {
         Self {
             temporaries: Vec::new(),
+            depth: 0,
+            is_in_assignment_or_var: false,
         }
     }
 
+    fn enter_expression(&mut self, _: &Expression) {
+        self.depth += 1;
+    }
+
     fn exit_expression(&mut self, expr: &mut Expression) {
+        self.depth -= 1;
+
         if matches!(
             expr,
             Expression::VariableReference(_) | Expression::MemberReference(_)
-        ) {
+        ) || self.is_in_assignment_or_var && self.depth == 0
+        {
             return;
         }
 
@@ -49,7 +60,16 @@ impl TemporariesInserter {
         self.temporaries.push(tmp);
     }
 
+    fn enter_statement(&mut self, stmt: &Statement) {
+        self.is_in_assignment_or_var = matches!(
+            stmt,
+            Statement::Assignment(_) | Statement::Declaration(Declaration::Variable(_))
+        );
+    }
+
     fn exit_statement(&mut self, stmt: &mut Statement) {
+        self.is_in_assignment_or_var = false;
+
         if self.temporaries.is_empty() {
             return;
         }
