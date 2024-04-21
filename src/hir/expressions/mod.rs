@@ -1,4 +1,5 @@
 mod literal;
+use derive_visitor::DriveMut;
 use enum_dispatch::enum_dispatch;
 pub use literal::*;
 
@@ -28,7 +29,7 @@ use super::Generic;
 
 /// Any PPL expression
 #[enum_dispatch(Ranged, Mutable, Typed)]
-#[derive(Debug, Display, PartialEq, Eq, Clone)]
+#[derive(Debug, Display, PartialEq, Eq, Clone, DriveMut)]
 pub enum Expression {
     Literal(Literal),
     VariableReference(VariableReference),

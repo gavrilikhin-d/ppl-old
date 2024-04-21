@@ -1,4 +1,5 @@
 mod function;
+use derive_visitor::DriveMut;
 pub use function::*;
 
 mod types;
@@ -19,12 +20,23 @@ use derive_more::Display;
 use crate::{named::Named, syntax::Ranged};
 
 /// Any PPL declaration
-#[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto)]
+#[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto, DriveMut)]
 pub enum Declaration {
     Variable(Variable),
+    #[drive(skip)]
     Type(Class),
     Function(Function),
     Trait(Trait),
+}
+
+impl Declaration {
+    /// Is this a declaration for temporary variable?
+    pub fn is_temporary_variable(&self) -> bool {
+        match self {
+            Declaration::Variable(v) => v.is_temporary(),
+            _ => false,
+        }
+    }
 }
 
 impl Named for Declaration {

@@ -2,6 +2,7 @@ use inkwell::module::Linkage;
 use inkwell::types::BasicMetadataTypeEnum;
 
 use inkwell::values::BasicMetadataValueEnum;
+use inkwell::values::CallSiteValue;
 use log::trace;
 
 use super::inkwell::*;
@@ -144,22 +145,6 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Variable {
         trace!(target: "to_ir", "{self}");
 
         let global = self.read().unwrap().declare_global(context);
-        if global.is_none() {
-            return None;
-        }
-        let global = global.unwrap();
-
-        // TODO: check that we can initialize without function
-        global.set_constant(false);
-
-        global.set_initializer(
-            &self
-                .ty()
-                .to_ir(context)
-                .try_into_basic_type()
-                .expect("non-basic type global initializer")
-                .const_zero(),
-        );
 
         let initialize = context.module.add_function(
             "initialize",
@@ -180,6 +165,24 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Variable {
             .as_ref()
             .expect("Currently all variables have initializers")
             .to_ir(&mut f_context);
+
+        if global.is_none() {
+            return None;
+        }
+        let global = global.unwrap();
+
+        // TODO: check that we can initialize without function
+        global.set_constant(false);
+
+        global.set_initializer(
+            &self
+                .ty()
+                .to_ir(f_context.module_context)
+                .try_into_basic_type()
+                .expect("non-basic type global initializer")
+                .const_zero(),
+        );
+
         f_context
             .builder
             .build_store(
@@ -193,31 +196,36 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Variable {
 }
 
 impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Variable {
-    type IR = inkwell::values::PointerValue<'llvm>;
+    type IR = Option<inkwell::values::PointerValue<'llvm>>;
 
     /// Lower local [`VariableDeclaration`] to LLVM IR
     fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
-        let ty = self
-            .ty()
-            .to_ir(context)
-            .try_into_basic_type()
-            .expect("non-basic type local variable");
         let value = self
             .read()
             .unwrap()
             .initializer
             .as_ref()
             .expect("Currently all variables have initializers")
+            .to_ir(context);
+
+        if self.ty().is_none() {
+            return None;
+        }
+
+        let ty = self
+            .ty()
             .to_ir(context)
-            .expect("initializer return None or Void");
+            .try_into_basic_type()
+            .expect("non-basic type local variable");
+
         let alloca = context.builder.build_alloca(ty, &self.name()).unwrap();
-        context.builder.build_store(alloca, value).unwrap();
+        context.builder.build_store(alloca, value.unwrap()).unwrap();
         context
             .variables
             .insert(self.name().to_string(), alloca.clone());
-        alloca
+        Some(alloca)
     }
 }
 
@@ -727,6 +735,11 @@ impl<'llvm> ToIR<'llvm, ModuleContext<'llvm, '_>> for Statement {
         trace!(target: "to_ir", "{self}");
 
         match self {
+            Statement::Block(b) => {
+                for stmt in &b.statements {
+                    stmt.to_ir(context);
+                }
+            }
             Statement::Declaration(d) => d.to_ir(context),
 
             Statement::Assignment(_)
@@ -768,6 +781,11 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Statement {
         trace!(target: "to_ir", "{self}");
 
         match self {
+            Statement::Block(b) => {
+                for stmt in &b.statements {
+                    stmt.to_ir(context);
+                }
+            }
             Statement::Declaration(d) => d.to_ir(context),
             Statement::Assignment(a) => {
                 a.to_ir(context);
@@ -947,6 +965,15 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for While {
     }
 }
 
+impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Initializer<'llvm> {
+    type IR = CallSiteValue<'llvm>;
+
+    fn to_ir(&self, context: &mut FunctionContext<'llvm, 'm, '_>) -> Self::IR {
+        context.set_debug_location(self.at);
+        context.builder.build_call(self.function, &[], "").unwrap()
+    }
+}
+
 /// Trait for lowering HIR Module to LLVM IR
 pub trait HIRModuleLowering<'llvm> {
     /// Lower [`Module`] to LLVM IR
@@ -984,60 +1011,29 @@ impl<'llvm> HIRModuleLowering<'llvm> for ModuleData {
             variable.to_ir(&mut context);
         }
 
-        for statement in self
-            .statements
-            .iter()
-            .filter(|s| matches!(s, Statement::Declaration(_)))
-        {
-            statement.to_ir(&mut context);
-        }
-
         let execute = context.module.add_function(
             &format!("{name}.execute"),
             context.types().none().fn_type(&[], false),
             None,
         );
-        let at = self
-            .statements
-            .iter()
-            .find(|s| !matches!(s, Statement::Declaration(_)))
-            .map(|s| s.start())
-            .unwrap_or(0);
+        let at = self.statements.first().map(|s| s.start()).unwrap_or(0);
 
         FunctionContext::new(&mut context, execute, at).run(|context| {
-            for statement in self
-                .statements
-                .iter()
-                .filter(|s| !matches!(s, Statement::Declaration(_)))
-            {
-                statement.to_ir(context);
+            for init in context.module_context.initializers.clone() {
+                init.to_ir(context);
             }
 
-            let blocks = execute.get_basic_blocks();
-
-            let insertion_block = context.builder.get_insert_block().unwrap();
-
-            if !context.module_context.initializers.is_empty() {
-                let first_block = blocks.first().unwrap();
-
-                let init_block = context
-                    .llvm()
-                    .prepend_basic_block(*first_block, "init_globals");
-                context.builder.position_at_end(init_block);
-
-                let inits = context.module_context.initializers.clone();
-                for init in inits {
-                    context.set_debug_location(init.at);
-                    context.builder.build_call(init.function, &[], "").unwrap();
+            for statement in &self.statements {
+                if matches!(statement, Statement::Declaration(_)) {
+                    statement.to_ir(context.module_context);
+                    if matches!(statement, Statement::Declaration(Declaration::Variable(_))) {
+                        let init = context.module_context.initializers.last().unwrap().clone();
+                        init.to_ir(context);
+                    }
+                } else {
+                    statement.to_ir(context);
                 }
-
-                context
-                    .builder
-                    .build_unconditional_branch(*first_block)
-                    .unwrap();
             }
-
-            context.builder.position_at_end(insertion_block);
         });
 
         if with_main {

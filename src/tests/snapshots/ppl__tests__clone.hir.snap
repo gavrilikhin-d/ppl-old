@@ -4,9 +4,19 @@ expression: hir
 ---
 let mut x: Integer = 1
 let mut y: Integer = clone (x:Integer)
-println clone (x:Integer)
-println clone (y:Integer)
+let $tmp0@36: Integer = clone (x:Integer)
+println ($tmp0@36:Integer)
+let $tmp0@46: Integer = clone (y:Integer)
+println ($tmp0@46:Integer)
 destroy (y:Integer)
 (y:Integer) = 2
-println clone (x:Integer)
-println clone (y:Integer)
+let $tmp0@62: Integer = clone (x:Integer)
+println ($tmp0@62:Integer)
+let $tmp0@72: Integer = clone (y:Integer)
+println ($tmp0@72:Integer)
+destroy (x:Integer)
+destroy (y:Integer)
+destroy ($tmp0@36:Integer)
+destroy ($tmp0@46:Integer)
+destroy ($tmp0@62:Integer)
+destroy ($tmp0@72:Integer)

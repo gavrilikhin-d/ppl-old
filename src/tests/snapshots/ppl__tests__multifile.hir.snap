@@ -3,4 +3,6 @@ source: src/tests/mod.rs
 expression: hir
 ---
 use greet.greet <:String>
-greet "World"
+let $tmp0@35: String = "World"
+greet ($tmp0@35:String)
+destroy ($tmp0@35:String)

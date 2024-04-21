@@ -22,33 +22,24 @@
 * Metaprogramming
 * Documentation
 
-* [x] Implicit conversions from one type to another (dereference and etc)
-* [x] Fix non-instantiated generic functions (`fn<T> foo <:T> => 1` & `let n = foo 1`; `& <:Reference<Bool>>`)
-* [x] Rework specialized system and type conversions checks. Add reason, why conversion fails
-* [x] Unify `TraitType` in type checking with constraint generic type with random name
-* [x] Make `monomorphized` to take `Self`
-* [x] Multifile compilation and imports
-* [x] Need to search for variables at monomorphization, because the type of the variable can be changed (eg. `let y = reference to x; println y`)
-* [x] Replace type references with constructors only after monomorphization
-* [x] `lowering_to_hir_within_context` -> `to_hir` and `to_ir`
-* [x] Fix `type of <:T>`
-* [x] Intern type constructors that are generated in IR
-* [x] Support `use module.*` 
-* [x] Add tracing to compiler
-* [x] Don't define variables right away, when declaring them
-* [x] Fix `let y = &x; y`
-* [x] Fix definition of predeclared functions
-* [x] `<:T> as String` -> `String from <:T>`. `as` should mean force cast (analog of `try_from().unwrap()`)
+* [x] Split builtin module into several files
+* [x] Fix crash in diagnostics due-to wrong source file
+* [x] Check result of the program itself in `test_compiler_result`
+* [x] Add `Array` type
+* [x] Fix memory leak due to pointers to builtin types
 ---
 ### Current task
 * [ ] Sum of series benchmark
 ---
+* [ ] Destructors for parameters
+* [ ] No tmps for literals inside of constructors
+* [ ] Generate clone for types with clonable members
+* [ ] Generate destructors for types with destructible members
 * [ ] Add type aliases
 * [ ] Add dependency analysis for modules and declarations
 * [ ] Add all `c` types
 * [ ] Intern strings that are generated in IR
 * [ ] `VariableReference` and `MemberReference` should have reference types
-* [ ] Split builtin module into several files
 * [ ] Support `use module.{a, b, submodule.c}`
 * [ ] Still return declarations even if they have errors, so there is no `undefined_*` errors later
 * [ ] Generic types shouldn't be replaced, but rather constrained (e.g `T: Integer`)
@@ -57,16 +48,13 @@
 * [ ] Reject lowercase names for types
 * [ ] Rebinding references
 * [ ] Remove need for escaping `type` in `type of <:T>`
-* [ ] Fix crash in diagnostics due-to wrong source file
 * [ ] Add better errors for inferred generics
 * [ ] Unify `Self` and `GenericType`
 * [ ] `Any` trait
 * [ ] Logic for printing decimals inside ppl
 * [ ] Unsafe code marker
-* [ ] Check result of the program itself in `test_compiler_result`
 * [ ] Format strings
 * [ ] Varadic arguments functions
-* [ ] Add `Array` type
 * [ ] Allow newlines inside parentheses
 * [ ] Allow tabs before comments for members
 * [ ] Add `assert` and `panic`
@@ -77,7 +65,6 @@
 * [ ] Make statements to return `None` type for convenience
 * [ ] Make `if` to be an expression?
 * [ ] Add `HashMap` type
-* [ ] Fix memory leak due to pointers to builtin types
 * [ ] Explicit traits implementation
 * [ ] Functions as values
 * [ ] Add values as types (e.g `1 | 2 | "lol"`)

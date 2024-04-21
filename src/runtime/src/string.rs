@@ -45,7 +45,7 @@ pub extern "C" fn string_plus_string(x: String, y: String) -> String {
     }
 }
 
-/// Prints none value
+/// Print string to stdout
 ///
 /// Runtime for builtin ppl's function:
 /// ```ppl

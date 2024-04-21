@@ -13,7 +13,7 @@ use crate::{
     semantics::{ConvertibleTo, GenericContext},
 };
 
-use super::{Context, ReplaceWithTypeInfo};
+use super::{clone::CloneIfNeeded, Context, ReplaceWithTypeInfo};
 
 /// Trait to get monomorphized version of statements
 pub trait Monomorphize {
@@ -37,6 +37,7 @@ impl Monomorphize for Statement {
             Statement::While(l) => l.monomorphize(context),
             Statement::Return(ret) => ret.monomorphize(context),
             Statement::Declaration(d) => d.monomorphize(context),
+            Statement::Block(b) => b.statements.monomorphize(context),
             Statement::Use(_) => return,
         }
     }
@@ -69,12 +70,10 @@ impl Monomorphize for Variable {
         let from = self.to_string();
         trace!(target: "monomorphizing", "{from}");
 
-        self.write().unwrap().ty.monomorphize(context);
-        self.write()
-            .unwrap()
-            .initializer
-            .as_mut()
-            .map(|i| i.monomorphize(context));
+        let mut data = self.read().unwrap().clone();
+        data.ty.monomorphize(context);
+        data.initializer.as_mut().map(|i| i.monomorphize(context));
+        *self = Variable::new(data);
 
         debug!(target: "monomorphized-from", "{from}");
         debug!(target: "monomorphized-to", "{self}");
@@ -151,6 +150,7 @@ impl Monomorphize for ImplicitConversion {
 
 impl Monomorphize for Expression {
     fn monomorphize(&mut self, context: &mut impl Context) {
+        let was_generic = self.is_generic();
         match self {
             Expression::Call(c) => c.monomorphize(context),
             Expression::VariableReference(var) => var.monomorphize(context),
@@ -162,6 +162,9 @@ impl Monomorphize for Expression {
             Expression::MemberReference(m) => m.monomorphize(context),
             Expression::Constructor(c) => c.monomorphize(context),
             Expression::ImplicitConversion(c) => c.monomorphize(context),
+        }
+        if was_generic && !self.is_generic() {
+            self.clone_if_needed_inplace(context);
         }
     }
 }

@@ -5,9 +5,15 @@ expression: hir
 type Destructible
 
 fn destroy <:Destructible> -> None:
-	return println "destructor"
+	let $tmp0@57: String = "destructor"
+	let $tmp1@49: None = println ($tmp0@57:String)
+	destroy ($tmp0@57:String)
+	return ($tmp1@49:None)
 
 let mut x: Destructible = Destructible {  }
 destroy (x:Destructible)
 (x:Destructible) = Destructible {  }
-println "done"
+let $tmp0@154: String = "done"
+println ($tmp0@154:String)
+destroy (x:Destructible)
+destroy ($tmp0@154:String)

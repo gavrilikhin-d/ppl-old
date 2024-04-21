@@ -39,12 +39,12 @@ Advice:   ☞ candidate is not viable
         × expected `Rational` type, got `Integer`
       
       Error:   × Rational
-           ╭─[core.ppl:152:19]
-       151 │ @mangle_as("rational_plus_rational")
-       152 │ fn <:Rational> + <:Rational> -> Rational
+           ╭─[core.ppl:143:19]
+       142 │ @mangle_as("rational_plus_rational")
+       143 │ fn <:Rational> + <:Rational> -> Rational
            ·                   ▲
            ·                   ╰── this has `Rational` type
-       153 │
+       144 │
            ╰────
       Error:   × Integer
          ╭─[main.ppl:1:7]
@@ -59,12 +59,12 @@ Advice:   ☞ candidate is not viable
         × expected `String` type, got `Rational`
       
       Error:   × String
-           ╭─[core.ppl:185:5]
-       184 │ @mangle_as("string_plus_string")
-       185 │ fn <:String> + <:String> -> String
+           ╭─[core.ppl:176:5]
+       175 │ @mangle_as("string_plus_string")
+       176 │ fn <:String> + <:String> -> String
            ·     ▲
            ·     ╰── this has `String` type
-       186 │
+       177 │
            ╰────
       Error:   × Rational
          ╭─[main.ppl:1:1]
@@ -79,12 +79,12 @@ Advice:   ☞ candidate is not viable
         × expected `Self` type, got `Integer`
       
       Error:   × Self
-           ╭─[core.ppl:289:16]
-       288 │ trait Add:
-       289 │     fn <:Self> + <:Self> -> Self
+           ╭─[core.ppl:280:16]
+       279 │ trait Add:
+       280 │     fn <:Self> + <:Self> -> Self
            ·                   ▲
            ·                   ╰── this has `Self` type
-       290 │
+       281 │
            ╰────
       Error:   × Integer
          ╭─[main.ppl:1:7]
@@ -99,12 +99,12 @@ Advice:   ☞ candidate is not viable
         × expected `Self` type, got `Integer`
       
       Error:   × Self
-           ╭─[core.ppl:289:16]
-       288 │ trait Add:
-       289 │     fn <:Self> + <:Self> -> Self
+           ╭─[core.ppl:280:16]
+       279 │ trait Add:
+       280 │     fn <:Self> + <:Self> -> Self
            ·                   ▲
            ·                   ╰── this has `Self` type
-       290 │
+       281 │
            ╰────
       Error:   × Integer
          ╭─[main.ppl:1:7]

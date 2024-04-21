@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use derive_more::From;
+use derive_visitor::DriveMut;
 
 use crate::{
     hir::{ClassOrTrait, Function, Variable},
@@ -17,13 +18,16 @@ pub enum ImportedItem {
 }
 
 /// Use statement
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct Use {
     /// Keyword `use`
+    #[drive(skip)]
     pub keyword: Keyword<"use">,
     /// Path to item
+    #[drive(skip)]
     pub path: Vec<Identifier>,
     /// Item, imported by use statement
+    #[drive(skip)]
     pub imported_item: ImportedItem,
 }
 
@@ -50,6 +54,8 @@ impl Ranged for Use {
     }
 
     fn end(&self) -> usize {
-        self.path.last().map_or_else(|| self.keyword.end(), |p| p.end())
+        self.path
+            .last()
+            .map_or_else(|| self.keyword.end(), |p| p.end())
     }
 }

@@ -5,31 +5,39 @@ use crate::{
 
 use super::Context;
 
-pub trait CloneIfNeeded {
-    fn clone_if_needed(self, context: &mut impl Context) -> Expression;
+pub trait CloneIfNeeded: Sized {
+    fn clone_if_needed_inplace(&mut self, context: &mut impl Context);
+
+    fn clone_if_needed(mut self, context: &mut impl Context) -> Self {
+        self.clone_if_needed_inplace(context);
+        self
+    }
 }
 
 impl CloneIfNeeded for Expression {
-    fn clone_if_needed(self, context: &mut impl Context) -> Expression {
+    fn clone_if_needed_inplace(&mut self, context: &mut impl Context) {
         if !matches!(
             self,
             Expression::VariableReference(_) | Expression::MemberReference(_)
         ) {
-            return self;
+            return;
         }
 
         if let Some(clone) = context.clone_for(self.ty()) {
-            return Call {
+            let mut expr: Expression = Call {
                 range: self.range(),
                 function: clone,
                 generic: None,
-                // FIXME: create temporary variable,
-                // if it's complex expr
-                args: vec![self],
+                args: vec![],
             }
             .into();
+            std::mem::swap(&mut expr, self);
+            match self {
+                Expression::Call(call) => {
+                    call.args.push(expr);
+                }
+                _ => unreachable!("We've just replaced self with call"),
+            }
         }
-
-        return self;
     }
 }

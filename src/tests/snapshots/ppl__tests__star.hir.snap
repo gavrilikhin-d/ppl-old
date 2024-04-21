@@ -2,4 +2,14 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-println 2 + 2 * 2
+let $tmp0@8: Integer = 2
+let $tmp1@12: Integer = 2
+let $tmp2@16: Integer = 2
+let $tmp3@12: Integer = ($tmp1@12:Integer) * ($tmp2@16:Integer)
+let $tmp4@8: Integer = ($tmp0@8:Integer) + ($tmp3@12:Integer)
+println ($tmp4@8:Integer)
+destroy ($tmp0@8:Integer)
+destroy ($tmp1@12:Integer)
+destroy ($tmp2@16:Integer)
+destroy ($tmp3@12:Integer)
+destroy ($tmp4@8:Integer)

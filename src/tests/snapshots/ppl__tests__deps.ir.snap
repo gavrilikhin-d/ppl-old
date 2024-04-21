@@ -33,13 +33,9 @@ declare %String @string_from_c_string_and_length(ptr, i64)
 declare %Integer @integer_from_i64(i64)
 
 define void @main.execute() !dbg !9 {
-init_globals:
   call void @initialize(), !dbg !10
-  br label %0, !dbg !10
-
-0:                                                ; preds = %init_globals
   call void @"say hello"(), !dbg !11
-  br label %return, !dbg !10
+  br label %return, !dbg !11
 
 return:                                           ; preds = %0
   ret void

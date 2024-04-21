@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use derive_visitor::DriveMut;
+
 use crate::hir::{Generic, Type, Typed};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
@@ -15,11 +17,13 @@ pub enum ImplicitConversionKind {
     Dereference,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct ImplicitConversion {
     /// Kind of conversion
+    #[drive(skip)]
     pub kind: ImplicitConversionKind,
     /// Type of converted expression
+    #[drive(skip)]
     pub ty: Type,
     /// Expression to convert
     pub expression: Box<Expression>,

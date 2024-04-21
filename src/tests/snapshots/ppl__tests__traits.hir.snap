@@ -13,5 +13,10 @@ trait Test:
 fn required <x: Integer> -> None:
 	return none
 
-let res: Integer = default 1
-println clone (res:Integer)
+let $tmp0@149: Integer = 1
+let res: Integer = default ($tmp0@149:Integer)
+let $tmp0@159: Integer = clone (res:Integer)
+println ($tmp0@159:Integer)
+destroy ($tmp0@149:Integer)
+destroy (res:Integer)
+destroy ($tmp0@159:Integer)

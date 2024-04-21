@@ -6,6 +6,7 @@ use std::{
     sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard},
 };
 
+use derive_visitor::DriveMut;
 use indexmap::IndexMap;
 
 use crate::{
@@ -72,14 +73,23 @@ impl Hash for Trait {
     }
 }
 
+impl DriveMut for Trait {
+    fn drive_mut<V: derive_visitor::VisitorMut>(&mut self, visitor: &mut V) {
+        self.write().unwrap().drive_mut(visitor)
+    }
+}
+
 /// Declaration of a trait
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct TraitData {
     /// Keyword `trait`
+    #[drive(skip)]
     pub keyword: Keyword<"trait">,
     /// Trait's name
+    #[drive(skip)]
     pub name: Identifier,
     /// Supertraits
+    #[drive(skip)]
     pub supertraits: Vec<Trait>,
     /// Associated functions
     pub functions: IndexMap<String, Function>,

@@ -1,17 +1,22 @@
 use std::fmt::Display;
 
+use derive_visitor::DriveMut;
+
 use crate::hir::{Generic, Type, Typed};
 use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 
 /// HIR for type reference
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, DriveMut)]
 pub struct TypeReference {
     /// Range of type reference
+    #[drive(skip)]
     pub span: std::ops::Range<usize>,
     /// Referenced type
+    #[drive(skip)]
     pub referenced_type: Type,
     /// Type of the reference itself
+    #[drive(skip)]
     pub type_for_type: Type,
 }
 

@@ -1,11 +1,17 @@
 use std::fmt::Display;
 
-use crate::{hir::Statement, syntax::{Keyword, Ranged}};
+use derive_visitor::DriveMut;
+
+use crate::{
+    hir::Statement,
+    syntax::{Keyword, Ranged},
+};
 
 /// Infinite loop
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct Loop {
     /// Keyword `loop`
+    #[drive(skip)]
     pub keyword: Keyword<"loop">,
     /// Body of a loop
     pub body: Vec<Statement>,

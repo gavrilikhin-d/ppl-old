@@ -131,7 +131,10 @@ impl Declare for ast::FunctionDeclaration {
                 }
                 .into());
             }
-            body = vec![hir::Return::Implicit { value: expr }.into()];
+            body = vec![hir::Return::Implicit {
+                value: expr.clone_if_needed(context),
+            }
+            .into()];
         }
 
         declaration.write().unwrap().body = body;

@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use derive_visitor::DriveMut;
 use runtime::maybe_to_decimal_string;
 
 use crate::hir::{Type, Typed};
@@ -7,29 +8,34 @@ use crate::mutability::Mutable;
 use crate::syntax::Ranged;
 
 /// AST for compile time known values
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub enum Literal {
     /// None literal
+    #[drive(skip)]
     None { offset: usize, ty: Type },
     /// Bool literal
+    #[drive(skip)]
     Bool {
         offset: usize,
         value: bool,
         ty: Type,
     },
     /// Any precision decimal integer literal
+    #[drive(skip)]
     Integer {
         span: std::ops::Range<usize>,
         value: rug::Integer,
         ty: Type,
     },
     /// Any precision decimal rational literal
+    #[drive(skip)]
     Rational {
         span: std::ops::Range<usize>,
         value: rug::Rational,
         ty: Type,
     },
     /// String literal
+    #[drive(skip)]
     String {
         span: std::ops::Range<usize>,
         value: String,

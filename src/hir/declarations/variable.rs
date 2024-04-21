@@ -2,6 +2,8 @@ use std::borrow::Cow;
 use std::fmt::Display;
 use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
+use derive_visitor::DriveMut;
+
 use crate::hir::{Expression, Generic, Type, TypeReference, Typed};
 use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
@@ -29,6 +31,11 @@ impl Variable {
     /// Lock variable for writing
     pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, VariableData>> {
         self.inner.write()
+    }
+
+    /// Is this a temporary variable?
+    pub fn is_temporary(&self) -> bool {
+        self.read().unwrap().is_temporary()
     }
 }
 
@@ -76,21 +83,39 @@ impl Ranged for Variable {
     }
 }
 
+impl DriveMut for Variable {
+    fn drive_mut<V: derive_visitor::VisitorMut>(&mut self, visitor: &mut V) {
+        self.write().unwrap().drive_mut(visitor)
+    }
+}
+
 /// Declaration of a variable
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct VariableData {
     /// Keyword `let`
+    #[drive(skip)]
     pub keyword: Keyword<"let">,
     /// Mutability of variable
+    #[drive(skip)]
     pub mutability: Mutability,
     /// Variable's name
+    #[drive(skip)]
     pub name: Identifier,
     /// Type reference for variable
+    #[drive(skip)]
     pub type_reference: Option<TypeReference>,
     /// Type of variable
+    #[drive(skip)]
     pub ty: Type,
     /// Initializer for variable
     pub initializer: Option<Expression>,
+}
+
+impl VariableData {
+    /// Is this a temporary variable?
+    pub fn is_temporary(&self) -> bool {
+        self.name.starts_with("$tmp")
+    }
 }
 
 impl Display for VariableData {

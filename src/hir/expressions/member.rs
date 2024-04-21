@@ -1,3 +1,5 @@
+use derive_visitor::DriveMut;
+
 use crate::hir::{Generic, Member, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
@@ -8,15 +10,19 @@ use std::sync::Arc;
 use super::Expression;
 
 /// AST for variable reference
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct MemberReference {
     /// Range of name of member reference
+    #[drive(skip)]
     pub span: std::ops::Range<usize>,
     /// Base expression
+    #[drive(skip)]
     pub base: Box<Expression>,
     /// Referenced variable name
+    #[drive(skip)]
     pub member: Arc<Member>,
     /// Index of referenced member
+    #[drive(skip)]
     pub index: usize,
 }
 

@@ -7,4 +7,7 @@ let y: ReferenceMut<Integer> = reference to mutable (&x:ReferenceMut<Integer>)
 println (*y:Integer)
 (y:ReferenceMut<Integer>) = 2
 println (*y:Integer)
-println clone (x:Integer)
+let $tmp0@79: Integer = clone (x:Integer)
+println ($tmp0@79:Integer)
+destroy (x:Integer)
+destroy ($tmp0@79:Integer)

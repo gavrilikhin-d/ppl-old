@@ -1,4 +1,5 @@
 use derive_more::From;
+use derive_visitor::DriveMut;
 
 use crate::hir::{Generic, Parameter, Type, Typed, Variable, VariableData};
 use crate::mutability::Mutable;
@@ -63,12 +64,23 @@ impl Generic for ParameterOrVariable {
     }
 }
 
+impl Ranged for ParameterOrVariable {
+    fn range(&self) -> std::ops::Range<usize> {
+        match self {
+            ParameterOrVariable::Variable(variable) => variable.range(),
+            ParameterOrVariable::Parameter(parameter) => parameter.range(),
+        }
+    }
+}
+
 /// AST for variable reference
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct VariableReference {
     /// Range of variable reference
+    #[drive(skip)]
     pub span: std::ops::Range<usize>,
     /// Referenced variable name
+    #[drive(skip)]
     pub variable: ParameterOrVariable,
 }
 
