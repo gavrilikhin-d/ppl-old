@@ -415,15 +415,15 @@ impl Monomorphize for FunctionNamePart {
     }
 }
 
-impl Monomorphize for Arc<Parameter> {
+impl Monomorphize for Parameter {
     fn monomorphize(&mut self, context: &mut impl Context) {
         if !self.is_generic() {
             return;
         }
 
-        let mut p = self.as_ref().clone();
+        let mut p = self.read().unwrap().clone();
         p.ty.monomorphize(context);
-        *self = Arc::new(p);
+        *self = Parameter::new(p);
     }
 }
 

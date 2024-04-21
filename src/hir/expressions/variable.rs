@@ -1,24 +1,23 @@
 use derive_more::From;
 use derive_visitor::DriveMut;
 
-use crate::hir::{Generic, Parameter, Type, Typed, Variable, VariableData};
+use crate::hir::{Generic, Parameter, ParameterData, Type, Typed, Variable, VariableData};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
 use std::borrow::Cow;
 use std::fmt::Display;
-use std::sync::Arc;
 
 /// Parameter or variable declaration
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum ParameterOrVariable {
     Variable(Variable),
-    Parameter(Arc<Parameter>),
+    Parameter(Parameter),
 }
 
-impl From<Parameter> for ParameterOrVariable {
-    fn from(parameter: Parameter) -> Self {
-        Self::Parameter(Arc::new(parameter))
+impl From<ParameterData> for ParameterOrVariable {
+    fn from(parameter: ParameterData) -> Self {
+        Self::Parameter(Parameter::new(parameter))
     }
 }
 

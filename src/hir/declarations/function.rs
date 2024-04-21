@@ -14,9 +14,78 @@ use crate::syntax::{Identifier, Keyword, Ranged};
 
 use super::Trait;
 
+/// Parameter data holder
+#[derive(Debug, Clone)]
+pub struct Parameter {
+    inner: Arc<RwLock<ParameterData>>,
+}
+
+impl Parameter {
+    /// Create a new parameter from its data
+    pub fn new(data: ParameterData) -> Self {
+        Self {
+            inner: Arc::new(RwLock::new(data)),
+        }
+    }
+
+    /// Lock variable for reading
+    pub fn read(&self) -> LockResult<RwLockReadGuard<'_, ParameterData>> {
+        self.inner.read()
+    }
+
+    /// Lock variable for writing
+    pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, ParameterData>> {
+        self.inner.write()
+    }
+}
+
+impl PartialEq for Parameter {
+    fn eq(&self, other: &Self) -> bool {
+        *self.read().unwrap() == *other.read().unwrap()
+    }
+}
+
+impl Eq for Parameter {}
+
+impl Named for Parameter {
+    fn name(&self) -> Cow<'_, str> {
+        self.read().unwrap().name().to_string().into()
+    }
+}
+
+impl Generic for Parameter {
+    fn is_generic(&self) -> bool {
+        self.read().unwrap().is_generic()
+    }
+}
+
+impl Typed for Parameter {
+    fn ty(&self) -> Type {
+        self.read().unwrap().ty()
+    }
+}
+
+impl Mutable for Parameter {
+    fn is_mutable(&self) -> bool {
+        self.read().unwrap().is_mutable()
+    }
+}
+
+impl Ranged for Parameter {
+    fn range(&self) -> std::ops::Range<usize> {
+        self.read().unwrap().range()
+    }
+}
+
+impl DriveMut for Parameter {
+    fn drive_mut<V: derive_visitor::VisitorMut>(&mut self, visitor: &mut V) {
+        self.write().unwrap().drive_mut(visitor)
+    }
+}
+
 /// Declaration of a function parameter
 #[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
-pub struct Parameter {
+pub struct ParameterData {
     /// Type's name
     #[drive(skip)]
     pub name: Identifier,
@@ -28,34 +97,34 @@ pub struct Parameter {
     pub range: Range<usize>,
 }
 
-impl Ranged for Parameter {
+impl Ranged for ParameterData {
     fn range(&self) -> std::ops::Range<usize> {
         self.range.clone()
     }
 }
 
-impl Generic for Parameter {
+impl Generic for ParameterData {
     /// Is this a generic parameter?
     fn is_generic(&self) -> bool {
         self.ty.referenced_type.is_generic()
     }
 }
 
-impl Named for Parameter {
+impl Named for ParameterData {
     /// Get name of parameter
     fn name(&self) -> Cow<'_, str> {
         self.name.as_str().into()
     }
 }
 
-impl Typed for Parameter {
+impl Typed for ParameterData {
     /// Get type of parameter
     fn ty(&self) -> Type {
         self.ty.referenced_type.clone()
     }
 }
 
-impl Mutable for Parameter {
+impl Mutable for ParameterData {
     fn is_mutable(&self) -> bool {
         self.ty.is_mutable()
     }
@@ -67,7 +136,7 @@ pub enum FunctionNamePart {
     #[drive(skip)]
     Text(Identifier),
     #[drive(skip)]
-    Parameter(Arc<Parameter>),
+    Parameter(Parameter),
 }
 
 impl Display for FunctionNamePart {
@@ -75,19 +144,19 @@ impl Display for FunctionNamePart {
         match self {
             FunctionNamePart::Text(text) => write!(f, "{}", text),
             FunctionNamePart::Parameter(parameter) => {
-                if parameter.name.is_empty() {
-                    write!(f, "<:{}>", parameter.ty.referenced_type)
+                if parameter.name().is_empty() {
+                    write!(f, "<:{}>", parameter.ty())
                 } else {
-                    write!(f, "<{}: {}>", parameter.name, parameter.ty.referenced_type)
+                    write!(f, "<{}: {}>", parameter.name(), parameter.ty())
                 }
             }
         }
     }
 }
 
-impl From<Parameter> for FunctionNamePart {
-    fn from(parameter: Parameter) -> Self {
-        FunctionNamePart::Parameter(parameter.into())
+impl From<ParameterData> for FunctionNamePart {
+    fn from(parameter: ParameterData) -> Self {
+        Parameter::new(parameter).into()
     }
 }
 
@@ -220,7 +289,7 @@ impl FunctionData {
     }
 
     /// Get iterator over function's parameters
-    pub fn parameters(&self) -> impl Iterator<Item = Arc<Parameter>> + '_ {
+    pub fn parameters(&self) -> impl Iterator<Item = Parameter> + '_ {
         self.name_parts.iter().filter_map(|part| match part {
             FunctionNamePart::Parameter(p) => Some(p.clone()),
             _ => None,
@@ -454,7 +523,7 @@ mod tests {
         ast,
         compilation::Module,
         hir::{
-            FunctionData, GenericType, Parameter, Return, Statement, TypeReference,
+            FunctionData, GenericType, ParameterData, Return, Statement, TypeReference,
             VariableReference,
         },
         semantics::ToHIR,
@@ -475,7 +544,7 @@ mod tests {
             generated: false,
             constraint: None,
         };
-        let param = Parameter {
+        let param = ParameterData {
             name: Identifier::from("x").at(7),
             ty: TypeReference {
                 referenced_type: ty.clone().into(),
@@ -485,6 +554,8 @@ mod tests {
                     .unwrap()
                     .parameters()
                     .next()
+                    .unwrap()
+                    .read()
                     .unwrap()
                     .ty
                     .type_for_type

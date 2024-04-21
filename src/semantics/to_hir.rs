@@ -7,8 +7,8 @@ use indexmap::IndexMap;
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericType, ModuleData, Specialize, Type, TypeReference,
-    Typed, Variable, VariableData,
+    self, FunctionNamePart, Generic, GenericType, ModuleData, Parameter, Specialize, Type,
+    TypeReference, Typed, Variable, VariableData,
 };
 use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
@@ -189,7 +189,7 @@ impl ToHIR for ast::Call {
                                 },
                             }
                             .convert_to(p.ty().at(SourceLocation {
-                                at: p.name.range().into(),
+                                at: p.read().unwrap().name.range().into(),
                                 source_file: Some(source_file.clone()),
                             }))
                             .within(context);
@@ -539,7 +539,7 @@ impl ToHIR for ast::Member {
 }
 
 impl ToHIR for ast::Parameter {
-    type HIR = Arc<hir::Parameter>;
+    type HIR = hir::Parameter;
 
     /// Lower [`ast::Parameter`] to [`hir::Parameter`] within lowering context
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
@@ -555,7 +555,7 @@ impl ToHIR for ast::Parameter {
         } else {
             ty
         };
-        Ok(Arc::new(hir::Parameter {
+        Ok(Parameter::new(hir::ParameterData {
             name: self.name.clone(),
             ty,
             range: self.less..self.greater + 1,
