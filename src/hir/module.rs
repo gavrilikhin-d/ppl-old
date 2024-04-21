@@ -21,6 +21,16 @@ pub enum ClassOrTrait {
     Trait(Trait),
 }
 
+impl Display for ClassOrTrait {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use ClassOrTrait::*;
+        match self {
+            Class(c) => Display::fmt(c, f),
+            Trait(t) => Display::fmt(t, f),
+        }
+    }
+}
+
 impl From<ClassOrTrait> for Type {
     fn from(class_or_trait: ClassOrTrait) -> Self {
         match class_or_trait {
