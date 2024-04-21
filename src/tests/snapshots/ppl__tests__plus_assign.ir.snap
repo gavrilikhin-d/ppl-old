@@ -123,13 +123,14 @@ define private void @"println <:Rational>"(%Rational %0) !dbg !33 {
   %x = alloca %Rational, align 8
   store %Rational %0, ptr %x, align 8
   %2 = load %Rational, ptr %x, align 8, !dbg !34
-  %3 = call %String @rational_as_string(%Rational %2), !dbg !34
+  %3 = call %Rational @clone_rational(%Rational %2), !dbg !34
+  %4 = call %String @rational_as_string(%Rational %3), !dbg !34
   %"$tmp0@4544" = alloca %String, align 8, !dbg !34
-  store %String %3, ptr %"$tmp0@4544", align 8, !dbg !34
-  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !34
-  call void @"println <:String>"(%String %4), !dbg !34
+  store %String %4, ptr %"$tmp0@4544", align 8, !dbg !34
   %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !34
-  call void @destroy_string(%String %5), !dbg !34
+  call void @"println <:String>"(%String %5), !dbg !34
+  %6 = load %String, ptr %"$tmp0@4544", align 8, !dbg !34
+  call void @destroy_string(%String %6), !dbg !34
   br label %return, !dbg !34
 
 return:                                           ; preds = %1
@@ -169,8 +170,9 @@ define void @"<:ReferenceMut<Rational>> += <:Rational>"(ptr %0, %Rational %1) !d
   %4 = load ptr, ptr %self, align 8, !dbg !40
   %5 = load %Rational, ptr %4, align 8, !dbg !40
   %6 = load %Rational, ptr %other, align 8, !dbg !40
-  %7 = call %Rational @rational_plus_rational(%Rational %5, %Rational %6), !dbg !40
-  store %Rational %7, ptr %3, align 8, !dbg !40
+  %7 = call %Rational @clone_rational(%Rational %6), !dbg !40
+  %8 = call %Rational @rational_plus_rational(%Rational %5, %Rational %7), !dbg !40
+  store %Rational %8, ptr %3, align 8, !dbg !40
   br label %return, !dbg !40
 
 return:                                           ; preds = %2
@@ -225,8 +227,9 @@ define void @"<:ReferenceMut<String>> += <:String>"(ptr %0, %String %1) !dbg !49
   %4 = load ptr, ptr %self, align 8, !dbg !50
   %5 = load %String, ptr %4, align 8, !dbg !50
   %6 = load %String, ptr %other, align 8, !dbg !50
-  %7 = call %String @string_plus_string(%String %5, %String %6), !dbg !50
-  store %String %7, ptr %3, align 8, !dbg !50
+  %7 = call %String @clone_string(%String %6), !dbg !50
+  %8 = call %String @string_plus_string(%String %5, %String %7), !dbg !50
+  store %String %8, ptr %3, align 8, !dbg !50
   br label %return, !dbg !50
 
 return:                                           ; preds = %2
@@ -234,6 +237,8 @@ return:                                           ; preds = %2
 }
 
 declare %String @string_plus_string(%String, %String)
+
+declare %String @clone_string(%String)
 
 define private void @initialize.11() !dbg !51 {
   %1 = load %String, ptr @str, align 8, !dbg !52
@@ -244,8 +249,6 @@ define private void @initialize.11() !dbg !51 {
 return:                                           ; preds = %0
   ret void
 }
-
-declare %String @clone_string(%String)
 
 define private void @initialize.12() !dbg !53 {
   %1 = load %String, ptr @"$tmp0@109", align 8, !dbg !54

@@ -150,13 +150,14 @@ define private void @"println <:Integer>"(%Integer %0) !dbg !26 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !27
-  %3 = call %String @integer_as_string(%Integer %2), !dbg !27
+  %3 = call %Integer @clone_integer(%Integer %2), !dbg !27
+  %4 = call %String @integer_as_string(%Integer %3), !dbg !27
   %"$tmp0@4544" = alloca %String, align 8, !dbg !27
-  store %String %3, ptr %"$tmp0@4544", align 8, !dbg !27
-  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !27
-  call void @"println <:String>"(%String %4), !dbg !27
+  store %String %4, ptr %"$tmp0@4544", align 8, !dbg !27
   %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !27
-  call void @destroy_string(%String %5), !dbg !27
+  call void @"println <:String>"(%String %5), !dbg !27
+  %6 = load %String, ptr %"$tmp0@4544", align 8, !dbg !27
+  call void @destroy_string(%String %6), !dbg !27
   br label %return, !dbg !27
 
 return:                                           ; preds = %1

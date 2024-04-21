@@ -131,15 +131,16 @@ define private %String @"String from <:Type<A>>"(%"Type<A>" %0) !dbg !27 {
   %name = getelementptr inbounds %"Type<A>", ptr %ty, i32 0, i32 0, !dbg !28
   %2 = load %String, ptr %name, align 8, !dbg !28
   %3 = call %String @clone_string(%String %2), !dbg !28
+  %4 = call %String @clone_string(%String %3), !dbg !28
   %"$tmp0@5372" = alloca %String, align 8, !dbg !28
-  store %String %3, ptr %"$tmp0@5372", align 8, !dbg !28
-  %4 = load %String, ptr %"$tmp0@5372", align 8, !dbg !28
-  store %String %4, ptr %return_value, align 8, !dbg !28
+  store %String %4, ptr %"$tmp0@5372", align 8, !dbg !28
+  %5 = load %String, ptr %"$tmp0@5372", align 8, !dbg !28
+  store %String %5, ptr %return_value, align 8, !dbg !28
   br label %return, !dbg !28
 
 return:                                           ; preds = %1
-  %5 = load %String, ptr %return_value, align 8
-  ret %String %5
+  %6 = load %String, ptr %return_value, align 8
+  ret %String %6
 }
 
 declare %String @clone_string(%String)

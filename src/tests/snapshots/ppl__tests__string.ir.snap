@@ -378,15 +378,16 @@ define private %String @"String from <:Type<Integer>>"(%"Type<Integer>" %0) !dbg
   %name = getelementptr inbounds %"Type<Integer>", ptr %ty, i32 0, i32 0, !dbg !89
   %2 = load %String, ptr %name, align 8, !dbg !89
   %3 = call %String @clone_string(%String %2), !dbg !89
+  %4 = call %String @clone_string(%String %3), !dbg !89
   %"$tmp0@5372" = alloca %String, align 8, !dbg !89
-  store %String %3, ptr %"$tmp0@5372", align 8, !dbg !89
-  %4 = load %String, ptr %"$tmp0@5372", align 8, !dbg !89
-  store %String %4, ptr %return_value, align 8, !dbg !89
+  store %String %4, ptr %"$tmp0@5372", align 8, !dbg !89
+  %5 = load %String, ptr %"$tmp0@5372", align 8, !dbg !89
+  store %String %5, ptr %return_value, align 8, !dbg !89
   br label %return, !dbg !89
 
 return:                                           ; preds = %1
-  %5 = load %String, ptr %return_value, align 8
-  ret %String %5
+  %6 = load %String, ptr %return_value, align 8
+  ret %String %6
 }
 
 declare %String @clone_string(%String)
@@ -417,15 +418,16 @@ define private %String @"String from <:Type<Array<Integer>>>"(%"Type<Array<Integ
   %name = getelementptr inbounds %"Type<Array<Integer>>", ptr %ty, i32 0, i32 0, !dbg !95
   %2 = load %String, ptr %name, align 8, !dbg !95
   %3 = call %String @clone_string(%String %2), !dbg !95
+  %4 = call %String @clone_string(%String %3), !dbg !95
   %"$tmp0@5372" = alloca %String, align 8, !dbg !95
-  store %String %3, ptr %"$tmp0@5372", align 8, !dbg !95
-  %4 = load %String, ptr %"$tmp0@5372", align 8, !dbg !95
-  store %String %4, ptr %return_value, align 8, !dbg !95
+  store %String %4, ptr %"$tmp0@5372", align 8, !dbg !95
+  %5 = load %String, ptr %"$tmp0@5372", align 8, !dbg !95
+  store %String %5, ptr %return_value, align 8, !dbg !95
   br label %return, !dbg !95
 
 return:                                           ; preds = %1
-  %5 = load %String, ptr %return_value, align 8
-  ret %String %5
+  %6 = load %String, ptr %return_value, align 8
+  ret %String %6
 }
 
 define private void @initialize.27() !dbg !96 {

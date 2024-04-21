@@ -154,13 +154,16 @@ define private %Integer @"x of <:Point<Integer>>"(%"Point<Integer>" %0) !dbg !41
   store %"Point<Integer>" %0, ptr %p, align 8
   %x = getelementptr inbounds %"Point<Integer>", ptr %p, i32 0, i32 0, !dbg !42
   %2 = load %Integer, ptr %x, align 8, !dbg !42
-  store %Integer %2, ptr %return_value, align 8, !dbg !42
+  %3 = call %Integer @clone_integer(%Integer %2), !dbg !42
+  store %Integer %3, ptr %return_value, align 8, !dbg !42
   br label %return, !dbg !42
 
 return:                                           ; preds = %1
-  %3 = load %Integer, ptr %return_value, align 8
-  ret %Integer %3
+  %4 = load %Integer, ptr %return_value, align 8
+  ret %Integer %4
 }
+
+declare %Integer @clone_integer(%Integer)
 
 define private void @initialize.5() !dbg !43 {
   %1 = load %Integer, ptr @x, align 8, !dbg !44
@@ -171,8 +174,6 @@ define private void @initialize.5() !dbg !43 {
 return:                                           ; preds = %0
   ret void
 }
-
-declare %Integer @clone_integer(%Integer)
 
 define private void @initialize.6() !dbg !45 {
   %1 = call %Integer @integer_from_i64(i64 0), !dbg !46
@@ -252,12 +253,13 @@ define private %Integer @"id <:Integer>"(%Integer %0) !dbg !58 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !59
-  store %Integer %2, ptr %return_value, align 8, !dbg !59
+  %3 = call %Integer @clone_integer(%Integer %2), !dbg !59
+  store %Integer %3, ptr %return_value, align 8, !dbg !59
   br label %return, !dbg !59
 
 return:                                           ; preds = %1
-  %3 = load %Integer, ptr %return_value, align 8
-  ret %Integer %3
+  %4 = load %Integer, ptr %return_value, align 8
+  ret %Integer %4
 }
 
 define private void @initialize.11() !dbg !60 {
@@ -313,13 +315,16 @@ define private %String @"id <:String>"(%String %0) !dbg !71 {
   %x = alloca %String, align 8
   store %String %0, ptr %x, align 8
   %2 = load %String, ptr %x, align 8, !dbg !72
-  store %String %2, ptr %return_value, align 8, !dbg !72
+  %3 = call %String @clone_string(%String %2), !dbg !72
+  store %String %3, ptr %return_value, align 8, !dbg !72
   br label %return, !dbg !72
 
 return:                                           ; preds = %1
-  %3 = load %String, ptr %return_value, align 8
-  ret %String %3
+  %4 = load %String, ptr %return_value, align 8
+  ret %String %4
 }
+
+declare %String @clone_string(%String)
 
 define private void @initialize.16() !dbg !73 {
   %1 = load %String, ptr @"$tmp1@159", align 8, !dbg !74

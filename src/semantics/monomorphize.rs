@@ -13,7 +13,7 @@ use crate::{
     semantics::{ConvertibleTo, GenericContext},
 };
 
-use super::{Context, ReplaceWithTypeInfo};
+use super::{clone::CloneIfNeeded, Context, ReplaceWithTypeInfo};
 
 /// Trait to get monomorphized version of statements
 pub trait Monomorphize {
@@ -150,6 +150,7 @@ impl Monomorphize for ImplicitConversion {
 
 impl Monomorphize for Expression {
     fn monomorphize(&mut self, context: &mut impl Context) {
+        let was_generic = self.is_generic();
         match self {
             Expression::Call(c) => c.monomorphize(context),
             Expression::VariableReference(var) => var.monomorphize(context),
@@ -161,6 +162,9 @@ impl Monomorphize for Expression {
             Expression::MemberReference(m) => m.monomorphize(context),
             Expression::Constructor(c) => c.monomorphize(context),
             Expression::ImplicitConversion(c) => c.monomorphize(context),
+        }
+        if was_generic && !self.is_generic() {
+            self.clone_if_needed_inplace(context);
         }
     }
 }
