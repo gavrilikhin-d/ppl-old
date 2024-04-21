@@ -1,0 +1,11 @@
+use core.*
+
+/// Trait for things that may be interpreted as string
+trait AsString:
+	fn String from <:Self> -> String
+
+/// Print anything that may be interpreted as String
+fn print <x: AsString> => print (String from x)
+
+/// Print anything that may be interpreted as String with newline
+fn println <x: AsString> => println (String from x)

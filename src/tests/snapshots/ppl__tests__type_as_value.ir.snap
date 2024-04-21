@@ -215,9 +215,9 @@ define private %Integer @"size of <:Type<None>>"(%"Type<None>" %0) !dbg !44 {
   %2 = load %Integer, ptr %size, align 8, !dbg !45
   %3 = call %Integer @clone_integer(%Integer %2), !dbg !45
   %4 = call %Integer @clone_integer(%Integer %3), !dbg !45
-  %"$tmp0@5440" = alloca %Integer, align 8, !dbg !45
-  store %Integer %4, ptr %"$tmp0@5440", align 8, !dbg !45
-  %5 = load %Integer, ptr %"$tmp0@5440", align 8, !dbg !45
+  %"$tmp0@4381" = alloca %Integer, align 8, !dbg !45
+  store %Integer %4, ptr %"$tmp0@4381", align 8, !dbg !45
+  %5 = load %Integer, ptr %"$tmp0@4381", align 8, !dbg !45
   store %Integer %5, ptr %return_value, align 8, !dbg !45
   br label %return, !dbg !45
 
@@ -240,11 +240,11 @@ define private void @"println <:Bool>"(i1 %0) !dbg !48 {
   store i1 %0, ptr %x, align 1
   %2 = load i1, ptr %x, align 1, !dbg !49
   %3 = call %String @"String from <:Bool>"(i1 %2), !dbg !49
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !49
-  store %String %3, ptr %"$tmp0@4544", align 8, !dbg !49
-  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !49
+  %"$tmp0@323" = alloca %String, align 8, !dbg !49
+  store %String %3, ptr %"$tmp0@323", align 8, !dbg !49
+  %4 = load %String, ptr %"$tmp0@323", align 8, !dbg !49
   call void @"println <:String>"(%String %4), !dbg !49
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !49
+  %5 = load %String, ptr %"$tmp0@323", align 8, !dbg !49
   call void @destroy_string(%String %5), !dbg !49
   br label %return, !dbg !49
 
@@ -278,9 +278,9 @@ define private %Integer @"size of <:Type<Bool>>"(%"Type<Bool>" %0) !dbg !52 {
   %2 = load %Integer, ptr %size, align 8, !dbg !53
   %3 = call %Integer @clone_integer(%Integer %2), !dbg !53
   %4 = call %Integer @clone_integer(%Integer %3), !dbg !53
-  %"$tmp0@5440" = alloca %Integer, align 8, !dbg !53
-  store %Integer %4, ptr %"$tmp0@5440", align 8, !dbg !53
-  %5 = load %Integer, ptr %"$tmp0@5440", align 8, !dbg !53
+  %"$tmp0@4381" = alloca %Integer, align 8, !dbg !53
+  store %Integer %4, ptr %"$tmp0@4381", align 8, !dbg !53
+  %5 = load %Integer, ptr %"$tmp0@4381", align 8, !dbg !53
   store %Integer %5, ptr %return_value, align 8, !dbg !53
   br label %return, !dbg !53
 
@@ -316,9 +316,9 @@ define private %String @"String from <:Type<None>>"(%"Type<None>" %0) !dbg !58 {
   %2 = load %String, ptr %name, align 8, !dbg !59
   %3 = call %String @clone_string(%String %2), !dbg !59
   %4 = call %String @clone_string(%String %3), !dbg !59
-  %"$tmp0@5372" = alloca %String, align 8, !dbg !59
-  store %String %4, ptr %"$tmp0@5372", align 8, !dbg !59
-  %5 = load %String, ptr %"$tmp0@5372", align 8, !dbg !59
+  %"$tmp0@4313" = alloca %String, align 8, !dbg !59
+  store %String %4, ptr %"$tmp0@4313", align 8, !dbg !59
+  %5 = load %String, ptr %"$tmp0@4313", align 8, !dbg !59
   store %String %5, ptr %return_value, align 8, !dbg !59
   br label %return, !dbg !59
 
@@ -347,9 +347,9 @@ define private %String @"String from <:Type<Type<Integer>>>"(%"Type<Type<Integer
   %2 = load %String, ptr %name, align 8, !dbg !63
   %3 = call %String @clone_string(%String %2), !dbg !63
   %4 = call %String @clone_string(%String %3), !dbg !63
-  %"$tmp0@5372" = alloca %String, align 8, !dbg !63
-  store %String %4, ptr %"$tmp0@5372", align 8, !dbg !63
-  %5 = load %String, ptr %"$tmp0@5372", align 8, !dbg !63
+  %"$tmp0@4313" = alloca %String, align 8, !dbg !63
+  store %String %4, ptr %"$tmp0@4313", align 8, !dbg !63
+  %5 = load %String, ptr %"$tmp0@4313", align 8, !dbg !63
   store %String %5, ptr %return_value, align 8, !dbg !63
   br label %return, !dbg !63
 
@@ -386,9 +386,9 @@ define private %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !6
   %2 = load %Integer, ptr %size, align 8, !dbg !69
   %3 = call %Integer @clone_integer(%Integer %2), !dbg !69
   %4 = call %Integer @clone_integer(%Integer %3), !dbg !69
-  %"$tmp0@5440" = alloca %Integer, align 8, !dbg !69
-  store %Integer %4, ptr %"$tmp0@5440", align 8, !dbg !69
-  %5 = load %Integer, ptr %"$tmp0@5440", align 8, !dbg !69
+  %"$tmp0@4381" = alloca %Integer, align 8, !dbg !69
+  store %Integer %4, ptr %"$tmp0@4381", align 8, !dbg !69
+  %5 = load %Integer, ptr %"$tmp0@4381", align 8, !dbg !69
   store %Integer %5, ptr %return_value, align 8, !dbg !69
   br label %return, !dbg !69
 
@@ -402,11 +402,11 @@ define private void @"println <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !70 {
   store %"Type<Integer>" %0, ptr %x, align 8
   %2 = load %"Type<Integer>", ptr %x, align 8, !dbg !71
   %3 = call %String @"String from <:Type<Integer>>"(%"Type<Integer>" %2), !dbg !71
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !71
-  store %String %3, ptr %"$tmp0@4544", align 8, !dbg !71
-  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !71
+  %"$tmp0@323" = alloca %String, align 8, !dbg !71
+  store %String %3, ptr %"$tmp0@323", align 8, !dbg !71
+  %4 = load %String, ptr %"$tmp0@323", align 8, !dbg !71
   call void @"println <:String>"(%String %4), !dbg !71
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !71
+  %5 = load %String, ptr %"$tmp0@323", align 8, !dbg !71
   call void @destroy_string(%String %5), !dbg !71
   br label %return, !dbg !71
 
@@ -422,9 +422,9 @@ define private %String @"String from <:Type<Integer>>"(%"Type<Integer>" %0) !dbg
   %2 = load %String, ptr %name, align 8, !dbg !73
   %3 = call %String @clone_string(%String %2), !dbg !73
   %4 = call %String @clone_string(%String %3), !dbg !73
-  %"$tmp0@5372" = alloca %String, align 8, !dbg !73
-  store %String %4, ptr %"$tmp0@5372", align 8, !dbg !73
-  %5 = load %String, ptr %"$tmp0@5372", align 8, !dbg !73
+  %"$tmp0@4313" = alloca %String, align 8, !dbg !73
+  store %String %4, ptr %"$tmp0@4313", align 8, !dbg !73
+  %5 = load %String, ptr %"$tmp0@4313", align 8, !dbg !73
   store %String %5, ptr %return_value, align 8, !dbg !73
   br label %return, !dbg !73
 

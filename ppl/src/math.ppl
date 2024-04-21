@@ -1,0 +1,48 @@
+use core.*
+
+//=================================
+//            Add
+//=================================
+/// Trait for `+` operation
+trait Add:
+	fn <:Self> + <:Self> -> Self
+
+	fn <self: ReferenceMut<Self>> += <other: Self>:
+		self = self + other
+//=================================
+
+
+//=================================
+//            Multiply
+//=================================
+/// Trait for `*` operation
+trait Multiply:
+	fn <:Self> * <:Self> -> Self
+
+	fn <self: ReferenceMut<Self>> *= <other: Self>:
+		self = self * other
+//=================================
+
+//=================================
+//             Eq
+//=================================
+/// Trait for things that may be compared for equality
+trait Eq:
+	fn <:Self> == <:Self> -> Bool
+
+	fn <x: Self> != <y: Self> => not (x == y)
+
+//---------------------------------
+
+//=================================
+//              Ord
+//=================================
+/// Trait for things that may be ordered
+trait Ord:
+	fn <:Self> < <:Self> -> Bool
+
+	fn <x: Self> >  <y: Self> => y < x
+	fn <x: Self> <= <y: Self> => not (x > y)
+	fn <x: Self> >= <y: Self> => not (x < y)
+
+//---------------------------------

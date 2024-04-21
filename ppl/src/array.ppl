@@ -1,5 +1,6 @@
 use core.*
 
+use math.*
 use memory.*
 
 /// Array of values

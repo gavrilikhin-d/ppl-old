@@ -1,0 +1,324 @@
+---
+source: src/tests/mod.rs
+expression: err
+---
+Error:   × Main thread panicked.
+  ├─▶ at src/semantics/to_hir.rs:757:42
+  ╰─▶ called `Result::unwrap()` on an `Err` value: semantics::no_function
+      
+        × no operator `<:MemoryAddress> + <:Integer>`
+          ╭─[array.ppl:21:16]
+       20 │ fn<T> <array: &Array<T>> [ <i: Integer> ] -> &T:
+       21 │     let address = array.data + i * (size of T)
+          ·                   ─────┬──── ┬ ───────┬───────
+          ·                        │     │        ╰── <:Integer>
+          ·                        │     ╰── for this operator
+          ·                        ╰── <:MemoryAddress>
+       22 │     return T at address
+          ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::type_mismatch
+      
+              × expected `Integer` type, got `MemoryAddress`
+      
+            Error:   × Integer
+                ╭─[core.ppl:88:5]
+             87 │ @mangle_as("integer_plus_integer")
+             88 │ fn <:Integer> + <:Integer> -> Integer
+                ·     ▲
+                ·     ╰── this has `Integer` type
+             89 │
+                ╰────
+            Error:   × MemoryAddress
+                ╭─[array.ppl:21:16]
+             20 │ fn<T> <array: &Array<T>> [ <i: Integer> ] -> &T:
+             21 │     let address = array.data + i * (size of T)
+                ·                   ─────┬────
+                ·                        ╰── this has `MemoryAddress` type
+             22 │     return T at address
+                ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::type_mismatch
+      
+              × expected `Rational` type, got `MemoryAddress`
+      
+            Error:   × Rational
+                 ╭─[core.ppl:143:5]
+             142 │ @mangle_as("rational_plus_rational")
+             143 │ fn <:Rational> + <:Rational> -> Rational
+                 ·     ▲
+                 ·     ╰── this has `Rational` type
+             144 │
+                 ╰────
+            Error:   × MemoryAddress
+                ╭─[array.ppl:21:16]
+             20 │ fn<T> <array: &Array<T>> [ <i: Integer> ] -> &T:
+             21 │     let address = array.data + i * (size of T)
+                ·                   ─────┬────
+                ·                        ╰── this has `MemoryAddress` type
+             22 │     return T at address
+                ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::type_mismatch
+      
+              × expected `String` type, got `MemoryAddress`
+      
+            Error:   × String
+                 ╭─[core.ppl:176:5]
+             175 │ @mangle_as("string_plus_string")
+             176 │ fn <:String> + <:String> -> String
+                 ·     ▲
+                 ·     ╰── this has `String` type
+             177 │
+                 ╰────
+            Error:   × MemoryAddress
+                ╭─[array.ppl:21:16]
+             20 │ fn<T> <array: &Array<T>> [ <i: Integer> ] -> &T:
+             21 │     let address = array.data + i * (size of T)
+                ·                   ─────┬────
+                ·                        ╰── this has `MemoryAddress` type
+             22 │     return T at address
+                ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::not_implemented
+      
+              × `MemoryAddress` doesn't satisfy trait `Add` requirements
+                ╭─[traits.ppl:9:2]
+              8 │ trait Add:
+              9 │     fn <:Self> + <:Self> -> Self
+                ·     ──────────┬─────────
+                ·               ╰── This required function isn't implemented
+             10 │
+                ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::not_implemented
+      
+              × `MemoryAddress` doesn't satisfy trait `Add` requirements
+                ╭─[traits.ppl:9:2]
+              8 │ trait Add:
+              9 │     fn <:Self> + <:Self> -> Self
+                ·     ──────────┬─────────
+                ·               ╰── This required function isn't implemented
+             10 │
+                ╰────
+      
+      semantics::no_function
+      
+        × no operator `<:MemoryAddress> + <:Integer>`
+          ╭─[array.ppl:27:16]
+       26 │ fn<T> <array: &mut Array<T>> [ <i: Integer> ] -> &mut T:
+       27 │     let address = array.data + i * (size of T)
+          ·                   ─────┬──── ┬ ───────┬───────
+          ·                        │     │        ╰── <:Integer>
+          ·                        │     ╰── for this operator
+          ·                        ╰── <:MemoryAddress>
+       28 │     return T at address
+          ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::type_mismatch
+      
+              × expected `Integer` type, got `MemoryAddress`
+      
+            Error:   × Integer
+                ╭─[core.ppl:88:5]
+             87 │ @mangle_as("integer_plus_integer")
+             88 │ fn <:Integer> + <:Integer> -> Integer
+                ·     ▲
+                ·     ╰── this has `Integer` type
+             89 │
+                ╰────
+            Error:   × MemoryAddress
+                ╭─[array.ppl:27:16]
+             26 │ fn<T> <array: &mut Array<T>> [ <i: Integer> ] -> &mut T:
+             27 │     let address = array.data + i * (size of T)
+                ·                   ─────┬────
+                ·                        ╰── this has `MemoryAddress` type
+             28 │     return T at address
+                ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::type_mismatch
+      
+              × expected `Rational` type, got `MemoryAddress`
+      
+            Error:   × Rational
+                 ╭─[core.ppl:143:5]
+             142 │ @mangle_as("rational_plus_rational")
+             143 │ fn <:Rational> + <:Rational> -> Rational
+                 ·     ▲
+                 ·     ╰── this has `Rational` type
+             144 │
+                 ╰────
+            Error:   × MemoryAddress
+                ╭─[array.ppl:27:16]
+             26 │ fn<T> <array: &mut Array<T>> [ <i: Integer> ] -> &mut T:
+             27 │     let address = array.data + i * (size of T)
+                ·                   ─────┬────
+                ·                        ╰── this has `MemoryAddress` type
+             28 │     return T at address
+                ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::type_mismatch
+      
+              × expected `String` type, got `MemoryAddress`
+      
+            Error:   × String
+                 ╭─[core.ppl:176:5]
+             175 │ @mangle_as("string_plus_string")
+             176 │ fn <:String> + <:String> -> String
+                 ·     ▲
+                 ·     ╰── this has `String` type
+             177 │
+                 ╰────
+            Error:   × MemoryAddress
+                ╭─[array.ppl:27:16]
+             26 │ fn<T> <array: &mut Array<T>> [ <i: Integer> ] -> &mut T:
+             27 │     let address = array.data + i * (size of T)
+                ·                   ─────┬────
+                ·                        ╰── this has `MemoryAddress` type
+             28 │     return T at address
+                ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::not_implemented
+      
+              × `MemoryAddress` doesn't satisfy trait `Add` requirements
+                ╭─[traits.ppl:9:2]
+              8 │ trait Add:
+              9 │     fn <:Self> + <:Self> -> Self
+                ·     ──────────┬─────────
+                ·               ╰── This required function isn't implemented
+             10 │
+                ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::not_implemented
+      
+              × `MemoryAddress` doesn't satisfy trait `Add` requirements
+                ╭─[traits.ppl:9:2]
+              8 │ trait Add:
+              9 │     fn <:Self> + <:Self> -> Self
+                ·     ──────────┬─────────
+                ·               ╰── This required function isn't implemented
+             10 │
+                ╰────
+      
+      semantics::no_function
+      
+        × no operator `<:MemoryAddress> + <:Integer>`
+          ╭─[array.ppl:36:22]
+       35 │         while i < array.size:
+       36 │             let value = T at (new_data + i)
+          ·                               ────┬─── ┬ ┬
+          ·                                   │    │ ╰── <:Integer>
+          ·                                   │    ╰── for this operator
+          ·                                   ╰── <:MemoryAddress>
+       37 │             value = array[i]
+          ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::type_mismatch
+      
+              × expected `Integer` type, got `MemoryAddress`
+      
+            Error:   × Integer
+                ╭─[core.ppl:88:5]
+             87 │ @mangle_as("integer_plus_integer")
+             88 │ fn <:Integer> + <:Integer> -> Integer
+                ·     ▲
+                ·     ╰── this has `Integer` type
+             89 │
+                ╰────
+            Error:   × MemoryAddress
+                ╭─[array.ppl:36:22]
+             35 │         while i < array.size:
+             36 │             let value = T at (new_data + i)
+                ·                               ────┬───
+                ·                                   ╰── this has
+      `MemoryAddress`
+            type
+             37 │             value = array[i]
+                ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::type_mismatch
+      
+              × expected `Rational` type, got `MemoryAddress`
+      
+            Error:   × Rational
+                 ╭─[core.ppl:143:5]
+             142 │ @mangle_as("rational_plus_rational")
+             143 │ fn <:Rational> + <:Rational> -> Rational
+                 ·     ▲
+                 ·     ╰── this has `Rational` type
+             144 │
+                 ╰────
+            Error:   × MemoryAddress
+                ╭─[array.ppl:36:22]
+             35 │         while i < array.size:
+             36 │             let value = T at (new_data + i)
+                ·                               ────┬───
+                ·                                   ╰── this has
+      `MemoryAddress`
+            type
+             37 │             value = array[i]
+                ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::type_mismatch
+      
+              × expected `String` type, got `MemoryAddress`
+      
+            Error:   × String
+                 ╭─[core.ppl:176:5]
+             175 │ @mangle_as("string_plus_string")
+             176 │ fn <:String> + <:String> -> String
+                 ·     ▲
+                 ·     ╰── this has `String` type
+             177 │
+                 ╰────
+            Error:   × MemoryAddress
+                ╭─[array.ppl:36:22]
+             35 │         while i < array.size:
+             36 │             let value = T at (new_data + i)
+                ·                               ────┬───
+                ·                                   ╰── this has
+      `MemoryAddress`
+            type
+             37 │             value = array[i]
+                ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::not_implemented
+      
+              × `MemoryAddress` doesn't satisfy trait `Add` requirements
+                ╭─[traits.ppl:9:2]
+              8 │ trait Add:
+              9 │     fn <:Self> + <:Self> -> Self
+                ·     ──────────┬─────────
+                ·               ╰── This required function isn't implemented
+             10 │
+                ╰────
+      
+      Advice:   ☞ candidate is not viable
+        ╰─▶ semantics::not_implemented
+      
+              × `MemoryAddress` doesn't satisfy trait `Add` requirements
+                ╭─[traits.ppl:9:2]
+              8 │ trait Add:
+              9 │     fn <:Self> + <:Self> -> Self
+                ·     ──────────┬─────────
+                ·               ╰── This required function isn't implemented
+             10 │
+                ╰────
+      
+      
+  help: set the `RUST_BACKTRACE=1` environment variable to display a
+        backtrace.

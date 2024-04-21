@@ -1,5 +1,7 @@
 use core.*
 
+use math.*
+
 /// Address in memory
 type MemoryAddress:
 	value: Integer

@@ -107,31 +107,31 @@ define private %MemoryAddress @"allocate <:Integer> <:Type<Integer>>"(%Integer %
   store %Integer %0, ptr %n, align 8
   %3 = load %Integer, ptr %n, align 8, !dbg !30
   %4 = call %Integer @clone_integer(%Integer %3), !dbg !30
-  %"$tmp0@757" = alloca %Integer, align 8, !dbg !30
-  store %Integer %4, ptr %"$tmp0@757", align 8, !dbg !30
+  %"$tmp0@769" = alloca %Integer, align 8, !dbg !30
+  store %Integer %4, ptr %"$tmp0@769", align 8, !dbg !30
   %5 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !30
-  %"$tmp1@770" = alloca %"Type<Integer>", align 8, !dbg !30
-  store %"Type<Integer>" %5, ptr %"$tmp1@770", align 8, !dbg !30
-  %6 = load %"Type<Integer>", ptr %"$tmp1@770", align 8, !dbg !30
+  %"$tmp1@782" = alloca %"Type<Integer>", align 8, !dbg !30
+  store %"Type<Integer>" %5, ptr %"$tmp1@782", align 8, !dbg !30
+  %6 = load %"Type<Integer>", ptr %"$tmp1@782", align 8, !dbg !30
   %7 = call %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %6), !dbg !30
-  %"$tmp2@762" = alloca %Integer, align 8, !dbg !30
-  store %Integer %7, ptr %"$tmp2@762", align 8, !dbg !30
-  %8 = load %Integer, ptr %"$tmp0@757", align 8, !dbg !30
-  %9 = load %Integer, ptr %"$tmp2@762", align 8, !dbg !30
+  %"$tmp2@774" = alloca %Integer, align 8, !dbg !30
+  store %Integer %7, ptr %"$tmp2@774", align 8, !dbg !30
+  %8 = load %Integer, ptr %"$tmp0@769", align 8, !dbg !30
+  %9 = load %Integer, ptr %"$tmp2@774", align 8, !dbg !30
   %10 = call %Integer @integer_star_integer(%Integer %8, %Integer %9), !dbg !30
-  %"$tmp3@757" = alloca %Integer, align 8, !dbg !30
-  store %Integer %10, ptr %"$tmp3@757", align 8, !dbg !30
-  %11 = load %Integer, ptr %"$tmp3@757", align 8, !dbg !30
+  %"$tmp3@769" = alloca %Integer, align 8, !dbg !30
+  store %Integer %10, ptr %"$tmp3@769", align 8, !dbg !30
+  %11 = load %Integer, ptr %"$tmp3@769", align 8, !dbg !30
   %12 = call %MemoryAddress @allocate_n_bytes(%Integer %11), !dbg !30
-  %"$tmp4@748" = alloca %MemoryAddress, align 8, !dbg !30
-  store %MemoryAddress %12, ptr %"$tmp4@748", align 8, !dbg !30
-  %13 = load %Integer, ptr %"$tmp0@757", align 8, !dbg !30
+  %"$tmp4@760" = alloca %MemoryAddress, align 8, !dbg !30
+  store %MemoryAddress %12, ptr %"$tmp4@760", align 8, !dbg !30
+  %13 = load %Integer, ptr %"$tmp0@769", align 8, !dbg !30
   call void @destroy_integer(%Integer %13), !dbg !30
-  %14 = load %Integer, ptr %"$tmp2@762", align 8, !dbg !30
+  %14 = load %Integer, ptr %"$tmp2@774", align 8, !dbg !30
   call void @destroy_integer(%Integer %14), !dbg !30
-  %15 = load %Integer, ptr %"$tmp3@757", align 8, !dbg !30
+  %15 = load %Integer, ptr %"$tmp3@769", align 8, !dbg !30
   call void @destroy_integer(%Integer %15), !dbg !30
-  %16 = load %MemoryAddress, ptr %"$tmp4@748", align 8, !dbg !30
+  %16 = load %MemoryAddress, ptr %"$tmp4@760", align 8, !dbg !30
   store %MemoryAddress %16, ptr %return_value, align 8, !dbg !30
   br label %return, !dbg !30
 
@@ -150,9 +150,9 @@ define private %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !3
   %2 = load %Integer, ptr %size, align 8, !dbg !32
   %3 = call %Integer @clone_integer(%Integer %2), !dbg !32
   %4 = call %Integer @clone_integer(%Integer %3), !dbg !32
-  %"$tmp0@5440" = alloca %Integer, align 8, !dbg !32
-  store %Integer %4, ptr %"$tmp0@5440", align 8, !dbg !32
-  %5 = load %Integer, ptr %"$tmp0@5440", align 8, !dbg !32
+  %"$tmp0@4381" = alloca %Integer, align 8, !dbg !32
+  store %Integer %4, ptr %"$tmp0@4381", align 8, !dbg !32
+  %5 = load %Integer, ptr %"$tmp0@4381", align 8, !dbg !32
   store %Integer %5, ptr %return_value, align 8, !dbg !32
   br label %return, !dbg !32
 
@@ -186,11 +186,11 @@ define private void @"println <:Integer>"(%Integer %0) !dbg !36 {
   %2 = load %Integer, ptr %x, align 8, !dbg !37
   %3 = call %Integer @clone_integer(%Integer %2), !dbg !37
   %4 = call %String @integer_as_string(%Integer %3), !dbg !37
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !37
-  store %String %4, ptr %"$tmp0@4544", align 8, !dbg !37
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !37
+  %"$tmp0@323" = alloca %String, align 8, !dbg !37
+  store %String %4, ptr %"$tmp0@323", align 8, !dbg !37
+  %5 = load %String, ptr %"$tmp0@323", align 8, !dbg !37
   call void @"println <:String>"(%String %5), !dbg !37
-  %6 = load %String, ptr %"$tmp0@4544", align 8, !dbg !37
+  %6 = load %String, ptr %"$tmp0@323", align 8, !dbg !37
   call void @destroy_string(%String %6), !dbg !37
   br label %return, !dbg !37
 

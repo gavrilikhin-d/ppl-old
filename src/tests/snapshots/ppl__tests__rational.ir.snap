@@ -270,11 +270,11 @@ define private void @"println <:Rational>"(%Rational %0) !dbg !43 {
   %2 = load %Rational, ptr %x, align 8, !dbg !44
   %3 = call %Rational @clone_rational(%Rational %2), !dbg !44
   %4 = call %String @rational_as_string(%Rational %3), !dbg !44
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !44
-  store %String %4, ptr %"$tmp0@4544", align 8, !dbg !44
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !44
+  %"$tmp0@323" = alloca %String, align 8, !dbg !44
+  store %String %4, ptr %"$tmp0@323", align 8, !dbg !44
+  %5 = load %String, ptr %"$tmp0@323", align 8, !dbg !44
   call void @"println <:String>"(%String %5), !dbg !44
-  %6 = load %String, ptr %"$tmp0@4544", align 8, !dbg !44
+  %6 = load %String, ptr %"$tmp0@323", align 8, !dbg !44
   call void @destroy_string(%String %6), !dbg !44
   br label %return, !dbg !44
 
@@ -501,11 +501,11 @@ define private void @"println <:Bool>"(i1 %0) !dbg !90 {
   store i1 %0, ptr %x, align 1
   %2 = load i1, ptr %x, align 1, !dbg !91
   %3 = call %String @"String from <:Bool>"(i1 %2), !dbg !91
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !91
-  store %String %3, ptr %"$tmp0@4544", align 8, !dbg !91
-  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !91
+  %"$tmp0@323" = alloca %String, align 8, !dbg !91
+  store %String %3, ptr %"$tmp0@323", align 8, !dbg !91
+  %4 = load %String, ptr %"$tmp0@323", align 8, !dbg !91
   call void @"println <:String>"(%String %4), !dbg !91
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !91
+  %5 = load %String, ptr %"$tmp0@323", align 8, !dbg !91
   call void @destroy_string(%String %5), !dbg !91
   br label %return, !dbg !91
 
@@ -546,13 +546,13 @@ define i1 @"<:Rational> != <:Rational>"(%Rational %0, %Rational %1) !dbg !96 {
   %5 = load %Rational, ptr %y, align 8, !dbg !97
   %6 = call %Rational @clone_rational(%Rational %5), !dbg !97
   %7 = call i1 @rational_eq_rational(%Rational %4, %Rational %6), !dbg !97
-  %"$tmp0@4818" = alloca i1, align 1, !dbg !97
-  store i1 %7, ptr %"$tmp0@4818", align 1, !dbg !97
-  %8 = load i1, ptr %"$tmp0@4818", align 1, !dbg !97
+  %"$tmp0@781" = alloca i1, align 1, !dbg !97
+  store i1 %7, ptr %"$tmp0@781", align 1, !dbg !97
+  %8 = load i1, ptr %"$tmp0@781", align 1, !dbg !97
   %9 = call i1 @"not <:Bool>"(i1 %8), !dbg !97
-  %"$tmp1@4813" = alloca i1, align 1, !dbg !97
-  store i1 %9, ptr %"$tmp1@4813", align 1, !dbg !97
-  %10 = load i1, ptr %"$tmp1@4813", align 1, !dbg !97
+  %"$tmp1@776" = alloca i1, align 1, !dbg !97
+  store i1 %9, ptr %"$tmp1@776", align 1, !dbg !97
+  %10 = load i1, ptr %"$tmp1@776", align 1, !dbg !97
   store i1 %10, ptr %return_value, align 1, !dbg !97
   br label %return, !dbg !97
 
@@ -612,9 +612,9 @@ define i1 @"<:Rational> > <:Rational>"(%Rational %0, %Rational %1) !dbg !106 {
   %5 = load %Rational, ptr %x, align 8, !dbg !107
   %6 = call %Rational @clone_rational(%Rational %5), !dbg !107
   %7 = call i1 @rational_less_rational(%Rational %4, %Rational %6), !dbg !107
-  %"$tmp0@5069" = alloca i1, align 1, !dbg !107
-  store i1 %7, ptr %"$tmp0@5069", align 1, !dbg !107
-  %8 = load i1, ptr %"$tmp0@5069", align 1, !dbg !107
+  %"$tmp0@1032" = alloca i1, align 1, !dbg !107
+  store i1 %7, ptr %"$tmp0@1032", align 1, !dbg !107
+  %8 = load i1, ptr %"$tmp0@1032", align 1, !dbg !107
   store i1 %8, ptr %return_value, align 1, !dbg !107
   br label %return, !dbg !107
 
@@ -652,13 +652,13 @@ define i1 @"<:Rational> <= <:Rational>"(%Rational %0, %Rational %1) !dbg !112 {
   %5 = load %Rational, ptr %y, align 8, !dbg !113
   %6 = call %Rational @clone_rational(%Rational %5), !dbg !113
   %7 = call i1 @"<:Rational> > <:Rational>"(%Rational %4, %Rational %6), !dbg !113
-  %"$tmp0@5110" = alloca i1, align 1, !dbg !113
-  store i1 %7, ptr %"$tmp0@5110", align 1, !dbg !113
-  %8 = load i1, ptr %"$tmp0@5110", align 1, !dbg !113
+  %"$tmp0@1073" = alloca i1, align 1, !dbg !113
+  store i1 %7, ptr %"$tmp0@1073", align 1, !dbg !113
+  %8 = load i1, ptr %"$tmp0@1073", align 1, !dbg !113
   %9 = call i1 @"not <:Bool>"(i1 %8), !dbg !113
-  %"$tmp1@5105" = alloca i1, align 1, !dbg !113
-  store i1 %9, ptr %"$tmp1@5105", align 1, !dbg !113
-  %10 = load i1, ptr %"$tmp1@5105", align 1, !dbg !113
+  %"$tmp1@1068" = alloca i1, align 1, !dbg !113
+  store i1 %9, ptr %"$tmp1@1068", align 1, !dbg !113
+  %10 = load i1, ptr %"$tmp1@1068", align 1, !dbg !113
   store i1 %10, ptr %return_value, align 1, !dbg !113
   br label %return, !dbg !113
 
@@ -714,13 +714,13 @@ define i1 @"<:Rational> >= <:Rational>"(%Rational %0, %Rational %1) !dbg !122 {
   %5 = load %Rational, ptr %y, align 8, !dbg !123
   %6 = call %Rational @clone_rational(%Rational %5), !dbg !123
   %7 = call i1 @rational_less_rational(%Rational %4, %Rational %6), !dbg !123
-  %"$tmp0@5152" = alloca i1, align 1, !dbg !123
-  store i1 %7, ptr %"$tmp0@5152", align 1, !dbg !123
-  %8 = load i1, ptr %"$tmp0@5152", align 1, !dbg !123
+  %"$tmp0@1115" = alloca i1, align 1, !dbg !123
+  store i1 %7, ptr %"$tmp0@1115", align 1, !dbg !123
+  %8 = load i1, ptr %"$tmp0@1115", align 1, !dbg !123
   %9 = call i1 @"not <:Bool>"(i1 %8), !dbg !123
-  %"$tmp1@5147" = alloca i1, align 1, !dbg !123
-  store i1 %9, ptr %"$tmp1@5147", align 1, !dbg !123
-  %10 = load i1, ptr %"$tmp1@5147", align 1, !dbg !123
+  %"$tmp1@1110" = alloca i1, align 1, !dbg !123
+  store i1 %9, ptr %"$tmp1@1110", align 1, !dbg !123
+  %10 = load i1, ptr %"$tmp1@1110", align 1, !dbg !123
   store i1 %10, ptr %return_value, align 1, !dbg !123
   br label %return, !dbg !123
 
@@ -757,14 +757,14 @@ declare void @destroy_integer(%Integer)
 !0 = !{i32 2, !"Debug Info Version", i32 3}
 !1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "ppl", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, sysroot: "/")
 !2 = !DIFile(filename: "src/main.ppl", directory: ".")
-!3 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !2, file: !2, line: 14, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!3 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !2, file: !2, line: 11, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !4 = !DISubroutineType(types: !5)
 !5 = !{!6}
 !6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
-!7 = !DILocation(line: 14, column: 18, scope: !3)
+!7 = !DILocation(line: 11, column: 16, scope: !3)
 !8 = !DILocation(line: 0, scope: !3)
 !9 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!10 = !DILocation(line: 14, column: 18, scope: !9)
+!10 = !DILocation(line: 11, column: 16, scope: !9)
 !11 = !DILocation(line: 0, column: 8, scope: !9)
 !12 = !DILocation(line: 1, column: 9, scope: !9)
 !13 = !DILocation(line: 1, column: 8, scope: !9)
