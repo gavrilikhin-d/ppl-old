@@ -8,5 +8,4 @@ fn foo -> None:
 	destroy ($tmp0@18:String)
 	return ($tmp1@10:None)
 
-let $tmp0@24: None = foo
-$tmp0@24
+foo

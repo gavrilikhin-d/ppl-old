@@ -4,6 +4,5 @@ expression: hir
 ---
 use greet.greet <:String>
 let $tmp0@35: String = "World"
-let $tmp1@29: None = greet ($tmp0@35:String)
-$tmp1@29
+greet ($tmp0@35:String)
 destroy ($tmp0@35:String)

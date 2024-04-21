@@ -35,7 +35,7 @@ declare %Integer @integer_from_i64(i64)
 
 define void @main.execute() !dbg !9 {
   call void @initialize(), !dbg !10
-  call void @initialize.1(), !dbg !11
+  call void @foo(), !dbg !11
   br label %return, !dbg !11
 
 return:                                           ; preds = %0
@@ -60,14 +60,6 @@ declare void @"println <:String>"(%String)
 
 declare void @destroy_string(%String)
 
-define private void @initialize.1() !dbg !15 {
-  call void @foo(), !dbg !16
-  br label %return, !dbg !16
-
-return:                                           ; preds = %0
-  ret void
-}
-
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
 
@@ -86,5 +78,3 @@ return:                                           ; preds = %0
 !12 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !9, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !13 = !DILocation(line: 0, column: 18, scope: !12)
 !14 = !DILocation(line: 0, column: 10, scope: !12)
-!15 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!16 = !DILocation(line: 1, scope: !15)

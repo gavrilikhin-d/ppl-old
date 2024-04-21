@@ -7,40 +7,31 @@ let $tmp1@18: String = " "
 let $tmp2@8: String = ($tmp0@8:String) + ($tmp1@18:String)
 let $tmp3@24: String = "World!"
 let $tmp4@8: String = ($tmp2@8:String) + ($tmp3@24:String)
-let $tmp5@0: None = println ($tmp4@8:String)
-$tmp5@0
-let $tmp0@54: None = none
-let $tmp1@42: String = String from ($tmp0@54:None)
-let $tmp2@33: None = println ($tmp1@42:String)
-$tmp2@33
+println ($tmp4@8:String)
+let $tmp0@42: String = String from none
+println ($tmp0@42:String)
 let $tmp0@81: Bool = false
 let $tmp1@69: String = String from ($tmp0@81:Bool)
-let $tmp2@60: None = println ($tmp1@69:String)
-$tmp2@60
+println ($tmp1@69:String)
 let $tmp0@109: Bool = true
 let $tmp1@97: String = String from ($tmp0@109:Bool)
-let $tmp2@88: None = println ($tmp1@97:String)
-$tmp2@88
+println ($tmp1@97:String)
 let $tmp0@136: Integer = 0
 let $tmp1@124: String = String from ($tmp0@136:Integer)
-let $tmp2@115: None = println ($tmp1@124:String)
-$tmp2@115
+println ($tmp1@124:String)
 let $tmp0@160: Rational = 0.0
 let $tmp1@148: String = String from ($tmp0@160:Rational)
-let $tmp2@139: None = println ($tmp1@148:String)
-$tmp2@139
+println ($tmp1@148:String)
 let $tmp0@174: String = String from (Type<Integer>:Type<Integer>)
-let $tmp1@165: None = println ($tmp0@174:String)
-$tmp1@165
+println ($tmp0@174:String)
 let $tmp0@204: String = String from (Type<Array<Integer>>:Type<Array<Integer>>)
-let $tmp1@195: None = println ($tmp0@204:String)
-$tmp1@195
+println ($tmp0@204:String)
 destroy ($tmp0@8:String)
 destroy ($tmp1@18:String)
 destroy ($tmp2@8:String)
 destroy ($tmp3@24:String)
 destroy ($tmp4@8:String)
-destroy ($tmp1@42:String)
+destroy ($tmp0@42:String)
 destroy ($tmp1@69:String)
 destroy ($tmp1@97:String)
 destroy ($tmp0@136:Integer)

@@ -21,7 +21,6 @@ fn sum <x: Integer> <y: Integer> -> Integer:
 
 let $tmp0@100: Integer = 2
 let $tmp1@100: Integer = ($tmp0@100:Integer) plus two
-let $tmp2@91: None = println ($tmp1@100:Integer)
-$tmp2@91
+println ($tmp1@100:Integer)
 destroy ($tmp0@100:Integer)
 destroy ($tmp1@100:Integer)

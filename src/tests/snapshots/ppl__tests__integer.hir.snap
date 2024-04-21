@@ -3,41 +3,33 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let $tmp0@8: Integer = 0
-let $tmp1@0: None = println ($tmp0@8:Integer)
-$tmp1@0
+println ($tmp0@8:Integer)
 let $tmp0@19: Integer = 1
 let $tmp1@18: Integer = + ($tmp0@19:Integer)
-let $tmp2@10: None = println ($tmp1@18:Integer)
-$tmp2@10
+println ($tmp1@18:Integer)
 let $tmp0@30: Integer = 2
 let $tmp1@29: Integer = - ($tmp0@30:Integer)
-let $tmp2@21: None = println ($tmp1@29:Integer)
-$tmp2@21
+println ($tmp1@29:Integer)
 let $tmp0@40: Integer = 2
 let $tmp1@44: Integer = 1
 let $tmp2@40: Integer = ($tmp0@40:Integer) + ($tmp1@44:Integer)
-let $tmp3@32: None = println ($tmp2@40:Integer)
-$tmp3@32
+println ($tmp2@40:Integer)
 let $tmp0@54: Integer = 2
 let $tmp1@58: Integer = 2
 let $tmp2@54: Integer = ($tmp0@54:Integer) ^ ($tmp1@58:Integer)
-let $tmp3@46: None = println ($tmp2@54:Integer)
-$tmp3@46
+println ($tmp2@54:Integer)
 let $tmp0@68: Integer = 5
 let $tmp1@72: Integer = 0
 let $tmp2@68: Integer = ($tmp0@68:Integer) - ($tmp1@72:Integer)
-let $tmp3@60: None = println ($tmp2@68:Integer)
-$tmp3@60
+println ($tmp2@68:Integer)
 let $tmp0@82: Integer = 2
 let $tmp1@86: Integer = 3
 let $tmp2@82: Integer = ($tmp0@82:Integer) * ($tmp1@86:Integer)
-let $tmp3@74: None = println ($tmp2@82:Integer)
-$tmp3@74
+println ($tmp2@82:Integer)
 let $tmp0@96: Integer = 14
 let $tmp1@101: Integer = 2
 let $tmp2@96: Rational = ($tmp0@96:Integer) / ($tmp1@101:Integer)
-let $tmp3@88: None = println ($tmp2@96:Rational)
-$tmp3@88
+println ($tmp2@96:Rational)
 destroy ($tmp0@8:Integer)
 destroy ($tmp0@19:Integer)
 destroy ($tmp1@18:Integer)

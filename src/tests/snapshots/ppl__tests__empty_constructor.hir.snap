@@ -5,5 +5,4 @@ expression: hir
 type A
 let a: A = A {  }
 let $tmp0@29: Type<A> = type of (a:A)
-let $tmp1@20: None = println ($tmp0@29:Type<A>)
-$tmp1@20
+println ($tmp0@29:Type<A>)

@@ -26,11 +26,7 @@ fn bar <:None> -> None:
 
 
 fn<T: FooBar> foobar <x: T> -> None:
-	let $tmp0@168: None = foo (x:T)
-$tmp0@168
-	let $tmp0@175: None = bar (x:T)
-$tmp0@175
+	foo (x:T)
+	bar (x:T)
 
-let $tmp0@189: None = none
-let $tmp1@182: None = foobar ($tmp0@189:None)
-$tmp1@182
+foobar none

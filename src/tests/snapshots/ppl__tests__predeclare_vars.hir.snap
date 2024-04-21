@@ -15,8 +15,7 @@ fn get y -> Integer:
 	return ($tmp0@51:Integer)
 
 let $tmp0@62: Integer = clone (y:Integer)
-let $tmp1@54: None = println ($tmp0@62:Integer)
-$tmp1@54
+println ($tmp0@62:Integer)
 destroy (x:Integer)
 destroy (y:Integer)
 destroy ($tmp0@62:Integer)

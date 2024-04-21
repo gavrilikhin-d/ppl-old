@@ -66,6 +66,10 @@ impl TemporariesInserter {
             return;
         }
 
+        if expr.ty().is_none() && !matches!(self.inside_of, Some(InsideOf::Return)) {
+            return;
+        }
+
         let index = self.temporaries.len();
         let offset = expr.start();
         let tmp = Variable::new(VariableData {

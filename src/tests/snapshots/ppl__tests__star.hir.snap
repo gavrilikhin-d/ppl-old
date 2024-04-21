@@ -7,8 +7,7 @@ let $tmp1@12: Integer = 2
 let $tmp2@16: Integer = 2
 let $tmp3@12: Integer = ($tmp1@12:Integer) * ($tmp2@16:Integer)
 let $tmp4@8: Integer = ($tmp0@8:Integer) + ($tmp3@12:Integer)
-let $tmp5@0: None = println ($tmp4@8:Integer)
-$tmp5@0
+println ($tmp4@8:Integer)
 destroy ($tmp0@8:Integer)
 destroy ($tmp1@12:Integer)
 destroy ($tmp2@16:Integer)

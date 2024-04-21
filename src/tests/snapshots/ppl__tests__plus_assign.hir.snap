@@ -5,20 +5,15 @@ expression: hir
 let mut value: Rational = 0.0
 let mut str: String = "Hello"
 let $tmp0@28: Rational = clone (value:Rational)
-let $tmp1@20: None = println ($tmp0@28:Rational)
-$tmp1@20
+println ($tmp0@28:Rational)
 let $tmp0@43: Rational = 1.0
-let $tmp1@34: None = (&value:ReferenceMut<Rational>) += ($tmp0@43:Rational)
-$tmp1@34
+(&value:ReferenceMut<Rational>) += ($tmp0@43:Rational)
 let $tmp0@55: Rational = clone (value:Rational)
-let $tmp1@47: None = println ($tmp0@55:Rational)
-$tmp1@47
+println ($tmp0@55:Rational)
 let $tmp0@91: String = " World!"
-let $tmp1@84: None = (&str:ReferenceMut<String>) += ($tmp0@91:String)
-$tmp1@84
+(&str:ReferenceMut<String>) += ($tmp0@91:String)
 let $tmp0@109: String = clone (str:String)
-let $tmp1@101: None = println ($tmp0@109:String)
-$tmp1@101
+println ($tmp0@109:String)
 destroy (value:Rational)
 destroy (str:String)
 destroy ($tmp0@28:Rational)

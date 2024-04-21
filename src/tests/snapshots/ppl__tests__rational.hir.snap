@@ -3,78 +3,63 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let $tmp0@8: Rational = 0.0
-let $tmp1@0: None = println ($tmp0@8:Rational)
-$tmp1@0
+println ($tmp0@8:Rational)
 let $tmp0@21: Rational = 1.0
 let $tmp1@20: Rational = + ($tmp0@21:Rational)
-let $tmp2@12: None = println ($tmp1@20:Rational)
-$tmp2@12
+println ($tmp1@20:Rational)
 let $tmp0@34: Rational = 2.0
 let $tmp1@33: Rational = - ($tmp0@34:Rational)
-let $tmp2@25: None = println ($tmp1@33:Rational)
-$tmp2@25
+println ($tmp1@33:Rational)
 let $tmp0@46: Rational = 1.0
 let $tmp1@52: Rational = 2.0
 let $tmp2@46: Rational = ($tmp0@46:Rational) + ($tmp1@52:Rational)
-let $tmp3@38: None = println ($tmp2@46:Rational)
-$tmp3@38
+println ($tmp2@46:Rational)
 let $tmp0@64: Rational = 5.0
 let $tmp1@70: Rational = 1.0
 let $tmp2@64: Rational = ($tmp0@64:Rational) - ($tmp1@70:Rational)
-let $tmp3@56: None = println ($tmp2@64:Rational)
-$tmp3@56
+println ($tmp2@64:Rational)
 let $tmp0@82: Rational = 2.5
 let $tmp1@88: Rational = 2.0
 let $tmp2@82: Rational = ($tmp0@82:Rational) * ($tmp1@88:Rational)
-let $tmp3@74: None = println ($tmp2@82:Rational)
-$tmp3@74
+println ($tmp2@82:Rational)
 let $tmp0@100: Rational = 9.0
 let $tmp1@107: Integer = 3
 let $tmp2@111: Integer = 2
 let $tmp3@107: Rational = ($tmp1@107:Integer) / ($tmp2@111:Integer)
 let $tmp4@100: Rational = ($tmp0@100:Rational) / ($tmp3@107:Rational)
-let $tmp5@92: None = println ($tmp4@100:Rational)
-$tmp5@92
+println ($tmp4@100:Rational)
 let $tmp0@122: Rational = 0.0
 let $tmp1@129: Rational = 0.0
 let $tmp2@122: Bool = ($tmp0@122:Rational) == ($tmp1@129:Rational)
-let $tmp3@114: None = println ($tmp2@122:Bool)
-$tmp3@114
+println ($tmp2@122:Bool)
 let $tmp0@141: Rational = 1.0
 let $tmp1@148: Rational = 0.0
 let $tmp2@141: Bool = ($tmp0@141:Rational) != ($tmp1@148:Rational)
-let $tmp3@133: None = println ($tmp2@141:Bool)
-$tmp3@133
+println ($tmp2@141:Bool)
 let $tmp0@160: Rational = 0.0
 let $tmp1@166: Rational = 1.0
 let $tmp2@160: Bool = ($tmp0@160:Rational) < ($tmp1@166:Rational)
-let $tmp3@152: None = println ($tmp2@160:Bool)
-$tmp3@152
+println ($tmp2@160:Bool)
 let $tmp0@178: Rational = 1.0
 let $tmp1@184: Rational = 0.0
 let $tmp2@178: Bool = ($tmp0@178:Rational) > ($tmp1@184:Rational)
-let $tmp3@170: None = println ($tmp2@178:Bool)
-$tmp3@170
+println ($tmp2@178:Bool)
 let $tmp0@196: Rational = 0.0
 let $tmp1@203: Rational = 0.0
 let $tmp2@196: Bool = ($tmp0@196:Rational) <= ($tmp1@203:Rational)
-let $tmp3@188: None = println ($tmp2@196:Bool)
-$tmp3@188
+println ($tmp2@196:Bool)
 let $tmp0@216: Rational = 0.0
 let $tmp1@223: Rational = 1.0
 let $tmp2@216: Bool = ($tmp0@216:Rational) <= ($tmp1@223:Rational)
-let $tmp3@208: None = println ($tmp2@216:Bool)
-$tmp3@208
+println ($tmp2@216:Bool)
 let $tmp0@235: Rational = 0.0
 let $tmp1@242: Rational = 0.0
 let $tmp2@235: Bool = ($tmp0@235:Rational) >= ($tmp1@242:Rational)
-let $tmp3@227: None = println ($tmp2@235:Bool)
-$tmp3@227
+println ($tmp2@235:Bool)
 let $tmp0@254: Rational = 1.0
 let $tmp1@261: Rational = 0.0
 let $tmp2@254: Bool = ($tmp0@254:Rational) >= ($tmp1@261:Rational)
-let $tmp3@246: None = println ($tmp2@254:Bool)
-$tmp3@246
+println ($tmp2@254:Bool)
 destroy ($tmp0@8:Rational)
 destroy ($tmp0@21:Rational)
 destroy ($tmp1@20:Rational)

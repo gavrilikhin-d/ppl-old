@@ -7,26 +7,20 @@ let y: Integer = clone (Type<Integer>:Type<Integer>).size
 let $tmp0@9: Integer = size of (Type<None>:Type<None>)
 let $tmp1@26: Integer = 0
 let $tmp2@8: Bool = ($tmp0@9:Integer) == ($tmp1@26:Integer)
-let $tmp3@0: None = println ($tmp2@8:Bool)
-$tmp3@0
+println ($tmp2@8:Bool)
 let $tmp0@37: Integer = size of (Type<Bool>:Type<Bool>)
 let $tmp1@54: Integer = 1
 let $tmp2@36: Bool = ($tmp0@37:Integer) == ($tmp1@54:Integer)
-let $tmp3@28: None = println ($tmp2@36:Bool)
-$tmp3@28
+println ($tmp2@36:Bool)
 let $tmp0@65: String = String from (Type<None>:Type<None>)
-let $tmp1@56: None = println ($tmp0@65:String)
-$tmp1@56
+println ($tmp0@65:String)
 let $tmp0@92: String = String from (Type<Type<Integer>>:Type<Type<Integer>>)
-let $tmp1@83: None = println ($tmp0@92:String)
-$tmp1@83
+println ($tmp0@92:String)
 let $tmp0@165: Integer = clone (y:Integer)
 let $tmp1@171: Integer = size of (Type<Integer>:Type<Integer>)
 let $tmp2@165: Bool = ($tmp0@165:Integer) == ($tmp1@171:Integer)
-let $tmp3@157: None = println ($tmp2@165:Bool)
-$tmp3@157
-let $tmp0@188: None = println (Type<Integer>:Type<Integer>)
-$tmp0@188
+println ($tmp2@165:Bool)
+println (Type<Integer>:Type<Integer>)
 destroy (y:Integer)
 destroy ($tmp0@9:Integer)
 destroy ($tmp1@26:Integer)

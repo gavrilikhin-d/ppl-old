@@ -14,7 +14,6 @@ let mut x: Destructible = Destructible {  }
 destroy (x:Destructible)
 (x:Destructible) = Destructible {  }
 let $tmp0@154: String = "done"
-let $tmp1@146: None = println ($tmp0@154:String)
-$tmp1@146
+println ($tmp0@154:String)
 destroy (x:Destructible)
 destroy ($tmp0@154:String)

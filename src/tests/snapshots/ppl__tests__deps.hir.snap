@@ -3,5 +3,4 @@ source: src/tests/mod.rs
 expression: hir
 ---
 use helper.*
-let $tmp0@14: None = say hello
-$tmp0@14
+say hello
