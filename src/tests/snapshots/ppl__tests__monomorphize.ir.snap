@@ -18,7 +18,6 @@ source_filename = "src/main.ppl"
 @x = global %Integer zeroinitializer
 @"$tmp0@74" = global %Integer zeroinitializer
 @"$tmp1@79" = global %Integer zeroinitializer
-@"$tmp2@74" = global i1 false
 
 define private void @initialize() !dbg !3 {
   %1 = alloca %"Type<String>", align 8, !dbg !7
@@ -48,19 +47,20 @@ define void @main.execute() !dbg !9 {
   call void @initialize.4(), !dbg !14
   call void @initialize.5(), !dbg !15
   call void @initialize.6(), !dbg !16
-  call void @initialize.7(), !dbg !15
-  %1 = load i1, ptr @"$tmp2@74", align 1, !dbg !15
-  call void @"println <:Bool>"(i1 %1), !dbg !15
-  %2 = load %Integer, ptr @"$tmp0@44", align 8, !dbg !11
-  call void @destroy_integer(%Integer %2), !dbg !11
-  %3 = load %Integer, ptr @"$tmp1@50", align 8, !dbg !12
-  call void @destroy_integer(%Integer %3), !dbg !12
-  %4 = load %Integer, ptr @x, align 8, !dbg !17
-  call void @destroy_integer(%Integer %4), !dbg !17
-  %5 = load %Integer, ptr @"$tmp0@74", align 8, !dbg !15
-  call void @destroy_integer(%Integer %5), !dbg !15
-  %6 = load %Integer, ptr @"$tmp1@79", align 8, !dbg !16
-  call void @destroy_integer(%Integer %6), !dbg !16
+  %1 = load %Integer, ptr @"$tmp0@74", align 8, !dbg !15
+  %2 = load %Integer, ptr @"$tmp1@79", align 8, !dbg !16
+  %3 = call i1 @integer_eq_integer(%Integer %1, %Integer %2), !dbg !16
+  call void @"println <:Bool>"(i1 %3), !dbg !16
+  %4 = load %Integer, ptr @"$tmp0@44", align 8, !dbg !11
+  call void @destroy_integer(%Integer %4), !dbg !11
+  %5 = load %Integer, ptr @"$tmp1@50", align 8, !dbg !12
+  call void @destroy_integer(%Integer %5), !dbg !12
+  %6 = load %Integer, ptr @x, align 8, !dbg !17
+  call void @destroy_integer(%Integer %6), !dbg !17
+  %7 = load %Integer, ptr @"$tmp0@74", align 8, !dbg !15
+  call void @destroy_integer(%Integer %7), !dbg !15
+  %8 = load %Integer, ptr @"$tmp1@79", align 8, !dbg !16
+  call void @destroy_integer(%Integer %8), !dbg !16
   br label %return, !dbg !16
 
 return:                                           ; preds = %0
@@ -132,31 +132,18 @@ return:                                           ; preds = %0
   ret void
 }
 
-define private void @initialize.7() !dbg !32 {
-  %1 = load %Integer, ptr @"$tmp0@74", align 8, !dbg !33
-  %2 = load %Integer, ptr @"$tmp1@79", align 8, !dbg !34
-  %3 = call i1 @integer_eq_integer(%Integer %1, %Integer %2), !dbg !34
-  store i1 %3, ptr @"$tmp2@74", align 1, !dbg !34
-  br label %return, !dbg !34
-
-return:                                           ; preds = %0
-  ret void
-}
-
-declare i1 @integer_eq_integer(%Integer, %Integer)
-
-define private void @"println <:Bool>"(i1 %0) !dbg !35 {
+define private void @"println <:Bool>"(i1 %0) !dbg !32 {
   %x = alloca i1, align 1
   store i1 %0, ptr %x, align 1
-  %2 = load i1, ptr %x, align 1, !dbg !36
-  %3 = call %String @"String from <:Bool>"(i1 %2), !dbg !36
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !36
-  store %String %3, ptr %"$tmp0@4544", align 8, !dbg !36
-  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !36
-  call void @"println <:String>"(%String %4), !dbg !36
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !36
-  call void @destroy_string(%String %5), !dbg !36
-  br label %return, !dbg !36
+  %2 = load i1, ptr %x, align 1, !dbg !33
+  %3 = call %String @"String from <:Bool>"(i1 %2), !dbg !33
+  %"$tmp0@4544" = alloca %String, align 8, !dbg !33
+  store %String %3, ptr %"$tmp0@4544", align 8, !dbg !33
+  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !33
+  call void @"println <:String>"(%String %4), !dbg !33
+  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !33
+  call void @destroy_string(%String %5), !dbg !33
+  br label %return, !dbg !33
 
 return:                                           ; preds = %1
   ret void
@@ -167,6 +154,8 @@ declare %String @"String from <:Bool>"(i1)
 declare void @"println <:String>"(%String)
 
 declare void @destroy_string(%String)
+
+declare i1 @integer_eq_integer(%Integer, %Integer)
 
 declare void @destroy_integer(%Integer)
 
@@ -205,8 +194,5 @@ declare void @destroy_integer(%Integer)
 !29 = !DILocation(line: 5, column: 8, scope: !28)
 !30 = distinct !DISubprogram(name: "initialize.6", linkageName: "initialize.6", scope: !9, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !31 = !DILocation(line: 5, column: 13, scope: !30)
-!32 = distinct !DISubprogram(name: "initialize.7", linkageName: "initialize.7", scope: !9, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!33 = !DILocation(line: 5, column: 8, scope: !32)
-!34 = !DILocation(line: 5, column: 13, scope: !32)
-!35 = distinct !DISubprogram(name: "println <:Bool>", linkageName: "println <:Bool>", scope: !9, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!36 = !DILocation(line: 5, column: 14, scope: !35)
+!32 = distinct !DISubprogram(name: "println <:Bool>", linkageName: "println <:Bool>", scope: !9, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!33 = !DILocation(line: 5, column: 14, scope: !32)

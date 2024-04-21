@@ -11,6 +11,8 @@ use crate::{
     syntax::{Identifier, Keyword, Ranged},
 };
 
+use super::Context;
+
 enum InsideOf {
     Assignment,
     VariableDeclaration,
@@ -19,18 +21,20 @@ enum InsideOf {
 
 #[derive(VisitorMut)]
 #[visitor(Expression, Statement)]
-pub struct TemporariesInserter {
+pub struct TemporariesInserter<'ctx> {
     temporaries: Vec<Variable>,
     depth: usize,
     inside_of: Option<InsideOf>,
+    context: &'ctx mut dyn Context,
 }
 
-impl TemporariesInserter {
-    pub fn new() -> Self {
+impl<'ctx> TemporariesInserter<'ctx> {
+    pub fn new(context: &'ctx mut dyn Context) -> Self {
         Self {
             temporaries: Vec::new(),
             depth: 0,
             inside_of: None,
+            context,
         }
     }
 
@@ -66,7 +70,9 @@ impl TemporariesInserter {
             return;
         }
 
-        if expr.ty().is_none() && !matches!(self.inside_of, Some(InsideOf::Return)) {
+        if self.context.destructor_for(expr.ty()).is_none()
+            && !matches!(self.inside_of, Some(InsideOf::Return))
+        {
             return;
         }
 

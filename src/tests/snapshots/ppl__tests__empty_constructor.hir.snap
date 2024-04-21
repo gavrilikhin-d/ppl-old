@@ -4,5 +4,4 @@ expression: hir
 ---
 type A
 let a: A = A {  }
-let $tmp0@29: Type<A> = type of (a:A)
-println ($tmp0@29:Type<A>)
+println type of (a:A)
