@@ -156,10 +156,11 @@ define void @"<:ReferenceMut<Rational>> += <:Rational>"(ptr %0, %Rational %1) !d
   %3 = load ptr, ptr %self, align 8, !dbg !31
   %4 = load ptr, ptr %self, align 8, !dbg !31
   %5 = load %Rational, ptr %4, align 8, !dbg !31
-  %6 = load %Rational, ptr %other, align 8, !dbg !31
-  %7 = call %Rational @clone_rational(%Rational %6), !dbg !31
-  %8 = call %Rational @rational_plus_rational(%Rational %5, %Rational %7), !dbg !31
-  store %Rational %8, ptr %3, align 8, !dbg !31
+  %6 = call %Rational @clone_rational(%Rational %5), !dbg !31
+  %7 = load %Rational, ptr %other, align 8, !dbg !31
+  %8 = call %Rational @clone_rational(%Rational %7), !dbg !31
+  %9 = call %Rational @rational_plus_rational(%Rational %6, %Rational %8), !dbg !31
+  store %Rational %9, ptr %3, align 8, !dbg !31
   br label %return, !dbg !31
 
 return:                                           ; preds = %2
@@ -195,10 +196,11 @@ define void @"<:ReferenceMut<String>> += <:String>"(ptr %0, %String %1) !dbg !36
   %3 = load ptr, ptr %self, align 8, !dbg !37
   %4 = load ptr, ptr %self, align 8, !dbg !37
   %5 = load %String, ptr %4, align 8, !dbg !37
-  %6 = load %String, ptr %other, align 8, !dbg !37
-  %7 = call %String @clone_string(%String %6), !dbg !37
-  %8 = call %String @string_plus_string(%String %5, %String %7), !dbg !37
-  store %String %8, ptr %3, align 8, !dbg !37
+  %6 = call %String @clone_string(%String %5), !dbg !37
+  %7 = load %String, ptr %other, align 8, !dbg !37
+  %8 = call %String @clone_string(%String %7), !dbg !37
+  %9 = call %String @string_plus_string(%String %6, %String %8), !dbg !37
+  store %String %9, ptr %3, align 8, !dbg !37
   br label %return, !dbg !37
 
 return:                                           ; preds = %2
