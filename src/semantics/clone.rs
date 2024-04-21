@@ -18,8 +18,11 @@ impl CloneIfNeeded for Expression {
     fn clone_if_needed_inplace(&mut self, context: &mut impl Context) {
         if !matches!(
             self,
-            Expression::VariableReference(_) | Expression::MemberReference(_)
-        ) {
+            Expression::ImplicitConversion(_)
+                | Expression::VariableReference(_)
+                | Expression::MemberReference(_)
+        ) || self.ty().is_any_reference()
+        {
             return;
         }
 
