@@ -10,6 +10,7 @@ use derive_visitor::DriveMut;
 use indexmap::IndexMap;
 
 use crate::{
+    compilation::Module,
     named::Named,
     syntax::{Identifier, Keyword, Ranged},
     AddSourceLocation,
@@ -93,6 +94,9 @@ pub struct TraitData {
     pub supertraits: Vec<Trait>,
     /// Associated functions
     pub functions: IndexMap<String, Function>,
+    /// Module this trait is located in
+    #[drive(skip)]
+    pub module: Module,
 }
 
 impl TraitData {

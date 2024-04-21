@@ -47,6 +47,14 @@ impl ImplementsCheck<'_, hir::Class> {
             .collect();
 
         if !unimplemented.is_empty() {
+            let source_file = self
+                .tr
+                .read()
+                .unwrap()
+                .module
+                .data(context.compiler())
+                .source_file()
+                .clone();
             return Err(NotImplemented {
                 ty: self.ty.clone().into(),
                 tr: self.tr,
@@ -54,6 +62,7 @@ impl ImplementsCheck<'_, hir::Class> {
                     .into_iter()
                     .map(|f| f.range().into())
                     .collect(),
+                source_file,
             });
         }
 

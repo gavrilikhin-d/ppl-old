@@ -187,10 +187,18 @@ impl ConvertibleToRequest<'_, GenericType> {
                         .convertible_to(tr.into())
                         .within(context)?
                 } else {
+                    let source_file = tr
+                        .read()
+                        .unwrap()
+                        .module
+                        .data(context.compiler())
+                        .source_file()
+                        .clone();
                     return Err(NotImplemented {
                         ty: from.clone().into(),
                         tr,
                         unimplemented: vec![],
+                        source_file,
                     }
                     .into());
                 }

@@ -159,6 +159,7 @@ impl Declare for ast::TraitDeclaration {
             name: self.name.clone(),
             supertraits,
             functions: IndexMap::new(),
+            module: context.compiler().current_module(),
         });
 
         TraitContext::new(tr.clone(), context).run(|context| {

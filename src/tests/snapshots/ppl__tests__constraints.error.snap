@@ -17,6 +17,13 @@ Advice:   ☞ candidate is not viable
   ╰─▶ semantics::not_implemented
       
         × `Integer` doesn't satisfy trait `Foo` requirements
+         ╭─[main.ppl:2:2]
+       1 │ trait Foo:
+       2 │     fn foo <:Self>
+         ·     ───────┬──────
+         ·            ╰── This required function isn't implemented
+       3 │
+         ╰────
       
 semantics::no_function
 
