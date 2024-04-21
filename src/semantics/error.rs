@@ -363,6 +363,9 @@ pub struct NotImplemented {
     /// Unimplemented functions spans
     #[label(collection, "This required function isn't implemented")]
     pub unimplemented: Vec<SourceSpan>,
+    /// Source code of the module where trait is located
+    #[source_code]
+    pub source_file: SourceFile,
 }
 
 /// Diagnostic for trying to take mutable reference to immutable data
