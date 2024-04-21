@@ -79,13 +79,13 @@ Advice:   ☞ candidate is not viable
         × expected `Self` type, got `Integer`
       
       Error:   × Self
-           ╭─[core.ppl:280:16]
-       279 │ trait Add:
-       280 │     fn <:Self> + <:Self> -> Self
-           ·                   ▲
-           ·                   ╰── this has `Self` type
-       281 │
-           ╰────
+         ╭─[math.ppl:8:16]
+       7 │ trait Add:
+       8 │     fn <:Self> + <:Self> -> Self
+         ·                   ▲
+         ·                   ╰── this has `Self` type
+       9 │
+         ╰────
       Error:   × Integer
          ╭─[main.ppl:1:7]
        1 │ 0.1 + 2
@@ -99,13 +99,13 @@ Advice:   ☞ candidate is not viable
         × expected `Self` type, got `Integer`
       
       Error:   × Self
-           ╭─[core.ppl:280:16]
-       279 │ trait Add:
-       280 │     fn <:Self> + <:Self> -> Self
-           ·                   ▲
-           ·                   ╰── this has `Self` type
-       281 │
-           ╰────
+         ╭─[math.ppl:8:16]
+       7 │ trait Add:
+       8 │     fn <:Self> + <:Self> -> Self
+         ·                   ▲
+         ·                   ╰── this has `Self` type
+       9 │
+         ╰────
       Error:   × Integer
          ╭─[main.ppl:1:7]
        1 │ 0.1 + 2

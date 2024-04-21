@@ -152,11 +152,11 @@ define private void @"println <:Integer>"(%Integer %0) !dbg !28 {
   %2 = load %Integer, ptr %x, align 8, !dbg !29
   %3 = call %Integer @clone_integer(%Integer %2), !dbg !29
   %4 = call %String @integer_as_string(%Integer %3), !dbg !29
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !29
-  store %String %4, ptr %"$tmp0@4544", align 8, !dbg !29
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !29
+  %"$tmp0@323" = alloca %String, align 8, !dbg !29
+  store %String %4, ptr %"$tmp0@323", align 8, !dbg !29
+  %5 = load %String, ptr %"$tmp0@323", align 8, !dbg !29
   call void @"println <:String>"(%String %5), !dbg !29
-  %6 = load %String, ptr %"$tmp0@4544", align 8, !dbg !29
+  %6 = load %String, ptr %"$tmp0@323", align 8, !dbg !29
   call void @destroy_string(%String %6), !dbg !29
   br label %return, !dbg !29
 
@@ -375,11 +375,11 @@ define private void @"println <:Rational>"(%Rational %0) !dbg !73 {
   %2 = load %Rational, ptr %x, align 8, !dbg !74
   %3 = call %Rational @clone_rational(%Rational %2), !dbg !74
   %4 = call %String @rational_as_string(%Rational %3), !dbg !74
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !74
-  store %String %4, ptr %"$tmp0@4544", align 8, !dbg !74
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !74
+  %"$tmp0@323" = alloca %String, align 8, !dbg !74
+  store %String %4, ptr %"$tmp0@323", align 8, !dbg !74
+  %5 = load %String, ptr %"$tmp0@323", align 8, !dbg !74
   call void @"println <:String>"(%String %5), !dbg !74
-  %6 = load %String, ptr %"$tmp0@4544", align 8, !dbg !74
+  %6 = load %String, ptr %"$tmp0@323", align 8, !dbg !74
   call void @destroy_string(%String %6), !dbg !74
   br label %return, !dbg !74
 

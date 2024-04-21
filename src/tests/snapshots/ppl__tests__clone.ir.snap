@@ -113,11 +113,11 @@ define private void @"println <:Integer>"(%Integer %0) !dbg !27 {
   %2 = load %Integer, ptr %x, align 8, !dbg !28
   %3 = call %Integer @clone_integer(%Integer %2), !dbg !28
   %4 = call %String @integer_as_string(%Integer %3), !dbg !28
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !28
-  store %String %4, ptr %"$tmp0@4544", align 8, !dbg !28
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !28
+  %"$tmp0@323" = alloca %String, align 8, !dbg !28
+  store %String %4, ptr %"$tmp0@323", align 8, !dbg !28
+  %5 = load %String, ptr %"$tmp0@323", align 8, !dbg !28
   call void @"println <:String>"(%String %5), !dbg !28
-  %6 = load %String, ptr %"$tmp0@4544", align 8, !dbg !28
+  %6 = load %String, ptr %"$tmp0@323", align 8, !dbg !28
   call void @destroy_string(%String %6), !dbg !28
   br label %return, !dbg !28
 

@@ -190,44 +190,6 @@ fn clone <:String> -> String
 //---------------------------------
 
 //=================================
-//            AsString
-//=================================
-/// Trait for things that may be interpreted as string
-trait AsString:
-	fn String from <:Self> -> String
-
-/// Print anything that may be interpreted as String
-fn print <x: AsString> => print (String from x)
-
-/// Print anything that may be interpreted as String with newline
-fn println <x: AsString> => println (String from x)
-//---------------------------------
-
-//=================================
-//             Eq
-//=================================
-/// Trait for things that may be compared for equality
-trait Eq:
-	fn <:Self> == <:Self> -> Bool
-
-	fn <x: Self> != <y: Self> => not (x == y)
-
-//---------------------------------
-
-//=================================
-//              Ord
-//=================================
-/// Trait for things that may be ordered
-trait Ord:
-	fn <:Self> < <:Self> -> Bool
-
-	fn <x: Self> >  <y: Self> => y < x
-	fn <x: Self> <= <y: Self> => not (x > y)
-	fn <x: Self> >= <y: Self> => not (x < y)
-
-//---------------------------------
-
-//=================================
 //             Type
 //=================================
 /// Name of a type including generic parameters
@@ -271,26 +233,3 @@ trait Destroy:
 	fn destroy <:Self>
 //=================================
 
-
-//=================================
-//            Add
-//=================================
-/// Trait for `+` operation
-trait Add:
-	fn <:Self> + <:Self> -> Self
-
-	fn <self: ReferenceMut<Self>> += <other: Self>:
-		self = self + other
-//=================================
-
-
-//=================================
-//            Multiply
-//=================================
-/// Trait for `*` operation
-trait Multiply:
-	fn <:Self> * <:Self> -> Self
-
-	fn <self: ReferenceMut<Self>> *= <other: Self>:
-		self = self * other
-//=================================

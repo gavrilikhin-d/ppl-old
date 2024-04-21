@@ -79,11 +79,11 @@ define private void @"println <:Type<A>>"(%"Type<A>" %0) !dbg !18 {
   store %"Type<A>" %0, ptr %x, align 8
   %2 = load %"Type<A>", ptr %x, align 8, !dbg !19
   %3 = call %String @"String from <:Type<A>>"(%"Type<A>" %2), !dbg !19
-  %"$tmp0@4544" = alloca %String, align 8, !dbg !19
-  store %String %3, ptr %"$tmp0@4544", align 8, !dbg !19
-  %4 = load %String, ptr %"$tmp0@4544", align 8, !dbg !19
+  %"$tmp0@323" = alloca %String, align 8, !dbg !19
+  store %String %3, ptr %"$tmp0@323", align 8, !dbg !19
+  %4 = load %String, ptr %"$tmp0@323", align 8, !dbg !19
   call void @"println <:String>"(%String %4), !dbg !19
-  %5 = load %String, ptr %"$tmp0@4544", align 8, !dbg !19
+  %5 = load %String, ptr %"$tmp0@323", align 8, !dbg !19
   call void @destroy_string(%String %5), !dbg !19
   br label %return, !dbg !19
 
@@ -99,9 +99,9 @@ define private %String @"String from <:Type<A>>"(%"Type<A>" %0) !dbg !20 {
   %2 = load %String, ptr %name, align 8, !dbg !21
   %3 = call %String @clone_string(%String %2), !dbg !21
   %4 = call %String @clone_string(%String %3), !dbg !21
-  %"$tmp0@5372" = alloca %String, align 8, !dbg !21
-  store %String %4, ptr %"$tmp0@5372", align 8, !dbg !21
-  %5 = load %String, ptr %"$tmp0@5372", align 8, !dbg !21
+  %"$tmp0@4313" = alloca %String, align 8, !dbg !21
+  store %String %4, ptr %"$tmp0@4313", align 8, !dbg !21
+  %5 = load %String, ptr %"$tmp0@4313", align 8, !dbg !21
   store %String %5, ptr %return_value, align 8, !dbg !21
   br label %return, !dbg !21
 
@@ -119,9 +119,9 @@ declare void @destroy_string(%String)
 define private %"Type<A>" @"type of <:A>"(ptr %0) !dbg !22 {
   %return_value = alloca %"Type<A>", align 8
   %2 = load %"Type<A>", ptr @"Type<A>", align 8, !dbg !23
-  %"$tmp0@5497" = alloca %"Type<A>", align 8, !dbg !23
-  store %"Type<A>" %2, ptr %"$tmp0@5497", align 8, !dbg !23
-  %3 = load %"Type<A>", ptr %"$tmp0@5497", align 8, !dbg !23
+  %"$tmp0@4438" = alloca %"Type<A>", align 8, !dbg !23
+  store %"Type<A>" %2, ptr %"$tmp0@4438", align 8, !dbg !23
+  %3 = load %"Type<A>", ptr %"$tmp0@4438", align 8, !dbg !23
   store %"Type<A>" %3, ptr %return_value, align 8, !dbg !23
   br label %return, !dbg !23
 
