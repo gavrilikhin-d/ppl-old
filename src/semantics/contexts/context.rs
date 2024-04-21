@@ -111,12 +111,12 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
     where
         Self: Sized,
     {
-        println!("Contexts hierarchy:");
+        eprintln!("Contexts hierarchy:");
 
         let mut i = 0;
         let mut current = self as &dyn Context;
         loop {
-            println!("{i}) {current}");
+            eprintln!("{i}) {current}");
             if let Some(parent) = Context::parent(current) {
                 current = parent;
                 i += 1;

@@ -76,6 +76,66 @@ Advice:   ☞ candidate is not viable
 Advice:   ☞ candidate is not viable
   ╰─▶ semantics::type_mismatch
       
+        × expected `MemoryAddress` type, got `Rational`
+      
+      Error:   × MemoryAddress
+          ╭─[memory.ppl:13:5]
+       12 │ /// Get another memory address by adding offset to this one
+       13 │ fn <address: MemoryAddress> + <offset: Integer> -> MemoryAddress:
+          ·     ───┬───
+          ·        ╰── this has `MemoryAddress` type
+       14 │     let value = address.value + offset
+          ╰────
+      Error:   × Rational
+         ╭─[main.ppl:1:1]
+       1 │ 0.1 + 2
+         · ─┬─
+         ·  ╰── this has `Rational` type
+         ╰────
+      
+Advice:   ☞ candidate is not viable
+  ╰─▶ semantics::type_mismatch
+      
+        × expected `I32` type, got `Rational`
+      
+      Error:   × I32
+          ╭─[i32.ppl:12:5]
+       11 │ @mangle_as("i32_plus_i32")
+       12 │ fn <:I32> + <:I32> -> I32
+          ·     ▲
+          ·     ╰── this has `I32` type
+       13 │
+          ╰────
+      Error:   × Rational
+         ╭─[main.ppl:1:1]
+       1 │ 0.1 + 2
+         · ─┬─
+         ·  ╰── this has `Rational` type
+         ╰────
+      
+Advice:   ☞ candidate is not viable
+  ╰─▶ semantics::type_mismatch
+      
+        × expected `F64` type, got `Rational`
+      
+      Error:   × F64
+          ╭─[f64.ppl:12:5]
+       11 │ @mangle_as("f64_plus_f64")
+       12 │ fn <:F64> + <:F64> -> F64
+          ·     ▲
+          ·     ╰── this has `F64` type
+       13 │
+          ╰────
+      Error:   × Rational
+         ╭─[main.ppl:1:1]
+       1 │ 0.1 + 2
+         · ─┬─
+         ·  ╰── this has `Rational` type
+         ╰────
+      
+Advice:   ☞ candidate is not viable
+  ╰─▶ semantics::type_mismatch
+      
         × expected `Self` type, got `Integer`
       
       Error:   × Self

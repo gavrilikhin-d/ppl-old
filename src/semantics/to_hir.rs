@@ -806,7 +806,14 @@ impl ToHIR for ast::Use {
             );
         };
 
-        context.module_mut().functions.extend(functions);
+        for (format, values) in functions {
+            context
+                .module_mut()
+                .functions
+                .entry(format)
+                .or_default()
+                .extend(values)
+        }
         context.module_mut().variables.extend(variables);
         context.module_mut().types.extend(types);
 

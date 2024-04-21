@@ -21,7 +21,20 @@ pub struct ModuleContext<'c> {
 impl Display for ModuleContext<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "ModuleContext:")?;
-        writeln!(f, "\tfor module: {}", self.module.name())
+        writeln!(f, "\tfor module: {}", self.module.name())?;
+        writeln!(f, "\tvariables:")?;
+        for v in self.module.variables.values() {
+            writeln!(f, "{v}")?;
+        }
+        writeln!(f, "\ttypes:")?;
+        for ty in self.module.types.values() {
+            writeln!(f, "{ty}")?;
+        }
+        writeln!(f, "\tfunctions:")?;
+        for fun in self.module.iter_functions() {
+            writeln!(f, "{fun}")?;
+        }
+        Ok(())
     }
 }
 
