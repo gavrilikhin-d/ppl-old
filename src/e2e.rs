@@ -85,7 +85,10 @@ pub mod internal {
         .map_err(|e| miette!("{e}"))
         .unwrap();
 
-        let hir = temp_dir.join(OutputType::HIR.named("main"));
+        let mut hir = temp_dir.join(OutputType::HIR.named("main"));
+        if !hir.exists() {
+            hir = temp_dir.join(OutputType::HIR.named("lib"));
+        }
 
         std::fs::read_to_string(&hir).expect("failed to read HIR")
     }

@@ -1,0 +1,12 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+use core.*
+use array.*
+use i32.*
+use f64.*
+use memory.*
+use threads.*
+use math.*
+use as_string.*
