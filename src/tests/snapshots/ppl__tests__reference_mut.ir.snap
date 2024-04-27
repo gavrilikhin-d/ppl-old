@@ -13,7 +13,6 @@ source_filename = "src/main.ppl"
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
 @x = global %Integer zeroinitializer
 @y = global ptr null
-@"$tmp0@79" = global %Integer zeroinitializer
 
 define private void @initialize() !dbg !3 {
   %1 = alloca %"Type<String>", align 8, !dbg !7
@@ -48,14 +47,11 @@ define void @main.execute() !dbg !9 {
   %5 = load ptr, ptr @y, align 8, !dbg !16
   %6 = load %Integer, ptr %5, align 8, !dbg !16
   call void @"println <:Integer>"(%Integer %6), !dbg !16
-  call void @initialize.3(), !dbg !17
-  %7 = load %Integer, ptr @"$tmp0@79", align 8, !dbg !17
-  call void @"println <:Integer>"(%Integer %7), !dbg !17
-  %8 = load %Integer, ptr @x, align 8, !dbg !18
-  call void @destroy_integer(%Integer %8), !dbg !18
-  %9 = load %Integer, ptr @"$tmp0@79", align 8, !dbg !17
-  call void @destroy_integer(%Integer %9), !dbg !17
-  br label %return, !dbg !17
+  %7 = load %Integer, ptr @x, align 8, !dbg !17
+  %8 = call %Integer @clone_integer(%Integer %7), !dbg !17
+  call void @"println <:Integer>"(%Integer %8), !dbg !17
+  call void @destroy_integer(ptr @x), !dbg !18
+  br label %return, !dbg !18
 
 return:                                           ; preds = %0
   ret void
@@ -84,12 +80,15 @@ define private ptr @"reference to mutable <:ReferenceMut<Integer>>"(ptr %0) !dbg
   %ref = alloca ptr, align 8
   store ptr %0, ptr %ref, align 8
   %2 = load ptr, ptr %ref, align 8, !dbg !24
-  store ptr %2, ptr %return_value, align 8, !dbg !24
+  %"$tmp@4744" = alloca ptr, align 8, !dbg !24
+  store ptr %2, ptr %"$tmp@4744", align 8, !dbg !24
+  %3 = load ptr, ptr %"$tmp@4744", align 8, !dbg !24
+  store ptr %3, ptr %return_value, align 8, !dbg !24
   br label %return, !dbg !24
 
 return:                                           ; preds = %1
-  %3 = load ptr, ptr %return_value, align 8
-  ret ptr %3
+  %4 = load ptr, ptr %return_value, align 8
+  ret ptr %4
 }
 
 define private void @"println <:Integer>"(%Integer %0) !dbg !25 {
@@ -98,37 +97,20 @@ define private void @"println <:Integer>"(%Integer %0) !dbg !25 {
   %2 = load %Integer, ptr %x, align 8, !dbg !26
   %3 = call %Integer @clone_integer(%Integer %2), !dbg !26
   %4 = call %String @integer_as_string(%Integer %3), !dbg !26
-  %"$tmp0@323" = alloca %String, align 8, !dbg !26
-  store %String %4, ptr %"$tmp0@323", align 8, !dbg !26
-  %5 = load %String, ptr %"$tmp0@323", align 8, !dbg !26
-  call void @"println <:String>"(%String %5), !dbg !26
-  %6 = load %String, ptr %"$tmp0@323", align 8, !dbg !26
-  call void @destroy_string(%String %6), !dbg !26
+  call void @"println <:String>"(%String %4), !dbg !26
   br label %return, !dbg !26
 
 return:                                           ; preds = %1
   ret void
 }
 
+declare void @"println <:String>"(%String)
+
 declare %String @integer_as_string(%Integer)
 
 declare %Integer @clone_integer(%Integer)
 
-declare void @"println <:String>"(%String)
-
-declare void @destroy_string(%String)
-
-define private void @initialize.3() !dbg !27 {
-  %1 = load %Integer, ptr @x, align 8, !dbg !28
-  %2 = call %Integer @clone_integer(%Integer %1), !dbg !28
-  store %Integer %2, ptr @"$tmp0@79", align 8, !dbg !28
-  br label %return, !dbg !28
-
-return:                                           ; preds = %0
-  ret void
-}
-
-declare void @destroy_integer(%Integer)
+declare void @destroy_integer(ptr)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
@@ -160,5 +142,3 @@ declare void @destroy_integer(%Integer)
 !24 = !DILocation(line: 6, scope: !23)
 !25 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !9, file: !2, line: 6, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !26 = !DILocation(line: 6, scope: !25)
-!27 = distinct !DISubprogram(name: "initialize.3", linkageName: "initialize.3", scope: !9, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!28 = !DILocation(line: 5, column: 8, scope: !27)

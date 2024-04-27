@@ -225,13 +225,11 @@ pub extern "C" fn integer_mod_integer(x: Integer, y: Integer) -> Integer {
 
 /// # PPL
 /// ```no_run
-/// fn destroy <:Integer>
+/// fn destroy <:&mut Integer>
 /// ```
 #[no_mangle]
-pub extern "C" fn destroy_integer(x: Integer) {
-    debug_assert!(!x.data.is_null());
-
-    let _ = unsafe { Box::from_raw(x.data) };
+pub extern "C" fn destroy_integer(x: *mut Integer) {
+    let _ = unsafe { Box::from_raw(x.as_ref().unwrap().data) };
 }
 
 /// # PPL

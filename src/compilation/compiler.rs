@@ -222,7 +222,7 @@ impl Compiler {
 
         trace!(target: "steps", "Inserting destructors `{}`", path.display());
         hir.drive_mut(&mut ParameterNamer::new());
-        hir.drive_mut(&mut TemporariesInserter::new(&mut context));
+        hir.drive_mut(&mut TemporariesInserter::new());
         hir.insert_destructors(&mut context);
         debug!(target: &format!("{name}-hir-with-destructors"), "\n{:#}", hir);
 

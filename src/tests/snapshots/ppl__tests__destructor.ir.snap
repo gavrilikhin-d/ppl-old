@@ -13,7 +13,6 @@ source_filename = "src/main.ppl"
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
 @1 = private unnamed_addr constant [11 x i8] c"destructor\00", align 1
 @x = global ptr null
-@"$tmp0@154" = global %String zeroinitializer
 @2 = private unnamed_addr constant [5 x i8] c"done\00", align 1
 
 define private void @initialize() !dbg !3 {
@@ -39,33 +38,23 @@ declare %Integer @integer_from_i64(i64)
 define void @main.execute() !dbg !9 {
   call void @initialize(), !dbg !10
   call void @initialize.1(), !dbg !11
-  %1 = load ptr, ptr @x, align 8, !dbg !12
-  call void @"destroy <:Destructible>"(ptr %1), !dbg !12
-  %2 = alloca ptr, align 8, !dbg !13
-  store ptr %2, ptr @x, align 8, !dbg !13
-  call void @initialize.2(), !dbg !14
-  %3 = load %String, ptr @"$tmp0@154", align 8, !dbg !14
-  call void @"println <:String>"(%String %3), !dbg !14
-  %4 = load ptr, ptr @x, align 8, !dbg !15
-  call void @"destroy <:Destructible>"(ptr %4), !dbg !15
-  %5 = load %String, ptr @"$tmp0@154", align 8, !dbg !14
-  call void @destroy_string(%String %5), !dbg !14
-  br label %return, !dbg !14
+  call void @"destroy <:ReferenceMut<Destructible>>"(ptr @x), !dbg !12
+  %1 = alloca ptr, align 8, !dbg !13
+  store ptr %1, ptr @x, align 8, !dbg !13
+  %2 = call %String @string_from_c_string_and_length(ptr @2, i64 4), !dbg !14
+  call void @"println <:String>"(%String %2), !dbg !14
+  call void @"destroy <:ReferenceMut<Destructible>>"(ptr @x), !dbg !15
+  br label %return, !dbg !15
 
 return:                                           ; preds = %0
   ret void
 }
 
-define void @"destroy <:Destructible>"(ptr %0) !dbg !16 {
+define void @"destroy <:ReferenceMut<Destructible>>"(ptr %0) !dbg !16 {
   %"$arg0" = alloca ptr, align 8
   store ptr %0, ptr %"$arg0", align 8
   %2 = call %String @string_from_c_string_and_length(ptr @1, i64 10), !dbg !17
-  %"$tmp0@57" = alloca %String, align 8, !dbg !17
-  store %String %2, ptr %"$tmp0@57", align 8, !dbg !17
-  %3 = load %String, ptr %"$tmp0@57", align 8, !dbg !17
-  call void @"println <:String>"(%String %3), !dbg !17
-  %4 = load %String, ptr %"$tmp0@57", align 8, !dbg !17
-  call void @destroy_string(%String %4), !dbg !17
+  call void @"println <:String>"(%String %2), !dbg !17
   br label %return, !dbg !18
 
 return:                                           ; preds = %1
@@ -74,21 +63,10 @@ return:                                           ; preds = %1
 
 declare void @"println <:String>"(%String)
 
-declare void @destroy_string(%String)
-
 define private void @initialize.1() !dbg !19 {
   %1 = alloca ptr, align 8, !dbg !20
   store ptr %1, ptr @x, align 8, !dbg !20
   br label %return, !dbg !20
-
-return:                                           ; preds = %0
-  ret void
-}
-
-define private void @initialize.2() !dbg !21 {
-  %1 = call %String @string_from_c_string_and_length(ptr @2, i64 4), !dbg !22
-  store %String %1, ptr @"$tmp0@154", align 8, !dbg !22
-  br label %return, !dbg !22
 
 return:                                           ; preds = %0
   ret void
@@ -113,10 +91,8 @@ return:                                           ; preds = %0
 !13 = !DILocation(line: 5, column: 4, scope: !9)
 !14 = !DILocation(line: 7, column: 8, scope: !9)
 !15 = !DILocation(line: 4, scope: !9)
-!16 = distinct !DISubprogram(name: "destroy <:Destructible>", linkageName: "destroy <:Destructible>", scope: !9, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!17 = !DILocation(line: 2, column: 38, scope: !16)
-!18 = !DILocation(line: 2, column: 30, scope: !16)
+!16 = distinct !DISubprogram(name: "destroy <:ReferenceMut<Destructible>>", linkageName: "destroy <:ReferenceMut<Destructible>>", scope: !9, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!17 = !DILocation(line: 2, column: 43, scope: !16)
+!18 = !DILocation(line: 2, column: 35, scope: !16)
 !19 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !20 = !DILocation(line: 4, column: 12, scope: !19)
-!21 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !9, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!22 = !DILocation(line: 7, column: 8, scope: !21)

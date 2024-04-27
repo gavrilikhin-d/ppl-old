@@ -45,12 +45,7 @@ return:                                           ; preds = %0
 
 define void @"foo <:None>"() !dbg !12 {
   %1 = call %String @string_from_c_string_and_length(ptr @1, i64 3), !dbg !13
-  %"$tmp0@105" = alloca %String, align 8, !dbg !13
-  store %String %1, ptr %"$tmp0@105", align 8, !dbg !13
-  %2 = load %String, ptr %"$tmp0@105", align 8, !dbg !13
-  call void @print_string(%String %2), !dbg !13
-  %3 = load %String, ptr %"$tmp0@105", align 8, !dbg !13
-  call void @destroy_string(%String %3), !dbg !13
+  call void @print_string(%String %1), !dbg !13
   br label %return, !dbg !14
 
 return:                                           ; preds = %0
@@ -59,16 +54,9 @@ return:                                           ; preds = %0
 
 declare void @print_string(%String)
 
-declare void @destroy_string(%String)
-
 define void @"bar <:None>"() !dbg !15 {
   %1 = call %String @string_from_c_string_and_length(ptr @2, i64 3), !dbg !16
-  %"$tmp0@137" = alloca %String, align 8, !dbg !16
-  store %String %1, ptr %"$tmp0@137", align 8, !dbg !16
-  %2 = load %String, ptr %"$tmp0@137", align 8, !dbg !16
-  call void @"println <:String>"(%String %2), !dbg !16
-  %3 = load %String, ptr %"$tmp0@137", align 8, !dbg !16
-  call void @destroy_string(%String %3), !dbg !16
+  call void @"println <:String>"(%String %1), !dbg !16
   br label %return, !dbg !17
 
 return:                                           ; preds = %0

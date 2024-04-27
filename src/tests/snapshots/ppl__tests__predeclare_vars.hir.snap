@@ -5,17 +5,15 @@ expression: hir
 let x: Integer = 1
 
 fn get x -> Integer:
-	let $tmp0@22: Integer = clone (x:Integer)
-	return ($tmp0@22:Integer)
+	let $tmp@22: Integer = clone (x:Integer)
+	return ($tmp@22:Integer)
 
 let y: Integer = get x
 
 fn get y -> Integer:
-	let $tmp0@51: Integer = clone (y:Integer)
-	return ($tmp0@51:Integer)
+	let $tmp@51: Integer = clone (y:Integer)
+	return ($tmp@51:Integer)
 
-let $tmp0@62: Integer = clone (y:Integer)
-println ($tmp0@62:Integer)
+println clone (y:Integer)
 destroy (x:Integer)
 destroy (y:Integer)
-destroy ($tmp0@62:Integer)

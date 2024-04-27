@@ -113,7 +113,7 @@ fn <x: Integer> % <y: Integer> -> Integer
 fn String from <:Integer> -> String
 
 @mangle_as("destroy_integer")
-fn destroy <:Integer>
+fn destroy <:&mut Integer>
 
 @mangle_as("clone_integer")
 fn clone <:Integer> -> Integer
@@ -156,7 +156,7 @@ fn <:Rational> / <:Rational> -> Rational
 fn String from <:Rational> -> String
 
 @mangle_as("destroy_rational")
-fn destroy <:Rational>
+fn destroy <:&mut Rational>
 
 @mangle_as("clone_rational")
 fn clone <:Rational> -> Rational
@@ -183,7 +183,7 @@ fn print <:String>
 fn println <str: String> => print (str + "\n")
 
 @mangle_as("destroy_string")
-fn destroy <:String>
+fn destroy <:&mut String>
 
 @mangle_as("clone_string")
 fn clone <:String> -> String
@@ -230,6 +230,6 @@ fn<T> reference to <ref: Reference<T>> => ref
 //=================================
 /// Trait for things that have a destructor
 trait Destroy:
-	fn destroy <:Self>
+	fn destroy <:&mut Self>
 //=================================
 

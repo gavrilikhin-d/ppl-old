@@ -3,17 +3,11 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let n: Integer = size of (Type<I32>:Type<I32>)
-let $tmp0@76: Integer = clone (n:Integer)
-let address: MemoryAddress = allocate ($tmp0@76:Integer) bytes
+let address: MemoryAddress = allocate clone (n:Integer) bytes
 let value: ReferenceMut<I32> = (Type<I32>:Type<I32>) at (address:MemoryAddress)
-let $tmp0@119: Integer = 0
-(value:ReferenceMut<I32>) = ($tmp0@119:Integer) as I32
+(value:ReferenceMut<I32>) = 0 as I32
 println (*value:I32)
-let $tmp0@150: Integer = 1
-(value:ReferenceMut<I32>) = ($tmp0@150:Integer) as I32
+(value:ReferenceMut<I32>) = 1 as I32
 println (*value:I32)
 free (address:MemoryAddress)
 destroy (n:Integer)
-destroy ($tmp0@76:Integer)
-destroy ($tmp0@119:Integer)
-destroy ($tmp0@150:Integer)
