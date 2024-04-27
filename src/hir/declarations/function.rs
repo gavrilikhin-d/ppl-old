@@ -79,16 +79,21 @@ impl Ranged for Parameter {
 
 impl DriveMut for Parameter {
     fn drive_mut<V: derive_visitor::VisitorMut>(&mut self, visitor: &mut V) {
-        self.write().unwrap().drive_mut(visitor)
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Enter);
+        self.write().unwrap().drive_mut(visitor);
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Exit);
     }
 }
 
 /// Declaration of a function parameter
 #[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct ParameterData {
-    /// Type's name
+    /// Parameters's name
     #[drive(skip)]
-    pub name: Identifier,
+    pub name: String,
+    /// Range of the name
+    #[drive(skip)]
+    pub name_range: Range<usize>,
     /// Type of parameter
     #[drive(skip)]
     pub ty: TypeReference,
@@ -135,7 +140,6 @@ impl Mutable for ParameterData {
 pub enum FunctionNamePart {
     #[drive(skip)]
     Text(Identifier),
-    #[drive(skip)]
     Parameter(Parameter),
 }
 
@@ -222,7 +226,9 @@ impl Ranged for Function {
 
 impl DriveMut for Function {
     fn drive_mut<V: derive_visitor::VisitorMut>(&mut self, visitor: &mut V) {
-        self.write().unwrap().drive_mut(visitor)
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Enter);
+        self.write().unwrap().drive_mut(visitor);
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Exit);
     }
 }
 
@@ -545,7 +551,8 @@ mod tests {
             constraint: None,
         };
         let param = ParameterData {
-            name: Identifier::from("x").at(7),
+            name: "x".to_string(),
+            name_range: 7..8,
             ty: TypeReference {
                 referenced_type: ty.clone().into(),
                 span: 10..11,

@@ -4,7 +4,7 @@ expression: hir
 ---
 type Destructible
 
-fn destroy <:Destructible> -> None:
+fn destroy <$arg0: Destructible> -> None:
 	let $tmp0@57: String = "destructor"
 	let $tmp1@49: None = println ($tmp0@57:String)
 	destroy ($tmp0@57:String)

@@ -9,7 +9,7 @@ use indexmap::IndexMap;
 use crate::{
     ast,
     hir::{ClassData, FunctionData, ModuleData, TraitData},
-    semantics::{InsertDestructors, ModuleContext, TemporariesInserter, ToHIR},
+    semantics::{InsertDestructors, ModuleContext, ParameterNamer, TemporariesInserter, ToHIR},
     SourceFile,
 };
 use log::{debug, trace};
@@ -221,6 +221,7 @@ impl Compiler {
         debug!(target: &format!("{name}-hir"), "\n{:#}", hir);
 
         trace!(target: "steps", "Inserting destructors `{}`", path.display());
+        hir.drive_mut(&mut ParameterNamer::new());
         hir.drive_mut(&mut TemporariesInserter::new(&mut context));
         hir.insert_destructors(&mut context);
         debug!(target: &format!("{name}-hir-with-destructors"), "\n{:#}", hir);

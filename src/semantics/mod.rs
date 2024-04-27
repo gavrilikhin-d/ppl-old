@@ -34,3 +34,6 @@ pub use destructors::*;
 
 mod tmp;
 pub use tmp::*;
+
+mod unnamed;
+pub use unnamed::*;

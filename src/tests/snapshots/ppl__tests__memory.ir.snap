@@ -105,6 +105,8 @@ define private %MemoryAddress @"allocate <:Integer> <:Type<Integer>>"(%Integer %
   %return_value = alloca %MemoryAddress, align 8
   %n = alloca %Integer, align 8
   store %Integer %0, ptr %n, align 8
+  %"$arg1" = alloca %"Type<Integer>", align 8
+  store %"Type<Integer>" %1, ptr %"$arg1", align 8
   %3 = load %Integer, ptr %n, align 8, !dbg !30
   %4 = call %Integer @clone_integer(%Integer %3), !dbg !30
   %"$tmp0@769" = alloca %Integer, align 8, !dbg !30

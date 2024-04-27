@@ -3,7 +3,7 @@ source: src/tests/mod.rs
 expression: hir
 ---
 trait Test:
-	fn required <:Self> -> None
+	fn required <$arg0: Self> -> None
 
 	fn default <x: Self> -> Self:
 		return (x:Self)

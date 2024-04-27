@@ -189,7 +189,7 @@ impl ToHIR for ast::Call {
                                 },
                             }
                             .convert_to(p.ty().at(SourceLocation {
-                                at: p.read().unwrap().name.range().into(),
+                                at: p.read().unwrap().name_range.clone().into(),
                                 source_file: Some(source_file.clone()),
                             }))
                             .within(context);
@@ -556,7 +556,8 @@ impl ToHIR for ast::Parameter {
             ty
         };
         Ok(Parameter::new(hir::ParameterData {
-            name: self.name.clone(),
+            name: self.name.to_string(),
+            name_range: self.name.range(),
             ty,
             range: self.less..self.greater + 1,
         }))
