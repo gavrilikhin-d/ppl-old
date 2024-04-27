@@ -88,9 +88,12 @@ impl DriveMut for Parameter {
 /// Declaration of a function parameter
 #[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
 pub struct ParameterData {
-    /// Type's name
+    /// Parameters's name
     #[drive(skip)]
-    pub name: Identifier,
+    pub name: String,
+    /// Range of the name
+    #[drive(skip)]
+    pub name_range: Range<usize>,
     /// Type of parameter
     #[drive(skip)]
     pub ty: TypeReference,
@@ -548,7 +551,8 @@ mod tests {
             constraint: None,
         };
         let param = ParameterData {
-            name: Identifier::from("x").at(7),
+            name: "x".to_string(),
+            name_range: 7..8,
             ty: TypeReference {
                 referenced_type: ty.clone().into(),
                 span: 10..11,

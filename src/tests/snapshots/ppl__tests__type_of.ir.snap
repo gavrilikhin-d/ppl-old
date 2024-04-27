@@ -89,6 +89,8 @@ return:                                           ; preds = %0
 
 define private %"Type<Integer>" @"type of <:Integer>"(%Integer %0) !dbg !21 {
   %return_value = alloca %"Type<Integer>", align 8
+  %"$arg0" = alloca %Integer, align 8
+  store %Integer %0, ptr %"$arg0", align 8
   %2 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !22
   %"$tmp0@4438" = alloca %"Type<Integer>", align 8, !dbg !22
   store %"Type<Integer>" %2, ptr %"$tmp0@4438", align 8, !dbg !22

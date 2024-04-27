@@ -118,6 +118,8 @@ declare void @destroy_string(%String)
 
 define private %"Type<A>" @"type of <:A>"(ptr %0) !dbg !22 {
   %return_value = alloca %"Type<A>", align 8
+  %"$arg0" = alloca ptr, align 8
+  store ptr %0, ptr %"$arg0", align 8
   %2 = load %"Type<A>", ptr @"Type<A>", align 8, !dbg !23
   %"$tmp0@4438" = alloca %"Type<A>", align 8, !dbg !23
   store %"Type<A>" %2, ptr %"$tmp0@4438", align 8, !dbg !23
