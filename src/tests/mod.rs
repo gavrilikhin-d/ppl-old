@@ -42,3 +42,31 @@ e2es! {
     type_of,
     wrong_initializer_type
 }
+
+#[test]
+fn ppl() {
+    use std::path::Path;
+
+    use insta::assert_snapshot;
+    use tempdir::TempDir;
+
+    // Compile-time check that file exists
+    include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/ppl/src/lib.ppl"));
+
+    let temp_dir = TempDir::new("ppl").unwrap();
+    let tmp = temp_dir.path();
+    let name = "ppl";
+    let dir = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/ppl"));
+
+    let res = crate::e2e::internal::compile(&tmp, dir);
+    if let Err(err) = res {
+        assert_snapshot!("ppl.error", err);
+        return;
+    }
+
+    let hir = crate::e2e::internal::hir(&tmp, name, &dir);
+    assert_snapshot!("ppl.hir", hir);
+
+    let ir = crate::e2e::internal::ir(&tmp, name, &dir);
+    assert_snapshot!("ppl.ir", ir);
+}
