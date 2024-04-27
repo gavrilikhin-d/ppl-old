@@ -50,14 +50,8 @@ impl<'ctx> TemporariesInserter<'ctx> {
             Expression::VariableReference(_)
                 | Expression::MemberReference(_)
                 | Expression::ImplicitConversion(_)
+                | Expression::Literal(_)
         ) {
-            return;
-        }
-
-        if self.depth == 0
-            && matches!(self.inside_of, Some(InsideOf::Return))
-            && matches!(expr, Expression::Literal(_))
-        {
             return;
         }
 
