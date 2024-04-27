@@ -85,7 +85,9 @@ impl Ranged for Variable {
 
 impl DriveMut for Variable {
     fn drive_mut<V: derive_visitor::VisitorMut>(&mut self, visitor: &mut V) {
-        self.write().unwrap().drive_mut(visitor)
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Enter);
+        self.write().unwrap().drive_mut(visitor);
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Exit);
     }
 }
 

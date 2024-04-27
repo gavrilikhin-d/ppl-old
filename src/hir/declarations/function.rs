@@ -79,7 +79,9 @@ impl Ranged for Parameter {
 
 impl DriveMut for Parameter {
     fn drive_mut<V: derive_visitor::VisitorMut>(&mut self, visitor: &mut V) {
-        self.write().unwrap().drive_mut(visitor)
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Enter);
+        self.write().unwrap().drive_mut(visitor);
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Exit);
     }
 }
 
@@ -135,7 +137,6 @@ impl Mutable for ParameterData {
 pub enum FunctionNamePart {
     #[drive(skip)]
     Text(Identifier),
-    #[drive(skip)]
     Parameter(Parameter),
 }
 
@@ -222,7 +223,9 @@ impl Ranged for Function {
 
 impl DriveMut for Function {
     fn drive_mut<V: derive_visitor::VisitorMut>(&mut self, visitor: &mut V) {
-        self.write().unwrap().drive_mut(visitor)
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Enter);
+        self.write().unwrap().drive_mut(visitor);
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Exit);
     }
 }
 
