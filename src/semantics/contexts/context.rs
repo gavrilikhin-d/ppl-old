@@ -92,7 +92,11 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
     }
 
     /// Find destructor for type
-    fn destructor_for(&mut self, ty: Type) -> Option<Function> {
+    fn destructor_for(&mut self, ty: Type) -> Option<Function>
+    where
+        Self: Sized,
+    {
+        let ty = self.builtin().types().reference_mut_to(ty);
         let name = format!("destroy <:{ty}>");
         self.function_with_name(&name)
     }

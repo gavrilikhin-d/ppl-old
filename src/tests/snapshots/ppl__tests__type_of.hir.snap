@@ -2,7 +2,5 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let $tmp0@19: Integer = 1
-let ty: Type<Integer> = type of ($tmp0@19:Integer)
+let ty: Type<Integer> = type of 1
 println (ty:Type<Integer>)
-destroy ($tmp0@19:Integer)

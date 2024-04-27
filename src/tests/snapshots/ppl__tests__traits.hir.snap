@@ -6,17 +6,17 @@ trait Test:
 	fn required <$arg0: Self> -> None
 
 	fn default <x: Self> -> Self:
-		return (x:Self)
+		let $tmp@59: Self = (x:Self)
+		return ($tmp@59:Self)
+
 
 
 
 fn required <x: Integer> -> None:
-	return none
+	let $tmp@124: None = none
+	destroy (x:Integer)
+	return ($tmp@124:None)
 
-let $tmp0@149: Integer = 1
-let res: Integer = default ($tmp0@149:Integer)
-let $tmp0@159: Integer = clone (res:Integer)
-println ($tmp0@159:Integer)
-destroy ($tmp0@149:Integer)
+let res: Integer = default 1
+println clone (res:Integer)
 destroy (res:Integer)
-destroy ($tmp0@159:Integer)

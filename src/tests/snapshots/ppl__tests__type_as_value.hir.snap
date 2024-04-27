@@ -4,26 +4,10 @@ expression: hir
 ---
 let x: Type<Integer> = (Type<Integer>:Type<Integer>)
 let y: Integer = clone (Type<Integer>:Type<Integer>).size
-let $tmp0@9: Integer = size of (Type<None>:Type<None>)
-let $tmp1@26: Integer = 0
-println ($tmp0@9:Integer) == ($tmp1@26:Integer)
-let $tmp0@37: Integer = size of (Type<Bool>:Type<Bool>)
-let $tmp1@54: Integer = 1
-println ($tmp0@37:Integer) == ($tmp1@54:Integer)
-let $tmp0@65: String = String from (Type<None>:Type<None>)
-println ($tmp0@65:String)
-let $tmp0@92: String = String from (Type<Type<Integer>>:Type<Type<Integer>>)
-println ($tmp0@92:String)
-let $tmp0@165: Integer = clone (y:Integer)
-let $tmp1@171: Integer = size of (Type<Integer>:Type<Integer>)
-println ($tmp0@165:Integer) == ($tmp1@171:Integer)
+println size of (Type<None>:Type<None>) == 0
+println size of (Type<Bool>:Type<Bool>) == 1
+println String from (Type<None>:Type<None>)
+println String from (Type<Type<Integer>>:Type<Type<Integer>>)
+println clone (y:Integer) == size of (Type<Integer>:Type<Integer>)
 println (Type<Integer>:Type<Integer>)
 destroy (y:Integer)
-destroy ($tmp0@9:Integer)
-destroy ($tmp1@26:Integer)
-destroy ($tmp0@37:Integer)
-destroy ($tmp1@54:Integer)
-destroy ($tmp0@65:String)
-destroy ($tmp0@92:String)
-destroy ($tmp0@165:Integer)
-destroy ($tmp1@171:Integer)

@@ -4,10 +4,9 @@ expression: hir
 ---
 type Destructible
 
-fn destroy <$arg0: Destructible> -> None:
-	let $tmp0@49: None = println "destructor"
-	destroy ($arg0:Destructible)
-	return ($tmp0@49:None)
+fn destroy <$arg0: ReferenceMut<Destructible>> -> None:
+	let $tmp@54: None = println "destructor"
+	return ($tmp@54:None)
 
 let mut x: Destructible = Destructible {  }
 destroy (x:Destructible)

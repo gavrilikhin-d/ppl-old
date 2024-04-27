@@ -140,13 +140,11 @@ pub extern "C" fn rational_less_rational(x: Rational, y: Rational) -> bool {
 
 /// # PPL
 /// ```no_run
-/// fn destroy <:Rational>
+/// fn destroy <:&mut Rational>
 /// ```
 #[no_mangle]
-pub extern "C" fn destroy_rational(x: Rational) {
-    debug_assert!(!x.data.is_null());
-
-    let _ = unsafe { Box::from_raw(x.data) };
+pub extern "C" fn destroy_rational(x: *mut Rational) {
+    let _ = unsafe { Box::from_raw(x.as_ref().unwrap().data) };
 }
 
 /// # PPL

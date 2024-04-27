@@ -2,88 +2,18 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let $tmp0@8: Rational = 0.0
-println ($tmp0@8:Rational)
-let $tmp0@21: Rational = 1.0
-let $tmp1@20: Rational = + ($tmp0@21:Rational)
-println ($tmp1@20:Rational)
-let $tmp0@34: Rational = 2.0
-let $tmp1@33: Rational = - ($tmp0@34:Rational)
-println ($tmp1@33:Rational)
-let $tmp0@46: Rational = 1.0
-let $tmp1@52: Rational = 2.0
-let $tmp2@46: Rational = ($tmp0@46:Rational) + ($tmp1@52:Rational)
-println ($tmp2@46:Rational)
-let $tmp0@64: Rational = 5.0
-let $tmp1@70: Rational = 1.0
-let $tmp2@64: Rational = ($tmp0@64:Rational) - ($tmp1@70:Rational)
-println ($tmp2@64:Rational)
-let $tmp0@82: Rational = 2.5
-let $tmp1@88: Rational = 2.0
-let $tmp2@82: Rational = ($tmp0@82:Rational) * ($tmp1@88:Rational)
-println ($tmp2@82:Rational)
-let $tmp0@100: Rational = 9.0
-let $tmp1@107: Integer = 3
-let $tmp2@111: Integer = 2
-let $tmp3@107: Rational = ($tmp1@107:Integer) / ($tmp2@111:Integer)
-let $tmp4@100: Rational = ($tmp0@100:Rational) / ($tmp3@107:Rational)
-println ($tmp4@100:Rational)
-let $tmp0@122: Rational = 0.0
-let $tmp1@129: Rational = 0.0
-println ($tmp0@122:Rational) == ($tmp1@129:Rational)
-let $tmp0@141: Rational = 1.0
-let $tmp1@148: Rational = 0.0
-println ($tmp0@141:Rational) != ($tmp1@148:Rational)
-let $tmp0@160: Rational = 0.0
-let $tmp1@166: Rational = 1.0
-println ($tmp0@160:Rational) < ($tmp1@166:Rational)
-let $tmp0@178: Rational = 1.0
-let $tmp1@184: Rational = 0.0
-println ($tmp0@178:Rational) > ($tmp1@184:Rational)
-let $tmp0@196: Rational = 0.0
-let $tmp1@203: Rational = 0.0
-println ($tmp0@196:Rational) <= ($tmp1@203:Rational)
-let $tmp0@216: Rational = 0.0
-let $tmp1@223: Rational = 1.0
-println ($tmp0@216:Rational) <= ($tmp1@223:Rational)
-let $tmp0@235: Rational = 0.0
-let $tmp1@242: Rational = 0.0
-println ($tmp0@235:Rational) >= ($tmp1@242:Rational)
-let $tmp0@254: Rational = 1.0
-let $tmp1@261: Rational = 0.0
-println ($tmp0@254:Rational) >= ($tmp1@261:Rational)
-destroy ($tmp0@8:Rational)
-destroy ($tmp0@21:Rational)
-destroy ($tmp1@20:Rational)
-destroy ($tmp0@34:Rational)
-destroy ($tmp1@33:Rational)
-destroy ($tmp0@46:Rational)
-destroy ($tmp1@52:Rational)
-destroy ($tmp2@46:Rational)
-destroy ($tmp0@64:Rational)
-destroy ($tmp1@70:Rational)
-destroy ($tmp2@64:Rational)
-destroy ($tmp0@82:Rational)
-destroy ($tmp1@88:Rational)
-destroy ($tmp2@82:Rational)
-destroy ($tmp0@100:Rational)
-destroy ($tmp1@107:Integer)
-destroy ($tmp2@111:Integer)
-destroy ($tmp3@107:Rational)
-destroy ($tmp4@100:Rational)
-destroy ($tmp0@122:Rational)
-destroy ($tmp1@129:Rational)
-destroy ($tmp0@141:Rational)
-destroy ($tmp1@148:Rational)
-destroy ($tmp0@160:Rational)
-destroy ($tmp1@166:Rational)
-destroy ($tmp0@178:Rational)
-destroy ($tmp1@184:Rational)
-destroy ($tmp0@196:Rational)
-destroy ($tmp1@203:Rational)
-destroy ($tmp0@216:Rational)
-destroy ($tmp1@223:Rational)
-destroy ($tmp0@235:Rational)
-destroy ($tmp1@242:Rational)
-destroy ($tmp0@254:Rational)
-destroy ($tmp1@261:Rational)
+println 0.0
+println + 1.0
+println - 2.0
+println 1.0 + 2.0
+println 5.0 - 1.0
+println 2.5 * 2.0
+println 9.0 / 3 / 2
+println 0.0 == 0.0
+println 1.0 != 0.0
+println 0.0 < 1.0
+println 1.0 > 0.0
+println 0.0 <= 0.0
+println 0.0 <= 1.0
+println 0.0 >= 0.0
+println 1.0 >= 0.0

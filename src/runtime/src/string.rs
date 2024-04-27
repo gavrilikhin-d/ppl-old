@@ -64,10 +64,8 @@ pub extern "C" fn print_string(str: String) {
 /// fn destroy <:String>
 /// ```
 #[no_mangle]
-pub extern "C" fn destroy_string(x: String) {
-    debug_assert!(!x.data.is_null());
-
-    let _ = unsafe { Box::from_raw(x.data) };
+pub extern "C" fn destroy_string(x: *mut String) {
+    let _ = unsafe { Box::from_raw(x.as_ref().unwrap().data) };
 }
 
 /// # PPL

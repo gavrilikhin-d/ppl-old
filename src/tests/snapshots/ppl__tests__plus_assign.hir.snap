@@ -4,20 +4,10 @@ expression: hir
 ---
 let mut value: Rational = 0.0
 let mut str: String = "Hello"
-let $tmp0@28: Rational = clone (value:Rational)
-println ($tmp0@28:Rational)
-let $tmp0@43: Rational = 1.0
-(&value:ReferenceMut<Rational>) += ($tmp0@43:Rational)
-let $tmp0@55: Rational = clone (value:Rational)
-println ($tmp0@55:Rational)
-let $tmp0@91: String = " World!"
-(&str:ReferenceMut<String>) += ($tmp0@91:String)
-let $tmp0@109: String = clone (str:String)
-println ($tmp0@109:String)
+println clone (value:Rational)
+(&value:ReferenceMut<Rational>) += 1.0
+println clone (value:Rational)
+(&str:ReferenceMut<String>) += " World!"
+println clone (str:String)
 destroy (value:Rational)
 destroy (str:String)
-destroy ($tmp0@28:Rational)
-destroy ($tmp0@43:Rational)
-destroy ($tmp0@55:Rational)
-destroy ($tmp0@91:String)
-destroy ($tmp0@109:String)
