@@ -12,7 +12,6 @@ source_filename = "src/main.ppl"
 
 @"Type<String>" = private global %"Type<String>" zeroinitializer
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
-@"$tmp0@42" = global %Integer zeroinitializer
 
 define private void @initialize() !dbg !3 {
   %1 = alloca %"Type<String>", align 8, !dbg !7
@@ -36,30 +35,16 @@ declare %Integer @integer_from_i64(i64)
 
 define void @main.execute() !dbg !9 {
   call void @initialize(), !dbg !10
-  call void @initialize.1(), !dbg !11
-  %1 = alloca %"Point<Integer>", align 8, !dbg !12
-  %"Point<Integer>.x" = getelementptr inbounds %"Point<Integer>", ptr %1, i32 0, i32 0, !dbg !12
-  %2 = load %Integer, ptr @"$tmp0@42", align 8, !dbg !11
-  store %Integer %2, ptr %"Point<Integer>.x", align 8, !dbg !11
-  %3 = load %"Point<Integer>", ptr %1, align 8, !dbg !11
-  %4 = load %Integer, ptr @"$tmp0@42", align 8, !dbg !11
-  call void @destroy_integer(%Integer %4), !dbg !11
-  br label %return, !dbg !11
+  %1 = alloca %"Point<Integer>", align 8, !dbg !11
+  %"Point<Integer>.x" = getelementptr inbounds %"Point<Integer>", ptr %1, i32 0, i32 0, !dbg !11
+  %2 = call %Integer @integer_from_i64(i64 1), !dbg !12
+  store %Integer %2, ptr %"Point<Integer>.x", align 8, !dbg !12
+  %3 = load %"Point<Integer>", ptr %1, align 8, !dbg !12
+  br label %return, !dbg !12
 
 return:                                           ; preds = %0
   ret void
 }
-
-define private void @initialize.1() !dbg !13 {
-  %1 = call %Integer @integer_from_i64(i64 1), !dbg !14
-  store %Integer %1, ptr @"$tmp0@42", align 8, !dbg !14
-  br label %return, !dbg !14
-
-return:                                           ; preds = %0
-  ret void
-}
-
-declare void @destroy_integer(%Integer)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
@@ -75,7 +60,5 @@ declare void @destroy_integer(%Integer)
 !8 = !DILocation(line: 0, scope: !3)
 !9 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !10 = !DILocation(line: 3, column: 23, scope: !9)
-!11 = !DILocation(line: 3, column: 20, scope: !9)
-!12 = !DILocation(line: 3, scope: !9)
-!13 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!14 = !DILocation(line: 3, column: 20, scope: !13)
+!11 = !DILocation(line: 3, scope: !9)
+!12 = !DILocation(line: 3, column: 20, scope: !9)

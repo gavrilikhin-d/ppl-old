@@ -11,10 +11,6 @@ fn x of <p: Reference<Point>> -> Integer:
 	let $tmp0@61: Integer = clone (*p:Point).x
 	return ($tmp0@61:Integer)
 
-let $tmp0@91: Integer = 1
-let $tmp1@97: Integer = 2
-let $tmp2@75: Integer = x of (&Point { x: ($tmp0@91:Integer), y: ($tmp1@97:Integer) }:Reference<Point>)
-println ($tmp2@75:Integer)
-destroy ($tmp0@91:Integer)
-destroy ($tmp1@97:Integer)
-destroy ($tmp2@75:Integer)
+let $tmp0@75: Integer = x of (&Point { x: 1, y: 2 }:Reference<Point>)
+println ($tmp0@75:Integer)
+destroy ($tmp0@75:Integer)

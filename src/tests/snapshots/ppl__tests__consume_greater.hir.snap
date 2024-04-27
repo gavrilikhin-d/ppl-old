@@ -5,6 +5,4 @@ expression: hir
 type Point<U>:
 	x: U
 
-let $tmp0@42: Integer = 1
-Point<Integer> { x: ($tmp0@42:Integer) }
-destroy ($tmp0@42:Integer)
+Point<Integer> { x: 1 }

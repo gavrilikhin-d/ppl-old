@@ -3,9 +3,7 @@ source: src/tests/mod.rs
 expression: hir
 ---
 fn foo -> None:
-	let $tmp0@18: String = "foo"
-	let $tmp1@10: None = println ($tmp0@18:String)
-	destroy ($tmp0@18:String)
-	return ($tmp1@10:None)
+	let $tmp0@10: None = println "foo"
+	return ($tmp0@10:None)
 
 foo
