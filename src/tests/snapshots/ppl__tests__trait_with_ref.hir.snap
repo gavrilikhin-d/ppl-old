@@ -1,0 +1,20 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+trait Foo:
+	fn foo <$arg0: Reference<Integer>> -> None
+
+
+fn foo <$arg0: Reference<Integer>> -> None:
+	let $tmp@51: None = println "foo integer"
+	return ($tmp@51:None)
+
+
+fn bar <x: Reference<Foo>> -> None:
+	let $tmp@94: None = foo (x:Reference<Foo>)
+	return ($tmp@94:None)
+
+let x: Integer = 0
+bar (&x:Reference<Integer>)
+destroy (x:Integer)

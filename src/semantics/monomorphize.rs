@@ -338,6 +338,15 @@ impl Monomorphize for ParameterOrVariable {
 impl Monomorphize for FunctionData {
     fn monomorphize(&mut self, context: &mut impl Context) {
         if !self.is_generic() {
+            if self.is_from_trait() && !self.is_definition() {
+                debug!(target: "linking-trait-fn-from", "{self}");
+
+                // Unknown type here is ok, because we don't have selfs any more
+                let real_impl = context.find_implementation(self, &Type::Unknown).unwrap();
+                *self = real_impl.read().unwrap().clone();
+                debug!(target: "linking-trait-fn-to", "{self}");
+                return;
+            }
             trace!(target: "monomorphizing-skipped", "{self}");
             return;
         }

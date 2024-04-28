@@ -332,6 +332,11 @@ impl FunctionData {
     pub fn is_definition(&self) -> bool {
         !self.body.is_empty()
     }
+
+    /// Is this a trait function?
+    pub fn is_from_trait(&self) -> bool {
+        self.tr.is_some()
+    }
 }
 
 impl Ranged for FunctionData {
