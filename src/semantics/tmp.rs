@@ -4,14 +4,15 @@ use derive_visitor::VisitorMut;
 
 use crate::{
     hir::{
-        Block, Declaration, Return, Statement, Typed, Variable, VariableData, VariableReference,
+        Block, Declaration, Expression, ImplicitConversion, ImplicitConversionKind, Return,
+        Statement, Typed, Variable, VariableData, VariableReference,
     },
-    mutability::Mutability,
+    mutability::Mutable,
     syntax::{Identifier, Keyword, Ranged},
 };
 
 #[derive(VisitorMut)]
-#[visitor(Statement(exit), Return(enter))]
+#[visitor(Statement(exit), Return(enter), ImplicitConversion(enter))]
 pub struct TemporariesInserter {
     temporaries: Vec<Variable>,
 }
@@ -23,16 +24,11 @@ impl<'ctx> TemporariesInserter {
         }
     }
 
-    fn enter_return(&mut self, ret: &mut Return) {
-        if ret.value().is_none() {
-            return;
-        }
-
-        let expr = ret.value_mut().unwrap();
+    fn replace_with_tmp(&mut self, expr: &mut Expression) {
         let offset = expr.start();
         let tmp = Variable::new(VariableData {
             keyword: Keyword::<"let">::at(offset),
-            mutability: Mutability::Immutable,
+            mutability: expr.mutability(),
             name: Identifier::from(format!("$tmp@{offset}")).at(offset),
             type_reference: None,
             ty: expr.ty(),
@@ -44,6 +40,20 @@ impl<'ctx> TemporariesInserter {
         }
         .into();
         self.temporaries.push(tmp);
+    }
+
+    fn enter_implicit_conversion(&mut self, conv: &mut ImplicitConversion) {
+        if conv.kind != ImplicitConversionKind::Reference
+            || !matches!(*conv.expression, Expression::Literal(_))
+        {
+            return;
+        }
+
+        self.replace_with_tmp(&mut conv.expression)
+    }
+
+    fn enter_return(&mut self, ret: &mut Return) {
+        ret.value_mut().map(|expr| self.replace_with_tmp(expr));
     }
 
     fn exit_statement(&mut self, stmt: &mut Statement) {
