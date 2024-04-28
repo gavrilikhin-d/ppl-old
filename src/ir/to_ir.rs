@@ -236,7 +236,7 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for ClassData {
     fn to_ir(&self, context: &mut C) -> Self::IR {
         trace!(target: "to_ir", "{self}");
 
-        if self.is_none() {
+        if self.is_none() || self.is_any_reference() && self.generics()[0].is_none() {
             return context.types().none().into();
         } else if self.is_bool() {
             return context.types().bool().into();
