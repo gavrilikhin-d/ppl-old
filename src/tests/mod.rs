@@ -32,6 +32,7 @@ e2es! {
     predeclare_vars,
     rational,
     reference_mut,
+    reference_to_none,
     references,
     specify_variable_ty,
     star,

@@ -1,0 +1,4 @@
+fn foo <:&None> => println "foo"
+
+let x = none
+foo x
