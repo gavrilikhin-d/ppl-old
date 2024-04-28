@@ -1,13 +1,12 @@
 use core::panic;
 use std::collections::HashMap;
-use std::sync::Arc;
 
 use indexmap::IndexMap;
 
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
-    self, FunctionNamePart, Generic, GenericType, ModuleData, Parameter, Specialize, Type,
+    self, FunctionNamePart, Generic, GenericType, Member, ModuleData, Parameter, Specialize, Type,
     TypeReference, Typed, Variable, VariableData,
 };
 use crate::mutability::{Mutability, Mutable};
@@ -418,7 +417,7 @@ impl ToHIR for ast::Constructor {
                         at: value.range().into(),
                     },
                 }
-                .convert_to(member.ty().at(member.name.range()))
+                .convert_to(member.ty().at(member.read().unwrap().name.range()))
                 .within(&mut constructor_context)?;
 
                 if let Some(prev) = initializers.iter().find(|i| i.index == index) {
@@ -431,10 +430,11 @@ impl ToHIR for ast::Constructor {
                 }
 
                 if member.is_generic() {
-                    members[index] = Arc::new(hir::MemberData {
+                    let new_member = Member::new(hir::MemberData {
                         ty: value.ty(),
-                        ..members[index].as_ref().clone()
-                    })
+                        ..members[index].read().unwrap().clone()
+                    });
+                    members[index] = new_member;
                 }
 
                 initializers.push(hir::Initializer {
@@ -527,11 +527,11 @@ impl Condition for ast::Expression {
 }
 
 impl ToHIR for ast::Member {
-    type HIR = Arc<hir::MemberData>;
+    type HIR = Member;
 
     /// Lower [`ast::Member`] to [`hir::Member`] within lowering context
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
-        Ok(Arc::new(hir::MemberData {
+        Ok(Member::new(hir::MemberData {
             name: self.name.clone(),
             ty: self.ty.to_hir(context)?.referenced_type,
         }))

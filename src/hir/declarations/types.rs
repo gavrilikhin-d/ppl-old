@@ -42,12 +42,6 @@ impl Member {
     }
 }
 
-impl Display for Member {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.read().unwrap().fmt(f)
-    }
-}
-
 impl PartialEq for Member {
     fn eq(&self, other: &Self) -> bool {
         *self.read().unwrap() == *other.read().unwrap()
@@ -74,12 +68,6 @@ impl Typed for Member {
     }
 }
 
-impl Mutable for Member {
-    fn is_mutable(&self) -> bool {
-        self.read().unwrap().is_mutable()
-    }
-}
-
 impl Ranged for Member {
     fn range(&self) -> std::ops::Range<usize> {
         self.read().unwrap().range()
@@ -91,6 +79,12 @@ impl DriveMut for Member {
         derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Enter);
         self.write().unwrap().drive_mut(visitor);
         derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Exit);
+    }
+}
+
+impl Hash for Member {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.read().unwrap().hash(state)
     }
 }
 
@@ -331,12 +325,12 @@ pub struct ClassData {
     /// Kind of a builtin type, if it is a builtin class
     pub builtin: Option<BuiltinClass>,
     /// Members of type
-    pub members: Vec<Arc<MemberData>>,
+    pub members: Vec<Member>,
 }
 
 impl ClassData {
     /// Get member by name
-    pub fn members(&self) -> &[Arc<MemberData>] {
+    pub fn members(&self) -> &[Member] {
         self.members.as_slice()
     }
 
@@ -410,7 +404,7 @@ impl ClassData {
 
         self.members
             .iter()
-            .map(|m| m.ty.size_in_bytes())
+            .map(|m| m.ty().size_in_bytes())
             .sum::<usize>()
     }
 }
@@ -443,7 +437,7 @@ impl Display for ClassData {
             writeln!(f, ":")?;
             for member in &self.members {
                 write!(f, "{}", "\t".repeat(indent + 1))?;
-                writeln!(f, "{}: {}", member.name, member.ty)?;
+                writeln!(f, "{}: {}", member.name(), member.ty())?;
             }
         } else {
             write!(f, "{}", self.name())?;
@@ -544,7 +538,7 @@ mod tests {
                 }
                 .into()],
                 builtin: None,
-                members: vec![Arc::new(MemberData {
+                members: vec![Member::new(MemberData {
                     name: Identifier::from("x").at(16),
                     ty: GenericType {
                         name: Identifier::from("U").at(11),
@@ -578,11 +572,11 @@ mod tests {
                 generic_parameters: vec![],
                 builtin: None,
                 members: vec![
-                    Arc::new(MemberData {
+                    Member::new(MemberData {
                         name: Identifier::from("x").at(13),
                         ty: integer.clone(),
                     }),
-                    Arc::new(MemberData {
+                    Member::new(MemberData {
                         name: Identifier::from("y").at(16),
                         ty: integer,
                     }),

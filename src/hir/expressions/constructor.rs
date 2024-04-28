@@ -1,12 +1,11 @@
 use derive_visitor::DriveMut;
 
-use crate::hir::{Generic, MemberData, Type, Typed};
+use crate::hir::{Generic, Member, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
 use std::fmt::Display;
 use std::ops::Range;
-use std::sync::Arc;
 
 use super::{Expression, TypeReference};
 
@@ -20,7 +19,7 @@ pub struct Initializer {
     pub index: usize,
     /// Initialized member
     #[drive(skip)]
-    pub member: Arc<MemberData>,
+    pub member: Member,
     /// Value to initialize with
     pub value: Expression,
 }

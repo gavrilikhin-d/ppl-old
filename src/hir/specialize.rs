@@ -1,6 +1,6 @@
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
-use super::{Class, ClassData, FunctionType, Generic, MemberData, Type};
+use super::{Class, ClassData, FunctionType, Generic, Member, MemberData, Type, Typed};
 
 /// Specialize type using given mapping
 pub trait Specialize
@@ -49,9 +49,9 @@ impl Specialize for Class {
             .members
             .iter()
             .map(|m| {
-                Arc::new(MemberData {
-                    ty: m.ty.clone().specialize_with(mapping),
-                    ..m.as_ref().clone()
+                Member::new(MemberData {
+                    ty: m.ty().specialize_with(mapping),
+                    ..m.read().unwrap().clone()
                 })
             })
             .collect::<Vec<_>>();

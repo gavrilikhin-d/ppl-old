@@ -2,12 +2,11 @@ use std::{
     borrow::Cow,
     collections::HashMap,
     fmt::{Debug, Display},
-    sync::Arc,
 };
 
 use crate::{mutability::Mutable, named::Named, syntax::Identifier, AddSourceLocation};
 
-use super::{Basename, BuiltinClass, Class, Generic, MemberData, Trait, TypeReference};
+use super::{Basename, BuiltinClass, Class, Generic, Member, Trait, TypeReference};
 use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
 
@@ -228,7 +227,7 @@ impl Type {
     }
 
     /// Get members of type
-    pub fn members(&self) -> Vec<Arc<MemberData>> {
+    pub fn members(&self) -> Vec<Member> {
         match self {
             Type::Class(c) => c.read().unwrap().members().into(),
             _ => vec![],

@@ -1,12 +1,10 @@
-use std::sync::Arc;
-
 use log::{debug, trace};
 
 use crate::{
     hir::{
         Assignment, Call, Class, Constructor, Declaration, Else, ElseIf, Expression, Function,
         FunctionData, FunctionNamePart, Generic, If, ImplicitConversion, ImplicitConversionKind,
-        Initializer, Loop, MemberData, MemberReference, ModuleData, Parameter, ParameterOrVariable,
+        Initializer, Loop, Member, MemberReference, ModuleData, Parameter, ParameterOrVariable,
         Return, Statement, Type, TypeReference, Typed, Variable, VariableReference, While,
     },
     mutability::Mutable,
@@ -263,16 +261,16 @@ impl Monomorphize for Class {
     }
 }
 
-impl Monomorphize for Arc<MemberData> {
+impl Monomorphize for Member {
     fn monomorphize(&mut self, context: &mut impl Context) {
         if !self.is_generic() {
             return;
         }
 
-        let mut m = self.as_ref().clone();
+        let mut m = self.read().unwrap().clone();
         m.ty.monomorphize(context);
 
-        *self = Arc::new(m);
+        *self = Member::new(m);
     }
 }
 
