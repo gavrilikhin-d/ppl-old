@@ -16,20 +16,20 @@ RUN apt-get update && apt-get install -y \
 RUN curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key | gpg --dearmor -o /usr/share/keyrings/llvm-archive-keyring.gpg
 
 # Add the LLVM repository using the modern signed-by method
-RUN echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/jammy llvm-toolchain-jammy-17 main" > /etc/apt/sources.list.d/llvm.list
+RUN echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/jammy llvm-toolchain-jammy-18 main" > /etc/apt/sources.list.d/llvm.list
 
-# Install LLVM 17
-RUN apt-get update && apt-get install -y llvm-17 llvm-17-dev clang-17 libpolly-17-dev
-ENV CC=clang-17
-ENV CXX=clang++-17
+# Install LLVM 18
+RUN apt-get update && apt-get install -y llvm-18 llvm-18-dev clang-18 libpolly-18-dev
+ENV CC=clang-18
+ENV CXX=clang++-18
 
 # Install Rust nightly
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain nightly -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-# Configure cargo to use clang-17 as the linker
+# Configure cargo to use clang-18 as the linker
 RUN mkdir -p ~/.cargo \
-    && echo '[target.x86_64-unknown-linux-gnu]\nlinker = "clang-17"' > ~/.cargo/config.toml
+    && echo '[target.x86_64-unknown-linux-gnu]\nlinker = "clang-18"' > ~/.cargo/config.toml
 
 # Clean up
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*

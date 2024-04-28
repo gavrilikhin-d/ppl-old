@@ -162,10 +162,10 @@ impl Emit for Package {
             .chain(std::iter::once(bitcode.to_string_lossy().to_string()))
             .collect();
 
-        let mut clang = std::process::Command::new("clang-17");
+        let mut clang = std::process::Command::new("clang-18");
 
-        let clang_version = run_fun!("clang-17" "--version")
-            .map_err(|e| miette!("Valid clang-17 installation not found in path: {e}"))?;
+        let clang_version = run_fun!("clang-18" "--version")
+            .map_err(|e| miette!("Valid clang-18 installation not found in path: {e}"))?;
         debug!(target: "clang", "clang version: {}", clang_version);
 
         let lib_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/debug/deps");
