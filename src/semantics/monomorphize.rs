@@ -338,6 +338,7 @@ impl Monomorphize for ParameterOrVariable {
 impl Monomorphize for FunctionData {
     fn monomorphize(&mut self, context: &mut impl Context) {
         if !self.is_generic() {
+            // FIXME: definition may be overrided
             if self.is_from_trait() && !self.is_definition() {
                 debug!(target: "linking-trait-fn-from", "{self}");
 
