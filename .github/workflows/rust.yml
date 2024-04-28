@@ -24,7 +24,7 @@ jobs:
     - name: Install LLVM and Clang
       uses: KyleMayes/install-llvm-action@v1
       with:
-        version: "17.0"
+        version: "18.0"
     - name: Build compiler
       run: cargo build --verbose
     - name: Run tests
