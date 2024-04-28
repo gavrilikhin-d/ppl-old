@@ -4,7 +4,10 @@ use std::{
     fmt::{Debug, Display},
 };
 
-use crate::{mutability::Mutable, named::Named, syntax::Identifier, AddSourceLocation};
+use crate::{
+    mutability::Mutable, named::Named, semantics::ReplaceSelf, syntax::Identifier,
+    AddSourceLocation,
+};
 
 use super::{Basename, BuiltinClass, Class, Generic, Member, Trait, TypeReference};
 use derive_more::{Display, From, TryInto};
@@ -241,11 +244,9 @@ impl Type {
     }
 
     /// Map self type to given type
-    pub fn map_self(self, ty: &Type) -> Self {
-        match self {
-            Type::SelfType(_) => ty.clone(),
-            _ => self,
-        }
+    pub fn map_self(mut self, ty: &Type) -> Self {
+        self.drive_mut(&mut ReplaceSelf::with(ty.clone()));
+        self
     }
 
     /// Is this a builtin type?

@@ -37,3 +37,6 @@ pub use tmp::*;
 
 mod unnamed;
 pub use unnamed::*;
+
+mod replace_self;
+pub use replace_self::*;
