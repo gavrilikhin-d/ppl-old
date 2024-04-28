@@ -17,6 +17,83 @@ use crate::{
     AddSourceLocation,
 };
 
+/// Member data holder
+#[derive(Debug, Clone)]
+pub struct Member {
+    inner: Arc<RwLock<MemberData>>,
+}
+
+impl Member {
+    /// Create a new member from its data
+    pub fn new(data: MemberData) -> Self {
+        Self {
+            inner: Arc::new(RwLock::new(data)),
+        }
+    }
+
+    /// Lock Member for reading
+    pub fn read(&self) -> LockResult<RwLockReadGuard<'_, MemberData>> {
+        self.inner.read()
+    }
+
+    /// Lock Member for writing
+    pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, MemberData>> {
+        self.inner.write()
+    }
+}
+
+impl Display for Member {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.read().unwrap().fmt(f)
+    }
+}
+
+impl PartialEq for Member {
+    fn eq(&self, other: &Self) -> bool {
+        *self.read().unwrap() == *other.read().unwrap()
+    }
+}
+
+impl Eq for Member {}
+
+impl Named for Member {
+    fn name(&self) -> Cow<'_, str> {
+        self.read().unwrap().name().to_string().into()
+    }
+}
+
+impl Generic for Member {
+    fn is_generic(&self) -> bool {
+        self.read().unwrap().is_generic()
+    }
+}
+
+impl Typed for Member {
+    fn ty(&self) -> Type {
+        self.read().unwrap().ty()
+    }
+}
+
+impl Mutable for Member {
+    fn is_mutable(&self) -> bool {
+        self.read().unwrap().is_mutable()
+    }
+}
+
+impl Ranged for Member {
+    fn range(&self) -> std::ops::Range<usize> {
+        self.read().unwrap().range()
+    }
+}
+
+impl DriveMut for Member {
+    fn drive_mut<V: derive_visitor::VisitorMut>(&mut self, visitor: &mut V) {
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Enter);
+        self.write().unwrap().drive_mut(visitor);
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Exit);
+    }
+}
+
 /// Member of type
 #[derive(Debug, PartialEq, Eq, Hash, Clone, DriveMut)]
 pub struct MemberData {
