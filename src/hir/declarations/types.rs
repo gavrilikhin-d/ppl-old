@@ -7,6 +7,8 @@ use std::{
     sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard},
 };
 
+use derive_visitor::DriveMut;
+
 use crate::{
     hir::{Basename, Generic, Type, Typed},
     mutability::Mutable,
@@ -16,11 +18,13 @@ use crate::{
 };
 
 /// Member of type
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, DriveMut)]
 pub struct MemberData {
     /// Member's name
+    #[drive(skip)]
     pub name: Identifier,
     /// Member's type
+    #[drive(skip)]
     pub ty: Type,
 }
 
