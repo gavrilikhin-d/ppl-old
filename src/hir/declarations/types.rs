@@ -7,6 +7,8 @@ use std::{
     sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard},
 };
 
+use derive_visitor::DriveMut;
+
 use crate::{
     hir::{Basename, Generic, Type, Typed},
     mutability::Mutable,
@@ -15,37 +17,110 @@ use crate::{
     AddSourceLocation,
 };
 
-/// Member of type
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+/// Member data holder
+#[derive(Debug, Clone)]
 pub struct Member {
-    /// Member's name
-    pub name: Identifier,
-    /// Member's type
-    pub ty: Type,
+    inner: Arc<RwLock<MemberData>>,
+}
+
+impl Member {
+    /// Create a new member from its data
+    pub fn new(data: MemberData) -> Self {
+        Self {
+            inner: Arc::new(RwLock::new(data)),
+        }
+    }
+
+    /// Lock Member for reading
+    pub fn read(&self) -> LockResult<RwLockReadGuard<'_, MemberData>> {
+        self.inner.read()
+    }
+
+    /// Lock Member for writing
+    pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, MemberData>> {
+        self.inner.write()
+    }
+}
+
+impl PartialEq for Member {
+    fn eq(&self, other: &Self) -> bool {
+        *self.read().unwrap() == *other.read().unwrap()
+    }
+}
+
+impl Eq for Member {}
+
+impl Named for Member {
+    fn name(&self) -> Cow<'_, str> {
+        self.read().unwrap().name().to_string().into()
+    }
 }
 
 impl Generic for Member {
+    fn is_generic(&self) -> bool {
+        self.read().unwrap().is_generic()
+    }
+}
+
+impl Typed for Member {
+    fn ty(&self) -> Type {
+        self.read().unwrap().ty()
+    }
+}
+
+impl Ranged for Member {
+    fn range(&self) -> std::ops::Range<usize> {
+        self.read().unwrap().range()
+    }
+}
+
+impl DriveMut for Member {
+    fn drive_mut<V: derive_visitor::VisitorMut>(&mut self, visitor: &mut V) {
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Enter);
+        self.write().unwrap().drive_mut(visitor);
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Exit);
+    }
+}
+
+impl Hash for Member {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.read().unwrap().hash(state)
+    }
+}
+
+/// Member of type
+#[derive(Debug, PartialEq, Eq, Hash, Clone, DriveMut)]
+pub struct MemberData {
+    /// Member's name
+    #[drive(skip)]
+    pub name: Identifier,
+    /// Member's type
+    #[drive(skip)]
+    pub ty: Type,
+}
+
+impl Generic for MemberData {
     /// Is this a generic member?
     fn is_generic(&self) -> bool {
         self.ty.is_generic()
     }
 }
 
-impl Named for Member {
+impl Named for MemberData {
     /// Get name of member
     fn name(&self) -> Cow<'_, str> {
         self.name.as_str().into()
     }
 }
 
-impl Typed for Member {
+impl Typed for MemberData {
     /// Get type of member
     fn ty(&self) -> Type {
         self.ty.clone()
     }
 }
 
-impl Ranged for Member {
+impl Ranged for MemberData {
     fn start(&self) -> usize {
         self.name.start()
     }
@@ -250,12 +325,12 @@ pub struct ClassData {
     /// Kind of a builtin type, if it is a builtin class
     pub builtin: Option<BuiltinClass>,
     /// Members of type
-    pub members: Vec<Arc<Member>>,
+    pub members: Vec<Member>,
 }
 
 impl ClassData {
     /// Get member by name
-    pub fn members(&self) -> &[Arc<Member>] {
+    pub fn members(&self) -> &[Member] {
         self.members.as_slice()
     }
 
@@ -329,7 +404,7 @@ impl ClassData {
 
         self.members
             .iter()
-            .map(|m| m.ty.size_in_bytes())
+            .map(|m| m.ty().size_in_bytes())
             .sum::<usize>()
     }
 }
@@ -362,7 +437,7 @@ impl Display for ClassData {
             writeln!(f, ":")?;
             for member in &self.members {
                 write!(f, "{}", "\t".repeat(indent + 1))?;
-                writeln!(f, "{}: {}", member.name, member.ty)?;
+                writeln!(f, "{}: {}", member.name(), member.ty())?;
             }
         } else {
             write!(f, "{}", self.name())?;
@@ -463,7 +538,7 @@ mod tests {
                 }
                 .into()],
                 builtin: None,
-                members: vec![Arc::new(Member {
+                members: vec![Member::new(MemberData {
                     name: Identifier::from("x").at(16),
                     ty: GenericType {
                         name: Identifier::from("U").at(11),
@@ -497,11 +572,11 @@ mod tests {
                 generic_parameters: vec![],
                 builtin: None,
                 members: vec![
-                    Arc::new(Member {
+                    Member::new(MemberData {
                         name: Identifier::from("x").at(13),
                         ty: integer.clone(),
                     }),
-                    Arc::new(Member {
+                    Member::new(MemberData {
                         name: Identifier::from("y").at(16),
                         ty: integer,
                     }),

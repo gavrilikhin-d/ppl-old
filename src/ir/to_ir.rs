@@ -258,7 +258,7 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for ClassData {
         ty.set_body(
             self.members
                 .iter()
-                .filter_map(|m| m.ty.to_ir(context).try_into_basic_type().ok())
+                .filter_map(|m| m.ty().to_ir(context).try_into_basic_type().ok())
                 .collect::<Vec<_>>()
                 .as_slice(),
             false,

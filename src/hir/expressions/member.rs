@@ -5,7 +5,6 @@ use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
 use std::fmt::Display;
-use std::sync::Arc;
 
 use super::Expression;
 
@@ -20,7 +19,7 @@ pub struct MemberReference {
     pub base: Box<Expression>,
     /// Referenced variable name
     #[drive(skip)]
-    pub member: Arc<Member>,
+    pub member: Member,
     /// Index of referenced member
     #[drive(skip)]
     pub index: usize,

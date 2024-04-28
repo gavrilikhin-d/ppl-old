@@ -2,7 +2,6 @@ use std::{
     borrow::Cow,
     collections::HashMap,
     fmt::{Debug, Display},
-    sync::Arc,
 };
 
 use crate::{mutability::Mutable, named::Named, syntax::Identifier, AddSourceLocation};
@@ -228,7 +227,7 @@ impl Type {
     }
 
     /// Get members of type
-    pub fn members(&self) -> Vec<Arc<Member>> {
+    pub fn members(&self) -> Vec<Member> {
         match self {
             Type::Class(c) => c.read().unwrap().members().into(),
             _ => vec![],

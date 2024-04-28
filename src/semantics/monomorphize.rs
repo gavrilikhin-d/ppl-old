@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use log::{debug, trace};
 
 use crate::{
@@ -263,16 +261,16 @@ impl Monomorphize for Class {
     }
 }
 
-impl Monomorphize for Arc<Member> {
+impl Monomorphize for Member {
     fn monomorphize(&mut self, context: &mut impl Context) {
         if !self.is_generic() {
             return;
         }
 
-        let mut m = self.as_ref().clone();
+        let mut m = self.read().unwrap().clone();
         m.ty.monomorphize(context);
 
-        *self = Arc::new(m);
+        *self = Member::new(m);
     }
 }
 
