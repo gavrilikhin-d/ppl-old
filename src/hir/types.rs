@@ -235,9 +235,9 @@ impl Type {
     }
 
     /// Map self type to given type
-    pub fn map_self<'s>(&'s self, ty: &'s Type) -> &'s Type {
+    pub fn map_self(self, ty: &Type) -> Self {
         match self {
-            Type::SelfType(_) => ty,
+            Type::SelfType(_) => ty.clone(),
             _ => self,
         }
     }

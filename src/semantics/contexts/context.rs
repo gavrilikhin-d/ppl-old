@@ -81,8 +81,8 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
                     })
                     && trait_fn
                         .return_type
-                        .map_self(self_type)
                         .clone()
+                        .map_self(self_type)
                         // TODO: real return type range
                         .convertible_to(f.read().unwrap().return_type.clone())
                         .within(self)
