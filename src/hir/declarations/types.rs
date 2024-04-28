@@ -95,7 +95,6 @@ pub struct MemberData {
     #[drive(skip)]
     pub name: Identifier,
     /// Member's type
-    #[drive(skip)]
     pub ty: Type,
 }
 
@@ -311,18 +310,30 @@ impl Ranged for Class {
     }
 }
 
+impl DriveMut for Class {
+    fn drive_mut<V: derive_visitor::VisitorMut>(&mut self, visitor: &mut V) {
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Enter);
+        self.write().unwrap().drive_mut(visitor);
+        derive_visitor::VisitorMut::visit(visitor, self, ::derive_visitor::Event::Exit);
+    }
+}
+
 /// Declaration of a type
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, DriveMut)]
 pub struct ClassData {
     /// Keyword `type`
+    #[drive(skip)]
     pub keyword: Keyword<"type">,
     /// Type's name
+    #[drive(skip)]
     pub basename: Identifier,
     /// Base generic type, if this is a specialization
+    #[drive(skip)]
     pub specialization_of: Option<Class>,
     /// Generic parameters of type
     pub generic_parameters: Vec<Type>,
     /// Kind of a builtin type, if it is a builtin class
+    #[drive(skip)]
     pub builtin: Option<BuiltinClass>,
     /// Members of type
     pub members: Vec<Member>,
