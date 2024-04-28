@@ -21,7 +21,10 @@ pub use constructor::*;
 mod implicit_conversion;
 pub use implicit_conversion::*;
 
-use crate::{mutability::Mutable, syntax::Ranged};
+use crate::{
+    mutability::{Mutability, Mutable},
+    syntax::Ranged,
+};
 
 use derive_more::Display;
 

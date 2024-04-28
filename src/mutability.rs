@@ -21,6 +21,15 @@ pub trait Mutable {
     fn is_immutable(&self) -> bool {
         !self.is_mutable()
     }
+
+    /// Get the mutability of this binding
+    fn mutability(&self) -> Mutability {
+        if self.is_mutable() {
+            Mutability::Mutable
+        } else {
+            Mutability::Immutable
+        }
+    }
 }
 
 impl Mutable for Mutability {
