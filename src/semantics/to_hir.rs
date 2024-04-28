@@ -866,7 +866,7 @@ impl ToHIR for ast::Module {
 
         macro_rules! declare {
             () => {
-                |stmt: &S| {
+                |(i, stmt)| {
                     let decl: &D = match stmt {
                         S::Declaration(d) => d,
                         _ => return,
@@ -875,7 +875,7 @@ impl ToHIR for ast::Module {
                     let res = decl.declare(context);
                     match res {
                         Ok(decl) => {
-                            decls.insert(stmt.start(), decl);
+                            decls.insert(i, decl);
                         }
                         Err(err) => {
                             errors.push(err);
@@ -887,13 +887,17 @@ impl ToHIR for ast::Module {
 
         macro_rules! define {
             () => {
-                |stmt: &S| {
+                |(i, stmt)| {
                     let decl: &D = match stmt {
                         S::Declaration(d) => d,
                         _ => return,
                     };
 
-                    let res = decl.define(decls.remove(&decl.start()).unwrap(), context);
+                    if decls.get(&i).is_none() {
+                        return;
+                    }
+
+                    let res = decl.define(decls.remove(&i).unwrap(), context);
                     match res {
                         Ok(mut stmt) => {
                             stmt.monomorphize(context);
@@ -908,38 +912,44 @@ impl ToHIR for ast::Module {
         // Declare Types & Traits
         self.statements
             .iter()
-            .filter(|s| matches!(s, S::Declaration(D::Type(_) | D::Trait(_))))
+            .enumerate()
+            .filter(|(_, s)| matches!(s, S::Declaration(D::Type(_) | D::Trait(_))))
             .for_each(declare!());
 
         // Define Types
         self.statements
             .iter()
-            .filter(|s| matches!(s, S::Declaration(D::Type(_))))
+            .enumerate()
+            .filter(|(_, s)| matches!(s, S::Declaration(D::Type(_))))
             .for_each(define!());
 
         // Declare Functions & Global variables
         self.statements
             .iter()
-            .filter(|s| matches!(s, S::Declaration(D::Function(_) | D::Variable(_))))
+            .enumerate()
+            .filter(|(_, s)| matches!(s, S::Declaration(D::Function(_) | D::Variable(_))))
             .for_each(declare!());
 
         // Define Traits
         self.statements
             .iter()
-            .filter(|s| matches!(s, S::Declaration(D::Trait(_))))
+            .enumerate()
+            .filter(|(_, s)| matches!(s, S::Declaration(D::Trait(_))))
             .for_each(define!());
 
         // Define Functions & Global variables
         self.statements
             .iter()
-            .filter(|s| matches!(s, S::Declaration(D::Function(_) | D::Variable(_))))
+            .enumerate()
+            .filter(|(_, s)| matches!(s, S::Declaration(D::Function(_) | D::Variable(_))))
             .for_each(define!());
 
         // Add rest of statements
         self.statements
             .iter()
-            .filter(|s| !matches!(s, S::Use(_) | S::Declaration(_)))
-            .for_each(|stmt: &S| {
+            .enumerate()
+            .filter(|(_, s)| !matches!(s, S::Use(_) | S::Declaration(_)))
+            .for_each(|(_, stmt)| {
                 let res = stmt.to_hir(context);
                 match res {
                     Ok(mut stmt) => {
