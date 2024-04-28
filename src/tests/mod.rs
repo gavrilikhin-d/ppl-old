@@ -32,6 +32,8 @@ e2es! {
     predeclare_vars,
     rational,
     reference_mut,
+    reference_to_literal,
+    reference_to_none,
     references,
     specify_variable_ty,
     star,
@@ -39,6 +41,7 @@ e2es! {
     supertraits,
     traits,
     type_as_value,
+    trait_with_ref,
     type_of,
     wrong_initializer_type
 }

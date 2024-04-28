@@ -1,0 +1,3 @@
+fn foo <x: &Integer> => println x
+
+foo 42
