@@ -39,6 +39,7 @@ e2es! {
     supertraits,
     traits,
     type_as_value,
+    trait_with_ref,
     type_of,
     wrong_initializer_type
 }

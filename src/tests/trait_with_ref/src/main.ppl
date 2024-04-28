@@ -1,0 +1,9 @@
+trait Foo:
+	fn foo <:&Self>
+
+fn foo <:&Integer> => println "foo integer"
+
+fn bar <x: &Foo> => foo x
+
+let x = 0
+bar x
