@@ -7,7 +7,7 @@ use std::{
 
 use crate::{mutability::Mutable, named::Named, syntax::Identifier, AddSourceLocation};
 
-use super::{Basename, BuiltinClass, Class, Generic, Member, Trait, TypeReference};
+use super::{Basename, BuiltinClass, Class, Generic, MemberData, Trait, TypeReference};
 use derive_more::{Display, From, TryInto};
 use enum_dispatch::enum_dispatch;
 
@@ -228,7 +228,7 @@ impl Type {
     }
 
     /// Get members of type
-    pub fn members(&self) -> Vec<Arc<Member>> {
+    pub fn members(&self) -> Vec<Arc<MemberData>> {
         match self {
             Type::Class(c) => c.read().unwrap().members().into(),
             _ => vec![],

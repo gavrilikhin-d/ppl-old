@@ -17,35 +17,35 @@ use crate::{
 
 /// Member of type
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub struct Member {
+pub struct MemberData {
     /// Member's name
     pub name: Identifier,
     /// Member's type
     pub ty: Type,
 }
 
-impl Generic for Member {
+impl Generic for MemberData {
     /// Is this a generic member?
     fn is_generic(&self) -> bool {
         self.ty.is_generic()
     }
 }
 
-impl Named for Member {
+impl Named for MemberData {
     /// Get name of member
     fn name(&self) -> Cow<'_, str> {
         self.name.as_str().into()
     }
 }
 
-impl Typed for Member {
+impl Typed for MemberData {
     /// Get type of member
     fn ty(&self) -> Type {
         self.ty.clone()
     }
 }
 
-impl Ranged for Member {
+impl Ranged for MemberData {
     fn start(&self) -> usize {
         self.name.start()
     }
@@ -250,12 +250,12 @@ pub struct ClassData {
     /// Kind of a builtin type, if it is a builtin class
     pub builtin: Option<BuiltinClass>,
     /// Members of type
-    pub members: Vec<Arc<Member>>,
+    pub members: Vec<Arc<MemberData>>,
 }
 
 impl ClassData {
     /// Get member by name
-    pub fn members(&self) -> &[Arc<Member>] {
+    pub fn members(&self) -> &[Arc<MemberData>] {
         self.members.as_slice()
     }
 
@@ -463,7 +463,7 @@ mod tests {
                 }
                 .into()],
                 builtin: None,
-                members: vec![Arc::new(Member {
+                members: vec![Arc::new(MemberData {
                     name: Identifier::from("x").at(16),
                     ty: GenericType {
                         name: Identifier::from("U").at(11),
@@ -497,11 +497,11 @@ mod tests {
                 generic_parameters: vec![],
                 builtin: None,
                 members: vec![
-                    Arc::new(Member {
+                    Arc::new(MemberData {
                         name: Identifier::from("x").at(13),
                         ty: integer.clone(),
                     }),
-                    Arc::new(Member {
+                    Arc::new(MemberData {
                         name: Identifier::from("y").at(16),
                         ty: integer,
                     }),

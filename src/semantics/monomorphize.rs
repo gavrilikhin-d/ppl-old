@@ -6,7 +6,7 @@ use crate::{
     hir::{
         Assignment, Call, Class, Constructor, Declaration, Else, ElseIf, Expression, Function,
         FunctionData, FunctionNamePart, Generic, If, ImplicitConversion, ImplicitConversionKind,
-        Initializer, Loop, Member, MemberReference, ModuleData, Parameter, ParameterOrVariable,
+        Initializer, Loop, MemberData, MemberReference, ModuleData, Parameter, ParameterOrVariable,
         Return, Statement, Type, TypeReference, Typed, Variable, VariableReference, While,
     },
     mutability::Mutable,
@@ -263,7 +263,7 @@ impl Monomorphize for Class {
     }
 }
 
-impl Monomorphize for Arc<Member> {
+impl Monomorphize for Arc<MemberData> {
     fn monomorphize(&mut self, context: &mut impl Context) {
         if !self.is_generic() {
             return;

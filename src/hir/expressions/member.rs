@@ -1,6 +1,6 @@
 use derive_visitor::DriveMut;
 
-use crate::hir::{Generic, Member, Type, Typed};
+use crate::hir::{Generic, MemberData, Type, Typed};
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
@@ -20,7 +20,7 @@ pub struct MemberReference {
     pub base: Box<Expression>,
     /// Referenced variable name
     #[drive(skip)]
-    pub member: Arc<Member>,
+    pub member: Arc<MemberData>,
     /// Index of referenced member
     #[drive(skip)]
     pub index: usize,

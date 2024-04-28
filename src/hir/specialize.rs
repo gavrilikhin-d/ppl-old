@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use super::{Class, ClassData, FunctionType, Generic, Member, Type};
+use super::{Class, ClassData, FunctionType, Generic, MemberData, Type};
 
 /// Specialize type using given mapping
 pub trait Specialize
@@ -49,7 +49,7 @@ impl Specialize for Class {
             .members
             .iter()
             .map(|m| {
-                Arc::new(Member {
+                Arc::new(MemberData {
                     ty: m.ty.clone().specialize_with(mapping),
                     ..m.as_ref().clone()
                 })

@@ -431,7 +431,7 @@ impl ToHIR for ast::Constructor {
                 }
 
                 if member.is_generic() {
-                    members[index] = Arc::new(hir::Member {
+                    members[index] = Arc::new(hir::MemberData {
                         ty: value.ty(),
                         ..members[index].as_ref().clone()
                     })
@@ -527,11 +527,11 @@ impl Condition for ast::Expression {
 }
 
 impl ToHIR for ast::Member {
-    type HIR = Arc<hir::Member>;
+    type HIR = Arc<hir::MemberData>;
 
     /// Lower [`ast::Member`] to [`hir::Member`] within lowering context
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
-        Ok(Arc::new(hir::Member {
+        Ok(Arc::new(hir::MemberData {
             name: self.name.clone(),
             ty: self.ty.to_hir(context)?.referenced_type,
         }))
