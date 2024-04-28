@@ -27,12 +27,14 @@
 * [x] Check result of the program itself in `test_compiler_result`
 * [x] Add `Array` type
 * [x] Fix memory leak due to pointers to builtin types
+* [x] Destructors for parameters
+* [x] No tmps for literals inside of constructors
 ---
 ### Current task
 * [ ] Sum of series benchmark
 ---
-* [ ] Destructors for parameters
-* [ ] No tmps for literals inside of constructors
+* [ ] Forbid recursion without `@recursive` annotation
+* [ ] Fix recursive trait (AsString with prints)
 * [ ] Generate clone for types with clonable members
 * [ ] Generate destructors for types with destructible members
 * [ ] Add type aliases
