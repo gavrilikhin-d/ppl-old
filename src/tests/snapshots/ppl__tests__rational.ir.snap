@@ -129,9 +129,8 @@ define private void @"println <:Rational>"(%Rational %0) !dbg !39 {
   %x = alloca %Rational, align 8
   store %Rational %0, ptr %x, align 8
   %2 = load %Rational, ptr %x, align 8, !dbg !40
-  %3 = call %Rational @clone_rational(%Rational %2), !dbg !40
-  %4 = call %String @rational_as_string(%Rational %3), !dbg !40
-  call void @"println <:String>"(%String %4), !dbg !40
+  %3 = call %String @rational_as_string(%Rational %2), !dbg !40
+  call void @"println <:String>"(%String %3), !dbg !40
   br label %return, !dbg !40
 
 return:                                           ; preds = %1
@@ -141,8 +140,6 @@ return:                                           ; preds = %1
 declare void @"println <:String>"(%String)
 
 declare %String @rational_as_string(%Rational)
-
-declare %Rational @clone_rational(%Rational)
 
 declare %Rational @rational_from_c_string(ptr)
 
@@ -183,20 +180,18 @@ define i1 @"<:Rational> != <:Rational>"(%Rational %0, %Rational %1) !dbg !43 {
   %y = alloca %Rational, align 8
   store %Rational %1, ptr %y, align 8
   %3 = load %Rational, ptr %x, align 8, !dbg !44
-  %4 = call %Rational @clone_rational(%Rational %3), !dbg !44
-  %5 = load %Rational, ptr %y, align 8, !dbg !44
-  %6 = call %Rational @clone_rational(%Rational %5), !dbg !44
-  %7 = call i1 @rational_eq_rational(%Rational %4, %Rational %6), !dbg !44
-  %8 = call i1 @"not <:Bool>"(i1 %7), !dbg !44
+  %4 = load %Rational, ptr %y, align 8, !dbg !44
+  %5 = call i1 @rational_eq_rational(%Rational %3, %Rational %4), !dbg !44
+  %6 = call i1 @"not <:Bool>"(i1 %5), !dbg !44
   %"$tmp@776" = alloca i1, align 1, !dbg !44
-  store i1 %8, ptr %"$tmp@776", align 1, !dbg !44
-  %9 = load i1, ptr %"$tmp@776", align 1, !dbg !44
-  store i1 %9, ptr %return_value, align 1, !dbg !44
+  store i1 %6, ptr %"$tmp@776", align 1, !dbg !44
+  %7 = load i1, ptr %"$tmp@776", align 1, !dbg !44
+  store i1 %7, ptr %return_value, align 1, !dbg !44
   br label %return, !dbg !44
 
 return:                                           ; preds = %2
-  %10 = load i1, ptr %return_value, align 1
-  ret i1 %10
+  %8 = load i1, ptr %return_value, align 1
+  ret i1 %8
 }
 
 declare i1 @"not <:Bool>"(i1)
@@ -210,19 +205,17 @@ define i1 @"<:Rational> > <:Rational>"(%Rational %0, %Rational %1) !dbg !45 {
   %y = alloca %Rational, align 8
   store %Rational %1, ptr %y, align 8
   %3 = load %Rational, ptr %y, align 8, !dbg !46
-  %4 = call %Rational @clone_rational(%Rational %3), !dbg !46
-  %5 = load %Rational, ptr %x, align 8, !dbg !46
-  %6 = call %Rational @clone_rational(%Rational %5), !dbg !46
-  %7 = call i1 @rational_less_rational(%Rational %4, %Rational %6), !dbg !46
+  %4 = load %Rational, ptr %x, align 8, !dbg !46
+  %5 = call i1 @rational_less_rational(%Rational %3, %Rational %4), !dbg !46
   %"$tmp@1032" = alloca i1, align 1, !dbg !46
-  store i1 %7, ptr %"$tmp@1032", align 1, !dbg !46
-  %8 = load i1, ptr %"$tmp@1032", align 1, !dbg !46
-  store i1 %8, ptr %return_value, align 1, !dbg !46
+  store i1 %5, ptr %"$tmp@1032", align 1, !dbg !46
+  %6 = load i1, ptr %"$tmp@1032", align 1, !dbg !46
+  store i1 %6, ptr %return_value, align 1, !dbg !46
   br label %return, !dbg !46
 
 return:                                           ; preds = %2
-  %9 = load i1, ptr %return_value, align 1
-  ret i1 %9
+  %7 = load i1, ptr %return_value, align 1
+  ret i1 %7
 }
 
 define i1 @"<:Rational> <= <:Rational>"(%Rational %0, %Rational %1) !dbg !47 {
@@ -232,20 +225,18 @@ define i1 @"<:Rational> <= <:Rational>"(%Rational %0, %Rational %1) !dbg !47 {
   %y = alloca %Rational, align 8
   store %Rational %1, ptr %y, align 8
   %3 = load %Rational, ptr %x, align 8, !dbg !48
-  %4 = call %Rational @clone_rational(%Rational %3), !dbg !48
-  %5 = load %Rational, ptr %y, align 8, !dbg !48
-  %6 = call %Rational @clone_rational(%Rational %5), !dbg !48
-  %7 = call i1 @"<:Rational> > <:Rational>"(%Rational %4, %Rational %6), !dbg !48
-  %8 = call i1 @"not <:Bool>"(i1 %7), !dbg !48
+  %4 = load %Rational, ptr %y, align 8, !dbg !48
+  %5 = call i1 @"<:Rational> > <:Rational>"(%Rational %3, %Rational %4), !dbg !48
+  %6 = call i1 @"not <:Bool>"(i1 %5), !dbg !48
   %"$tmp@1068" = alloca i1, align 1, !dbg !48
-  store i1 %8, ptr %"$tmp@1068", align 1, !dbg !48
-  %9 = load i1, ptr %"$tmp@1068", align 1, !dbg !48
-  store i1 %9, ptr %return_value, align 1, !dbg !48
+  store i1 %6, ptr %"$tmp@1068", align 1, !dbg !48
+  %7 = load i1, ptr %"$tmp@1068", align 1, !dbg !48
+  store i1 %7, ptr %return_value, align 1, !dbg !48
   br label %return, !dbg !48
 
 return:                                           ; preds = %2
-  %10 = load i1, ptr %return_value, align 1
-  ret i1 %10
+  %8 = load i1, ptr %return_value, align 1
+  ret i1 %8
 }
 
 define i1 @"<:Rational> >= <:Rational>"(%Rational %0, %Rational %1) !dbg !49 {
@@ -255,20 +246,18 @@ define i1 @"<:Rational> >= <:Rational>"(%Rational %0, %Rational %1) !dbg !49 {
   %y = alloca %Rational, align 8
   store %Rational %1, ptr %y, align 8
   %3 = load %Rational, ptr %x, align 8, !dbg !50
-  %4 = call %Rational @clone_rational(%Rational %3), !dbg !50
-  %5 = load %Rational, ptr %y, align 8, !dbg !50
-  %6 = call %Rational @clone_rational(%Rational %5), !dbg !50
-  %7 = call i1 @rational_less_rational(%Rational %4, %Rational %6), !dbg !50
-  %8 = call i1 @"not <:Bool>"(i1 %7), !dbg !50
+  %4 = load %Rational, ptr %y, align 8, !dbg !50
+  %5 = call i1 @rational_less_rational(%Rational %3, %Rational %4), !dbg !50
+  %6 = call i1 @"not <:Bool>"(i1 %5), !dbg !50
   %"$tmp@1110" = alloca i1, align 1, !dbg !50
-  store i1 %8, ptr %"$tmp@1110", align 1, !dbg !50
-  %9 = load i1, ptr %"$tmp@1110", align 1, !dbg !50
-  store i1 %9, ptr %return_value, align 1, !dbg !50
+  store i1 %6, ptr %"$tmp@1110", align 1, !dbg !50
+  %7 = load i1, ptr %"$tmp@1110", align 1, !dbg !50
+  store i1 %7, ptr %return_value, align 1, !dbg !50
   br label %return, !dbg !50
 
 return:                                           ; preds = %2
-  %10 = load i1, ptr %return_value, align 1
-  ret i1 %10
+  %8 = load i1, ptr %return_value, align 1
+  ret i1 %8
 }
 
 !llvm.module.flags = !{!0}

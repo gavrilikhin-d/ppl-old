@@ -64,13 +64,15 @@ define void @main.execute() !dbg !12 {
   store %Integer %2, ptr %1, align 8, !dbg !18
   %3 = load ptr, ptr @x, align 8, !dbg !19
   %4 = load %Integer, ptr %3, align 8, !dbg !19
-  call void @"println <:Integer>"(%Integer %4), !dbg !19
-  %5 = load ptr, ptr @x, align 8, !dbg !20
-  %6 = call %Integer @integer_from_i64(i64 1), !dbg !21
-  store %Integer %6, ptr %5, align 8, !dbg !21
-  %7 = load ptr, ptr @x, align 8, !dbg !22
-  %8 = load %Integer, ptr %7, align 8, !dbg !22
-  call void @"println <:Integer>"(%Integer %8), !dbg !22
+  %5 = call %Integer @clone_integer(%Integer %4), !dbg !19
+  call void @"println <:Integer>"(%Integer %5), !dbg !19
+  %6 = load ptr, ptr @x, align 8, !dbg !20
+  %7 = call %Integer @integer_from_i64(i64 1), !dbg !21
+  store %Integer %7, ptr %6, align 8, !dbg !21
+  %8 = load ptr, ptr @x, align 8, !dbg !22
+  %9 = load %Integer, ptr %8, align 8, !dbg !22
+  %10 = call %Integer @clone_integer(%Integer %9), !dbg !22
+  call void @"println <:Integer>"(%Integer %10), !dbg !22
   br label %return, !dbg !22
 
 return:                                           ; preds = %0
@@ -125,16 +127,15 @@ define private %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !2
   %size = getelementptr inbounds %"Type<Integer>", ptr %ty, i32 0, i32 1, !dbg !29
   %2 = load %Integer, ptr %size, align 8, !dbg !29
   %3 = call %Integer @clone_integer(%Integer %2), !dbg !29
-  %4 = call %Integer @clone_integer(%Integer %3), !dbg !29
   %"$tmp@4396" = alloca %Integer, align 8, !dbg !29
-  store %Integer %4, ptr %"$tmp@4396", align 8, !dbg !29
-  %5 = load %Integer, ptr %"$tmp@4396", align 8, !dbg !29
-  store %Integer %5, ptr %return_value, align 8, !dbg !29
+  store %Integer %3, ptr %"$tmp@4396", align 8, !dbg !29
+  %4 = load %Integer, ptr %"$tmp@4396", align 8, !dbg !29
+  store %Integer %4, ptr %return_value, align 8, !dbg !29
   br label %return, !dbg !29
 
 return:                                           ; preds = %1
-  %6 = load %Integer, ptr %return_value, align 8
-  ret %Integer %6
+  %5 = load %Integer, ptr %return_value, align 8
+  ret %Integer %5
 }
 
 declare void @destroy_integer(ptr)
@@ -156,9 +157,8 @@ define private void @"println <:Integer>"(%Integer %0) !dbg !33 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !34
-  %3 = call %Integer @clone_integer(%Integer %2), !dbg !34
-  %4 = call %String @integer_as_string(%Integer %3), !dbg !34
-  call void @"println <:String>"(%String %4), !dbg !34
+  %3 = call %String @integer_as_string(%Integer %2), !dbg !34
+  call void @"println <:String>"(%String %3), !dbg !34
   br label %return, !dbg !34
 
 return:                                           ; preds = %1

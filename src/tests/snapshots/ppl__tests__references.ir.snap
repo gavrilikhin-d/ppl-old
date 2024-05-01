@@ -101,16 +101,15 @@ define private %Integer @"size of <:Type<I32>>"(%"Type<I32>" %0) !dbg !28 {
   %size = getelementptr inbounds %"Type<I32>", ptr %ty, i32 0, i32 1, !dbg !29
   %2 = load %Integer, ptr %size, align 8, !dbg !29
   %3 = call %Integer @clone_integer(%Integer %2), !dbg !29
-  %4 = call %Integer @clone_integer(%Integer %3), !dbg !29
   %"$tmp@4396" = alloca %Integer, align 8, !dbg !29
-  store %Integer %4, ptr %"$tmp@4396", align 8, !dbg !29
-  %5 = load %Integer, ptr %"$tmp@4396", align 8, !dbg !29
-  store %Integer %5, ptr %return_value, align 8, !dbg !29
+  store %Integer %3, ptr %"$tmp@4396", align 8, !dbg !29
+  %4 = load %Integer, ptr %"$tmp@4396", align 8, !dbg !29
+  store %Integer %4, ptr %return_value, align 8, !dbg !29
   br label %return, !dbg !29
 
 return:                                           ; preds = %1
-  %6 = load %Integer, ptr %return_value, align 8
-  ret %Integer %6
+  %5 = load %Integer, ptr %return_value, align 8
+  ret %Integer %5
 }
 
 declare %Integer @clone_integer(%Integer)

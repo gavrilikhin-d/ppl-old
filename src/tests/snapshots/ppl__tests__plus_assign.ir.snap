@@ -88,9 +88,8 @@ define private void @"println <:Rational>"(%Rational %0) !dbg !24 {
   %x = alloca %Rational, align 8
   store %Rational %0, ptr %x, align 8
   %2 = load %Rational, ptr %x, align 8, !dbg !25
-  %3 = call %Rational @clone_rational(%Rational %2), !dbg !25
-  %4 = call %String @rational_as_string(%Rational %3), !dbg !25
-  call void @"println <:String>"(%String %4), !dbg !25
+  %3 = call %String @rational_as_string(%Rational %2), !dbg !25
+  call void @"println <:String>"(%String %3), !dbg !25
   br label %return, !dbg !25
 
 return:                                           ; preds = %1
@@ -111,11 +110,9 @@ define void @"<:ReferenceMut<Rational>> += <:Rational>"(ptr %0, %Rational %1) !d
   %3 = load ptr, ptr %self, align 8, !dbg !27
   %4 = load ptr, ptr %self, align 8, !dbg !27
   %5 = load %Rational, ptr %4, align 8, !dbg !27
-  %6 = call %Rational @clone_rational(%Rational %5), !dbg !27
-  %7 = load %Rational, ptr %other, align 8, !dbg !27
-  %8 = call %Rational @clone_rational(%Rational %7), !dbg !27
-  %9 = call %Rational @rational_plus_rational(%Rational %6, %Rational %8), !dbg !27
-  store %Rational %9, ptr %3, align 8, !dbg !27
+  %6 = load %Rational, ptr %other, align 8, !dbg !27
+  %7 = call %Rational @rational_plus_rational(%Rational %5, %Rational %6), !dbg !27
+  store %Rational %7, ptr %3, align 8, !dbg !27
   br label %return, !dbg !27
 
 return:                                           ; preds = %2
@@ -132,11 +129,9 @@ define void @"<:ReferenceMut<String>> += <:String>"(ptr %0, %String %1) !dbg !28
   %3 = load ptr, ptr %self, align 8, !dbg !29
   %4 = load ptr, ptr %self, align 8, !dbg !29
   %5 = load %String, ptr %4, align 8, !dbg !29
-  %6 = call %String @clone_string(%String %5), !dbg !29
-  %7 = load %String, ptr %other, align 8, !dbg !29
-  %8 = call %String @clone_string(%String %7), !dbg !29
-  %9 = call %String @string_plus_string(%String %6, %String %8), !dbg !29
-  store %String %9, ptr %3, align 8, !dbg !29
+  %6 = load %String, ptr %other, align 8, !dbg !29
+  %7 = call %String @string_plus_string(%String %5, %String %6), !dbg !29
+  store %String %7, ptr %3, align 8, !dbg !29
   br label %return, !dbg !29
 
 return:                                           ; preds = %2

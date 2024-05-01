@@ -7,7 +7,6 @@ use crate::{
 };
 
 use super::{
-    clone::CloneIfNeeded,
     error::{NotConvertible, NotImplemented, TypeMismatch, TypeWithSpan},
     Context, Implements, Implicit,
 };
@@ -315,7 +314,7 @@ impl ConversionRequest {
         }
 
         if !from.is_any_reference() && !to.is_any_reference() {
-            return Ok(self.from.value.clone_if_needed(context));
+            return Ok(self.from.value);
         }
 
         if from.is_any_reference() {

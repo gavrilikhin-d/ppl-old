@@ -9,7 +9,10 @@ use indexmap::IndexMap;
 use crate::{
     ast,
     hir::{ClassData, FunctionData, ModuleData, TraitData},
-    semantics::{InsertDestructors, ModuleContext, ParameterNamer, TemporariesInserter, ToHIR},
+    semantics::{
+        clone::Clonner, InsertDestructors, ModuleContext, ParameterNamer, TemporariesInserter,
+        ToHIR,
+    },
     SourceFile,
 };
 use log::{debug, trace};
@@ -220,11 +223,12 @@ impl Compiler {
             .map_err(|e| miette::Report::from(e).with_source_code(source_file))?;
         debug!(target: &format!("{name}-hir"), "\n{:#}", hir);
 
-        trace!(target: "steps", "Inserting destructors `{}`", path.display());
+        trace!(target: "steps", "Running passes on `{}`", path.display());
         hir.drive_mut(&mut ParameterNamer::new());
+        hir.drive_mut(&mut Clonner::new(&mut context));
         hir.drive_mut(&mut TemporariesInserter::new());
         hir.insert_destructors(&mut context);
-        debug!(target: &format!("{name}-hir-with-destructors"), "\n{:#}", hir);
+        debug!(target: &format!("{name}-hir-after-passes"), "\n{:#}", hir);
 
         self.modules[module.index()] = hir;
 
