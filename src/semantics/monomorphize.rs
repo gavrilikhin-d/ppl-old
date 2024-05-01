@@ -11,7 +11,7 @@ use crate::{
     semantics::{ConvertibleTo, GenericContext},
 };
 
-use super::{clone::CloneIfNeeded, Context, ReplaceWithTypeInfo};
+use super::{Context, ReplaceWithTypeInfo};
 
 /// Trait to get monomorphized version of statements
 pub trait Monomorphize {
@@ -80,7 +80,7 @@ impl Monomorphize for Variable {
 
 impl Monomorphize for Assignment {
     fn monomorphize(&mut self, context: &mut impl Context) {
-        self.target.monomorphize_without_clonning(context);
+        self.target.monomorphize(context);
         self.value.monomorphize(context);
     }
 }
@@ -146,12 +146,8 @@ impl Monomorphize for ImplicitConversion {
     }
 }
 
-trait MonomorphizeWithoutClonning {
-    fn monomorphize_without_clonning(&mut self, context: &mut impl Context);
-}
-
-impl MonomorphizeWithoutClonning for Expression {
-    fn monomorphize_without_clonning(&mut self, context: &mut impl Context) {
+impl Monomorphize for Expression {
+    fn monomorphize(&mut self, context: &mut impl Context) {
         match self {
             Expression::Call(c) => c.monomorphize(context),
             Expression::VariableReference(var) => var.monomorphize(context),
@@ -163,16 +159,6 @@ impl MonomorphizeWithoutClonning for Expression {
             Expression::MemberReference(m) => m.monomorphize(context),
             Expression::Constructor(c) => c.monomorphize(context),
             Expression::ImplicitConversion(c) => c.monomorphize(context),
-        }
-    }
-}
-
-impl Monomorphize for Expression {
-    fn monomorphize(&mut self, context: &mut impl Context) {
-        let was_generic = self.is_generic();
-        self.monomorphize_without_clonning(context);
-        if was_generic && !self.is_generic() {
-            self.clone_if_needed_inplace(context);
         }
     }
 }

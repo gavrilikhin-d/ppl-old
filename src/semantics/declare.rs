@@ -10,7 +10,6 @@ use crate::{
 };
 
 use super::{
-    clone::CloneIfNeeded,
     error::{CantDeduceReturnType, Error, ReturnTypeMismatch},
     Context, Convert, ConvertibleTo, FunctionContext, GenericContext, Monomorphize, ToHIR,
     TraitContext,
@@ -131,10 +130,7 @@ impl Declare for ast::FunctionDeclaration {
                 }
                 .into());
             }
-            body = vec![hir::Return::Implicit {
-                value: expr.clone_if_needed(context),
-            }
-            .into()];
+            body = vec![hir::Return::Implicit { value: expr }.into()];
         }
 
         declaration.write().unwrap().body = body;
@@ -295,7 +291,7 @@ impl Declare for ast::VariableDeclaration {
             declaration.write().unwrap().initializer = Some(initializer)
         } else {
             declaration.write().unwrap().ty = initializer.ty();
-            declaration.write().unwrap().initializer = Some(initializer.clone_if_needed(context));
+            declaration.write().unwrap().initializer = Some(initializer);
         }
 
         Ok(declaration)

@@ -99,9 +99,8 @@ define private void @"println <:Integer>"(%Integer %0) !dbg !22 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !23
-  %3 = call %Integer @clone_integer(%Integer %2), !dbg !23
-  %4 = call %String @integer_as_string(%Integer %3), !dbg !23
-  call void @"println <:String>"(%String %4), !dbg !23
+  %3 = call %String @integer_as_string(%Integer %2), !dbg !23
+  call void @"println <:String>"(%String %3), !dbg !23
   br label %return, !dbg !23
 
 return:                                           ; preds = %1

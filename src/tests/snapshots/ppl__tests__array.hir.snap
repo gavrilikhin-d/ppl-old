@@ -10,4 +10,4 @@ push 1 to (&arr:ReferenceMut<Array<Integer>>)
 if (&arr:ReferenceMut<Array<Integer>>) is not empty:
 	println "Not empty"
 
-println (*(&arr:ReferenceMut<Array<Integer>>) [ 0 ]:Integer)
+println clone (*(&arr:ReferenceMut<Array<Integer>>) [ 0 ]:Integer)

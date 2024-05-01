@@ -73,24 +73,20 @@ define %Integer @"default <:Integer>"(%Integer %0) !dbg !19 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !20
-  %3 = call %Integer @clone_integer(%Integer %2), !dbg !20
-  store %Integer %3, ptr %return_value, align 8, !dbg !20
+  store %Integer %2, ptr %return_value, align 8, !dbg !20
   br label %return, !dbg !20
 
 return:                                           ; preds = %1
-  %4 = load %Integer, ptr %return_value, align 8
-  ret %Integer %4
+  %3 = load %Integer, ptr %return_value, align 8
+  ret %Integer %3
 }
-
-declare %Integer @clone_integer(%Integer)
 
 define private void @"println <:Integer>"(%Integer %0) !dbg !21 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !22
-  %3 = call %Integer @clone_integer(%Integer %2), !dbg !22
-  %4 = call %String @integer_as_string(%Integer %3), !dbg !22
-  call void @"println <:String>"(%String %4), !dbg !22
+  %3 = call %String @integer_as_string(%Integer %2), !dbg !22
+  call void @"println <:String>"(%String %3), !dbg !22
   br label %return, !dbg !22
 
 return:                                           ; preds = %1
@@ -100,6 +96,8 @@ return:                                           ; preds = %1
 declare void @"println <:String>"(%String)
 
 declare %String @integer_as_string(%Integer)
+
+declare %Integer @clone_integer(%Integer)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
