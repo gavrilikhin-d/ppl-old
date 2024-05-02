@@ -516,8 +516,15 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Call {
                     debug_assert!(
                         self.function.read().unwrap().mangled_name.is_some()
                             || self.function.read().unwrap().is_definition(),
-                        "Generic function {} has no definition, inside this call: {}",
+                        "Generic function {} {} has no definition, inside this call: {}",
                         self.function.read().unwrap(),
+                        self.function
+                            .read()
+                            .unwrap()
+                            .tr
+                            .as_ref()
+                            .map(|tr| format!("from trait {}", tr.name()))
+                            .unwrap_or_default(),
                         self
                     );
                     self.function.read().unwrap().to_ir(context)
