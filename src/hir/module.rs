@@ -71,6 +71,10 @@ pub struct ModuleData {
     #[drive(skip)]
     pub functions: IndexMap<Format, IndexMap<Name, Function>>,
 
+    /// Monomorphized instances of functions
+    #[drive(skip)]
+    pub monomorphized_functions: Vec<Function>,
+
     /// Statements in this module
     pub statements: Vec<Statement>,
 }
@@ -92,6 +96,7 @@ impl ModuleData {
             variables: IndexMap::new(),
             types: IndexMap::new(),
             functions: IndexMap::new(),
+            monomorphized_functions: vec![],
             statements: vec![],
         }
     }

@@ -133,7 +133,35 @@ impl Declare for ast::FunctionDeclaration {
             body = vec![hir::Return::Implicit { value: expr }.into()];
         }
 
-        declaration.write().unwrap().body = body;
+        declaration.write().unwrap().body = body.clone();
+
+        let instances: Vec<_> = context
+            .module()
+            .monomorphized_functions
+            .iter()
+            .filter(|f| {
+                let data = f.read().unwrap();
+                !data.is_definition() && data.generic_version == Some(declaration.clone())
+            })
+            .cloned()
+            .collect();
+
+        for f in instances {
+            f.write().unwrap().body = body.clone();
+
+            let mut context = GenericContext::for_fn(declaration.clone(), context);
+
+            f.read()
+                .unwrap()
+                .parameters()
+                .map(|p| p.ty())
+                .zip(declaration.read().unwrap().parameters().map(|p| p.ty()))
+                .for_each(|(a, b)| {
+                    a.convertible_to(b).within(&mut context).unwrap();
+                });
+
+            f.write().unwrap().monomorphize(&mut context);
+        }
 
         Ok(declaration)
     }

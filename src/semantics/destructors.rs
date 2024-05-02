@@ -26,8 +26,6 @@ fn with_destructors(
                     range: v.range(),
                     function: destructor,
                     generic: None,
-                    // FIXME: create temporary variable,
-                    // if it's complex expr
                     args: vec![v],
                 })
                 .into(),
