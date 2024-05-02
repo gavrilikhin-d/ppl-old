@@ -15,7 +15,9 @@ use crate::hir::{
 use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
 use crate::semantics::clone::Clonner;
-use crate::semantics::{InsertDestructors, ParameterNamer, TemporariesInserter};
+use crate::semantics::{
+    InsertDestructors, ParameterNamer, TemporariesInserter, TraitFunctionsLinker,
+};
 use crate::syntax::{Identifier, Keyword, Ranged};
 use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
@@ -975,6 +977,7 @@ impl ToHIR for ast::Module {
         debug!(target: &format!("{name}-hir"), "\n{:#}", module);
         trace!(target: "steps", "Running passes on `{}`", module.source_file.path().display());
         module.drive_mut(&mut ParameterNamer::new());
+        module.drive_mut(&mut TraitFunctionsLinker::new(context));
         module.drive_mut(&mut Clonner::new(context));
         module.drive_mut(&mut TemporariesInserter::new());
         module.insert_destructors(context);
