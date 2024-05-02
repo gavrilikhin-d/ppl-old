@@ -3,19 +3,15 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use derive_visitor::DriveMut;
 use indexmap::IndexMap;
 
 use crate::{
     ast,
     hir::{ClassData, FunctionData, ModuleData, TraitData},
-    semantics::{
-        clone::Clonner, InsertDestructors, ModuleContext, ParameterNamer, TemporariesInserter,
-        ToHIR,
-    },
+    semantics::{ModuleContext, ToHIR},
     SourceFile,
 };
-use log::{debug, trace};
+use log::trace;
 use miette::{bail, miette};
 
 use super::{Package, PackageData};
@@ -218,17 +214,9 @@ impl Compiler {
 
         trace!(target: "steps", "Lowering to hir `{}`", path.display());
         let mut context = ModuleContext::new(ModuleData::new(source_file.clone()), self);
-        let mut hir = ast
+        let hir = ast
             .to_hir(&mut context)
             .map_err(|e| miette::Report::from(e).with_source_code(source_file))?;
-        debug!(target: &format!("{name}-hir"), "\n{:#}", hir);
-
-        trace!(target: "steps", "Running passes on `{}`", path.display());
-        hir.drive_mut(&mut ParameterNamer::new());
-        hir.drive_mut(&mut Clonner::new(&mut context));
-        hir.drive_mut(&mut TemporariesInserter::new());
-        hir.insert_destructors(&mut context);
-        debug!(target: &format!("{name}-hir-after-passes"), "\n{:#}", hir);
 
         self.modules[module.index()] = hir;
 

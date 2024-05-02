@@ -12,7 +12,7 @@ use crate::{
 };
 
 #[derive(VisitorMut)]
-#[visitor(Statement(exit), Return(enter), ImplicitConversion(enter))]
+#[visitor(Statement(exit), Return(exit), ImplicitConversion(exit))]
 pub struct TemporariesInserter {
     temporaries: Vec<Variable>,
 }
@@ -42,9 +42,12 @@ impl<'ctx> TemporariesInserter {
         self.temporaries.push(tmp);
     }
 
-    fn enter_implicit_conversion(&mut self, conv: &mut ImplicitConversion) {
+    fn exit_implicit_conversion(&mut self, conv: &mut ImplicitConversion) {
         if conv.kind != ImplicitConversionKind::Reference
-            || !matches!(*conv.expression, Expression::Literal(_))
+            || matches!(
+                *conv.expression,
+                Expression::VariableReference(_) | Expression::MemberReference(_)
+            )
         {
             return;
         }
@@ -52,7 +55,7 @@ impl<'ctx> TemporariesInserter {
         self.replace_with_tmp(&mut conv.expression)
     }
 
-    fn enter_return(&mut self, ret: &mut Return) {
+    fn exit_return(&mut self, ret: &mut Return) {
         ret.value_mut().map(|expr| self.replace_with_tmp(expr));
     }
 

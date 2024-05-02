@@ -2,6 +2,9 @@ use core::panic;
 use std::collections::HashMap;
 
 use indexmap::IndexMap;
+use log::{debug, trace};
+
+use derive_visitor::DriveMut;
 
 use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
@@ -11,6 +14,8 @@ use crate::hir::{
 };
 use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
+use crate::semantics::clone::Clonner;
+use crate::semantics::{InsertDestructors, ParameterNamer, TemporariesInserter};
 use crate::syntax::{Identifier, Keyword, Ranged};
 use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
@@ -964,7 +969,18 @@ impl ToHIR for ast::Module {
             return Err(errors.into());
         }
 
-        Ok(context.module().clone())
+        let mut module = context.module().clone();
+        let name = module.name().to_string();
+
+        debug!(target: &format!("{name}-hir"), "\n{:#}", module);
+        trace!(target: "steps", "Running passes on `{}`", module.source_file.path().display());
+        module.drive_mut(&mut ParameterNamer::new());
+        module.drive_mut(&mut Clonner::new(context));
+        module.drive_mut(&mut TemporariesInserter::new());
+        module.insert_destructors(context);
+        debug!(target: &format!("{name}-hir-after-passes"), "\n{:#}", module);
+
+        Ok(module)
     }
 }
 
