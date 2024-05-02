@@ -258,6 +258,10 @@ pub struct FunctionData {
     #[drive(skip)]
     pub tr: Option<Trait>,
 
+    /// Generic version of this function
+    #[drive(skip)]
+    pub generic_version: Option<Function>,
+
     /// Mangled name to use instead of default
     #[drive(skip)]
     pub(crate) mangled_name: Option<String>,
@@ -516,6 +520,7 @@ impl FunctionBuilder {
         FunctionData {
             module: self.module,
             tr: None,
+            generic_version: None,
             keyword: self.keyword,
             generic_types: self.generic_types,
             name_parts: self.name_parts,

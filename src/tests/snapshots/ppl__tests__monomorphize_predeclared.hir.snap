@@ -1,0 +1,12 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+fn call predeclared -> None:
+	predeclared 1
+
+
+fn<T> predeclared <x: T> -> None:
+	println "called predeclared"
+
+call predeclared
