@@ -2,6 +2,7 @@ use core.*
 
 use math.*
 use memory.*
+use as_string.*
 
 /// Array of values
 type Array<T>:
@@ -46,3 +47,6 @@ fn<T> push <x: T> to <array: &mut Array<T>>:
 
 fn<T> <array: &Array<T>> is empty => array.size == 0
 fn<T> <array: &Array<T>> is not empty => array.size > 0
+
+fn<U: AsString> String from <array: &Array<U>> -> String:
+	return String from array[0]
