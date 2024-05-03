@@ -40,3 +40,6 @@ pub use unnamed::*;
 
 mod replace_self;
 pub use replace_self::*;
+
+mod link_impls;
+pub use link_impls::*;
