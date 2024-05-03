@@ -8,7 +8,7 @@ use crate::{
         Return, Statement, Type, TypeReference, Typed, Variable, VariableReference, While,
     },
     mutability::Mutable,
-    semantics::{ConvertibleTo, GenericContext},
+    semantics::GenericContext,
 };
 
 use super::{Context, ReplaceWithTypeInfo};
@@ -271,15 +271,11 @@ impl Monomorphize for Call {
         trace!(target: "monomorphizing", "{from}");
         self.args.monomorphize(context);
 
-        let mut context = GenericContext::for_fn(self.function.clone(), context);
-
-        self.args
-            .iter()
-            .map(|arg| arg.ty())
-            .zip(self.function.read().unwrap().parameters().map(|p| p.ty()))
-            .for_each(|(arg, p)| {
-                arg.convertible_to(p).within(&mut context).unwrap();
-            });
+        let mut context = GenericContext::for_fn_with_args(
+            &self.function.read().unwrap(),
+            self.args.iter().cloned(),
+            context,
+        );
 
         let mut f = self.function.read().unwrap().clone();
         f.monomorphize(&mut context);
@@ -327,24 +323,12 @@ impl Monomorphize for ParameterOrVariable {
 impl Monomorphize for FunctionData {
     fn monomorphize(&mut self, context: &mut impl Context) {
         if !self.is_generic() {
-            // FIXME: definition may be overrided
-            if self.is_from_trait() && !self.is_definition() {
-                debug!(target: "linking-trait-fn-from", "{self}");
-
-                // Unknown type here is ok, because we don't have selfs any more
-                let real_impl = context.find_implementation(self, &Type::Unknown).unwrap();
-                *self = real_impl.read().unwrap().clone();
-                debug!(target: "linking-trait-fn-to", "{self}");
-                return;
-            }
             trace!(target: "monomorphizing-skipped", "{self}");
             return;
         }
 
         let from = self.to_string();
         trace!(target: "monomorphizing", "{from}");
-
-        let this = self.clone();
 
         let f = self;
 
@@ -362,41 +346,6 @@ impl Monomorphize for FunctionData {
         }
 
         f.body.monomorphize(context);
-
-        let ty_for_self =
-            this.name_parts()
-                .iter()
-                .zip(f.name_parts())
-                .find_map(|parts| match parts {
-                    (
-                        FunctionNamePart::Parameter(original),
-                        FunctionNamePart::Parameter(mapped),
-                    ) => match original.ty() {
-                        Type::SelfType(_) if !mapped.ty().is_generic() => Some(mapped.ty()),
-                        _ => None,
-                    },
-                    _ => None,
-                });
-
-        // Find real implementation of trait function after monomorphization
-        if !f.is_definition()
-            && let Some(ty_for_self) = ty_for_self
-            && let Some(real_impl) = context.find_implementation(&this, &ty_for_self)
-        {
-            // FIXME: Need to do this shit, because generic types in `real_impl` aren't the same as in `f`
-            let mut context = GenericContext::for_fn(real_impl.clone(), context);
-            f.parameters()
-                .map(|arg| arg.ty())
-                .zip(real_impl.read().unwrap().parameters().map(|p| p.ty()))
-                .for_each(|(arg, p)| {
-                    arg.convertible_to(p).within(&mut context).unwrap();
-                });
-
-            let mut real_impl = real_impl.read().unwrap().clone();
-            real_impl.monomorphize(&mut context);
-
-            *f = real_impl;
-        }
 
         debug!(target: "monomorphized-from", "{from}");
         debug!(target: "monomorphized-to", "{f}");
