@@ -1,9 +1,9 @@
 use std::{collections::HashMap, fmt::Display};
 
 use crate::{
-    hir::{Function, GenericType, Type, TypeReference, Typed},
+    hir::{FunctionData, GenericType, Type, TypeReference, Typed},
     named::Named,
-    semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
+    semantics::{AddDeclaration, ConvertibleTo, FindDeclaration, FindDeclarationHere},
 };
 
 use super::Context;
@@ -22,13 +22,10 @@ pub struct GenericContext<'p> {
 
 impl<'p> GenericContext<'p> {
     /// Create generic context for function
-    pub fn for_fn(f: Function, parent: &'p mut impl Context) -> Self {
-        let mut candidate_context =
-            Self::for_generics(f.read().unwrap().generic_types.clone(), parent);
+    pub fn for_fn(f: &FunctionData, parent: &'p mut impl Context) -> Self {
+        let mut candidate_context = Self::for_generics(f.generic_types.clone(), parent);
 
         if let Some(ty) = f
-            .read()
-            .unwrap()
             .parameters()
             .map(|p| p.ty())
             .find(|ty| matches!(ty, Type::SelfType(_)))
@@ -37,6 +34,24 @@ impl<'p> GenericContext<'p> {
         }
 
         return candidate_context;
+    }
+
+    /// Create generic context for function
+    pub fn for_fn_with_args<'a>(
+        f: &FunctionData,
+        args: impl IntoIterator<Item = impl Typed>,
+        parent: &'p mut impl Context,
+    ) -> Self {
+        let mut context = Self::for_fn(f, parent);
+
+        args.into_iter()
+            .map(|a| a.ty())
+            .zip(f.parameters().map(|p| p.ty()))
+            .for_each(|(a, b)| {
+                a.convertible_to(b).within(&mut context).unwrap();
+            });
+
+        return context;
     }
 
     /// Create generic context for generic parameters

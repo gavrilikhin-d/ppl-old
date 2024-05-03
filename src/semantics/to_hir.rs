@@ -178,7 +178,7 @@ impl ToHIR for ast::Call {
 
             let mut args = Vec::new();
             let mut failed = false;
-            GenericContext::for_fn(f.clone(), context).run(|context| {
+            GenericContext::for_fn(&f.read().unwrap(), context).run(|context| {
                 for (i, f_part) in f.read().unwrap().name_parts().iter().enumerate() {
                     match f_part {
                         FunctionNamePart::Text(_) => continue,

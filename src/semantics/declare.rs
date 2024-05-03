@@ -149,16 +149,11 @@ impl Declare for ast::FunctionDeclaration {
         for f in instances {
             f.write().unwrap().body = body.clone();
 
-            let mut context = GenericContext::for_fn(declaration.clone(), context);
-
-            f.read()
-                .unwrap()
-                .parameters()
-                .map(|p| p.ty())
-                .zip(declaration.read().unwrap().parameters().map(|p| p.ty()))
-                .for_each(|(a, b)| {
-                    a.convertible_to(b).within(&mut context).unwrap();
-                });
+            let mut context = GenericContext::for_fn_with_args(
+                &declaration.read().unwrap(),
+                f.read().unwrap().parameters(),
+                context,
+            );
 
             f.write().unwrap().monomorphize(&mut context);
         }

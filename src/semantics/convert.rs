@@ -1,5 +1,5 @@
 use crate::{
-    hir::{Class, Expression, FunctionType, GenericType, SelfType, Trait, Type, Typed},
+    hir::{Class, Expression, FunctionType, Generic, GenericType, SelfType, Trait, Type, Typed},
     mutability::Mutable,
     semantics::error::ReferenceMutToImmutable,
     syntax::Ranged,
@@ -43,7 +43,8 @@ impl ConvertibleToRequest<'_, Type> {
             return from.convertible_to(specialized).within(context);
         }
 
-        match from {
+        let generic = to.clone();
+        let convertible = match &from {
             Type::Unknown => unreachable!(
                 "Trying to check if not inferred type is convertible to some other type"
             ),
@@ -52,7 +53,13 @@ impl ConvertibleToRequest<'_, Type> {
             Type::Generic(g) => g.convertible_to(to).within(context),
             Type::SelfType(s) => s.convertible_to(to).within(context),
             Type::Trait(tr) => tr.convertible_to(to).within(context),
+        }?;
+
+        if generic.is_generic() && convertible && generic != from {
+            context.map_generic(generic, from);
         }
+
+        Ok(convertible)
     }
 }
 
@@ -86,27 +93,17 @@ impl ConvertibleToRequest<'_, Class> {
                 }
             }
             Type::Trait(tr) => from.implements(tr.clone()).within(context).map(|_| true)?,
-            Type::SelfType(s) => {
-                let convertible = from
-                    .implements(s.associated_trait.clone())
-                    .within(context)
-                    .map(|_| true)?;
-                if convertible {
-                    context.map_generic(s.clone().into(), from.clone().into());
-                }
-                convertible
-            }
+            Type::SelfType(s) => from
+                .implements(s.associated_trait.clone())
+                .within(context)
+                .map(|_| true)?,
             Type::Generic(g) => {
-                let convertible = if let Some(constraint) = &g.constraint {
+                if let Some(constraint) = &g.constraint {
                     from.convertible_to(constraint.referenced_type.clone())
                         .within(context)?
                 } else {
                     true
-                };
-                if convertible {
-                    context.map_generic(g.clone().into(), from.clone().into());
                 }
-                convertible
             }
             Type::Function(_) => false,
             Type::Unknown => true,
