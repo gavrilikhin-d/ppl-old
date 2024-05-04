@@ -3,13 +3,15 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let mut arr: Array<Integer> = (Type<Integer>:Type<Integer>) [ ]
-println (arr:Array<Integer>)
+let mut it: Iterator<Integer> = iterator for (&arr:ReferenceMut<Array<Integer>>)
 if (&arr:ReferenceMut<Array<Integer>>) is empty:
 	println "Empty"
 
 push 1 to (&arr:ReferenceMut<Array<Integer>>)
-println (arr:Array<Integer>)
 if (&arr:ReferenceMut<Array<Integer>>) is not empty:
 	println "Not empty"
 
 println clone (*(&arr:ReferenceMut<Array<Integer>>) [ 0 ]:Integer)
+while (&it:ReferenceMut<Iterator<Integer>>) exists:
+	println clone (*value from (&it:ReferenceMut<Iterator<Integer>>):Integer)
+	advance (&it:ReferenceMut<Iterator<Integer>>)
