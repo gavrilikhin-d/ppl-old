@@ -55,7 +55,8 @@ impl ConvertibleToRequest<'_, Type> {
             Type::Trait(tr) => tr.convertible_to(to).within(context),
         }?;
 
-        if generic.is_generic() && convertible && generic != from {
+        if generic.is_generic() && convertible && generic != from && !matches!(from, Type::Trait(_))
+        {
             context.map_generic(generic, from);
         }
 

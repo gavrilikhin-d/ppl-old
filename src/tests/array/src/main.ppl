@@ -1,7 +1,9 @@
 let mut arr = Integer[]
+println arr
 if arr is empty:
 	println "Empty"
 push 1 to arr
+println arr
 if arr is not empty:
 	println "Not empty"
 println arr[0]
