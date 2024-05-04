@@ -7,3 +7,8 @@ println arr
 if arr is not empty:
 	println "Not empty"
 println arr[0]
+
+let mut it = iterator for arr
+while it exists:
+	println (value from it)
+	advance it

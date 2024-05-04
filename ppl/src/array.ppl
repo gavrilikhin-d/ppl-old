@@ -59,3 +59,21 @@ fn<U: AsString> String from <array: &Array<U>> -> String:
 			i += 1
 	str += "]"
 	return str
+
+type Iterator<T>:
+	array: &Array<T>
+	index: Integer
+
+fn<T> clone <it: &Iterator<T>> -> Iterator<T>:
+	return Iterator<T> { array: it.array, index: it.index }
+
+fn<T> iterator for <array: &Array<T>> -> Iterator<T>:
+	return Iterator<T> { array, index: 0 }
+
+fn<T> <it: &Iterator<T>> exists => it.index < it.array.size
+
+fn<T> advance <it: &mut Iterator<T>>:
+	it.index += 1
+
+fn<T> value from <it: &Iterator<T>> -> &T:
+	return it.array[it.index]
