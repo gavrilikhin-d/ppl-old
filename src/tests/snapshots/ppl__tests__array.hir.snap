@@ -4,10 +4,12 @@ expression: hir
 ---
 let mut arr: Array<Integer> = (Type<Integer>:Type<Integer>) [ ]
 let mut it: Iterator<Integer> = iterator for (&arr:ReferenceMut<Array<Integer>>)
+println (arr:Array<Integer>)
 if (&arr:ReferenceMut<Array<Integer>>) is empty:
 	println "Empty"
 
 push 1 to (&arr:ReferenceMut<Array<Integer>>)
+println (arr:Array<Integer>)
 if (&arr:ReferenceMut<Array<Integer>>) is not empty:
 	println "Not empty"
 
@@ -15,3 +17,220 @@ println clone (*(&arr:ReferenceMut<Array<Integer>>) [ 0 ]:Integer)
 while (&it:ReferenceMut<Iterator<Integer>>) exists:
 	println clone (*value from (&it:ReferenceMut<Iterator<Integer>>):Integer)
 	advance (&it:ReferenceMut<Iterator<Integer>>)
+
+
+==MONOMORPHIZED==
+
+
+fn<Integer> size of <ty: Type<Integer>> -> Integer:
+	let $tmp@4399: Integer = clone (ty:Type<Integer>).size
+	return ($tmp@4399:Integer)
+
+
+fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:
+	let $tmp@760: MemoryAddress = allocate clone (n:Integer) * size of (Type<Integer>:Type<Integer>) bytes
+	destroy (n:Integer)
+	return ($tmp@760:MemoryAddress)
+
+
+fn<Integer> <$arg0: Type<Integer>> [ ] -> Array<Integer>:
+	let capacity: Integer = 8
+	let data: MemoryAddress = allocate clone (capacity:Integer) (Type<Integer>:Type<Integer>)
+	let $tmp@260: Array<Integer> = Array<Integer> { size: 0, capacity: clone (capacity:Integer), data: (data:MemoryAddress) }
+	destroy (capacity:Integer)
+	return ($tmp@260:Array<Integer>)
+
+
+fn<Integer> iterator for <array: Reference<Array<Integer>>> -> Iterator<Integer>:
+	let $tmp@1686: Iterator<Integer> = Iterator<Integer> { array: (array:Reference<Array<Integer>>), index: 0 }
+	return ($tmp@1686:Iterator<Integer>)
+
+
+fn<Integer> String from <array: Reference<Array<Integer>>> -> String:
+	let mut str: String = "["
+	if (array:Reference<Array<Integer>>) is not empty:
+		(&str:ReferenceMut<String>) += String from (*(array:Reference<Array<Integer>>) [ 0 ]:Integer)
+		let mut i: Integer = 1
+		while clone (i:Integer) < clone (*array:Array<Integer>).size:
+			(&str:ReferenceMut<String>) += ", "
+			(&str:ReferenceMut<String>) += String from (*(array:Reference<Array<Integer>>) [ clone (i:Integer) ]:Integer)
+			(&i:ReferenceMut<Integer>) += 1
+
+		destroy (i:Integer)
+
+	(&str:ReferenceMut<String>) += "]"
+	let $tmp@1461: String = clone (str:String)
+	destroy (str:String)
+	return ($tmp@1461:String)
+
+
+fn<Array<Integer>> println <x: Array<Integer>> -> None:
+	let $tmp@314: None = println String from (x:Array<Integer>)
+	return ($tmp@314:None)
+
+
+fn<Integer> <array: Reference<Array<Integer>>> is empty -> Bool:
+	let $tmp@1137: Bool = clone (*array:Array<Integer>).size == 0
+	return ($tmp@1137:Bool)
+
+
+fn<Integer> size of <ty: Type<Integer>> -> Integer:
+	let $tmp@4399: Integer = clone (ty:Type<Integer>).size
+	return ($tmp@4399:Integer)
+
+
+fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:
+	let $tmp@760: MemoryAddress = allocate clone (n:Integer) * size of (Type<Integer>:Type<Integer>) bytes
+	destroy (n:Integer)
+	return ($tmp@760:MemoryAddress)
+
+
+@mangle_as("read_memory")
+fn<Integer> <ty: Type<Integer>> at <address: MemoryAddress> -> ReferenceMut<Integer>
+
+@mangle_as("read_memory")
+fn<Integer> <ty: Type<Integer>> at <address: MemoryAddress> -> ReferenceMut<Integer>
+
+fn<Integer> size of <ty: Type<Integer>> -> Integer:
+	let $tmp@4399: Integer = clone (ty:Type<Integer>).size
+	return ($tmp@4399:Integer)
+
+
+@mangle_as("read_memory")
+fn<Integer> <ty: Type<Integer>> at <address: MemoryAddress> -> ReferenceMut<Integer>
+
+fn<Integer> <array: Reference<Array<Integer>>> [ <i: Integer> ] -> Reference<Integer>:
+	let address: MemoryAddress = (*array:Array<Integer>).data + (i:Integer) * size of (Type<Integer>:Type<Integer>)
+	return (Type<Integer>:Type<Integer>) at (address:MemoryAddress)
+
+
+@mangle_as("read_memory")
+fn<Integer> <ty: Type<Integer>> at <address: MemoryAddress> -> ReferenceMut<Integer>
+
+@mangle_as("read_memory")
+fn<Integer> <ty: Type<Integer>> at <address: MemoryAddress> -> ReferenceMut<Integer>
+
+fn<Integer> push <x: Integer> to <array: ReferenceMut<Array<Integer>>> -> None:
+	if clone (*array:Array<Integer>).size == clone (*array:Array<Integer>).capacity:
+		let new_capacity: Integer = clone (*array:Array<Integer>).capacity * 2
+		let new_data: MemoryAddress = allocate clone (new_capacity:Integer) (Type<Integer>:Type<Integer>)
+		let mut i: Integer = 0
+		while clone (i:Integer) < clone (*array:Array<Integer>).size:
+			let value: ReferenceMut<Integer> = (Type<Integer>:Type<Integer>) at (new_data:MemoryAddress) + clone (i:Integer)
+			(value:ReferenceMut<Integer>) = (*(array:ReferenceMut<Array<Integer>>) [ clone (i:Integer) ]:Integer)
+			destroy (i:Integer)
+			(i:Integer) = clone (i:Integer) + 1
+
+		free (*array:Array<Integer>).data
+		(*array:Array<Integer>).data = (new_data:MemoryAddress)
+		destroy (*array:Array<Integer>).capacity
+		(*array:Array<Integer>).capacity = clone (new_capacity:Integer)
+		destroy (new_capacity:Integer)
+		destroy (i:Integer)
+
+	let value: ReferenceMut<Integer> = (Type<Integer>:Type<Integer>) at (*array:Array<Integer>).data + clone (*array:Array<Integer>).size
+	(value:ReferenceMut<Integer>) = (x:Integer)
+	destroy (*array:Array<Integer>).size
+	(*array:Array<Integer>).size = clone (*array:Array<Integer>).size + 1
+
+
+fn<Integer> String from <array: Reference<Array<Integer>>> -> String:
+	let mut str: String = "["
+	if (array:Reference<Array<Integer>>) is not empty:
+		(&str:ReferenceMut<String>) += String from (*(array:Reference<Array<Integer>>) [ 0 ]:Integer)
+		let mut i: Integer = 1
+		while clone (i:Integer) < clone (*array:Array<Integer>).size:
+			(&str:ReferenceMut<String>) += ", "
+			(&str:ReferenceMut<String>) += String from (*(array:Reference<Array<Integer>>) [ clone (i:Integer) ]:Integer)
+			(&i:ReferenceMut<Integer>) += 1
+
+		destroy (i:Integer)
+
+	(&str:ReferenceMut<String>) += "]"
+	let $tmp@1461: String = clone (str:String)
+	destroy (str:String)
+	return ($tmp@1461:String)
+
+
+fn<Array<Integer>> println <x: Array<Integer>> -> None:
+	let $tmp@314: None = println String from (x:Array<Integer>)
+	return ($tmp@314:None)
+
+
+fn<Integer> <array: Reference<Array<Integer>>> is not empty -> Bool:
+	let $tmp@1194: Bool = clone (*array:Array<Integer>).size > 0
+	return ($tmp@1194:Bool)
+
+
+fn<Integer> size of <ty: Type<Integer>> -> Integer:
+	let $tmp@4399: Integer = clone (ty:Type<Integer>).size
+	return ($tmp@4399:Integer)
+
+
+@mangle_as("read_memory")
+fn<Integer> <ty: Type<Integer>> at <address: MemoryAddress> -> ReferenceMut<Integer>
+
+@mangle_as("read_memory")
+fn<Integer> <ty: Type<Integer>> at <address: MemoryAddress> -> ReferenceMut<Integer>
+
+fn<Integer> <array: Reference<Array<Integer>>> [ <i: Integer> ] -> Reference<Integer>:
+	let address: MemoryAddress = (*array:Array<Integer>).data + clone (i:Integer) * size of (Type<Integer>:Type<Integer>)
+	let mut $tmp@467: ReferenceMut<Integer> = (Type<Integer>:Type<Integer>) at (address:MemoryAddress)
+	destroy (i:Integer)
+	return ($tmp@467:ReferenceMut<Integer>)
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)
+
+
+fn<Integer> <it: Reference<Iterator<Integer>>> exists -> Bool:
+	let $tmp@1754: Bool = clone (*it:Iterator<Integer>).index < clone (*(*it:Iterator<Integer>).array:Array<Integer>).size
+	return ($tmp@1754:Bool)
+
+
+fn<Integer> size of <ty: Type<Integer>> -> Integer:
+	let $tmp@4399: Integer = clone (ty:Type<Integer>).size
+	return ($tmp@4399:Integer)
+
+
+@mangle_as("read_memory")
+fn<Integer> <ty: Type<Integer>> at <address: MemoryAddress> -> ReferenceMut<Integer>
+
+fn<Integer> <array: Reference<Array<Integer>>> [ <i: Integer> ] -> Reference<Integer>:
+	let address: MemoryAddress = (*array:Array<Integer>).data + (i:Integer) * size of (Type<Integer>:Type<Integer>)
+	return (Type<Integer>:Type<Integer>) at (address:MemoryAddress)
+
+
+fn<Integer> size of <ty: Type<Integer>> -> Integer:
+	let $tmp@4399: Integer = clone (ty:Type<Integer>).size
+	return ($tmp@4399:Integer)
+
+
+@mangle_as("read_memory")
+fn<Integer> <ty: Type<Integer>> at <address: MemoryAddress> -> ReferenceMut<Integer>
+
+fn<Integer> <array: Reference<Array<Integer>>> [ <i: Integer> ] -> Reference<Integer>:
+	let address: MemoryAddress = (*array:Array<Integer>).data + (i:Integer) * size of (Type<Integer>:Type<Integer>)
+	return (Type<Integer>:Type<Integer>) at (address:MemoryAddress)
+
+
+fn<Integer> value from <it: Reference<Iterator<Integer>>> -> Reference<Integer>:
+	let $tmp@1885: Reference<Integer> = (*it:Iterator<Integer>).array [ clone (*it:Iterator<Integer>).index ]
+	return ($tmp@1885:Reference<Integer>)
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)
+
+
+fn<Integer> advance <it: ReferenceMut<Iterator<Integer>>> -> None:
+	(&(*it:Iterator<Integer>).index:ReferenceMut<Integer>) += 1

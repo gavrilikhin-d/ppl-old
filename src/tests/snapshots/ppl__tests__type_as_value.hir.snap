@@ -11,3 +11,82 @@ println String from (Type<Type<Integer>>:Type<Type<Integer>>)
 println clone (y:Integer) == size of (Type<Integer>:Type<Integer>)
 println (Type<Integer>:Type<Integer>)
 destroy (y:Integer)
+
+==MONOMORPHIZED==
+
+
+fn<None> size of <ty: Type<None>> -> Integer:
+	let $tmp@4399: Integer = clone (ty:Type<None>).size
+	return ($tmp@4399:Integer)
+
+
+fn String from <x: Bool> -> String:
+	if (x:Bool):
+		let $tmp@1245: String = "true"
+		return ($tmp@1245:String)
+
+	let $tmp@1260: String = "false"
+	return ($tmp@1260:String)
+
+
+fn<Bool> println <x: Bool> -> None:
+	let $tmp@314: None = println String from (x:Bool)
+	return ($tmp@314:None)
+
+
+fn<Bool> size of <ty: Type<Bool>> -> Integer:
+	let $tmp@4399: Integer = clone (ty:Type<Bool>).size
+	return ($tmp@4399:Integer)
+
+
+fn String from <x: Bool> -> String:
+	if (x:Bool):
+		let $tmp@1245: String = "true"
+		return ($tmp@1245:String)
+
+	let $tmp@1260: String = "false"
+	return ($tmp@1260:String)
+
+
+fn<Bool> println <x: Bool> -> None:
+	let $tmp@314: None = println String from (x:Bool)
+	return ($tmp@314:None)
+
+
+fn<None> String from <ty: Type<None>> -> String:
+	let $tmp@4331: String = clone (ty:Type<None>).name
+	return ($tmp@4331:String)
+
+
+fn<Type<Integer>> String from <ty: Type<Type<Integer>>> -> String:
+	let $tmp@4331: String = clone (ty:Type<Type<Integer>>).name
+	return ($tmp@4331:String)
+
+
+fn<Integer> size of <ty: Type<Integer>> -> Integer:
+	let $tmp@4399: Integer = clone (ty:Type<Integer>).size
+	return ($tmp@4399:Integer)
+
+
+fn String from <x: Bool> -> String:
+	if (x:Bool):
+		let $tmp@1245: String = "true"
+		return ($tmp@1245:String)
+
+	let $tmp@1260: String = "false"
+	return ($tmp@1260:String)
+
+
+fn<Bool> println <x: Bool> -> None:
+	let $tmp@314: None = println String from (x:Bool)
+	return ($tmp@314:None)
+
+
+fn<Integer> String from <ty: Type<Integer>> -> String:
+	let $tmp@4331: String = clone (ty:Type<Integer>).name
+	return ($tmp@4331:String)
+
+
+fn<Type<Integer>> println <x: Type<Integer>> -> None:
+	let $tmp@314: None = println String from (x:Type<Integer>)
+	return ($tmp@314:None)

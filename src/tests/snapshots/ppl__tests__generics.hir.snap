@@ -22,3 +22,49 @@ println id 1 == 1
 println id "hello"
 id Point<Integer> { x: 0, y: 0 }
 destroy (x:Integer)
+
+==MONOMORPHIZED==
+
+
+fn<Integer> x of <p: Point<Integer>> -> Integer:
+	return (p:Point<Integer>).x
+
+
+fn String from <x: Bool> -> String:
+	if (x:Bool):
+		let $tmp@1245: String = "true"
+		return ($tmp@1245:String)
+
+	let $tmp@1260: String = "false"
+	return ($tmp@1260:String)
+
+
+fn<Bool> println <x: Bool> -> None:
+	let $tmp@314: None = println String from (x:Bool)
+	return ($tmp@314:None)
+
+
+fn<Integer> id <x: Integer> -> Integer:
+	return (x:Integer)
+
+
+fn String from <x: Bool> -> String:
+	if (x:Bool):
+		let $tmp@1245: String = "true"
+		return ($tmp@1245:String)
+
+	let $tmp@1260: String = "false"
+	return ($tmp@1260:String)
+
+
+fn<Bool> println <x: Bool> -> None:
+	let $tmp@314: None = println String from (x:Bool)
+	return ($tmp@314:None)
+
+
+fn<String> id <x: String> -> String:
+	return (x:String)
+
+
+fn<Point<Integer>> id <x: Point<Integer>> -> Point<Integer>:
+	return (x:Point<Integer>)

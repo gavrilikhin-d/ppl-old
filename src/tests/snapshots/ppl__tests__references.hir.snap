@@ -11,3 +11,29 @@ println (*value:I32)
 println (*value:I32)
 free (address:MemoryAddress)
 destroy (n:Integer)
+
+==MONOMORPHIZED==
+
+
+fn<I32> size of <ty: Type<I32>> -> Integer:
+	let $tmp@4399: Integer = clone (ty:Type<I32>).size
+	return ($tmp@4399:Integer)
+
+
+@mangle_as("read_memory")
+fn<I32> <ty: Type<I32>> at <address: MemoryAddress> -> ReferenceMut<I32>
+
+@mangle_as("i32_as_string")
+fn String from <:I32> -> String
+
+fn<I32> println <x: I32> -> None:
+	let $tmp@314: None = println String from (x:I32)
+	return ($tmp@314:None)
+
+
+@mangle_as("i32_as_string")
+fn String from <:I32> -> String
+
+fn<I32> println <x: I32> -> None:
+	let $tmp@314: None = println String from (x:I32)
+	return ($tmp@314:None)

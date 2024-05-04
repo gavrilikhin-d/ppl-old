@@ -26,3 +26,18 @@ fn<T: FooBar> foobar <x: T> -> None:
 	bar (x:T)
 
 foobar none
+
+==MONOMORPHIZED==
+
+
+fn foo <$arg0: None> -> None:
+	return print "foo"
+
+
+fn bar <$arg0: None> -> None:
+	return println "bar"
+
+
+fn<None> foobar <x: None> -> None:
+	foo (x:None)
+	bar (x:None)

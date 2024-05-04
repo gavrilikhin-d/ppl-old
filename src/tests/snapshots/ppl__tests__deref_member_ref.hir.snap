@@ -13,3 +13,13 @@ fn x of <p: Reference<Point>> -> Integer:
 
 let $tmp@80: Point = Point { x: 1, y: 2 }
 println x of (&$tmp@80:Reference<Point>)
+
+==MONOMORPHIZED==
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)

@@ -9,3 +9,13 @@ fn foo <x: Reference<Integer>> -> None:
 let $tmp@39: Integer = 42
 foo (&$tmp@39:Reference<Integer>)
 destroy ($tmp@39:Integer)
+
+==MONOMORPHIZED==
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)

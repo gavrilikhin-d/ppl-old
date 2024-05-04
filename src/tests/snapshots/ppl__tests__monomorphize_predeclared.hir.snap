@@ -10,3 +10,9 @@ fn<T> predeclared <x: T> -> None:
 	println "called predeclared"
 
 call predeclared
+
+==MONOMORPHIZED==
+
+
+fn<Integer> predeclared <x: Integer> -> None:
+	println "called predeclared"

@@ -12,6 +12,8 @@ use crate::SourceFile;
 
 use super::{Class, Function, Trait, Type};
 
+use crate::hir::generic::Generic;
+
 /// Class or trait
 #[derive(Debug, PartialEq, Eq, Clone, From)]
 pub enum ClassOrTrait {
@@ -84,6 +86,15 @@ impl Display for ModuleData {
         for statement in &self.statements {
             writeln!(f, "{:#}", statement)?;
         }
+        writeln!(f, "\n==MONOMORPHIZED==\n")?;
+        for fun in self
+            .monomorphized_functions
+            .iter()
+            .filter(|f| !f.read().unwrap().is_generic())
+        {
+            writeln!(f, "{fun}")?;
+        }
+
         Ok(())
     }
 }
