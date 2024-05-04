@@ -1,6 +1,7 @@
 use crate::e2es;
 
 e2es! {
+    address_of,
     array,
     candidate_not_viable,
     clone,

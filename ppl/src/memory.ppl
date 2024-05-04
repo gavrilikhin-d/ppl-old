@@ -34,3 +34,7 @@ fn free <address: MemoryAddress>
 /// Value of specific type at memory address
 @mangle_as("read_memory")
 fn<T> <ty: Type<T>> at <address: MemoryAddress> -> ReferenceMut<T>
+
+/// Get memory address of a reference
+@mangle_as("address_of")
+fn<T> address of <ref: &T> -> MemoryAddress

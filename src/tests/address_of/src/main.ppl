@@ -1,0 +1,7 @@
+let x = 0
+println x
+
+let address = address of x
+let x_mut_ref = Integer at address
+x_mut_ref = 1
+println x
