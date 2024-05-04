@@ -1,0 +1,11 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+let x: Integer = 0
+let address: MemoryAddress = address of (&x:Reference<Integer>)
+let x_mut_ref: ReferenceMut<Integer> = (Type<Integer>:Type<Integer>) at (address:MemoryAddress)
+println clone (x:Integer)
+(x_mut_ref:ReferenceMut<Integer>) = 1
+println clone (x:Integer)
+destroy (x:Integer)

@@ -78,3 +78,18 @@ pub extern "C" fn read_memory(ty: Type, address: MemoryAddress) -> *mut c_void {
 
     address as *mut libc::c_void
 }
+
+/// # PPL
+/// ```no_run
+/// /// Get memory address of a reference
+/// @mangle_as("address_of")
+/// fn<T> address of <ref: &T> -> MemoryAddress
+/// ```
+#[no_mangle]
+pub extern "C" fn address_of(ptr: *const c_void) -> MemoryAddress {
+    let address = ptr as usize;
+
+    MemoryAddress {
+        value: integer_from_u64(address as u64),
+    }
+}
