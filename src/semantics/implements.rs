@@ -1,5 +1,5 @@
 use crate::{
-    hir::{self, Trait, Type},
+    hir::{self, Function, Trait, Type},
     syntax::Ranged,
 };
 
@@ -25,26 +25,33 @@ pub struct ImplementsCheck<'s, S> {
 }
 
 impl ImplementsCheck<'_, hir::Class> {
-    pub fn within(self, context: &mut impl Context) -> Result<(), NotImplemented> {
+    pub fn within(self, context: &mut impl Context) -> Result<Vec<Function>, NotImplemented> {
+        let mut implemented = vec![];
         for supertrait in &self.tr.read().unwrap().supertraits {
-            self.ty.implements(supertrait.clone()).within(context)?;
+            implemented.extend(
+                self.ty
+                    .implements(supertrait.clone())
+                    .within(context)?
+                    .into_iter(),
+            );
         }
 
-        let unimplemented: Vec<_> = self
-            .tr
-            .read()
-            .unwrap()
-            .functions
-            .values()
-            .filter(|f| {
-                let f = f.read().unwrap();
-                !f.is_definition()
-                    && context
-                        .find_implementation(&f, &Type::from(self.ty.clone()))
-                        .is_none()
-            })
-            .cloned()
-            .collect();
+        let mut unimplemented = vec![];
+        for f in self.tr.read().unwrap().functions.values().cloned() {
+            if f.read().unwrap().is_definition() {
+                implemented.push(f);
+                continue;
+            }
+
+            if let Some(imp) =
+                context.find_implementation(&f.read().unwrap(), &Type::from(self.ty.clone()))
+            {
+                implemented.push(imp);
+                continue;
+            }
+
+            unimplemented.push(f);
+        }
 
         if !unimplemented.is_empty() {
             let source_file = self
@@ -66,6 +73,6 @@ impl ImplementsCheck<'_, hir::Class> {
             });
         }
 
-        Ok(())
+        Ok(implemented)
     }
 }
