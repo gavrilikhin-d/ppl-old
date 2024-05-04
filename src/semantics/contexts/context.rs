@@ -102,7 +102,11 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
     }
 
     /// Find clone function for type
-    fn clone_for(&mut self, ty: Type) -> Option<Function> {
+    fn clone_for(&mut self, ty: Type) -> Option<Function>
+    where
+        Self: Sized,
+    {
+        let ty = self.builtin().types().reference_to(ty);
         let name = format!("clone <:{ty}>");
         self.function_with_name(&name)
     }

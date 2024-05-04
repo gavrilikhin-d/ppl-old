@@ -18,12 +18,12 @@ use super::Context;
     Call(exit),
     VariableData(exit)
 )]
-pub struct Clonner<'ctx> {
-    context: &'ctx mut dyn Context,
+pub struct Clonner<'ctx, C: Context> {
+    context: &'ctx mut C,
 }
 
-impl<'ctx> Clonner<'ctx> {
-    pub fn new(context: &'ctx mut dyn Context) -> Self {
+impl<'ctx, C: Context> Clonner<'ctx, C> {
+    pub fn new(context: &'ctx mut C) -> Self {
         Self { context }
     }
 
