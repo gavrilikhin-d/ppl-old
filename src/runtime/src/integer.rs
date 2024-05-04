@@ -235,10 +235,10 @@ pub extern "C" fn destroy_integer(x: *mut Integer) {
 /// # PPL
 /// ```no_run
 /// @mangle_as("clone_integer")
-/// fn clone <:Integer> -> Integer
+/// fn clone <:&Integer> -> Integer
 /// ```
 #[no_mangle]
-pub extern "C" fn clone_integer(x: Integer) -> Integer {
+pub extern "C" fn clone_integer(x: &Integer) -> Integer {
     let value = unsafe { x.data.as_ref() }.unwrap().clone();
     Integer {
         data: Box::into_raw(Box::new(value)),

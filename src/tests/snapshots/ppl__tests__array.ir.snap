@@ -158,8 +158,8 @@ define private %"Array<Integer>" @"<:Type<Integer>> [ ]"(%"Type<Integer>" %0) !d
   br label %return, !dbg !31
 
 return:                                           ; preds = %1
-  %14 = load %"Array<Integer>", ptr %return_value, align 8
-  ret %"Array<Integer>" %14
+  %12 = load %"Array<Integer>", ptr %return_value, align 8
+  ret %"Array<Integer>" %12
 }
 
 define private %MemoryAddress @"allocate <:Integer> <:Type<Integer>>"(%Integer %0, %"Type<Integer>" %1) !dbg !33 {
@@ -182,15 +182,15 @@ define private %MemoryAddress @"allocate <:Integer> <:Type<Integer>>"(%Integer %
   br label %return, !dbg !34
 
 return:                                           ; preds = %2
-  %10 = load %MemoryAddress, ptr %return_value, align 8
-  ret %MemoryAddress %10
+  %9 = load %MemoryAddress, ptr %return_value, align 8
+  ret %MemoryAddress %9
 }
 
 declare %MemoryAddress @allocate_n_bytes(%Integer)
 
 declare %Integer @integer_star_integer(%Integer, %Integer)
 
-declare %Integer @clone_integer(%Integer)
+declare %Integer @clone_integer(ptr)
 
 define private %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !35 {
   %return_value = alloca %Integer, align 8
@@ -206,8 +206,8 @@ define private %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !3
   br label %return, !dbg !36
 
 return:                                           ; preds = %1
-  %5 = load %Integer, ptr %return_value, align 8
-  ret %Integer %5
+  %4 = load %Integer, ptr %return_value, align 8
+  ret %Integer %4
 }
 
 declare void @destroy_integer(ptr)
@@ -308,6 +308,20 @@ if.body:                                          ; preds = %if.condition
   store %Integer %19, ptr %i, align 8, !dbg !44
   br label %while.condition, !dbg !44
 
+return:                                           ; preds = %10
+  %9 = load %String, ptr %return_value, align 8
+  ret %String %9
+
+10:                                               ; preds = %if.condition, %24
+  %11 = call %String @string_from_c_string_and_length(ptr @4, i64 1), !dbg !35
+  call void @"<:ReferenceMut<String>> += <:String>"(ptr %str, %String %11), !dbg !35
+  %12 = call %String @clone_string(ptr %str), !dbg !35
+  %"$tmp@1461" = alloca %String, align 8, !dbg !35
+  store %String %12, ptr %"$tmp@1461", align 8, !dbg !35
+  call void @destroy_string(ptr %str), !dbg !35
+  %13 = load %String, ptr %"$tmp@1461", align 8, !dbg !35
+  store %String %13, ptr %return_value, align 8, !dbg !35
+  br label %return, !dbg !35
 return:                                           ; preds = %20
   ret void
 
@@ -342,6 +356,12 @@ return:                                           ; preds = %20
   br label %return, !dbg !44
 
 while.condition:                                  ; preds = %while.body, %if.body
+  %14 = call %Integer @clone_integer(ptr %i), !dbg !35
+  %15 = load ptr, ptr %array, align 8, !dbg !35
+  %size = getelementptr inbounds %"Array<Integer>", ptr %15, i32 0, i32 0, !dbg !35
+  %16 = call %Integer @clone_integer(ptr %size), !dbg !35
+  %17 = call i1 @integer_less_integer(%Integer %14, %Integer %16), !dbg !35
+  br i1 %17, label %while.body, label %24, !dbg !35
   %38 = load %Integer, ptr %i, align 8, !dbg !44
   %39 = call %Integer @clone_integer(%Integer %38), !dbg !44
   %40 = load ptr, ptr %array, align 8, !dbg !44
@@ -352,6 +372,37 @@ while.condition:                                  ; preds = %while.body, %if.bod
   br i1 %43, label %while.body, label %59, !dbg !44
 
 while.body:                                       ; preds = %while.condition
+  %18 = call %String @string_from_c_string_and_length(ptr @3, i64 2), !dbg !35
+  call void @"<:ReferenceMut<String>> += <:String>"(ptr %str, %String %18), !dbg !35
+  %19 = call %Integer @clone_integer(ptr %i), !dbg !35
+  %20 = call ptr @"<:Reference<Array<Integer>>> [ <:Integer> ]"(ptr %array, %Integer %19), !dbg !35
+  %21 = load %Integer, ptr %20, align 8, !dbg !35
+  %22 = call %String @integer_as_string(%Integer %21), !dbg !35
+  call void @"<:ReferenceMut<String>> += <:String>"(ptr %str, %String %22), !dbg !35
+  %23 = call %Integer @integer_from_i64(i64 1), !dbg !35
+  call void @"<:ReferenceMut<Integer>> += <:Integer>"(ptr %i, %Integer %23), !dbg !35
+  br label %while.condition, !dbg !35
+
+24:                                               ; preds = %while.condition
+  call void @destroy_integer(ptr %i), !dbg !35
+  br label %10, !dbg !35
+}
+
+define void @"<:ReferenceMut<String>> += <:String>"(ptr %0, %String %1) !dbg !36 {
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
+  %other = alloca %String, align 8
+  store %String %1, ptr %other, align 8
+  %3 = load ptr, ptr %self, align 8, !dbg !37
+  %4 = load ptr, ptr %self, align 8, !dbg !37
+  %5 = load %String, ptr %4, align 8, !dbg !37
+  %6 = load %String, ptr %other, align 8, !dbg !37
+  %7 = call %String @string_plus_string(%String %5, %String %6), !dbg !37
+  store %String %7, ptr %3, align 8, !dbg !37
+  br label %return, !dbg !37
+
+return:                                           ; preds = %2
+  ret void
   %44 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !44
   %45 = load %MemoryAddress, ptr %new_data, align 8, !dbg !44
   %46 = load %Integer, ptr %i, align 8, !dbg !44
@@ -482,6 +533,7 @@ define private void @"println <:Integer>"(%Integer %0) !dbg !51 {
   call void @"println <:String>"(%String %3), !dbg !52
   br label %return, !dbg !52
 
+return:                                           ; preds = %16
 return:                                           ; preds = %1
   ret void
 }

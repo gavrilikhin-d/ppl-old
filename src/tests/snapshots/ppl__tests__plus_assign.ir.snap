@@ -43,19 +43,16 @@ define void @main.execute() !dbg !9 {
   call void @initialize(), !dbg !10
   call void @initialize.1(), !dbg !11
   call void @initialize.2(), !dbg !12
-  %1 = load %Rational, ptr @value, align 8, !dbg !13
-  %2 = call %Rational @clone_rational(%Rational %1), !dbg !13
-  call void @"println <:Rational>"(%Rational %2), !dbg !13
-  %3 = call %Rational @rational_from_c_string(ptr @3), !dbg !14
-  call void @"<:ReferenceMut<Rational>> += <:Rational>"(ptr @value, %Rational %3), !dbg !14
-  %4 = load %Rational, ptr @value, align 8, !dbg !15
-  %5 = call %Rational @clone_rational(%Rational %4), !dbg !15
-  call void @"println <:Rational>"(%Rational %5), !dbg !15
-  %6 = call %String @string_from_c_string_and_length(ptr @4, i64 7), !dbg !16
-  call void @"<:ReferenceMut<String>> += <:String>"(ptr @str, %String %6), !dbg !16
-  %7 = load %String, ptr @str, align 8, !dbg !17
-  %8 = call %String @clone_string(%String %7), !dbg !17
-  call void @"println <:String>"(%String %8), !dbg !17
+  %1 = call %Rational @clone_rational(ptr @value), !dbg !13
+  call void @"println <:Rational>"(%Rational %1), !dbg !13
+  %2 = call %Rational @rational_from_c_string(ptr @3), !dbg !14
+  call void @"<:ReferenceMut<Rational>> += <:Rational>"(ptr @value, %Rational %2), !dbg !14
+  %3 = call %Rational @clone_rational(ptr @value), !dbg !15
+  call void @"println <:Rational>"(%Rational %3), !dbg !15
+  %4 = call %String @string_from_c_string_and_length(ptr @4, i64 7), !dbg !16
+  call void @"<:ReferenceMut<String>> += <:String>"(ptr @str, %String %4), !dbg !16
+  %5 = call %String @clone_string(ptr @str), !dbg !17
+  call void @"println <:String>"(%String %5), !dbg !17
   call void @destroy_rational(ptr @value), !dbg !18
   call void @destroy_string(ptr @str), !dbg !19
   br label %return, !dbg !19
@@ -100,7 +97,7 @@ declare void @"println <:String>"(%String)
 
 declare %String @rational_as_string(%Rational)
 
-declare %Rational @clone_rational(%Rational)
+declare %Rational @clone_rational(ptr)
 
 define void @"<:ReferenceMut<Rational>> += <:Rational>"(ptr %0, %Rational %1) !dbg !26 {
   %self = alloca ptr, align 8
@@ -140,7 +137,7 @@ return:                                           ; preds = %2
 
 declare %String @string_plus_string(%String, %String)
 
-declare %String @clone_string(%String)
+declare %String @clone_string(ptr)
 
 declare void @destroy_rational(ptr)
 
