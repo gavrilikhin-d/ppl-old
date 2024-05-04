@@ -10,3 +10,69 @@ println 2 ^ 2
 println 5 - 0
 println 2 * 3
 println 14 / 2
+
+==MONOMORPHIZED==
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)
+
+
+@mangle_as("rational_as_string")
+fn String from <:Rational> -> String
+
+fn<Rational> println <x: Rational> -> None:
+	let $tmp@314: None = println String from (x:Rational)
+	return ($tmp@314:None)

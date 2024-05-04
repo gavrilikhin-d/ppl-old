@@ -7,3 +7,5 @@ fn foo -> None:
 	return ($tmp@10:None)
 
 foo
+
+==MONOMORPHIZED==

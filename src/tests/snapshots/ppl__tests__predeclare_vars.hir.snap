@@ -17,3 +17,13 @@ fn get y -> Integer:
 println clone (y:Integer)
 destroy (x:Integer)
 destroy (y:Integer)
+
+==MONOMORPHIZED==
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)

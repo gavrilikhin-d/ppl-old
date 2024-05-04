@@ -17,3 +17,239 @@ println 0.0 <= 0.0
 println 0.0 <= 1.0
 println 0.0 >= 0.0
 println 1.0 >= 0.0
+
+==MONOMORPHIZED==
+
+
+@mangle_as("rational_as_string")
+fn String from <:Rational> -> String
+
+fn<Rational> println <x: Rational> -> None:
+	let $tmp@314: None = println String from (x:Rational)
+	return ($tmp@314:None)
+
+
+@mangle_as("rational_as_string")
+fn String from <:Rational> -> String
+
+fn<Rational> println <x: Rational> -> None:
+	let $tmp@314: None = println String from (x:Rational)
+	return ($tmp@314:None)
+
+
+@mangle_as("rational_as_string")
+fn String from <:Rational> -> String
+
+fn<Rational> println <x: Rational> -> None:
+	let $tmp@314: None = println String from (x:Rational)
+	return ($tmp@314:None)
+
+
+@mangle_as("rational_as_string")
+fn String from <:Rational> -> String
+
+fn<Rational> println <x: Rational> -> None:
+	let $tmp@314: None = println String from (x:Rational)
+	return ($tmp@314:None)
+
+
+@mangle_as("rational_as_string")
+fn String from <:Rational> -> String
+
+fn<Rational> println <x: Rational> -> None:
+	let $tmp@314: None = println String from (x:Rational)
+	return ($tmp@314:None)
+
+
+@mangle_as("rational_as_string")
+fn String from <:Rational> -> String
+
+fn<Rational> println <x: Rational> -> None:
+	let $tmp@314: None = println String from (x:Rational)
+	return ($tmp@314:None)
+
+
+@mangle_as("rational_as_string")
+fn String from <:Rational> -> String
+
+fn<Rational> println <x: Rational> -> None:
+	let $tmp@314: None = println String from (x:Rational)
+	return ($tmp@314:None)
+
+
+fn String from <x: Bool> -> String:
+	if (x:Bool):
+		let $tmp@1245: String = "true"
+		return ($tmp@1245:String)
+
+	let $tmp@1260: String = "false"
+	return ($tmp@1260:String)
+
+
+fn<Bool> println <x: Bool> -> None:
+	let $tmp@314: None = println String from (x:Bool)
+	return ($tmp@314:None)
+
+
+@mangle_as("rational_eq_rational")
+fn <$arg0: Rational> == <$arg1: Rational> -> Bool
+
+fn <x: Rational> != <y: Rational> -> Bool:
+	let $tmp@776: Bool = not (x:Rational) == (y:Rational)
+	return ($tmp@776:Bool)
+
+
+
+fn String from <x: Bool> -> String:
+	if (x:Bool):
+		let $tmp@1245: String = "true"
+		return ($tmp@1245:String)
+
+	let $tmp@1260: String = "false"
+	return ($tmp@1260:String)
+
+
+fn<Bool> println <x: Bool> -> None:
+	let $tmp@314: None = println String from (x:Bool)
+	return ($tmp@314:None)
+
+
+fn String from <x: Bool> -> String:
+	if (x:Bool):
+		let $tmp@1245: String = "true"
+		return ($tmp@1245:String)
+
+	let $tmp@1260: String = "false"
+	return ($tmp@1260:String)
+
+
+fn<Bool> println <x: Bool> -> None:
+	let $tmp@314: None = println String from (x:Bool)
+	return ($tmp@314:None)
+
+
+@mangle_as("rational_less_rational")
+fn <$arg0: Rational> < <$arg1: Rational> -> Bool
+
+fn <x: Rational> > <y: Rational> -> Bool:
+	let $tmp@1032: Bool = (y:Rational) < (x:Rational)
+	return ($tmp@1032:Bool)
+
+
+
+fn String from <x: Bool> -> String:
+	if (x:Bool):
+		let $tmp@1245: String = "true"
+		return ($tmp@1245:String)
+
+	let $tmp@1260: String = "false"
+	return ($tmp@1260:String)
+
+
+fn<Bool> println <x: Bool> -> None:
+	let $tmp@314: None = println String from (x:Bool)
+	return ($tmp@314:None)
+
+
+@mangle_as("rational_less_rational")
+fn <$arg0: Rational> < <$arg1: Rational> -> Bool
+
+fn <x: Rational> > <y: Rational> -> Bool:
+	let $tmp@1032: Bool = (y:Rational) < (x:Rational)
+	return ($tmp@1032:Bool)
+
+
+
+fn <x: Rational> <= <y: Rational> -> Bool:
+	let $tmp@1068: Bool = not (x:Rational) > (y:Rational)
+	return ($tmp@1068:Bool)
+
+
+
+fn String from <x: Bool> -> String:
+	if (x:Bool):
+		let $tmp@1245: String = "true"
+		return ($tmp@1245:String)
+
+	let $tmp@1260: String = "false"
+	return ($tmp@1260:String)
+
+
+fn<Bool> println <x: Bool> -> None:
+	let $tmp@314: None = println String from (x:Bool)
+	return ($tmp@314:None)
+
+
+@mangle_as("rational_less_rational")
+fn <$arg0: Rational> < <$arg1: Rational> -> Bool
+
+fn <x: Rational> > <y: Rational> -> Bool:
+	let $tmp@1032: Bool = (y:Rational) < (x:Rational)
+	return ($tmp@1032:Bool)
+
+
+
+fn <x: Rational> <= <y: Rational> -> Bool:
+	let $tmp@1068: Bool = not (x:Rational) > (y:Rational)
+	return ($tmp@1068:Bool)
+
+
+
+fn String from <x: Bool> -> String:
+	if (x:Bool):
+		let $tmp@1245: String = "true"
+		return ($tmp@1245:String)
+
+	let $tmp@1260: String = "false"
+	return ($tmp@1260:String)
+
+
+fn<Bool> println <x: Bool> -> None:
+	let $tmp@314: None = println String from (x:Bool)
+	return ($tmp@314:None)
+
+
+@mangle_as("rational_less_rational")
+fn <$arg0: Rational> < <$arg1: Rational> -> Bool
+
+fn <x: Rational> >= <y: Rational> -> Bool:
+	let $tmp@1110: Bool = not (x:Rational) < (y:Rational)
+	return ($tmp@1110:Bool)
+
+
+
+fn String from <x: Bool> -> String:
+	if (x:Bool):
+		let $tmp@1245: String = "true"
+		return ($tmp@1245:String)
+
+	let $tmp@1260: String = "false"
+	return ($tmp@1260:String)
+
+
+fn<Bool> println <x: Bool> -> None:
+	let $tmp@314: None = println String from (x:Bool)
+	return ($tmp@314:None)
+
+
+@mangle_as("rational_less_rational")
+fn <$arg0: Rational> < <$arg1: Rational> -> Bool
+
+fn <x: Rational> >= <y: Rational> -> Bool:
+	let $tmp@1110: Bool = not (x:Rational) < (y:Rational)
+	return ($tmp@1110:Bool)
+
+
+
+fn String from <x: Bool> -> String:
+	if (x:Bool):
+		let $tmp@1245: String = "true"
+		return ($tmp@1245:String)
+
+	let $tmp@1260: String = "false"
+	return ($tmp@1260:String)
+
+
+fn<Bool> println <x: Bool> -> None:
+	let $tmp@314: None = println String from (x:Bool)
+	return ($tmp@314:None)

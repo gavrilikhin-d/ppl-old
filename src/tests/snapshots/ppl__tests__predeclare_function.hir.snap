@@ -15,3 +15,13 @@ fn sum <x: Integer> <y: Integer> -> Integer:
 	return ($tmp@84:Integer)
 
 println 2 plus two
+
+==MONOMORPHIZED==
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)

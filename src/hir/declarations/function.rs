@@ -394,8 +394,12 @@ impl Typed for FunctionData {
 
 impl Display for FunctionData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if !self.body.is_empty() {
+        if !self.body.is_empty() || self.mangled_name.is_some() {
             writeln!(f, "")?;
+        }
+
+        if let Some(name) = &self.mangled_name {
+            writeln!(f, "@mangle_as({name:?})")?;
         }
 
         let indent = "\t".repeat(f.width().unwrap_or(0));

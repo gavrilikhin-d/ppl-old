@@ -9,3 +9,34 @@ println clone (*y:Integer)
 println clone (*y:Integer)
 println clone (x:Integer)
 destroy (x:Integer)
+
+==MONOMORPHIZED==
+
+
+fn<Integer> reference to mutable <ref: ReferenceMut<Integer>> -> ReferenceMut<Integer>:
+	let mut $tmp@4747: ReferenceMut<Integer> = (ref:ReferenceMut<Integer>)
+	return ($tmp@4747:ReferenceMut<Integer>)
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)

@@ -11,3 +11,35 @@ println clone (value:Rational)
 println clone (str:String)
 destroy (value:Rational)
 destroy (str:String)
+
+==MONOMORPHIZED==
+
+
+@mangle_as("rational_as_string")
+fn String from <:Rational> -> String
+
+fn<Rational> println <x: Rational> -> None:
+	let $tmp@314: None = println String from (x:Rational)
+	return ($tmp@314:None)
+
+
+@mangle_as("rational_plus_rational")
+fn <$arg0: Rational> + <$arg1: Rational> -> Rational
+
+fn <self: ReferenceMut<Rational>> += <other: Rational> -> None:
+	(self:ReferenceMut<Rational>) = (*self:Rational) + (other:Rational)
+
+
+@mangle_as("rational_as_string")
+fn String from <:Rational> -> String
+
+fn<Rational> println <x: Rational> -> None:
+	let $tmp@314: None = println String from (x:Rational)
+	return ($tmp@314:None)
+
+
+@mangle_as("string_plus_string")
+fn <$arg0: String> + <$arg1: String> -> String
+
+fn <self: ReferenceMut<String>> += <other: String> -> None:
+	(self:ReferenceMut<String>) = (*self:String) + (other:String)

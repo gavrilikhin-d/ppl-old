@@ -13,3 +13,5 @@ destroy (x:Destructible)
 (x:Destructible) = Destructible {  }
 println "done"
 destroy (x:Destructible)
+
+==MONOMORPHIZED==

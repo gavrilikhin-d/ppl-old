@@ -9,3 +9,27 @@ println clone (x:Integer)
 (x_mut_ref:ReferenceMut<Integer>) = 1
 println clone (x:Integer)
 destroy (x:Integer)
+
+==MONOMORPHIZED==
+
+
+@mangle_as("address_of")
+fn<Integer> address of <ref: Reference<Integer>> -> MemoryAddress
+
+@mangle_as("read_memory")
+fn<Integer> <ty: Type<Integer>> at <address: MemoryAddress> -> ReferenceMut<Integer>
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)
+
+
+@mangle_as("integer_as_string")
+fn String from <:Integer> -> String
+
+fn<Integer> println <x: Integer> -> None:
+	let $tmp@314: None = println String from (x:Integer)
+	return ($tmp@314:None)

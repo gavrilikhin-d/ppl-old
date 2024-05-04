@@ -4,3 +4,20 @@ expression: hir
 ---
 let ty: Type<Integer> = type of 1
 println (ty:Type<Integer>)
+
+==MONOMORPHIZED==
+
+
+fn<Integer> type of <$arg0: Integer> -> Type<Integer>:
+	let $tmp@4456: Type<Integer> = (Type<Integer>:Type<Integer>)
+	return ($tmp@4456:Type<Integer>)
+
+
+fn<Integer> String from <ty: Type<Integer>> -> String:
+	let $tmp@4331: String = clone (ty:Type<Integer>).name
+	return ($tmp@4331:String)
+
+
+fn<Type<Integer>> println <x: Type<Integer>> -> None:
+	let $tmp@314: None = println String from (x:Type<Integer>)
+	return ($tmp@314:None)

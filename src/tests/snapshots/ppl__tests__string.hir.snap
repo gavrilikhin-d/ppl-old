@@ -10,3 +10,15 @@ println String from 0
 println String from 0.0
 println String from (Type<Integer>:Type<Integer>)
 println String from (Type<Array<Integer>>:Type<Array<Integer>>)
+
+==MONOMORPHIZED==
+
+
+fn<Integer> String from <ty: Type<Integer>> -> String:
+	let $tmp@4331: String = clone (ty:Type<Integer>).name
+	return ($tmp@4331:String)
+
+
+fn<Array<Integer>> String from <ty: Type<Array<Integer>>> -> String:
+	let $tmp@4331: String = clone (ty:Type<Array<Integer>>).name
+	return ($tmp@4331:String)
