@@ -48,9 +48,8 @@ define void @"foo <:Reference<Integer>>"(ptr %0) !dbg !12 {
   %x = alloca ptr, align 8
   store ptr %0, ptr %x, align 8
   %2 = load ptr, ptr %x, align 8, !dbg !13
-  %3 = load %Integer, ptr %2, align 8, !dbg !13
-  %4 = call %Integer @clone_integer(%Integer %3), !dbg !13
-  call void @"println <:Integer>"(%Integer %4), !dbg !13
+  %3 = call %Integer @clone_integer(ptr %2), !dbg !13
+  call void @"println <:Integer>"(%Integer %3), !dbg !13
   br label %return, !dbg !14
 
 return:                                           ; preds = %1
@@ -73,7 +72,7 @@ declare void @"println <:String>"(%String)
 
 declare %String @integer_as_string(%Integer)
 
-declare %Integer @clone_integer(%Integer)
+declare %Integer @clone_integer(ptr)
 
 define private void @initialize.1() !dbg !17 {
   %1 = call %Integer @integer_from_i64(i64 42), !dbg !18

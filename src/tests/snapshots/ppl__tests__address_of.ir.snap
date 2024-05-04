@@ -61,15 +61,13 @@ define void @main.execute() !dbg !12 {
   call void @initialize.2(), !dbg !15
   call void @initialize.3(), !dbg !16
   call void @initialize.4(), !dbg !14
-  %1 = load %Integer, ptr @x, align 8, !dbg !17
-  %2 = call %Integer @clone_integer(%Integer %1), !dbg !17
-  call void @"println <:Integer>"(%Integer %2), !dbg !17
-  %3 = load ptr, ptr @x_mut_ref, align 8, !dbg !18
-  %4 = call %Integer @integer_from_i64(i64 1), !dbg !19
-  store %Integer %4, ptr %3, align 8, !dbg !19
-  %5 = load %Integer, ptr @x, align 8, !dbg !20
-  %6 = call %Integer @clone_integer(%Integer %5), !dbg !20
-  call void @"println <:Integer>"(%Integer %6), !dbg !20
+  %1 = call %Integer @clone_integer(ptr @x), !dbg !17
+  call void @"println <:Integer>"(%Integer %1), !dbg !17
+  %2 = load ptr, ptr @x_mut_ref, align 8, !dbg !18
+  %3 = call %Integer @integer_from_i64(i64 1), !dbg !19
+  store %Integer %3, ptr %2, align 8, !dbg !19
+  %4 = call %Integer @clone_integer(ptr @x), !dbg !20
+  call void @"println <:Integer>"(%Integer %4), !dbg !20
   call void @destroy_integer(ptr @x), !dbg !21
   br label %return, !dbg !21
 
@@ -126,7 +124,7 @@ declare void @"println <:String>"(%String)
 
 declare %String @integer_as_string(%Integer)
 
-declare %Integer @clone_integer(%Integer)
+declare %Integer @clone_integer(ptr)
 
 declare void @destroy_integer(ptr)
 

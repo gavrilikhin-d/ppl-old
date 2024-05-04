@@ -47,20 +47,19 @@ define %Integer @"<:Integer> plus two"(%Integer %0) !dbg !12 {
   %return_value = alloca %Integer, align 8
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
-  %2 = load %Integer, ptr %x, align 8, !dbg !13
-  %3 = call %Integer @clone_integer(%Integer %2), !dbg !13
-  %4 = call %Integer @integer_from_i64(i64 2), !dbg !14
-  %5 = call %Integer @"sum <:Integer> <:Integer>"(%Integer %3, %Integer %4), !dbg !14
+  %2 = call %Integer @clone_integer(ptr %x), !dbg !13
+  %3 = call %Integer @integer_from_i64(i64 2), !dbg !14
+  %4 = call %Integer @"sum <:Integer> <:Integer>"(%Integer %2, %Integer %3), !dbg !14
   %"$tmp@28" = alloca %Integer, align 8, !dbg !14
-  store %Integer %5, ptr %"$tmp@28", align 8, !dbg !14
+  store %Integer %4, ptr %"$tmp@28", align 8, !dbg !14
   call void @destroy_integer(ptr %x), !dbg !15
-  %6 = load %Integer, ptr %"$tmp@28", align 8, !dbg !16
-  store %Integer %6, ptr %return_value, align 8, !dbg !16
+  %5 = load %Integer, ptr %"$tmp@28", align 8, !dbg !16
+  store %Integer %5, ptr %return_value, align 8, !dbg !16
   br label %return, !dbg !16
 
 return:                                           ; preds = %1
-  %7 = load %Integer, ptr %return_value, align 8
-  ret %Integer %7
+  %6 = load %Integer, ptr %return_value, align 8
+  ret %Integer %6
 }
 
 define %Integer @"sum <:Integer> <:Integer>"(%Integer %0, %Integer %1) !dbg !17 {
@@ -69,25 +68,23 @@ define %Integer @"sum <:Integer> <:Integer>"(%Integer %0, %Integer %1) !dbg !17 
   store %Integer %0, ptr %x, align 8
   %y = alloca %Integer, align 8
   store %Integer %1, ptr %y, align 8
-  %3 = load %Integer, ptr %x, align 8, !dbg !18
-  %4 = call %Integer @clone_integer(%Integer %3), !dbg !18
-  %5 = load %Integer, ptr %y, align 8, !dbg !19
-  %6 = call %Integer @clone_integer(%Integer %5), !dbg !19
-  %7 = call %Integer @integer_plus_integer(%Integer %4, %Integer %6), !dbg !19
+  %3 = call %Integer @clone_integer(ptr %x), !dbg !18
+  %4 = call %Integer @clone_integer(ptr %y), !dbg !19
+  %5 = call %Integer @integer_plus_integer(%Integer %3, %Integer %4), !dbg !19
   %"$tmp@84" = alloca %Integer, align 8, !dbg !19
-  store %Integer %7, ptr %"$tmp@84", align 8, !dbg !19
+  store %Integer %5, ptr %"$tmp@84", align 8, !dbg !19
   call void @destroy_integer(ptr %x), !dbg !20
   call void @destroy_integer(ptr %y), !dbg !21
-  %8 = load %Integer, ptr %"$tmp@84", align 8, !dbg !18
-  store %Integer %8, ptr %return_value, align 8, !dbg !18
+  %6 = load %Integer, ptr %"$tmp@84", align 8, !dbg !18
+  store %Integer %6, ptr %return_value, align 8, !dbg !18
   br label %return, !dbg !18
 
 return:                                           ; preds = %2
-  %9 = load %Integer, ptr %return_value, align 8
-  ret %Integer %9
+  %7 = load %Integer, ptr %return_value, align 8
+  ret %Integer %7
 }
 
-declare %Integer @clone_integer(%Integer)
+declare %Integer @clone_integer(ptr)
 
 declare void @destroy_integer(ptr)
 

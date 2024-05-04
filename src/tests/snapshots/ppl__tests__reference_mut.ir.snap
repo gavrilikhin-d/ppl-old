@@ -39,19 +39,16 @@ define void @main.execute() !dbg !9 {
   call void @initialize.1(), !dbg !11
   call void @initialize.2(), !dbg !12
   %1 = load ptr, ptr @y, align 8, !dbg !13
-  %2 = load %Integer, ptr %1, align 8, !dbg !13
-  %3 = call %Integer @clone_integer(%Integer %2), !dbg !13
-  call void @"println <:Integer>"(%Integer %3), !dbg !13
-  %4 = load ptr, ptr @y, align 8, !dbg !14
-  %5 = call %Integer @integer_from_i64(i64 2), !dbg !15
-  store %Integer %5, ptr %4, align 8, !dbg !15
-  %6 = load ptr, ptr @y, align 8, !dbg !16
-  %7 = load %Integer, ptr %6, align 8, !dbg !16
-  %8 = call %Integer @clone_integer(%Integer %7), !dbg !16
-  call void @"println <:Integer>"(%Integer %8), !dbg !16
-  %9 = load %Integer, ptr @x, align 8, !dbg !17
-  %10 = call %Integer @clone_integer(%Integer %9), !dbg !17
-  call void @"println <:Integer>"(%Integer %10), !dbg !17
+  %2 = call %Integer @clone_integer(ptr %1), !dbg !13
+  call void @"println <:Integer>"(%Integer %2), !dbg !13
+  %3 = load ptr, ptr @y, align 8, !dbg !14
+  %4 = call %Integer @integer_from_i64(i64 2), !dbg !15
+  store %Integer %4, ptr %3, align 8, !dbg !15
+  %5 = load ptr, ptr @y, align 8, !dbg !16
+  %6 = call %Integer @clone_integer(ptr %5), !dbg !16
+  call void @"println <:Integer>"(%Integer %6), !dbg !16
+  %7 = call %Integer @clone_integer(ptr @x), !dbg !17
+  call void @"println <:Integer>"(%Integer %7), !dbg !17
   call void @destroy_integer(ptr @x), !dbg !18
   br label %return, !dbg !18
 
@@ -82,9 +79,9 @@ define private ptr @"reference to mutable <:ReferenceMut<Integer>>"(ptr %0) !dbg
   %ref = alloca ptr, align 8
   store ptr %0, ptr %ref, align 8
   %2 = load ptr, ptr %ref, align 8, !dbg !24
-  %"$tmp@4744" = alloca ptr, align 8, !dbg !24
-  store ptr %2, ptr %"$tmp@4744", align 8, !dbg !24
-  %3 = load ptr, ptr %"$tmp@4744", align 8, !dbg !24
+  %"$tmp@4747" = alloca ptr, align 8, !dbg !24
+  store ptr %2, ptr %"$tmp@4747", align 8, !dbg !24
+  %3 = load ptr, ptr %"$tmp@4747", align 8, !dbg !24
   store ptr %3, ptr %return_value, align 8, !dbg !24
   br label %return, !dbg !24
 
@@ -109,7 +106,7 @@ declare void @"println <:String>"(%String)
 
 declare %String @integer_as_string(%Integer)
 
-declare %Integer @clone_integer(%Integer)
+declare %Integer @clone_integer(ptr)
 
 declare void @destroy_integer(ptr)
 

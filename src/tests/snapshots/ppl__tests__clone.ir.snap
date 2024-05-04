@@ -38,21 +38,17 @@ define void @main.execute() !dbg !9 {
   call void @initialize(), !dbg !10
   call void @initialize.1(), !dbg !11
   call void @initialize.2(), !dbg !12
-  %1 = load %Integer, ptr @x, align 8, !dbg !13
-  %2 = call %Integer @clone_integer(%Integer %1), !dbg !13
-  call void @"println <:Integer>"(%Integer %2), !dbg !13
-  %3 = load %Integer, ptr @y, align 8, !dbg !14
-  %4 = call %Integer @clone_integer(%Integer %3), !dbg !14
-  call void @"println <:Integer>"(%Integer %4), !dbg !14
+  %1 = call %Integer @clone_integer(ptr @x), !dbg !13
+  call void @"println <:Integer>"(%Integer %1), !dbg !13
+  %2 = call %Integer @clone_integer(ptr @y), !dbg !14
+  call void @"println <:Integer>"(%Integer %2), !dbg !14
   call void @destroy_integer(ptr @y), !dbg !15
-  %5 = call %Integer @integer_from_i64(i64 2), !dbg !16
-  store %Integer %5, ptr @y, align 8, !dbg !16
-  %6 = load %Integer, ptr @x, align 8, !dbg !17
-  %7 = call %Integer @clone_integer(%Integer %6), !dbg !17
-  call void @"println <:Integer>"(%Integer %7), !dbg !17
-  %8 = load %Integer, ptr @y, align 8, !dbg !18
-  %9 = call %Integer @clone_integer(%Integer %8), !dbg !18
-  call void @"println <:Integer>"(%Integer %9), !dbg !18
+  %3 = call %Integer @integer_from_i64(i64 2), !dbg !16
+  store %Integer %3, ptr @y, align 8, !dbg !16
+  %4 = call %Integer @clone_integer(ptr @x), !dbg !17
+  call void @"println <:Integer>"(%Integer %4), !dbg !17
+  %5 = call %Integer @clone_integer(ptr @y), !dbg !18
+  call void @"println <:Integer>"(%Integer %5), !dbg !18
   call void @destroy_integer(ptr @x), !dbg !19
   call void @destroy_integer(ptr @y), !dbg !20
   br label %return, !dbg !20
@@ -71,16 +67,15 @@ return:                                           ; preds = %0
 }
 
 define private void @initialize.2() !dbg !23 {
-  %1 = load %Integer, ptr @x, align 8, !dbg !24
-  %2 = call %Integer @clone_integer(%Integer %1), !dbg !24
-  store %Integer %2, ptr @y, align 8, !dbg !24
+  %1 = call %Integer @clone_integer(ptr @x), !dbg !24
+  store %Integer %1, ptr @y, align 8, !dbg !24
   br label %return, !dbg !24
 
 return:                                           ; preds = %0
   ret void
 }
 
-declare %Integer @clone_integer(%Integer)
+declare %Integer @clone_integer(ptr)
 
 define private void @"println <:Integer>"(%Integer %0) !dbg !25 {
   %x = alloca %Integer, align 8

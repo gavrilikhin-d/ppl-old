@@ -99,26 +99,24 @@ define private %Integer @"size of <:Type<I32>>"(%"Type<I32>" %0) !dbg !28 {
   %ty = alloca %"Type<I32>", align 8
   store %"Type<I32>" %0, ptr %ty, align 8
   %size = getelementptr inbounds %"Type<I32>", ptr %ty, i32 0, i32 1, !dbg !29
-  %2 = load %Integer, ptr %size, align 8, !dbg !29
-  %3 = call %Integer @clone_integer(%Integer %2), !dbg !29
-  %"$tmp@4396" = alloca %Integer, align 8, !dbg !29
-  store %Integer %3, ptr %"$tmp@4396", align 8, !dbg !29
-  %4 = load %Integer, ptr %"$tmp@4396", align 8, !dbg !29
-  store %Integer %4, ptr %return_value, align 8, !dbg !29
+  %2 = call %Integer @clone_integer(ptr %size), !dbg !29
+  %"$tmp@4399" = alloca %Integer, align 8, !dbg !29
+  store %Integer %2, ptr %"$tmp@4399", align 8, !dbg !29
+  %3 = load %Integer, ptr %"$tmp@4399", align 8, !dbg !29
+  store %Integer %3, ptr %return_value, align 8, !dbg !29
   br label %return, !dbg !29
 
 return:                                           ; preds = %1
-  %5 = load %Integer, ptr %return_value, align 8
-  ret %Integer %5
+  %4 = load %Integer, ptr %return_value, align 8
+  ret %Integer %4
 }
 
-declare %Integer @clone_integer(%Integer)
+declare %Integer @clone_integer(ptr)
 
 define private void @initialize.3() !dbg !30 {
-  %1 = load %Integer, ptr @n, align 8, !dbg !31
-  %2 = call %Integer @clone_integer(%Integer %1), !dbg !31
-  %3 = call %MemoryAddress @allocate_n_bytes(%Integer %2), !dbg !31
-  store %MemoryAddress %3, ptr @address, align 8, !dbg !31
+  %1 = call %Integer @clone_integer(ptr @n), !dbg !31
+  %2 = call %MemoryAddress @allocate_n_bytes(%Integer %1), !dbg !31
+  store %MemoryAddress %2, ptr @address, align 8, !dbg !31
   br label %return, !dbg !31
 
 return:                                           ; preds = %0

@@ -150,10 +150,10 @@ pub extern "C" fn destroy_rational(x: *mut Rational) {
 /// # PPL
 /// ```no_run
 /// @mangle_as("clone_rational")
-/// fn clone <:Rational> -> Rational
+/// fn clone <:&Rational> -> Rational
 /// ```
 #[no_mangle]
-pub extern "C" fn clone_rational(x: Rational) -> Rational {
+pub extern "C" fn clone_rational(x: &Rational) -> Rational {
     let value = unsafe { x.data.as_ref() }.unwrap().clone();
     Rational {
         data: Box::into_raw(Box::new(value)),
