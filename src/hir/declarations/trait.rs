@@ -25,22 +25,17 @@ pub struct Trait {
     inner: Arc<RwLock<TraitData>>,
 }
 
-impl Trait {
-    /// Create a new function from its data
-    pub fn new(data: TraitData) -> Self {
+impl DataHolder for Trait {
+    type Data = TraitData;
+
+    fn new(data: Self::Data) -> Self {
         Self {
             inner: Arc::new(RwLock::new(data)),
         }
     }
 
-    /// Lock function for reading
-    pub fn read(&self) -> LockResult<RwLockReadGuard<'_, TraitData>> {
-        self.inner.read()
-    }
-
-    /// Lock function for writing
-    pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, TraitData>> {
-        self.inner.write()
+    fn inner(&self) -> &Arc<RwLock<Self::Data>> {
+        &self.inner
     }
 }
 

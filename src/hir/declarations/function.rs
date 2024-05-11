@@ -21,22 +21,17 @@ pub struct Parameter {
     inner: Arc<RwLock<ParameterData>>,
 }
 
-impl Parameter {
-    /// Create a new parameter from its data
-    pub fn new(data: ParameterData) -> Self {
+impl DataHolder for Parameter {
+    type Data = ParameterData;
+
+    fn new(data: Self::Data) -> Self {
         Self {
             inner: Arc::new(RwLock::new(data)),
         }
     }
 
-    /// Lock variable for reading
-    pub fn read(&self) -> LockResult<RwLockReadGuard<'_, ParameterData>> {
-        self.inner.read()
-    }
-
-    /// Lock variable for writing
-    pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, ParameterData>> {
-        self.inner.write()
+    fn inner(&self) -> &Arc<RwLock<Self::Data>> {
+        &self.inner
     }
 }
 

@@ -17,24 +17,21 @@ pub struct Variable {
     inner: Arc<RwLock<VariableData>>,
 }
 
-impl Variable {
-    /// Create a new variable from its data
-    pub fn new(data: VariableData) -> Self {
+impl DataHolder for Variable {
+    type Data = VariableData;
+
+    fn new(data: Self::Data) -> Self {
         Self {
             inner: Arc::new(RwLock::new(data)),
         }
     }
 
-    /// Lock variable for reading
-    pub fn read(&self) -> LockResult<RwLockReadGuard<'_, VariableData>> {
-        self.inner.read()
+    fn inner(&self) -> &Arc<RwLock<Self::Data>> {
+        &self.inner
     }
+}
 
-    /// Lock variable for writing
-    pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, VariableData>> {
-        self.inner.write()
-    }
-
+impl Variable {
     /// Is this a temporary variable?
     pub fn is_temporary(&self) -> bool {
         self.read().unwrap().is_temporary()

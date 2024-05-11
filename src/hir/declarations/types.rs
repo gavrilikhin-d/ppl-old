@@ -25,22 +25,17 @@ pub struct Member {
     inner: Arc<RwLock<MemberData>>,
 }
 
-impl Member {
-    /// Create a new member from its data
-    pub fn new(data: MemberData) -> Self {
+impl DataHolder for Member {
+    type Data = MemberData;
+
+    fn new(data: Self::Data) -> Self {
         Self {
             inner: Arc::new(RwLock::new(data)),
         }
     }
 
-    /// Lock Member for reading
-    pub fn read(&self) -> LockResult<RwLockReadGuard<'_, MemberData>> {
-        self.inner.read()
-    }
-
-    /// Lock Member for writing
-    pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, MemberData>> {
-        self.inner.write()
+    fn inner(&self) -> &Arc<RwLock<Self::Data>> {
+        &self.inner
     }
 }
 
@@ -189,24 +184,21 @@ pub struct Class {
     inner: Arc<RwLock<ClassData>>,
 }
 
-impl Class {
-    /// Create a new class from its data
-    pub fn new(data: ClassData) -> Self {
+impl DataHolder for Class {
+    type Data = ClassData;
+
+    fn new(data: Self::Data) -> Self {
         Class {
             inner: Arc::new(RwLock::new(data)),
         }
     }
 
-    /// Lock class for reading
-    pub fn read(&self) -> LockResult<RwLockReadGuard<'_, ClassData>> {
-        self.inner.read()
+    fn inner(&self) -> &Arc<RwLock<Self::Data>> {
+        &self.inner
     }
+}
 
-    /// Lock class for writing
-    pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, ClassData>> {
-        self.inner.write()
-    }
-
+impl Class {
     /// Is this a builtin type?
     pub fn is_builtin(&self) -> bool {
         self.read().unwrap().is_builtin()

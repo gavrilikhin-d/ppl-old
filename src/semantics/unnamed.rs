@@ -1,6 +1,9 @@
 use derive_visitor::VisitorMut;
 
-use crate::hir::{Function, Parameter};
+use crate::{
+    hir::{Function, Parameter},
+    DataHolder,
+};
 
 #[derive(VisitorMut)]
 #[visitor(Function(enter), Parameter(enter))]
