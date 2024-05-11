@@ -39,5 +39,8 @@ pub use reporter::*;
 mod err_vec;
 pub use err_vec::*;
 
+mod data_holder;
+pub use data_holder::*;
+
 #[cfg(test)]
 mod tests;

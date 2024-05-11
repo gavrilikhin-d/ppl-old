@@ -6,6 +6,7 @@ use crate::{
         VariableReference,
     },
     syntax::Ranged,
+    DataHolder,
 };
 
 use super::Context;

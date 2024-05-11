@@ -17,6 +17,8 @@ use crate::{
     AddSourceLocation,
 };
 
+use crate::DataHolder;
+
 /// Member data holder
 #[derive(Debug, Clone)]
 pub struct Member {

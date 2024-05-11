@@ -1,6 +1,7 @@
 use crate::{
     hir::{self, Function, Trait, Type},
     syntax::Ranged,
+    DataHolder,
 };
 
 use super::{error::NotImplemented, Context};

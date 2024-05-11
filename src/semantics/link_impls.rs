@@ -4,6 +4,7 @@ use log::debug;
 use crate::{
     hir::{Call, FunctionData, Generic, ModuleData, Type},
     semantics::{GenericContext, Monomorphize},
+    DataHolder,
 };
 
 use super::Context;

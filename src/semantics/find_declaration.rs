@@ -6,6 +6,7 @@ use crate::{
         Class, ClassOrTrait, Expression, Function, FunctionNamePart, ModuleData, Name,
         ParameterOrVariable, Trait, Type, Typed,
     },
+    DataHolder,
 };
 
 /// Trait to find declaration at current level

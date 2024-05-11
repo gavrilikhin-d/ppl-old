@@ -11,6 +11,8 @@ use super::{
     Context, Implements, Implicit,
 };
 
+use crate::DataHolder;
+
 /// Trait to check if one type is convertible to another
 pub trait ConvertibleTo
 where

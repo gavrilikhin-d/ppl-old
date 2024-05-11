@@ -11,6 +11,8 @@ use crate::{
     semantics::GenericContext,
 };
 
+use crate::DataHolder;
+
 use super::{Context, ReplaceWithTypeInfo};
 
 /// Trait to get monomorphized version of statements

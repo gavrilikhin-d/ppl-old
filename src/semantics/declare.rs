@@ -15,6 +15,8 @@ use super::{
     TraitContext,
 };
 
+use crate::DataHolder;
+
 /// Trait to pre-declare something
 pub trait Declare {
     type Declaration;

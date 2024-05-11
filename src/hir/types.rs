@@ -14,6 +14,8 @@ use derive_more::{Display, From, TryInto};
 use derive_visitor::DriveMut;
 use enum_dispatch::enum_dispatch;
 
+use crate::DataHolder;
+
 use super::Expression;
 
 /// PPL's Function type

@@ -9,6 +9,8 @@ use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
 use crate::syntax::{Identifier, Keyword, Ranged};
 
+use crate::DataHolder;
+
 /// Variable data holder
 #[derive(Debug, Clone)]
 pub struct Variable {

@@ -12,6 +12,7 @@ use crate::ir::Initializer;
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
+use crate::DataHolder;
 
 use super::Context;
 use super::FunctionContext;

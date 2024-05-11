@@ -8,6 +8,7 @@ use miette::NamedSource;
 
 use crate::hir::{Statement, Variable};
 use crate::named::Named;
+use crate::DataHolder;
 use crate::SourceFile;
 
 use super::{Class, Function, Trait, Type};
