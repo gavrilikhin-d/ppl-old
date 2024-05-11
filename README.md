@@ -29,12 +29,15 @@
 * [x] Fix memory leak due to pointers to builtin types
 * [x] Destructors for parameters
 * [x] No tmps for literals inside of constructors
+* [x] Fix recursive trait (AsString with prints)
 ---
 ### Current task
-* [ ] Sum of series benchmark
+* [ ] Benchmark for linear algebra
 ---
+* [ ] Sum of series benchmark
+* [ ] Find test that is taking infinite time
+* [ ] Use traits to check for `clone` and `destructoy` functions
 * [ ] Forbid recursion without `@recursive` annotation
-* [ ] Fix recursive trait (AsString with prints)
 * [ ] Generate clone for types with clonable members
 * [ ] Generate destructors for types with destructible members
 * [ ] Add type aliases

@@ -9,6 +9,6 @@ use f64.*
 use memory.*
 use threads.*
 use math.*
-use as_string.*
+use printable.*
 
 ==MONOMORPHIZED==

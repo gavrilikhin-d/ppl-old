@@ -16,11 +16,12 @@ destroy (str:String)
 
 
 @mangle_as("rational_as_string")
-fn String from <:Rational> -> String
+fn String from <$arg0: Rational> -> String
 
-fn<Rational> println <x: Rational> -> None:
-	let $tmp@314: None = println String from (x:Rational)
-	return ($tmp@314:None)
+fn println <x: Rational> -> None:
+	let $tmp@176: None = println String from (x:Rational)
+	return ($tmp@176:None)
+
 
 
 @mangle_as("rational_plus_rational")
@@ -31,11 +32,12 @@ fn <self: ReferenceMut<Rational>> += <other: Rational> -> None:
 
 
 @mangle_as("rational_as_string")
-fn String from <:Rational> -> String
+fn String from <$arg0: Rational> -> String
 
-fn<Rational> println <x: Rational> -> None:
-	let $tmp@314: None = println String from (x:Rational)
-	return ($tmp@314:None)
+fn println <x: Rational> -> None:
+	let $tmp@176: None = println String from (x:Rational)
+	return ($tmp@176:None)
+
 
 
 @mangle_as("string_plus_string")

@@ -15,64 +15,71 @@ println 14 / 2
 
 
 @mangle_as("integer_as_string")
-fn String from <:Integer> -> String
+fn String from <$arg0: Integer> -> String
 
-fn<Integer> println <x: Integer> -> None:
-	let $tmp@314: None = println String from (x:Integer)
-	return ($tmp@314:None)
+fn println <x: Integer> -> None:
+	let $tmp@176: None = println String from (x:Integer)
+	return ($tmp@176:None)
 
-
-@mangle_as("integer_as_string")
-fn String from <:Integer> -> String
-
-fn<Integer> println <x: Integer> -> None:
-	let $tmp@314: None = println String from (x:Integer)
-	return ($tmp@314:None)
 
 
 @mangle_as("integer_as_string")
-fn String from <:Integer> -> String
+fn String from <$arg0: Integer> -> String
 
-fn<Integer> println <x: Integer> -> None:
-	let $tmp@314: None = println String from (x:Integer)
-	return ($tmp@314:None)
+fn println <x: Integer> -> None:
+	let $tmp@176: None = println String from (x:Integer)
+	return ($tmp@176:None)
 
-
-@mangle_as("integer_as_string")
-fn String from <:Integer> -> String
-
-fn<Integer> println <x: Integer> -> None:
-	let $tmp@314: None = println String from (x:Integer)
-	return ($tmp@314:None)
 
 
 @mangle_as("integer_as_string")
-fn String from <:Integer> -> String
+fn String from <$arg0: Integer> -> String
 
-fn<Integer> println <x: Integer> -> None:
-	let $tmp@314: None = println String from (x:Integer)
-	return ($tmp@314:None)
+fn println <x: Integer> -> None:
+	let $tmp@176: None = println String from (x:Integer)
+	return ($tmp@176:None)
 
-
-@mangle_as("integer_as_string")
-fn String from <:Integer> -> String
-
-fn<Integer> println <x: Integer> -> None:
-	let $tmp@314: None = println String from (x:Integer)
-	return ($tmp@314:None)
 
 
 @mangle_as("integer_as_string")
-fn String from <:Integer> -> String
+fn String from <$arg0: Integer> -> String
 
-fn<Integer> println <x: Integer> -> None:
-	let $tmp@314: None = println String from (x:Integer)
-	return ($tmp@314:None)
+fn println <x: Integer> -> None:
+	let $tmp@176: None = println String from (x:Integer)
+	return ($tmp@176:None)
+
+
+
+@mangle_as("integer_as_string")
+fn String from <$arg0: Integer> -> String
+
+fn println <x: Integer> -> None:
+	let $tmp@176: None = println String from (x:Integer)
+	return ($tmp@176:None)
+
+
+
+@mangle_as("integer_as_string")
+fn String from <$arg0: Integer> -> String
+
+fn println <x: Integer> -> None:
+	let $tmp@176: None = println String from (x:Integer)
+	return ($tmp@176:None)
+
+
+
+@mangle_as("integer_as_string")
+fn String from <$arg0: Integer> -> String
+
+fn println <x: Integer> -> None:
+	let $tmp@176: None = println String from (x:Integer)
+	return ($tmp@176:None)
+
 
 
 @mangle_as("rational_as_string")
-fn String from <:Rational> -> String
+fn String from <$arg0: Rational> -> String
 
-fn<Rational> println <x: Rational> -> None:
-	let $tmp@314: None = println String from (x:Rational)
-	return ($tmp@314:None)
+fn println <x: Rational> -> None:
+	let $tmp@176: None = println String from (x:Rational)
+	return ($tmp@176:None)

@@ -24,16 +24,17 @@ fn<I32> size of <ty: Type<I32>> -> Integer:
 fn<I32> <ty: Type<I32>> at <address: MemoryAddress> -> ReferenceMut<I32>
 
 @mangle_as("i32_as_string")
-fn String from <:I32> -> String
+fn String from <$arg0: I32> -> String
 
-fn<I32> println <x: I32> -> None:
-	let $tmp@314: None = println String from (x:I32)
-	return ($tmp@314:None)
+fn println <x: I32> -> None:
+	let $tmp@176: None = println String from (x:I32)
+	return ($tmp@176:None)
+
 
 
 @mangle_as("i32_as_string")
-fn String from <:I32> -> String
+fn String from <$arg0: I32> -> String
 
-fn<I32> println <x: I32> -> None:
-	let $tmp@314: None = println String from (x:I32)
-	return ($tmp@314:None)
+fn println <x: I32> -> None:
+	let $tmp@176: None = println String from (x:I32)
+	return ($tmp@176:None)

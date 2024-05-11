@@ -19,6 +19,6 @@ fn<A> String from <ty: Type<A>> -> String:
 	return ($tmp@4331:String)
 
 
-fn<Type<A>> println <x: Type<A>> -> None:
-	let $tmp@314: None = println String from (x:Type<A>)
-	return ($tmp@314:None)
+fn println <x: Type<A>> -> None:
+	let $tmp@176: None = println String from (x:Type<A>)
+	return ($tmp@176:None)

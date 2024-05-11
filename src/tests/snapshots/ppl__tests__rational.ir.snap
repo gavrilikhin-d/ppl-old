@@ -131,7 +131,7 @@ define private void @"println <:Rational>"(%Rational %0) !dbg !39 {
   %2 = load %Rational, ptr %x, align 8, !dbg !40
   %3 = call %String @rational_as_string(%Rational %2), !dbg !40
   call void @"println <:String>"(%String %3), !dbg !40
-  br label %return, !dbg !40
+  br label %return, !dbg !41
 
 return:                                           ; preds = %1
   ret void
@@ -157,13 +157,13 @@ declare %Rational @rational_slash_rational(%Rational, %Rational)
 
 declare %Rational @integer_slash_integer(%Integer, %Integer)
 
-define private void @"println <:Bool>"(i1 %0) !dbg !41 {
+define private void @"println <:Bool>"(i1 %0) !dbg !42 {
   %x = alloca i1, align 1
   store i1 %0, ptr %x, align 1
-  %2 = load i1, ptr %x, align 1, !dbg !42
-  %3 = call %String @"String from <:Bool>"(i1 %2), !dbg !42
-  call void @"println <:String>"(%String %3), !dbg !42
-  br label %return, !dbg !42
+  %2 = load i1, ptr %x, align 1, !dbg !43
+  %3 = call %String @"String from <:Bool>"(i1 %2), !dbg !43
+  call void @"println <:String>"(%String %3), !dbg !43
+  br label %return, !dbg !44
 
 return:                                           ; preds = %1
   ret void
@@ -173,21 +173,21 @@ declare %String @"String from <:Bool>"(i1)
 
 declare i1 @rational_eq_rational(%Rational, %Rational)
 
-define i1 @"<:Rational> != <:Rational>"(%Rational %0, %Rational %1) !dbg !43 {
+define private i1 @"<:Rational> != <:Rational>"(%Rational %0, %Rational %1) !dbg !45 {
   %return_value = alloca i1, align 1
   %x = alloca %Rational, align 8
   store %Rational %0, ptr %x, align 8
   %y = alloca %Rational, align 8
   store %Rational %1, ptr %y, align 8
-  %3 = load %Rational, ptr %x, align 8, !dbg !44
-  %4 = load %Rational, ptr %y, align 8, !dbg !44
-  %5 = call i1 @rational_eq_rational(%Rational %3, %Rational %4), !dbg !44
-  %6 = call i1 @"not <:Bool>"(i1 %5), !dbg !44
-  %"$tmp@776" = alloca i1, align 1, !dbg !44
-  store i1 %6, ptr %"$tmp@776", align 1, !dbg !44
-  %7 = load i1, ptr %"$tmp@776", align 1, !dbg !44
-  store i1 %7, ptr %return_value, align 1, !dbg !44
-  br label %return, !dbg !44
+  %3 = load %Rational, ptr %x, align 8, !dbg !46
+  %4 = load %Rational, ptr %y, align 8, !dbg !46
+  %5 = call i1 @rational_eq_rational(%Rational %3, %Rational %4), !dbg !46
+  %6 = call i1 @"not <:Bool>"(i1 %5), !dbg !46
+  %"$tmp@776" = alloca i1, align 1, !dbg !46
+  store i1 %6, ptr %"$tmp@776", align 1, !dbg !46
+  %7 = load i1, ptr %"$tmp@776", align 1, !dbg !46
+  store i1 %7, ptr %return_value, align 1, !dbg !46
+  br label %return, !dbg !46
 
 return:                                           ; preds = %2
   %8 = load i1, ptr %return_value, align 1
@@ -198,48 +198,27 @@ declare i1 @"not <:Bool>"(i1)
 
 declare i1 @rational_less_rational(%Rational, %Rational)
 
-define i1 @"<:Rational> > <:Rational>"(%Rational %0, %Rational %1) !dbg !45 {
+define private i1 @"<:Rational> > <:Rational>"(%Rational %0, %Rational %1) !dbg !47 {
   %return_value = alloca i1, align 1
   %x = alloca %Rational, align 8
   store %Rational %0, ptr %x, align 8
   %y = alloca %Rational, align 8
   store %Rational %1, ptr %y, align 8
-  %3 = load %Rational, ptr %y, align 8, !dbg !46
-  %4 = load %Rational, ptr %x, align 8, !dbg !46
-  %5 = call i1 @rational_less_rational(%Rational %3, %Rational %4), !dbg !46
-  %"$tmp@1032" = alloca i1, align 1, !dbg !46
-  store i1 %5, ptr %"$tmp@1032", align 1, !dbg !46
-  %6 = load i1, ptr %"$tmp@1032", align 1, !dbg !46
-  store i1 %6, ptr %return_value, align 1, !dbg !46
-  br label %return, !dbg !46
+  %3 = load %Rational, ptr %y, align 8, !dbg !48
+  %4 = load %Rational, ptr %x, align 8, !dbg !48
+  %5 = call i1 @rational_less_rational(%Rational %3, %Rational %4), !dbg !48
+  %"$tmp@1032" = alloca i1, align 1, !dbg !48
+  store i1 %5, ptr %"$tmp@1032", align 1, !dbg !48
+  %6 = load i1, ptr %"$tmp@1032", align 1, !dbg !48
+  store i1 %6, ptr %return_value, align 1, !dbg !48
+  br label %return, !dbg !48
 
 return:                                           ; preds = %2
   %7 = load i1, ptr %return_value, align 1
   ret i1 %7
 }
 
-define i1 @"<:Rational> <= <:Rational>"(%Rational %0, %Rational %1) !dbg !47 {
-  %return_value = alloca i1, align 1
-  %x = alloca %Rational, align 8
-  store %Rational %0, ptr %x, align 8
-  %y = alloca %Rational, align 8
-  store %Rational %1, ptr %y, align 8
-  %3 = load %Rational, ptr %x, align 8, !dbg !48
-  %4 = load %Rational, ptr %y, align 8, !dbg !48
-  %5 = call i1 @"<:Rational> > <:Rational>"(%Rational %3, %Rational %4), !dbg !48
-  %6 = call i1 @"not <:Bool>"(i1 %5), !dbg !48
-  %"$tmp@1068" = alloca i1, align 1, !dbg !48
-  store i1 %6, ptr %"$tmp@1068", align 1, !dbg !48
-  %7 = load i1, ptr %"$tmp@1068", align 1, !dbg !48
-  store i1 %7, ptr %return_value, align 1, !dbg !48
-  br label %return, !dbg !48
-
-return:                                           ; preds = %2
-  %8 = load i1, ptr %return_value, align 1
-  ret i1 %8
-}
-
-define i1 @"<:Rational> >= <:Rational>"(%Rational %0, %Rational %1) !dbg !49 {
+define private i1 @"<:Rational> <= <:Rational>"(%Rational %0, %Rational %1) !dbg !49 {
   %return_value = alloca i1, align 1
   %x = alloca %Rational, align 8
   store %Rational %0, ptr %x, align 8
@@ -247,13 +226,34 @@ define i1 @"<:Rational> >= <:Rational>"(%Rational %0, %Rational %1) !dbg !49 {
   store %Rational %1, ptr %y, align 8
   %3 = load %Rational, ptr %x, align 8, !dbg !50
   %4 = load %Rational, ptr %y, align 8, !dbg !50
-  %5 = call i1 @rational_less_rational(%Rational %3, %Rational %4), !dbg !50
+  %5 = call i1 @"<:Rational> > <:Rational>"(%Rational %3, %Rational %4), !dbg !50
   %6 = call i1 @"not <:Bool>"(i1 %5), !dbg !50
-  %"$tmp@1110" = alloca i1, align 1, !dbg !50
-  store i1 %6, ptr %"$tmp@1110", align 1, !dbg !50
-  %7 = load i1, ptr %"$tmp@1110", align 1, !dbg !50
+  %"$tmp@1068" = alloca i1, align 1, !dbg !50
+  store i1 %6, ptr %"$tmp@1068", align 1, !dbg !50
+  %7 = load i1, ptr %"$tmp@1068", align 1, !dbg !50
   store i1 %7, ptr %return_value, align 1, !dbg !50
   br label %return, !dbg !50
+
+return:                                           ; preds = %2
+  %8 = load i1, ptr %return_value, align 1
+  ret i1 %8
+}
+
+define private i1 @"<:Rational> >= <:Rational>"(%Rational %0, %Rational %1) !dbg !51 {
+  %return_value = alloca i1, align 1
+  %x = alloca %Rational, align 8
+  store %Rational %0, ptr %x, align 8
+  %y = alloca %Rational, align 8
+  store %Rational %1, ptr %y, align 8
+  %3 = load %Rational, ptr %x, align 8, !dbg !52
+  %4 = load %Rational, ptr %y, align 8, !dbg !52
+  %5 = call i1 @rational_less_rational(%Rational %3, %Rational %4), !dbg !52
+  %6 = call i1 @"not <:Bool>"(i1 %5), !dbg !52
+  %"$tmp@1110" = alloca i1, align 1, !dbg !52
+  store i1 %6, ptr %"$tmp@1110", align 1, !dbg !52
+  %7 = load i1, ptr %"$tmp@1110", align 1, !dbg !52
+  store i1 %7, ptr %return_value, align 1, !dbg !52
+  br label %return, !dbg !52
 
 return:                                           ; preds = %2
   %8 = load i1, ptr %return_value, align 1
@@ -266,14 +266,14 @@ return:                                           ; preds = %2
 !0 = !{i32 2, !"Debug Info Version", i32 3}
 !1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "ppl", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, sysroot: "/")
 !2 = !DIFile(filename: "src/main.ppl", directory: ".")
-!3 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !2, file: !2, line: 11, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!3 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !2, file: !2, line: 8, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !4 = !DISubroutineType(types: !5)
 !5 = !{!6}
 !6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
-!7 = !DILocation(line: 11, column: 16, scope: !3)
+!7 = !DILocation(line: 8, column: 2, scope: !3)
 !8 = !DILocation(line: 0, scope: !3)
 !9 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!10 = !DILocation(line: 11, column: 16, scope: !9)
+!10 = !DILocation(line: 8, column: 2, scope: !9)
 !11 = !DILocation(line: 0, column: 8, scope: !9)
 !12 = !DILocation(line: 1, column: 9, scope: !9)
 !13 = !DILocation(line: 2, column: 9, scope: !9)
@@ -302,15 +302,17 @@ return:                                           ; preds = %2
 !36 = !DILocation(line: 13, column: 15, scope: !9)
 !37 = !DILocation(line: 14, column: 8, scope: !9)
 !38 = !DILocation(line: 14, column: 15, scope: !9)
-!39 = distinct !DISubprogram(name: "println <:Rational>", linkageName: "println <:Rational>", scope: !9, file: !2, line: 14, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!40 = !DILocation(line: 14, column: 18, scope: !39)
-!41 = distinct !DISubprogram(name: "println <:Bool>", linkageName: "println <:Bool>", scope: !9, file: !2, line: 14, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!42 = !DILocation(line: 14, column: 18, scope: !41)
-!43 = distinct !DISubprogram(name: "<:Rational> != <:Rational>", linkageName: "<:Rational> != <:Rational>", scope: !9, file: !2, line: 14, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!44 = !DILocation(line: 14, column: 18, scope: !43)
-!45 = distinct !DISubprogram(name: "<:Rational> > <:Rational>", linkageName: "<:Rational> > <:Rational>", scope: !9, file: !2, line: 14, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!39 = distinct !DISubprogram(name: "println <:Rational>", linkageName: "println <:Rational>", scope: !9, file: !2, line: 9, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!40 = !DILocation(line: 11, column: 9, scope: !39)
+!41 = !DILocation(line: 10, column: 6, scope: !39)
+!42 = distinct !DISubprogram(name: "println <:Bool>", linkageName: "println <:Bool>", scope: !9, file: !2, line: 9, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!43 = !DILocation(line: 11, column: 9, scope: !42)
+!44 = !DILocation(line: 10, column: 6, scope: !42)
+!45 = distinct !DISubprogram(name: "<:Rational> != <:Rational>", linkageName: "<:Rational> != <:Rational>", scope: !9, file: !2, line: 14, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !46 = !DILocation(line: 14, column: 18, scope: !45)
-!47 = distinct !DISubprogram(name: "<:Rational> <= <:Rational>", linkageName: "<:Rational> <= <:Rational>", scope: !9, file: !2, line: 14, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!47 = distinct !DISubprogram(name: "<:Rational> > <:Rational>", linkageName: "<:Rational> > <:Rational>", scope: !9, file: !2, line: 14, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !48 = !DILocation(line: 14, column: 18, scope: !47)
-!49 = distinct !DISubprogram(name: "<:Rational> >= <:Rational>", linkageName: "<:Rational> >= <:Rational>", scope: !9, file: !2, line: 14, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!49 = distinct !DISubprogram(name: "<:Rational> <= <:Rational>", linkageName: "<:Rational> <= <:Rational>", scope: !9, file: !2, line: 14, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !50 = !DILocation(line: 14, column: 18, scope: !49)
+!51 = distinct !DISubprogram(name: "<:Rational> >= <:Rational>", linkageName: "<:Rational> >= <:Rational>", scope: !9, file: !2, line: 14, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!52 = !DILocation(line: 14, column: 18, scope: !51)

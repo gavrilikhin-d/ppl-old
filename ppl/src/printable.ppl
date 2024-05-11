@@ -1,0 +1,9 @@
+use core.*
+
+/// Trait for things that may be printed
+trait Printable:
+	fn String from <:Self> -> String
+
+	fn print <x: Self> => print (String from x)
+
+	fn println <x: Self> => println (String from x)

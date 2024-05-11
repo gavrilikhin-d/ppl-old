@@ -42,8 +42,8 @@ fn<Integer> <$arg0: Type<Integer>> [ ] -> Array<Integer>:
 
 
 fn<Integer> iterator for <array: Reference<Array<Integer>>> -> Iterator<Integer>:
-	let $tmp@1686: Iterator<Integer> = Iterator<Integer> { array: (array:Reference<Array<Integer>>), index: 0 }
-	return ($tmp@1686:Iterator<Integer>)
+	let $tmp@1687: Iterator<Integer> = Iterator<Integer> { array: (array:Reference<Array<Integer>>), index: 0 }
+	return ($tmp@1687:Iterator<Integer>)
 
 
 fn<Integer> String from <array: Reference<Array<Integer>>> -> String:
@@ -59,14 +59,15 @@ fn<Integer> String from <array: Reference<Array<Integer>>> -> String:
 		destroy (i:Integer)
 
 	(&str:ReferenceMut<String>) += "]"
-	let $tmp@1461: String = clone (str:String)
+	let $tmp@1462: String = clone (str:String)
 	destroy (str:String)
-	return ($tmp@1461:String)
+	return ($tmp@1462:String)
 
 
-fn<Array<Integer>> println <x: Array<Integer>> -> None:
-	let $tmp@314: None = println String from (x:Array<Integer>)
-	return ($tmp@314:None)
+fn println <x: Array<Integer>> -> None:
+	let $tmp@176: None = println String from (x:Array<Integer>)
+	return ($tmp@176:None)
+
 
 
 fn<Integer> <array: Reference<Array<Integer>>> is empty -> Bool:
@@ -147,14 +148,15 @@ fn<Integer> String from <array: Reference<Array<Integer>>> -> String:
 		destroy (i:Integer)
 
 	(&str:ReferenceMut<String>) += "]"
-	let $tmp@1461: String = clone (str:String)
+	let $tmp@1462: String = clone (str:String)
 	destroy (str:String)
-	return ($tmp@1461:String)
+	return ($tmp@1462:String)
 
 
-fn<Array<Integer>> println <x: Array<Integer>> -> None:
-	let $tmp@314: None = println String from (x:Array<Integer>)
-	return ($tmp@314:None)
+fn println <x: Array<Integer>> -> None:
+	let $tmp@176: None = println String from (x:Array<Integer>)
+	return ($tmp@176:None)
+
 
 
 fn<Integer> <array: Reference<Array<Integer>>> is not empty -> Bool:
@@ -181,16 +183,17 @@ fn<Integer> <array: Reference<Array<Integer>>> [ <i: Integer> ] -> Reference<Int
 
 
 @mangle_as("integer_as_string")
-fn String from <:Integer> -> String
+fn String from <$arg0: Integer> -> String
 
-fn<Integer> println <x: Integer> -> None:
-	let $tmp@314: None = println String from (x:Integer)
-	return ($tmp@314:None)
+fn println <x: Integer> -> None:
+	let $tmp@176: None = println String from (x:Integer)
+	return ($tmp@176:None)
+
 
 
 fn<Integer> <it: Reference<Iterator<Integer>>> exists -> Bool:
-	let $tmp@1754: Bool = clone (*it:Iterator<Integer>).index < clone (*(*it:Iterator<Integer>).array:Array<Integer>).size
-	return ($tmp@1754:Bool)
+	let $tmp@1755: Bool = clone (*it:Iterator<Integer>).index < clone (*(*it:Iterator<Integer>).array:Array<Integer>).size
+	return ($tmp@1755:Bool)
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
@@ -220,16 +223,17 @@ fn<Integer> <array: Reference<Array<Integer>>> [ <i: Integer> ] -> Reference<Int
 
 
 fn<Integer> value from <it: Reference<Iterator<Integer>>> -> Reference<Integer>:
-	let $tmp@1885: Reference<Integer> = (*it:Iterator<Integer>).array [ clone (*it:Iterator<Integer>).index ]
-	return ($tmp@1885:Reference<Integer>)
+	let $tmp@1886: Reference<Integer> = (*it:Iterator<Integer>).array [ clone (*it:Iterator<Integer>).index ]
+	return ($tmp@1886:Reference<Integer>)
 
 
 @mangle_as("integer_as_string")
-fn String from <:Integer> -> String
+fn String from <$arg0: Integer> -> String
 
-fn<Integer> println <x: Integer> -> None:
-	let $tmp@314: None = println String from (x:Integer)
-	return ($tmp@314:None)
+fn println <x: Integer> -> None:
+	let $tmp@176: None = println String from (x:Integer)
+	return ($tmp@176:None)
+
 
 
 fn<Integer> advance <it: ReferenceMut<Iterator<Integer>>> -> None:

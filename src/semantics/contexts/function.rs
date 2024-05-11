@@ -59,6 +59,21 @@ impl FindDeclaration for FunctionContext<'_> {
     fn parent(&self) -> Option<&dyn FindDeclaration> {
         Some(self.parent as _)
     }
+
+    fn functions_with_n_name_parts(&self, n: usize) -> Vec<Function> {
+        let mut functions: Vec<_> = self
+            .functions_with_n_name_parts_here(n)
+            .into_iter()
+            .chain(
+                FindDeclaration::parent(self)
+                    .and_then(|p| Some(p.functions_with_n_name_parts(n)))
+                    .unwrap_or_default(),
+            )
+            .collect();
+        // TODO: allow recursion, if has @recursive
+        functions.retain(|f| *f != self.function);
+        functions
+    }
 }
 
 impl AddDeclaration for FunctionContext<'_> {
