@@ -4,6 +4,7 @@ use crate::{
     hir::{Class, Function, ParameterOrVariable, Trait, Type, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
+    DataHolder,
 };
 
 use super::Context;

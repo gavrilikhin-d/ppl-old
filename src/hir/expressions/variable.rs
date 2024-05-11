@@ -5,6 +5,7 @@ use crate::hir::{Generic, Parameter, ParameterData, Type, Typed, Variable, Varia
 use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::syntax::Ranged;
+use crate::DataHolder;
 use std::borrow::Cow;
 use std::fmt::Display;
 

@@ -28,6 +28,8 @@ use super::{
 use crate::ast::{self, CallNamePart, FnKind, If};
 use crate::semantics::monomorphize::Monomorphize;
 
+use crate::DataHolder;
+
 /// Lower to HIR inside some context
 pub trait ToHIR {
     type Error = Error;

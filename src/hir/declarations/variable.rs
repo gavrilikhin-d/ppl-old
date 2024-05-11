@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 use std::fmt::Display;
-use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{Arc, RwLock};
 
 use derive_visitor::DriveMut;
 
@@ -9,30 +9,29 @@ use crate::mutability::{Mutability, Mutable};
 use crate::named::Named;
 use crate::syntax::{Identifier, Keyword, Ranged};
 
+use crate::DataHolder;
+
 /// Variable data holder
 #[derive(Debug, Clone)]
 pub struct Variable {
     inner: Arc<RwLock<VariableData>>,
 }
 
-impl Variable {
-    /// Create a new variable from its data
-    pub fn new(data: VariableData) -> Self {
+impl DataHolder for Variable {
+    type Data = VariableData;
+
+    fn new(data: Self::Data) -> Self {
         Self {
             inner: Arc::new(RwLock::new(data)),
         }
     }
 
-    /// Lock variable for reading
-    pub fn read(&self) -> LockResult<RwLockReadGuard<'_, VariableData>> {
-        self.inner.read()
+    fn inner(&self) -> &Arc<RwLock<Self::Data>> {
+        &self.inner
     }
+}
 
-    /// Lock variable for writing
-    pub fn write(&self) -> LockResult<RwLockWriteGuard<'_, VariableData>> {
-        self.inner.write()
-    }
-
+impl Variable {
     /// Is this a temporary variable?
     pub fn is_temporary(&self) -> bool {
         self.read().unwrap().is_temporary()

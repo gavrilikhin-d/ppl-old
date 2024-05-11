@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use super::{Class, ClassData, FunctionType, Generic, Member, MemberData, Type, Typed};
 
+use crate::DataHolder;
+
 /// Specialize type using given mapping
 pub trait Specialize
 where

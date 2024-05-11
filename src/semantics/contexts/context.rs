@@ -8,6 +8,8 @@ use crate::{
 
 use super::BuiltinContext;
 
+use crate::DataHolder;
+
 /// Trait for various AST lowering contexts
 pub trait Context: FindDeclaration + AddDeclaration + Display {
     /// Get parent context

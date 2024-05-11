@@ -19,6 +19,8 @@ use derive_more::Display;
 
 use crate::{named::Named, syntax::Ranged};
 
+use crate::DataHolder;
+
 /// Any PPL declaration
 #[derive(Debug, Display, PartialEq, Eq, Clone, From, TryInto, DriveMut)]
 pub enum Declaration {

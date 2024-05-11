@@ -9,6 +9,7 @@ use crate::{
     },
     mutability::Mutable,
     syntax::{Identifier, Keyword, Ranged},
+    DataHolder,
 };
 
 #[derive(VisitorMut)]

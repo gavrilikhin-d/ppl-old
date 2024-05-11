@@ -8,6 +8,8 @@ use crate::{
 
 use super::Context;
 
+use crate::DataHolder;
+
 /// Context for lowering body of trait
 pub struct TraitContext<'p> {
     /// Trait, which is being lowered
