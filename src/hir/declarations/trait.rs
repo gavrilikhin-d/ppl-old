@@ -3,7 +3,7 @@ use std::{
     fmt::Display,
     hash::{Hash, Hasher},
     ops::Range,
-    sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard},
+    sync::{Arc, RwLock},
 };
 
 use derive_visitor::DriveMut;

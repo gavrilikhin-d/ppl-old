@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 use std::fmt::Display;
-use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{Arc, RwLock};
 
 use derive_visitor::DriveMut;
 

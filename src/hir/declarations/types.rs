@@ -4,7 +4,7 @@ use std::{
     hash::Hash,
     ops::Range,
     str::FromStr,
-    sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard},
+    sync::{Arc, RwLock},
 };
 
 use derive_visitor::DriveMut;

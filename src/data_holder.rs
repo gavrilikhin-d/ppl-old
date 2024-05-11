@@ -1,4 +1,4 @@
-use std::sync::{Arc, LockResult, RwLock, RwLockReadGuard, RwLockWriteGuard, TryLockResult};
+use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard, TryLockResult};
 
 /// Trait for structs that hold some data
 pub trait DataHolder {
