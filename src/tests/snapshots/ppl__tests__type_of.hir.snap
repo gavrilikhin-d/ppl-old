@@ -18,6 +18,6 @@ fn<Integer> String from <ty: Type<Integer>> -> String:
 	return ($tmp@4331:String)
 
 
-fn<Type<Integer>> println <x: Type<Integer>> -> None:
-	let $tmp@314: None = println String from (x:Type<Integer>)
-	return ($tmp@314:None)
+fn println <x: Type<Integer>> -> None:
+	let $tmp@176: None = println String from (x:Type<Integer>)
+	return ($tmp@176:None)

@@ -234,9 +234,9 @@ define private %"Iterator<Integer>" @"iterator for <:Reference<Array<Integer>>>"
   %4 = call %Integer @integer_from_i64(i64 0), !dbg !41
   store %Integer %4, ptr %"Iterator<Integer>.index", align 8, !dbg !41
   %5 = load %"Iterator<Integer>", ptr %2, align 8, !dbg !41
-  %"$tmp@1686" = alloca %"Iterator<Integer>", align 8, !dbg !41
-  store %"Iterator<Integer>" %5, ptr %"$tmp@1686", align 8, !dbg !41
-  %6 = load %"Iterator<Integer>", ptr %"$tmp@1686", align 8, !dbg !41
+  %"$tmp@1687" = alloca %"Iterator<Integer>", align 8, !dbg !41
+  store %"Iterator<Integer>" %5, ptr %"$tmp@1687", align 8, !dbg !41
+  %6 = load %"Iterator<Integer>", ptr %"$tmp@1687", align 8, !dbg !41
   store %"Iterator<Integer>" %6, ptr %return_value, align 8, !dbg !41
   br label %return, !dbg !41
 
@@ -250,7 +250,7 @@ define private void @"println <:Array<Integer>>"(%"Array<Integer>" %0) !dbg !42 
   store %"Array<Integer>" %0, ptr %x, align 8
   %2 = call %String @"String from <:Reference<Array<Integer>>>"(ptr %x), !dbg !43
   call void @"println <:String>"(%String %2), !dbg !43
-  br label %return, !dbg !43
+  br label %return, !dbg !44
 
 return:                                           ; preds = %1
   ret void
@@ -258,82 +258,82 @@ return:                                           ; preds = %1
 
 declare void @"println <:String>"(%String)
 
-define private %String @"String from <:Reference<Array<Integer>>>"(ptr %0) !dbg !44 {
+define private %String @"String from <:Reference<Array<Integer>>>"(ptr %0) !dbg !45 {
   %return_value = alloca %String, align 8
   %array = alloca ptr, align 8
   store ptr %0, ptr %array, align 8
-  %2 = call %String @string_from_c_string_and_length(ptr @2, i64 1), !dbg !45
-  %str = alloca %String, align 8, !dbg !45
-  store %String %2, ptr %str, align 8, !dbg !45
-  br label %if.condition, !dbg !45
+  %2 = call %String @string_from_c_string_and_length(ptr @2, i64 1), !dbg !46
+  %str = alloca %String, align 8, !dbg !46
+  store %String %2, ptr %str, align 8, !dbg !46
+  br label %if.condition, !dbg !46
 
 if.condition:                                     ; preds = %1
-  %3 = call i1 @"<:Reference<Array<Integer>>> is not empty"(ptr %array), !dbg !45
-  br i1 %3, label %if.body, label %10, !dbg !45
+  %3 = call i1 @"<:Reference<Array<Integer>>> is not empty"(ptr %array), !dbg !46
+  br i1 %3, label %if.body, label %10, !dbg !46
 
 if.body:                                          ; preds = %if.condition
-  %4 = call %Integer @integer_from_i64(i64 0), !dbg !45
-  %5 = call ptr @"<:Reference<Array<Integer>>> [ <:Integer> ]"(ptr %array, %Integer %4), !dbg !45
-  %6 = load %Integer, ptr %5, align 8, !dbg !45
-  %7 = call %String @integer_as_string(%Integer %6), !dbg !45
-  call void @"<:ReferenceMut<String>> += <:String>"(ptr %str, %String %7), !dbg !45
-  %8 = call %Integer @integer_from_i64(i64 1), !dbg !45
-  %i = alloca %Integer, align 8, !dbg !45
-  store %Integer %8, ptr %i, align 8, !dbg !45
-  br label %while.condition, !dbg !45
+  %4 = call %Integer @integer_from_i64(i64 0), !dbg !46
+  %5 = call ptr @"<:Reference<Array<Integer>>> [ <:Integer> ]"(ptr %array, %Integer %4), !dbg !46
+  %6 = load %Integer, ptr %5, align 8, !dbg !46
+  %7 = call %String @integer_as_string(%Integer %6), !dbg !46
+  call void @"<:ReferenceMut<String>> += <:String>"(ptr %str, %String %7), !dbg !46
+  %8 = call %Integer @integer_from_i64(i64 1), !dbg !46
+  %i = alloca %Integer, align 8, !dbg !46
+  store %Integer %8, ptr %i, align 8, !dbg !46
+  br label %while.condition, !dbg !46
 
 return:                                           ; preds = %10
   %9 = load %String, ptr %return_value, align 8
   ret %String %9
 
 10:                                               ; preds = %if.condition, %24
-  %11 = call %String @string_from_c_string_and_length(ptr @4, i64 1), !dbg !45
-  call void @"<:ReferenceMut<String>> += <:String>"(ptr %str, %String %11), !dbg !45
-  %12 = call %String @clone_string(ptr %str), !dbg !45
-  %"$tmp@1461" = alloca %String, align 8, !dbg !45
-  store %String %12, ptr %"$tmp@1461", align 8, !dbg !45
-  call void @destroy_string(ptr %str), !dbg !45
-  %13 = load %String, ptr %"$tmp@1461", align 8, !dbg !45
-  store %String %13, ptr %return_value, align 8, !dbg !45
-  br label %return, !dbg !45
+  %11 = call %String @string_from_c_string_and_length(ptr @4, i64 1), !dbg !46
+  call void @"<:ReferenceMut<String>> += <:String>"(ptr %str, %String %11), !dbg !46
+  %12 = call %String @clone_string(ptr %str), !dbg !46
+  %"$tmp@1462" = alloca %String, align 8, !dbg !46
+  store %String %12, ptr %"$tmp@1462", align 8, !dbg !46
+  call void @destroy_string(ptr %str), !dbg !46
+  %13 = load %String, ptr %"$tmp@1462", align 8, !dbg !46
+  store %String %13, ptr %return_value, align 8, !dbg !46
+  br label %return, !dbg !46
 
 while.condition:                                  ; preds = %while.body, %if.body
-  %14 = call %Integer @clone_integer(ptr %i), !dbg !45
-  %15 = load ptr, ptr %array, align 8, !dbg !45
-  %size = getelementptr inbounds %"Array<Integer>", ptr %15, i32 0, i32 0, !dbg !45
-  %16 = call %Integer @clone_integer(ptr %size), !dbg !45
-  %17 = call i1 @integer_less_integer(%Integer %14, %Integer %16), !dbg !45
-  br i1 %17, label %while.body, label %24, !dbg !45
+  %14 = call %Integer @clone_integer(ptr %i), !dbg !46
+  %15 = load ptr, ptr %array, align 8, !dbg !46
+  %size = getelementptr inbounds %"Array<Integer>", ptr %15, i32 0, i32 0, !dbg !46
+  %16 = call %Integer @clone_integer(ptr %size), !dbg !46
+  %17 = call i1 @integer_less_integer(%Integer %14, %Integer %16), !dbg !46
+  br i1 %17, label %while.body, label %24, !dbg !46
 
 while.body:                                       ; preds = %while.condition
-  %18 = call %String @string_from_c_string_and_length(ptr @3, i64 2), !dbg !45
-  call void @"<:ReferenceMut<String>> += <:String>"(ptr %str, %String %18), !dbg !45
-  %19 = call %Integer @clone_integer(ptr %i), !dbg !45
-  %20 = call ptr @"<:Reference<Array<Integer>>> [ <:Integer> ]"(ptr %array, %Integer %19), !dbg !45
-  %21 = load %Integer, ptr %20, align 8, !dbg !45
-  %22 = call %String @integer_as_string(%Integer %21), !dbg !45
-  call void @"<:ReferenceMut<String>> += <:String>"(ptr %str, %String %22), !dbg !45
-  %23 = call %Integer @integer_from_i64(i64 1), !dbg !45
-  call void @"<:ReferenceMut<Integer>> += <:Integer>"(ptr %i, %Integer %23), !dbg !45
-  br label %while.condition, !dbg !45
+  %18 = call %String @string_from_c_string_and_length(ptr @3, i64 2), !dbg !46
+  call void @"<:ReferenceMut<String>> += <:String>"(ptr %str, %String %18), !dbg !46
+  %19 = call %Integer @clone_integer(ptr %i), !dbg !46
+  %20 = call ptr @"<:Reference<Array<Integer>>> [ <:Integer> ]"(ptr %array, %Integer %19), !dbg !46
+  %21 = load %Integer, ptr %20, align 8, !dbg !46
+  %22 = call %String @integer_as_string(%Integer %21), !dbg !46
+  call void @"<:ReferenceMut<String>> += <:String>"(ptr %str, %String %22), !dbg !46
+  %23 = call %Integer @integer_from_i64(i64 1), !dbg !46
+  call void @"<:ReferenceMut<Integer>> += <:Integer>"(ptr %i, %Integer %23), !dbg !46
+  br label %while.condition, !dbg !46
 
 24:                                               ; preds = %while.condition
-  call void @destroy_integer(ptr %i), !dbg !45
-  br label %10, !dbg !45
+  call void @destroy_integer(ptr %i), !dbg !46
+  br label %10, !dbg !46
 }
 
-define void @"<:ReferenceMut<String>> += <:String>"(ptr %0, %String %1) !dbg !46 {
+define private void @"<:ReferenceMut<String>> += <:String>"(ptr %0, %String %1) !dbg !47 {
   %self = alloca ptr, align 8
   store ptr %0, ptr %self, align 8
   %other = alloca %String, align 8
   store %String %1, ptr %other, align 8
-  %3 = load ptr, ptr %self, align 8, !dbg !47
-  %4 = load ptr, ptr %self, align 8, !dbg !48
-  %5 = load %String, ptr %4, align 8, !dbg !48
-  %6 = load %String, ptr %other, align 8, !dbg !49
-  %7 = call %String @string_plus_string(%String %5, %String %6), !dbg !49
-  store %String %7, ptr %3, align 8, !dbg !49
-  br label %return, !dbg !49
+  %3 = load ptr, ptr %self, align 8, !dbg !48
+  %4 = load ptr, ptr %self, align 8, !dbg !49
+  %5 = load %String, ptr %4, align 8, !dbg !49
+  %6 = load %String, ptr %other, align 8, !dbg !50
+  %7 = call %String @string_plus_string(%String %5, %String %6), !dbg !50
+  store %String %7, ptr %3, align 8, !dbg !50
+  br label %return, !dbg !50
 
 return:                                           ; preds = %2
   ret void
@@ -343,27 +343,27 @@ declare %String @string_plus_string(%String, %String)
 
 declare %String @integer_as_string(%Integer)
 
-define private ptr @"<:Reference<Array<Integer>>> [ <:Integer> ]"(ptr %0, %Integer %1) !dbg !50 {
+define private ptr @"<:Reference<Array<Integer>>> [ <:Integer> ]"(ptr %0, %Integer %1) !dbg !51 {
   %return_value = alloca ptr, align 8
   %array = alloca ptr, align 8
   store ptr %0, ptr %array, align 8
   %i = alloca %Integer, align 8
   store %Integer %1, ptr %i, align 8
-  %3 = load ptr, ptr %array, align 8, !dbg !51
-  %data = getelementptr inbounds %"Array<Integer>", ptr %3, i32 0, i32 2, !dbg !51
-  %4 = load %MemoryAddress, ptr %data, align 8, !dbg !51
-  %5 = load %Integer, ptr %i, align 8, !dbg !51
-  %6 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !51
-  %7 = call %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %6), !dbg !51
-  %8 = call %Integer @integer_star_integer(%Integer %5, %Integer %7), !dbg !51
-  %9 = call %MemoryAddress @"<:MemoryAddress> + <:Integer>"(%MemoryAddress %4, %Integer %8), !dbg !51
-  %address = alloca %MemoryAddress, align 8, !dbg !51
-  store %MemoryAddress %9, ptr %address, align 8, !dbg !51
-  %10 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !51
-  %11 = load %MemoryAddress, ptr %address, align 8, !dbg !51
-  %12 = call ptr @read_memory(%"Type<Integer>" %10, %MemoryAddress %11), !dbg !51
-  store ptr %12, ptr %return_value, align 8, !dbg !51
-  br label %return, !dbg !51
+  %3 = load ptr, ptr %array, align 8, !dbg !52
+  %data = getelementptr inbounds %"Array<Integer>", ptr %3, i32 0, i32 2, !dbg !52
+  %4 = load %MemoryAddress, ptr %data, align 8, !dbg !52
+  %5 = load %Integer, ptr %i, align 8, !dbg !52
+  %6 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !52
+  %7 = call %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %6), !dbg !52
+  %8 = call %Integer @integer_star_integer(%Integer %5, %Integer %7), !dbg !52
+  %9 = call %MemoryAddress @"<:MemoryAddress> + <:Integer>"(%MemoryAddress %4, %Integer %8), !dbg !52
+  %address = alloca %MemoryAddress, align 8, !dbg !52
+  store %MemoryAddress %9, ptr %address, align 8, !dbg !52
+  %10 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !52
+  %11 = load %MemoryAddress, ptr %address, align 8, !dbg !52
+  %12 = call ptr @read_memory(%"Type<Integer>" %10, %MemoryAddress %11), !dbg !52
+  store ptr %12, ptr %return_value, align 8, !dbg !52
+  br label %return, !dbg !52
 
 return:                                           ; preds = %2
   %13 = load ptr, ptr %return_value, align 8
@@ -374,18 +374,18 @@ declare %MemoryAddress @"<:MemoryAddress> + <:Integer>"(%MemoryAddress, %Integer
 
 declare ptr @read_memory(%"Type<Integer>", %MemoryAddress)
 
-define void @"<:ReferenceMut<Integer>> += <:Integer>"(ptr %0, %Integer %1) !dbg !52 {
+define private void @"<:ReferenceMut<Integer>> += <:Integer>"(ptr %0, %Integer %1) !dbg !53 {
   %self = alloca ptr, align 8
   store ptr %0, ptr %self, align 8
   %other = alloca %Integer, align 8
   store %Integer %1, ptr %other, align 8
-  %3 = load ptr, ptr %self, align 8, !dbg !53
-  %4 = load ptr, ptr %self, align 8, !dbg !54
-  %5 = load %Integer, ptr %4, align 8, !dbg !54
-  %6 = load %Integer, ptr %other, align 8, !dbg !55
-  %7 = call %Integer @integer_plus_integer(%Integer %5, %Integer %6), !dbg !55
-  store %Integer %7, ptr %3, align 8, !dbg !55
-  br label %return, !dbg !55
+  %3 = load ptr, ptr %self, align 8, !dbg !54
+  %4 = load ptr, ptr %self, align 8, !dbg !55
+  %5 = load %Integer, ptr %4, align 8, !dbg !55
+  %6 = load %Integer, ptr %other, align 8, !dbg !56
+  %7 = call %Integer @integer_plus_integer(%Integer %5, %Integer %6), !dbg !56
+  store %Integer %7, ptr %3, align 8, !dbg !56
+  br label %return, !dbg !56
 
 return:                                           ; preds = %2
   ret void
@@ -395,37 +395,37 @@ declare %Integer @integer_plus_integer(%Integer, %Integer)
 
 declare i1 @integer_less_integer(%Integer, %Integer)
 
-define private i1 @"<:Reference<Array<Integer>>> is not empty"(ptr %0) !dbg !56 {
+define private i1 @"<:Reference<Array<Integer>>> is not empty"(ptr %0) !dbg !57 {
   %return_value = alloca i1, align 1
   %array = alloca ptr, align 8
   store ptr %0, ptr %array, align 8
-  %2 = load ptr, ptr %array, align 8, !dbg !57
-  %size = getelementptr inbounds %"Array<Integer>", ptr %2, i32 0, i32 0, !dbg !57
-  %3 = load %Integer, ptr %size, align 8, !dbg !57
-  %4 = call %Integer @integer_from_i64(i64 0), !dbg !57
-  %5 = call i1 @"<:Integer> > <:Integer>"(%Integer %3, %Integer %4), !dbg !57
-  store i1 %5, ptr %return_value, align 1, !dbg !57
-  br label %return, !dbg !57
+  %2 = load ptr, ptr %array, align 8, !dbg !58
+  %size = getelementptr inbounds %"Array<Integer>", ptr %2, i32 0, i32 0, !dbg !58
+  %3 = load %Integer, ptr %size, align 8, !dbg !58
+  %4 = call %Integer @integer_from_i64(i64 0), !dbg !58
+  %5 = call i1 @"<:Integer> > <:Integer>"(%Integer %3, %Integer %4), !dbg !58
+  store i1 %5, ptr %return_value, align 1, !dbg !58
+  br label %return, !dbg !58
 
 return:                                           ; preds = %1
   %6 = load i1, ptr %return_value, align 1
   ret i1 %6
 }
 
-define i1 @"<:Integer> > <:Integer>"(%Integer %0, %Integer %1) !dbg !58 {
+define private i1 @"<:Integer> > <:Integer>"(%Integer %0, %Integer %1) !dbg !59 {
   %return_value = alloca i1, align 1
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %y = alloca %Integer, align 8
   store %Integer %1, ptr %y, align 8
-  %3 = load %Integer, ptr %y, align 8, !dbg !59
-  %4 = load %Integer, ptr %x, align 8, !dbg !59
-  %5 = call i1 @integer_less_integer(%Integer %3, %Integer %4), !dbg !59
-  %"$tmp@1032" = alloca i1, align 1, !dbg !59
-  store i1 %5, ptr %"$tmp@1032", align 1, !dbg !59
-  %6 = load i1, ptr %"$tmp@1032", align 1, !dbg !59
-  store i1 %6, ptr %return_value, align 1, !dbg !59
-  br label %return, !dbg !59
+  %3 = load %Integer, ptr %y, align 8, !dbg !60
+  %4 = load %Integer, ptr %x, align 8, !dbg !60
+  %5 = call i1 @integer_less_integer(%Integer %3, %Integer %4), !dbg !60
+  %"$tmp@1032" = alloca i1, align 1, !dbg !60
+  store i1 %5, ptr %"$tmp@1032", align 1, !dbg !60
+  %6 = load i1, ptr %"$tmp@1032", align 1, !dbg !60
+  store i1 %6, ptr %return_value, align 1, !dbg !60
+  br label %return, !dbg !60
 
 return:                                           ; preds = %2
   %7 = load i1, ptr %return_value, align 1
@@ -436,20 +436,20 @@ declare %String @clone_string(ptr)
 
 declare void @destroy_string(ptr)
 
-define private i1 @"<:Reference<Array<Integer>>> is empty"(ptr %0) !dbg !60 {
+define private i1 @"<:Reference<Array<Integer>>> is empty"(ptr %0) !dbg !61 {
   %return_value = alloca i1, align 1
   %array = alloca ptr, align 8
   store ptr %0, ptr %array, align 8
-  %2 = load ptr, ptr %array, align 8, !dbg !61
-  %size = getelementptr inbounds %"Array<Integer>", ptr %2, i32 0, i32 0, !dbg !61
-  %3 = call %Integer @clone_integer(ptr %size), !dbg !61
-  %4 = call %Integer @integer_from_i64(i64 0), !dbg !61
-  %5 = call i1 @integer_eq_integer(%Integer %3, %Integer %4), !dbg !61
-  %"$tmp@1137" = alloca i1, align 1, !dbg !61
-  store i1 %5, ptr %"$tmp@1137", align 1, !dbg !61
-  %6 = load i1, ptr %"$tmp@1137", align 1, !dbg !61
-  store i1 %6, ptr %return_value, align 1, !dbg !61
-  br label %return, !dbg !61
+  %2 = load ptr, ptr %array, align 8, !dbg !62
+  %size = getelementptr inbounds %"Array<Integer>", ptr %2, i32 0, i32 0, !dbg !62
+  %3 = call %Integer @clone_integer(ptr %size), !dbg !62
+  %4 = call %Integer @integer_from_i64(i64 0), !dbg !62
+  %5 = call i1 @integer_eq_integer(%Integer %3, %Integer %4), !dbg !62
+  %"$tmp@1137" = alloca i1, align 1, !dbg !62
+  store i1 %5, ptr %"$tmp@1137", align 1, !dbg !62
+  %6 = load i1, ptr %"$tmp@1137", align 1, !dbg !62
+  store i1 %6, ptr %return_value, align 1, !dbg !62
+  br label %return, !dbg !62
 
 return:                                           ; preds = %1
   %7 = load i1, ptr %return_value, align 1
@@ -458,187 +458,187 @@ return:                                           ; preds = %1
 
 declare i1 @integer_eq_integer(%Integer, %Integer)
 
-define private void @"push <:Integer> to <:ReferenceMut<Array<Integer>>>"(%Integer %0, ptr %1) !dbg !62 {
+define private void @"push <:Integer> to <:ReferenceMut<Array<Integer>>>"(%Integer %0, ptr %1) !dbg !63 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %array = alloca ptr, align 8
   store ptr %1, ptr %array, align 8
-  br label %if.condition, !dbg !63
+  br label %if.condition, !dbg !64
 
 if.condition:                                     ; preds = %2
-  %3 = load ptr, ptr %array, align 8, !dbg !63
-  %size4 = getelementptr inbounds %"Array<Integer>", ptr %3, i32 0, i32 0, !dbg !63
-  %4 = call %Integer @clone_integer(ptr %size4), !dbg !63
-  %5 = load ptr, ptr %array, align 8, !dbg !63
-  %capacity5 = getelementptr inbounds %"Array<Integer>", ptr %5, i32 0, i32 1, !dbg !63
-  %6 = call %Integer @clone_integer(ptr %capacity5), !dbg !63
-  %7 = call i1 @integer_eq_integer(%Integer %4, %Integer %6), !dbg !63
-  br i1 %7, label %if.body, label %16, !dbg !63
+  %3 = load ptr, ptr %array, align 8, !dbg !64
+  %size4 = getelementptr inbounds %"Array<Integer>", ptr %3, i32 0, i32 0, !dbg !64
+  %4 = call %Integer @clone_integer(ptr %size4), !dbg !64
+  %5 = load ptr, ptr %array, align 8, !dbg !64
+  %capacity5 = getelementptr inbounds %"Array<Integer>", ptr %5, i32 0, i32 1, !dbg !64
+  %6 = call %Integer @clone_integer(ptr %capacity5), !dbg !64
+  %7 = call i1 @integer_eq_integer(%Integer %4, %Integer %6), !dbg !64
+  br i1 %7, label %if.body, label %16, !dbg !64
 
 if.body:                                          ; preds = %if.condition
-  %8 = load ptr, ptr %array, align 8, !dbg !63
-  %capacity = getelementptr inbounds %"Array<Integer>", ptr %8, i32 0, i32 1, !dbg !63
-  %9 = call %Integer @clone_integer(ptr %capacity), !dbg !63
-  %10 = call %Integer @integer_from_i64(i64 2), !dbg !63
-  %11 = call %Integer @integer_star_integer(%Integer %9, %Integer %10), !dbg !63
-  %new_capacity = alloca %Integer, align 8, !dbg !63
-  store %Integer %11, ptr %new_capacity, align 8, !dbg !63
-  %12 = call %Integer @clone_integer(ptr %new_capacity), !dbg !63
-  %13 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !63
-  %14 = call %MemoryAddress @"allocate <:Integer> <:Type<Integer>>"(%Integer %12, %"Type<Integer>" %13), !dbg !63
-  %new_data = alloca %MemoryAddress, align 8, !dbg !63
-  store %MemoryAddress %14, ptr %new_data, align 8, !dbg !63
-  %15 = call %Integer @integer_from_i64(i64 0), !dbg !63
-  %i = alloca %Integer, align 8, !dbg !63
-  store %Integer %15, ptr %i, align 8, !dbg !63
-  br label %while.condition, !dbg !63
+  %8 = load ptr, ptr %array, align 8, !dbg !64
+  %capacity = getelementptr inbounds %"Array<Integer>", ptr %8, i32 0, i32 1, !dbg !64
+  %9 = call %Integer @clone_integer(ptr %capacity), !dbg !64
+  %10 = call %Integer @integer_from_i64(i64 2), !dbg !64
+  %11 = call %Integer @integer_star_integer(%Integer %9, %Integer %10), !dbg !64
+  %new_capacity = alloca %Integer, align 8, !dbg !64
+  store %Integer %11, ptr %new_capacity, align 8, !dbg !64
+  %12 = call %Integer @clone_integer(ptr %new_capacity), !dbg !64
+  %13 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !64
+  %14 = call %MemoryAddress @"allocate <:Integer> <:Type<Integer>>"(%Integer %12, %"Type<Integer>" %13), !dbg !64
+  %new_data = alloca %MemoryAddress, align 8, !dbg !64
+  store %MemoryAddress %14, ptr %new_data, align 8, !dbg !64
+  %15 = call %Integer @integer_from_i64(i64 0), !dbg !64
+  %i = alloca %Integer, align 8, !dbg !64
+  store %Integer %15, ptr %i, align 8, !dbg !64
+  br label %while.condition, !dbg !64
 
 return:                                           ; preds = %16
   ret void
 
 16:                                               ; preds = %if.condition, %48
-  %17 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !63
-  %18 = load ptr, ptr %array, align 8, !dbg !63
-  %data6 = getelementptr inbounds %"Array<Integer>", ptr %18, i32 0, i32 2, !dbg !63
-  %19 = load %MemoryAddress, ptr %data6, align 8, !dbg !63
-  %20 = load ptr, ptr %array, align 8, !dbg !63
-  %size7 = getelementptr inbounds %"Array<Integer>", ptr %20, i32 0, i32 0, !dbg !63
-  %21 = call %Integer @clone_integer(ptr %size7), !dbg !63
-  %22 = call %MemoryAddress @"<:MemoryAddress> + <:Integer>"(%MemoryAddress %19, %Integer %21), !dbg !63
-  %23 = call ptr @read_memory(%"Type<Integer>" %17, %MemoryAddress %22), !dbg !63
-  %value8 = alloca ptr, align 8, !dbg !63
-  store ptr %23, ptr %value8, align 8, !dbg !63
-  %24 = load ptr, ptr %value8, align 8, !dbg !63
-  %25 = load %Integer, ptr %x, align 8, !dbg !63
-  store %Integer %25, ptr %24, align 8, !dbg !63
-  %26 = load ptr, ptr %array, align 8, !dbg !63
-  %size9 = getelementptr inbounds %"Array<Integer>", ptr %26, i32 0, i32 0, !dbg !63
-  call void @destroy_integer(ptr %size9), !dbg !63
-  %27 = load ptr, ptr %array, align 8, !dbg !63
-  %size10 = getelementptr inbounds %"Array<Integer>", ptr %27, i32 0, i32 0, !dbg !63
-  %28 = load ptr, ptr %array, align 8, !dbg !63
-  %size11 = getelementptr inbounds %"Array<Integer>", ptr %28, i32 0, i32 0, !dbg !63
-  %29 = call %Integer @clone_integer(ptr %size11), !dbg !63
-  %30 = call %Integer @integer_from_i64(i64 1), !dbg !63
-  %31 = call %Integer @integer_plus_integer(%Integer %29, %Integer %30), !dbg !63
-  store %Integer %31, ptr %size10, align 8, !dbg !63
-  br label %return, !dbg !63
+  %17 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !64
+  %18 = load ptr, ptr %array, align 8, !dbg !64
+  %data6 = getelementptr inbounds %"Array<Integer>", ptr %18, i32 0, i32 2, !dbg !64
+  %19 = load %MemoryAddress, ptr %data6, align 8, !dbg !64
+  %20 = load ptr, ptr %array, align 8, !dbg !64
+  %size7 = getelementptr inbounds %"Array<Integer>", ptr %20, i32 0, i32 0, !dbg !64
+  %21 = call %Integer @clone_integer(ptr %size7), !dbg !64
+  %22 = call %MemoryAddress @"<:MemoryAddress> + <:Integer>"(%MemoryAddress %19, %Integer %21), !dbg !64
+  %23 = call ptr @read_memory(%"Type<Integer>" %17, %MemoryAddress %22), !dbg !64
+  %value8 = alloca ptr, align 8, !dbg !64
+  store ptr %23, ptr %value8, align 8, !dbg !64
+  %24 = load ptr, ptr %value8, align 8, !dbg !64
+  %25 = load %Integer, ptr %x, align 8, !dbg !64
+  store %Integer %25, ptr %24, align 8, !dbg !64
+  %26 = load ptr, ptr %array, align 8, !dbg !64
+  %size9 = getelementptr inbounds %"Array<Integer>", ptr %26, i32 0, i32 0, !dbg !64
+  call void @destroy_integer(ptr %size9), !dbg !64
+  %27 = load ptr, ptr %array, align 8, !dbg !64
+  %size10 = getelementptr inbounds %"Array<Integer>", ptr %27, i32 0, i32 0, !dbg !64
+  %28 = load ptr, ptr %array, align 8, !dbg !64
+  %size11 = getelementptr inbounds %"Array<Integer>", ptr %28, i32 0, i32 0, !dbg !64
+  %29 = call %Integer @clone_integer(ptr %size11), !dbg !64
+  %30 = call %Integer @integer_from_i64(i64 1), !dbg !64
+  %31 = call %Integer @integer_plus_integer(%Integer %29, %Integer %30), !dbg !64
+  store %Integer %31, ptr %size10, align 8, !dbg !64
+  br label %return, !dbg !64
 
 while.condition:                                  ; preds = %while.body, %if.body
-  %32 = call %Integer @clone_integer(ptr %i), !dbg !63
-  %33 = load ptr, ptr %array, align 8, !dbg !63
-  %size = getelementptr inbounds %"Array<Integer>", ptr %33, i32 0, i32 0, !dbg !63
-  %34 = call %Integer @clone_integer(ptr %size), !dbg !63
-  %35 = call i1 @integer_less_integer(%Integer %32, %Integer %34), !dbg !63
-  br i1 %35, label %while.body, label %48, !dbg !63
+  %32 = call %Integer @clone_integer(ptr %i), !dbg !64
+  %33 = load ptr, ptr %array, align 8, !dbg !64
+  %size = getelementptr inbounds %"Array<Integer>", ptr %33, i32 0, i32 0, !dbg !64
+  %34 = call %Integer @clone_integer(ptr %size), !dbg !64
+  %35 = call i1 @integer_less_integer(%Integer %32, %Integer %34), !dbg !64
+  br i1 %35, label %while.body, label %48, !dbg !64
 
 while.body:                                       ; preds = %while.condition
-  %36 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !63
-  %37 = load %MemoryAddress, ptr %new_data, align 8, !dbg !63
-  %38 = call %Integer @clone_integer(ptr %i), !dbg !63
-  %39 = call %MemoryAddress @"<:MemoryAddress> + <:Integer>"(%MemoryAddress %37, %Integer %38), !dbg !63
-  %40 = call ptr @read_memory(%"Type<Integer>" %36, %MemoryAddress %39), !dbg !63
-  %value = alloca ptr, align 8, !dbg !63
-  store ptr %40, ptr %value, align 8, !dbg !63
-  %41 = load ptr, ptr %value, align 8, !dbg !63
-  %42 = call %Integer @clone_integer(ptr %i), !dbg !63
-  %43 = call ptr @"<:Reference<Array<Integer>>> [ <:Integer> ]"(ptr %array, %Integer %42), !dbg !63
-  %44 = load %Integer, ptr %43, align 8, !dbg !63
-  store %Integer %44, ptr %41, align 8, !dbg !63
-  call void @destroy_integer(ptr %i), !dbg !63
-  %45 = call %Integer @clone_integer(ptr %i), !dbg !63
-  %46 = call %Integer @integer_from_i64(i64 1), !dbg !63
-  %47 = call %Integer @integer_plus_integer(%Integer %45, %Integer %46), !dbg !63
-  store %Integer %47, ptr %i, align 8, !dbg !63
-  br label %while.condition, !dbg !63
+  %36 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !64
+  %37 = load %MemoryAddress, ptr %new_data, align 8, !dbg !64
+  %38 = call %Integer @clone_integer(ptr %i), !dbg !64
+  %39 = call %MemoryAddress @"<:MemoryAddress> + <:Integer>"(%MemoryAddress %37, %Integer %38), !dbg !64
+  %40 = call ptr @read_memory(%"Type<Integer>" %36, %MemoryAddress %39), !dbg !64
+  %value = alloca ptr, align 8, !dbg !64
+  store ptr %40, ptr %value, align 8, !dbg !64
+  %41 = load ptr, ptr %value, align 8, !dbg !64
+  %42 = call %Integer @clone_integer(ptr %i), !dbg !64
+  %43 = call ptr @"<:Reference<Array<Integer>>> [ <:Integer> ]"(ptr %array, %Integer %42), !dbg !64
+  %44 = load %Integer, ptr %43, align 8, !dbg !64
+  store %Integer %44, ptr %41, align 8, !dbg !64
+  call void @destroy_integer(ptr %i), !dbg !64
+  %45 = call %Integer @clone_integer(ptr %i), !dbg !64
+  %46 = call %Integer @integer_from_i64(i64 1), !dbg !64
+  %47 = call %Integer @integer_plus_integer(%Integer %45, %Integer %46), !dbg !64
+  store %Integer %47, ptr %i, align 8, !dbg !64
+  br label %while.condition, !dbg !64
 
 48:                                               ; preds = %while.condition
-  %49 = load ptr, ptr %array, align 8, !dbg !63
-  %data = getelementptr inbounds %"Array<Integer>", ptr %49, i32 0, i32 2, !dbg !63
-  %50 = load %MemoryAddress, ptr %data, align 8, !dbg !63
-  call void @free_memory(%MemoryAddress %50), !dbg !63
-  %51 = load ptr, ptr %array, align 8, !dbg !63
-  %data1 = getelementptr inbounds %"Array<Integer>", ptr %51, i32 0, i32 2, !dbg !63
-  %52 = load %MemoryAddress, ptr %new_data, align 8, !dbg !63
-  store %MemoryAddress %52, ptr %data1, align 8, !dbg !63
-  %53 = load ptr, ptr %array, align 8, !dbg !63
-  %capacity2 = getelementptr inbounds %"Array<Integer>", ptr %53, i32 0, i32 1, !dbg !63
-  call void @destroy_integer(ptr %capacity2), !dbg !63
-  %54 = load ptr, ptr %array, align 8, !dbg !63
-  %capacity3 = getelementptr inbounds %"Array<Integer>", ptr %54, i32 0, i32 1, !dbg !63
-  %55 = call %Integer @clone_integer(ptr %new_capacity), !dbg !63
-  store %Integer %55, ptr %capacity3, align 8, !dbg !63
-  call void @destroy_integer(ptr %new_capacity), !dbg !63
-  call void @destroy_integer(ptr %i), !dbg !63
-  br label %16, !dbg !63
+  %49 = load ptr, ptr %array, align 8, !dbg !64
+  %data = getelementptr inbounds %"Array<Integer>", ptr %49, i32 0, i32 2, !dbg !64
+  %50 = load %MemoryAddress, ptr %data, align 8, !dbg !64
+  call void @free_memory(%MemoryAddress %50), !dbg !64
+  %51 = load ptr, ptr %array, align 8, !dbg !64
+  %data1 = getelementptr inbounds %"Array<Integer>", ptr %51, i32 0, i32 2, !dbg !64
+  %52 = load %MemoryAddress, ptr %new_data, align 8, !dbg !64
+  store %MemoryAddress %52, ptr %data1, align 8, !dbg !64
+  %53 = load ptr, ptr %array, align 8, !dbg !64
+  %capacity2 = getelementptr inbounds %"Array<Integer>", ptr %53, i32 0, i32 1, !dbg !64
+  call void @destroy_integer(ptr %capacity2), !dbg !64
+  %54 = load ptr, ptr %array, align 8, !dbg !64
+  %capacity3 = getelementptr inbounds %"Array<Integer>", ptr %54, i32 0, i32 1, !dbg !64
+  %55 = call %Integer @clone_integer(ptr %new_capacity), !dbg !64
+  store %Integer %55, ptr %capacity3, align 8, !dbg !64
+  call void @destroy_integer(ptr %new_capacity), !dbg !64
+  call void @destroy_integer(ptr %i), !dbg !64
+  br label %16, !dbg !64
 }
 
 declare void @free_memory(%MemoryAddress)
 
-define private void @"println <:Integer>"(%Integer %0) !dbg !64 {
+define private void @"println <:Integer>"(%Integer %0) !dbg !65 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
-  %2 = load %Integer, ptr %x, align 8, !dbg !65
-  %3 = call %String @integer_as_string(%Integer %2), !dbg !65
-  call void @"println <:String>"(%String %3), !dbg !65
-  br label %return, !dbg !65
+  %2 = load %Integer, ptr %x, align 8, !dbg !66
+  %3 = call %String @integer_as_string(%Integer %2), !dbg !66
+  call void @"println <:String>"(%String %3), !dbg !66
+  br label %return, !dbg !67
 
 return:                                           ; preds = %1
   ret void
 }
 
-define private ptr @"value from <:Reference<Iterator<Integer>>>"(ptr %0) !dbg !66 {
+define private ptr @"value from <:Reference<Iterator<Integer>>>"(ptr %0) !dbg !68 {
   %return_value = alloca ptr, align 8
   %it = alloca ptr, align 8
   store ptr %0, ptr %it, align 8
-  %2 = load ptr, ptr %it, align 8, !dbg !67
-  %array = getelementptr inbounds %"Iterator<Integer>", ptr %2, i32 0, i32 0, !dbg !67
-  %3 = load ptr, ptr %it, align 8, !dbg !67
-  %index = getelementptr inbounds %"Iterator<Integer>", ptr %3, i32 0, i32 1, !dbg !67
-  %4 = call %Integer @clone_integer(ptr %index), !dbg !67
-  %5 = call ptr @"<:Reference<Array<Integer>>> [ <:Integer> ]"(ptr %array, %Integer %4), !dbg !67
-  %"$tmp@1885" = alloca ptr, align 8, !dbg !67
-  store ptr %5, ptr %"$tmp@1885", align 8, !dbg !67
-  %6 = load ptr, ptr %"$tmp@1885", align 8, !dbg !67
-  store ptr %6, ptr %return_value, align 8, !dbg !67
-  br label %return, !dbg !67
+  %2 = load ptr, ptr %it, align 8, !dbg !69
+  %array = getelementptr inbounds %"Iterator<Integer>", ptr %2, i32 0, i32 0, !dbg !69
+  %3 = load ptr, ptr %it, align 8, !dbg !69
+  %index = getelementptr inbounds %"Iterator<Integer>", ptr %3, i32 0, i32 1, !dbg !69
+  %4 = call %Integer @clone_integer(ptr %index), !dbg !69
+  %5 = call ptr @"<:Reference<Array<Integer>>> [ <:Integer> ]"(ptr %array, %Integer %4), !dbg !69
+  %"$tmp@1886" = alloca ptr, align 8, !dbg !69
+  store ptr %5, ptr %"$tmp@1886", align 8, !dbg !69
+  %6 = load ptr, ptr %"$tmp@1886", align 8, !dbg !69
+  store ptr %6, ptr %return_value, align 8, !dbg !69
+  br label %return, !dbg !69
 
 return:                                           ; preds = %1
   %7 = load ptr, ptr %return_value, align 8
   ret ptr %7
 }
 
-define private void @"advance <:ReferenceMut<Iterator<Integer>>>"(ptr %0) !dbg !68 {
+define private void @"advance <:ReferenceMut<Iterator<Integer>>>"(ptr %0) !dbg !70 {
   %it = alloca ptr, align 8
   store ptr %0, ptr %it, align 8
-  %2 = load ptr, ptr %it, align 8, !dbg !69
-  %index = getelementptr inbounds %"Iterator<Integer>", ptr %2, i32 0, i32 1, !dbg !69
-  %3 = call %Integer @integer_from_i64(i64 1), !dbg !69
-  call void @"<:ReferenceMut<Integer>> += <:Integer>"(ptr %index, %Integer %3), !dbg !69
-  br label %return, !dbg !69
+  %2 = load ptr, ptr %it, align 8, !dbg !71
+  %index = getelementptr inbounds %"Iterator<Integer>", ptr %2, i32 0, i32 1, !dbg !71
+  %3 = call %Integer @integer_from_i64(i64 1), !dbg !71
+  call void @"<:ReferenceMut<Integer>> += <:Integer>"(ptr %index, %Integer %3), !dbg !71
+  br label %return, !dbg !71
 
 return:                                           ; preds = %1
   ret void
 }
 
-define private i1 @"<:Reference<Iterator<Integer>>> exists"(ptr %0) !dbg !70 {
+define private i1 @"<:Reference<Iterator<Integer>>> exists"(ptr %0) !dbg !72 {
   %return_value = alloca i1, align 1
   %it = alloca ptr, align 8
   store ptr %0, ptr %it, align 8
-  %2 = load ptr, ptr %it, align 8, !dbg !71
-  %index = getelementptr inbounds %"Iterator<Integer>", ptr %2, i32 0, i32 1, !dbg !71
-  %3 = call %Integer @clone_integer(ptr %index), !dbg !71
-  %4 = load ptr, ptr %it, align 8, !dbg !71
-  %array = getelementptr inbounds %"Iterator<Integer>", ptr %4, i32 0, i32 0, !dbg !71
-  %5 = load ptr, ptr %array, align 8, !dbg !71
-  %size = getelementptr inbounds %"Array<Integer>", ptr %5, i32 0, i32 0, !dbg !71
-  %6 = call %Integer @clone_integer(ptr %size), !dbg !71
-  %7 = call i1 @integer_less_integer(%Integer %3, %Integer %6), !dbg !71
-  %"$tmp@1754" = alloca i1, align 1, !dbg !71
-  store i1 %7, ptr %"$tmp@1754", align 1, !dbg !71
-  %8 = load i1, ptr %"$tmp@1754", align 1, !dbg !71
-  store i1 %8, ptr %return_value, align 1, !dbg !71
-  br label %return, !dbg !71
+  %2 = load ptr, ptr %it, align 8, !dbg !73
+  %index = getelementptr inbounds %"Iterator<Integer>", ptr %2, i32 0, i32 1, !dbg !73
+  %3 = call %Integer @clone_integer(ptr %index), !dbg !73
+  %4 = load ptr, ptr %it, align 8, !dbg !73
+  %array = getelementptr inbounds %"Iterator<Integer>", ptr %4, i32 0, i32 0, !dbg !73
+  %5 = load ptr, ptr %array, align 8, !dbg !73
+  %size = getelementptr inbounds %"Array<Integer>", ptr %5, i32 0, i32 0, !dbg !73
+  %6 = call %Integer @clone_integer(ptr %size), !dbg !73
+  %7 = call i1 @integer_less_integer(%Integer %3, %Integer %6), !dbg !73
+  %"$tmp@1755" = alloca i1, align 1, !dbg !73
+  store i1 %7, ptr %"$tmp@1755", align 1, !dbg !73
+  %8 = load i1, ptr %"$tmp@1755", align 1, !dbg !73
+  store i1 %8, ptr %return_value, align 1, !dbg !73
+  br label %return, !dbg !73
 
 return:                                           ; preds = %1
   %9 = load i1, ptr %return_value, align 1
@@ -651,17 +651,17 @@ return:                                           ; preds = %1
 !0 = !{i32 2, !"Debug Info Version", i32 3}
 !1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "ppl", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, sysroot: "/")
 !2 = !DIFile(filename: "src/main.ppl", directory: ".")
-!3 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !2, file: !2, line: 12, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!3 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !2, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !4 = !DISubroutineType(types: !5)
 !5 = !{!6}
 !6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
-!7 = !DILocation(line: 12, column: 3, scope: !3)
+!7 = !DILocation(line: 7, column: 18, scope: !3)
 !8 = !DILocation(line: 0, scope: !3)
 !9 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !10 = !DILocation(line: 0, column: 14, scope: !9)
 !11 = !DILocation(line: 0, scope: !9)
 !12 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!13 = !DILocation(line: 12, column: 3, scope: !12)
+!13 = !DILocation(line: 7, column: 18, scope: !12)
 !14 = !DILocation(line: 0, column: 14, scope: !12)
 !15 = !DILocation(line: 10, column: 13, scope: !12)
 !16 = !DILocation(line: 1, column: 8, scope: !12)
@@ -690,33 +690,35 @@ return:                                           ; preds = %1
 !39 = !DILocation(line: 10, column: 26, scope: !38)
 !40 = distinct !DISubprogram(name: "iterator for <:Reference<Array<Integer>>>", linkageName: "iterator for <:Reference<Array<Integer>>>", scope: !38, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !41 = !DILocation(line: 13, column: 11, scope: !40)
-!42 = distinct !DISubprogram(name: "println <:Array<Integer>>", linkageName: "println <:Array<Integer>>", scope: !12, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!43 = !DILocation(line: 13, column: 11, scope: !42)
-!44 = distinct !DISubprogram(name: "String from <:Reference<Array<Integer>>>", linkageName: "String from <:Reference<Array<Integer>>>", scope: !42, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!45 = !DILocation(line: 13, column: 11, scope: !44)
-!46 = distinct !DISubprogram(name: "<:ReferenceMut<String>> += <:String>", linkageName: "<:ReferenceMut<String>> += <:String>", scope: !44, file: !2, line: 10, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!47 = !DILocation(line: 12, column: 22, scope: !46)
-!48 = !DILocation(line: 13, column: 4, scope: !46)
-!49 = !DILocation(line: 13, column: 11, scope: !46)
-!50 = distinct !DISubprogram(name: "<:Reference<Array<Integer>>> [ <:Integer> ]", linkageName: "<:Reference<Array<Integer>>> [ <:Integer> ]", scope: !44, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!51 = !DILocation(line: 13, column: 11, scope: !50)
-!52 = distinct !DISubprogram(name: "<:ReferenceMut<Integer>> += <:Integer>", linkageName: "<:ReferenceMut<Integer>> += <:Integer>", scope: !44, file: !2, line: 10, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!53 = !DILocation(line: 12, column: 22, scope: !52)
-!54 = !DILocation(line: 13, column: 4, scope: !52)
-!55 = !DILocation(line: 13, column: 11, scope: !52)
-!56 = distinct !DISubprogram(name: "<:Reference<Array<Integer>>> is not empty", linkageName: "<:Reference<Array<Integer>>> is not empty", scope: !44, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!57 = !DILocation(line: 13, column: 11, scope: !56)
-!58 = distinct !DISubprogram(name: "<:Integer> > <:Integer>", linkageName: "<:Integer> > <:Integer>", scope: !56, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!59 = !DILocation(line: 13, column: 11, scope: !58)
-!60 = distinct !DISubprogram(name: "<:Reference<Array<Integer>>> is empty", linkageName: "<:Reference<Array<Integer>>> is empty", scope: !12, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!61 = !DILocation(line: 13, column: 11, scope: !60)
-!62 = distinct !DISubprogram(name: "push <:Integer> to <:ReferenceMut<Array<Integer>>>", linkageName: "push <:Integer> to <:ReferenceMut<Array<Integer>>>", scope: !12, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!63 = !DILocation(line: 13, column: 11, scope: !62)
-!64 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !12, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!65 = !DILocation(line: 13, column: 11, scope: !64)
-!66 = distinct !DISubprogram(name: "value from <:Reference<Iterator<Integer>>>", linkageName: "value from <:Reference<Iterator<Integer>>>", scope: !12, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!67 = !DILocation(line: 13, column: 11, scope: !66)
-!68 = distinct !DISubprogram(name: "advance <:ReferenceMut<Iterator<Integer>>>", linkageName: "advance <:ReferenceMut<Iterator<Integer>>>", scope: !12, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!42 = distinct !DISubprogram(name: "println <:Array<Integer>>", linkageName: "println <:Array<Integer>>", scope: !12, file: !2, line: 8, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!43 = !DILocation(line: 11, column: 13, scope: !42)
+!44 = !DILocation(line: 10, column: 22, scope: !42)
+!45 = distinct !DISubprogram(name: "String from <:Reference<Array<Integer>>>", linkageName: "String from <:Reference<Array<Integer>>>", scope: !42, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!46 = !DILocation(line: 13, column: 11, scope: !45)
+!47 = distinct !DISubprogram(name: "<:ReferenceMut<String>> += <:String>", linkageName: "<:ReferenceMut<String>> += <:String>", scope: !45, file: !2, line: 10, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!48 = !DILocation(line: 12, column: 22, scope: !47)
+!49 = !DILocation(line: 13, column: 4, scope: !47)
+!50 = !DILocation(line: 13, column: 11, scope: !47)
+!51 = distinct !DISubprogram(name: "<:Reference<Array<Integer>>> [ <:Integer> ]", linkageName: "<:Reference<Array<Integer>>> [ <:Integer> ]", scope: !45, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!52 = !DILocation(line: 13, column: 11, scope: !51)
+!53 = distinct !DISubprogram(name: "<:ReferenceMut<Integer>> += <:Integer>", linkageName: "<:ReferenceMut<Integer>> += <:Integer>", scope: !45, file: !2, line: 10, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!54 = !DILocation(line: 12, column: 22, scope: !53)
+!55 = !DILocation(line: 13, column: 4, scope: !53)
+!56 = !DILocation(line: 13, column: 11, scope: !53)
+!57 = distinct !DISubprogram(name: "<:Reference<Array<Integer>>> is not empty", linkageName: "<:Reference<Array<Integer>>> is not empty", scope: !45, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!58 = !DILocation(line: 13, column: 11, scope: !57)
+!59 = distinct !DISubprogram(name: "<:Integer> > <:Integer>", linkageName: "<:Integer> > <:Integer>", scope: !57, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!60 = !DILocation(line: 13, column: 11, scope: !59)
+!61 = distinct !DISubprogram(name: "<:Reference<Array<Integer>>> is empty", linkageName: "<:Reference<Array<Integer>>> is empty", scope: !12, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!62 = !DILocation(line: 13, column: 11, scope: !61)
+!63 = distinct !DISubprogram(name: "push <:Integer> to <:ReferenceMut<Array<Integer>>>", linkageName: "push <:Integer> to <:ReferenceMut<Array<Integer>>>", scope: !12, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!64 = !DILocation(line: 13, column: 11, scope: !63)
+!65 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !12, file: !2, line: 8, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!66 = !DILocation(line: 11, column: 13, scope: !65)
+!67 = !DILocation(line: 10, column: 22, scope: !65)
+!68 = distinct !DISubprogram(name: "value from <:Reference<Iterator<Integer>>>", linkageName: "value from <:Reference<Iterator<Integer>>>", scope: !12, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !69 = !DILocation(line: 13, column: 11, scope: !68)
-!70 = distinct !DISubprogram(name: "<:Reference<Iterator<Integer>>> exists", linkageName: "<:Reference<Iterator<Integer>>> exists", scope: !12, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!70 = distinct !DISubprogram(name: "advance <:ReferenceMut<Iterator<Integer>>>", linkageName: "advance <:ReferenceMut<Iterator<Integer>>>", scope: !12, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !71 = !DILocation(line: 13, column: 11, scope: !70)
+!72 = distinct !DISubprogram(name: "<:Reference<Iterator<Integer>>> exists", linkageName: "<:Reference<Iterator<Integer>>> exists", scope: !12, file: !2, line: 13, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!73 = !DILocation(line: 13, column: 11, scope: !72)

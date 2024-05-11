@@ -99,7 +99,7 @@ declare %String @rational_as_string(%Rational)
 
 declare %Rational @clone_rational(ptr)
 
-define void @"<:ReferenceMut<Rational>> += <:Rational>"(ptr %0, %Rational %1) !dbg !26 {
+define private void @"<:ReferenceMut<Rational>> += <:Rational>"(ptr %0, %Rational %1) !dbg !26 {
   %self = alloca ptr, align 8
   store ptr %0, ptr %self, align 8
   %other = alloca %Rational, align 8
@@ -118,7 +118,7 @@ return:                                           ; preds = %2
 
 declare %Rational @rational_plus_rational(%Rational, %Rational)
 
-define void @"<:ReferenceMut<String>> += <:String>"(ptr %0, %String %1) !dbg !28 {
+define private void @"<:ReferenceMut<String>> += <:String>"(ptr %0, %String %1) !dbg !28 {
   %self = alloca ptr, align 8
   store ptr %0, ptr %self, align 8
   %other = alloca %String, align 8

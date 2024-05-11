@@ -289,11 +289,12 @@ impl<'llvm> DeclareGlobal<'llvm> for FunctionData {
         context.module.add_function(
             &self.mangled_name(),
             ty,
-            // Private linkage for monomorphized generic functions
-            if self.generic_types.is_empty() || self.mangled_name.is_some() {
-                None
-            } else {
+            // Private linkage for monomorphized generic functions or functions from traits
+            if self.mangled_name.is_none() && (!self.generic_types.is_empty() || self.tr.is_some())
+            {
                 Some(Linkage::Private)
+            } else {
+                None
             },
         )
     }
