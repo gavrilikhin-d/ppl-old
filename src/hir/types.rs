@@ -245,12 +245,6 @@ impl Type {
         }
     }
 
-    /// Map self type to given type
-    pub fn map_self(mut self, ty: &Type) -> Self {
-        self.drive_mut(&mut ReplaceSelf::with(ty.clone()));
-        self
-    }
-
     /// Is this a builtin type?
     pub fn is_builtin(&self) -> bool {
         match self {
