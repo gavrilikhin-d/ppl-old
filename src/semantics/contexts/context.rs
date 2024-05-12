@@ -3,7 +3,7 @@ use std::fmt::Display;
 use crate::{
     compilation::Compiler,
     hir::{Function, FunctionData, FunctionNamePart, ModuleData, Type, Typed},
-    semantics::{AddDeclaration, ConvertibleTo, FindDeclaration},
+    semantics::{AddDeclaration, ConvertibleTo, FindDeclaration, Implements},
 };
 
 use super::BuiltinContext;
@@ -108,9 +108,15 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
     where
         Self: Sized,
     {
-        let ty = self.builtin().types().reference_to(ty);
-        let name = format!("clone <:{ty}>");
-        self.function_with_name(&name)
+        match ty {
+            Type::Class(c) => c
+                .implements(self.builtin().traits().clonnable())
+                .within(self)
+                .ok()?
+                .into_iter()
+                .next(),
+            _ => None,
+        }
     }
 
     /// Debug function to print hierarchy of contexts
