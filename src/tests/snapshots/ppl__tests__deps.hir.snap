@@ -4,5 +4,3 @@ expression: hir
 ---
 use helper.*
 say hello
-
-==MONOMORPHIZED==

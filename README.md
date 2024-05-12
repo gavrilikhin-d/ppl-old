@@ -30,12 +30,13 @@
 * [x] Destructors for parameters
 * [x] No tmps for literals inside of constructors
 * [x] Fix recursive trait (AsString with prints)
+* [x] Fix references in traits test
 ---
 ### Current task
-* [ ] Benchmark for linear algebra
+* [ ] Printable trait should take references
 ---
+* [ ] Benchmark for linear algebra
 * [ ] Sum of series benchmark
-* [ ] Find test that is taking infinite time
 * [ ] Use traits to check for `clone` and `destructoy` functions
 * [ ] Forbid recursion without `@recursive` annotation
 * [ ] Generate clone for types with clonable members

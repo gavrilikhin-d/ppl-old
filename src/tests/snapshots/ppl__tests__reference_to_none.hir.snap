@@ -8,5 +8,3 @@ fn foo <$arg0: Reference<None>> -> None:
 
 let x: None = none
 foo (&x:Reference<None>)
-
-==MONOMORPHIZED==
