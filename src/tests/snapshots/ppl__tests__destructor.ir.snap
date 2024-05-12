@@ -38,19 +38,19 @@ declare %Integer @integer_from_i64(i64)
 define void @main.execute() !dbg !9 {
   call void @initialize(), !dbg !10
   call void @initialize.1(), !dbg !11
-  call void @"destroy <:ReferenceMut<Destructible>>"(ptr @x), !dbg !12
+  call void @"destroy <:ReferenceMut<DestructibleClass>>"(ptr @x), !dbg !12
   %1 = alloca ptr, align 8, !dbg !13
   store ptr %1, ptr @x, align 8, !dbg !13
   %2 = call %String @string_from_c_string_and_length(ptr @2, i64 4), !dbg !14
   call void @"println <:String>"(%String %2), !dbg !14
-  call void @"destroy <:ReferenceMut<Destructible>>"(ptr @x), !dbg !15
+  call void @"destroy <:ReferenceMut<DestructibleClass>>"(ptr @x), !dbg !15
   br label %return, !dbg !15
 
 return:                                           ; preds = %0
   ret void
 }
 
-define void @"destroy <:ReferenceMut<Destructible>>"(ptr %0) !dbg !16 {
+define void @"destroy <:ReferenceMut<DestructibleClass>>"(ptr %0) !dbg !16 {
   %"$arg0" = alloca ptr, align 8
   store ptr %0, ptr %"$arg0", align 8
   %2 = call %String @string_from_c_string_and_length(ptr @1, i64 10), !dbg !17
@@ -82,17 +82,17 @@ return:                                           ; preds = %0
 !4 = !DISubroutineType(types: !5)
 !5 = !{!6}
 !6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
-!7 = !DILocation(line: 5, column: 31, scope: !3)
+!7 = !DILocation(line: 5, column: 16, scope: !3)
 !8 = !DILocation(line: 0, scope: !3)
 !9 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!10 = !DILocation(line: 5, column: 31, scope: !9)
+!10 = !DILocation(line: 5, column: 16, scope: !9)
 !11 = !DILocation(line: 4, column: 12, scope: !9)
 !12 = !DILocation(line: 5, scope: !9)
 !13 = !DILocation(line: 5, column: 4, scope: !9)
 !14 = !DILocation(line: 7, column: 8, scope: !9)
 !15 = !DILocation(line: 4, scope: !9)
-!16 = distinct !DISubprogram(name: "destroy <:ReferenceMut<Destructible>>", linkageName: "destroy <:ReferenceMut<Destructible>>", scope: !9, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!17 = !DILocation(line: 2, column: 43, scope: !16)
-!18 = !DILocation(line: 2, column: 35, scope: !16)
+!16 = distinct !DISubprogram(name: "destroy <:ReferenceMut<DestructibleClass>>", linkageName: "destroy <:ReferenceMut<DestructibleClass>>", scope: !9, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!17 = !DILocation(line: 2, column: 48, scope: !16)
+!18 = !DILocation(line: 2, column: 40, scope: !16)
 !19 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !20 = !DILocation(line: 4, column: 12, scope: !19)

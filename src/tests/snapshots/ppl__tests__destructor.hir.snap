@@ -2,14 +2,14 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-type Destructible
+type DestructibleClass
 
-fn destroy <$arg0: ReferenceMut<Destructible>> -> None:
-	let $tmp@54: None = println "destructor"
-	return ($tmp@54:None)
+fn destroy <$arg0: ReferenceMut<DestructibleClass>> -> None:
+	let $tmp@64: None = println "destructor"
+	return ($tmp@64:None)
 
-let mut x: Destructible = Destructible {  }
-destroy (x:Destructible)
-(x:Destructible) = Destructible {  }
+let mut x: DestructibleClass = DestructibleClass {  }
+destroy (x:DestructibleClass)
+(x:DestructibleClass) = DestructibleClass {  }
 println "done"
-destroy (x:Destructible)
+destroy (x:DestructibleClass)

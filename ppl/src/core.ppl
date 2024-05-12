@@ -226,10 +226,10 @@ fn<T> reference to <ref: Reference<T>> => ref
 //=================================
 
 //=================================
-//             Destoy
+//          Destructible
 //=================================
 /// Trait for things that have a destructor
-trait Destroy:
+trait Destructible:
 	fn destroy <:&mut Self>
 //=================================
 
