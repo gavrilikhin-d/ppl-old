@@ -105,9 +105,19 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
     where
         Self: Sized,
     {
-        let ty = self.builtin().types().reference_mut_to(ty);
-        let name = format!("destroy <:{ty}>");
-        self.function_with_name(&name)
+        if ty.is_any_reference() {
+            return None;
+        }
+
+        match ty {
+            Type::Class(c) => c
+                .implements(self.builtin().traits().destructible())
+                .within(self)
+                .ok()?
+                .into_iter()
+                .next(),
+            _ => None,
+        }
     }
 
     /// Find clone function for type

@@ -57,7 +57,7 @@ impl BuiltinTraits<'_> {
             .as_trait()
     }
 
-    builtin_traits!(clonnable);
+    builtin_traits!(clonnable, destructible);
 }
 
 /// Helper struct to get builtin types

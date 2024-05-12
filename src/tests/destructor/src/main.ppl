@@ -1,9 +1,9 @@
-type Destructible
+type DestructibleClass
 
-fn destroy <:&mut Destructible> => println "destructor"
+fn destroy <:&mut DestructibleClass> => println "destructor"
 
-let mut x = Destructible {}
-x = Destructible {} // Should call destructor
+let mut x = DestructibleClass {}
+x = DestructibleClass {} // Should call destructor
 
 println "done"
 
