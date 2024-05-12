@@ -3,7 +3,12 @@ source: src/tests/mod.rs
 expression: hir
 ---
 trait Foo:
-	fn foo <$arg0: Reference<Integer>> -> None
+
+	fn foo <$arg0: Reference<Integer>> -> None:
+		let $tmp@51: None = println "foo integer"
+		return ($tmp@51:None)
+
+
 
 
 fn foo <$arg0: Reference<Integer>> -> None:

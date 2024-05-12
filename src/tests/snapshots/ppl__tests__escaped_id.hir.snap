@@ -6,5 +6,3 @@ let mut if: Integer = 1
 destroy (if:Integer)
 (if:Integer) = 2
 destroy (if:Integer)
-
-==MONOMORPHIZED==

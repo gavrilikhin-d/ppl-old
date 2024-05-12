@@ -4,5 +4,3 @@ expression: hir
 ---
 use greet.greet <:String>
 greet "World"
-
-==MONOMORPHIZED==

@@ -87,13 +87,16 @@ impl Display for ModuleData {
         for statement in &self.statements {
             writeln!(f, "{:#}", statement)?;
         }
-        writeln!(f, "\n==MONOMORPHIZED==\n")?;
-        for fun in self
-            .monomorphized_functions
-            .iter()
-            .filter(|f| !f.read().unwrap().is_generic())
-        {
-            writeln!(f, "{fun}")?;
+
+        if !self.monomorphized_functions.is_empty() {
+            writeln!(f, "\n==MONOMORPHIZED==\n")?;
+            for fun in self
+                .monomorphized_functions
+                .iter()
+                .filter(|f| !f.read().unwrap().is_generic())
+            {
+                writeln!(f, "{fun}")?;
+            }
         }
 
         Ok(())
@@ -149,7 +152,7 @@ impl ModuleData {
     /// Iterate over all functions with `n` name parts
     pub fn functions_with_n_name_parts(&self, n: usize) -> impl Iterator<Item = &Function> + '_ {
         self.iter_functions()
-            .filter(move |f| f.read().unwrap().name_parts().len() == n)
+            .filter(move |f| f.read().is_ok_and(|f| f.name_parts().len() == n))
     }
 }
 
