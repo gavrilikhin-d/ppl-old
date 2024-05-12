@@ -45,7 +45,7 @@ impl ImplementsCheck<'_, hir::Class> {
             }
 
             if let Some(imp) =
-                context.find_implementation(&f.read().unwrap(), &Type::from(self.ty.clone()))
+                context.find_implementation(&f.read().unwrap(), Some(Type::from(self.ty.clone())))
             {
                 implemented.push(imp);
                 continue;

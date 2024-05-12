@@ -2,7 +2,7 @@ use derive_visitor::{DriveMut, VisitorMut};
 use log::debug;
 
 use crate::{
-    hir::{Call, FunctionData, Generic, ModuleData, Type},
+    hir::{Call, FunctionData, Generic, ModuleData},
     semantics::{GenericContext, Monomorphize},
     DataHolder,
 };
@@ -31,10 +31,10 @@ impl<'ctx, C: Context> TraitFunctionsLinker<'ctx, C> {
         }
 
         debug!(target: "linking-trait-fn-from", "{f}");
-        // Unknown type here is ok, because we don't have selfs any more
+        // Don't have selfs any more so no need to specialize it
         let mut real_impl = self
             .context
-            .find_implementation(&f, &Type::Unknown)
+            .find_implementation(&f, None)
             .unwrap()
             .read()
             .unwrap()

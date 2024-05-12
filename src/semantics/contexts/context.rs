@@ -2,11 +2,11 @@ use std::fmt::Display;
 
 use crate::{
     compilation::Compiler,
-    hir::{Function, FunctionData, FunctionNamePart, ModuleData, Type, Typed},
-    semantics::{AddDeclaration, ConvertibleTo, FindDeclaration},
+    hir::{Function, FunctionData, FunctionNamePart, ModuleData, SelfType, Type, Typed},
+    semantics::{AddDeclaration, ConvertibleTo, FindDeclaration, Implements},
 };
 
-use super::BuiltinContext;
+use super::{BuiltinContext, GenericContext};
 
 use crate::DataHolder;
 
@@ -56,41 +56,48 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
     }
 
     /// Find concrete function for trait function
-    fn find_implementation(&mut self, trait_fn: &FunctionData, self_type: &Type) -> Option<Function>
+    fn find_implementation(
+        &mut self,
+        trait_fn: &FunctionData,
+        self_type_specialization: Option<Type>,
+    ) -> Option<Function>
     where
         Self: Sized,
     {
-        let funcs = self.functions_with_n_name_parts(trait_fn.name_parts().len());
-        funcs
-            .iter()
-            .find(|f| {
-                trait_fn
-                    .name_parts()
-                    .iter()
-                    .zip(f.read().unwrap().name_parts())
-                    .all(|(a, b)| match (a, b) {
-                        (FunctionNamePart::Text(a), FunctionNamePart::Text(b)) => {
-                            a.as_str() == b.as_str()
-                        }
-                        (FunctionNamePart::Parameter(a), FunctionNamePart::Parameter(b)) => a
-                            .ty()
-                            .map_self(self_type)
-                            .clone()
-                            .convertible_to(b.ty())
-                            .within(self)
-                            .is_ok_and(|converible| converible),
-                        _ => false,
-                    })
-                    && trait_fn
-                        .return_type
-                        .clone()
-                        .map_self(self_type)
-                        // TODO: real return type range
-                        .convertible_to(f.read().unwrap().return_type.clone())
-                        .within(self)
-                        .is_ok_and(|convertible| convertible)
-            })
-            .cloned()
+        let self_ty: Type = SelfType {
+            associated_trait: trait_fn.tr.clone().unwrap(),
+        }
+        .into();
+        let mut context = GenericContext::for_generics(vec![self_ty.clone()], self);
+        if let Some(concrete) = self_type_specialization.clone() {
+            context.map_generic(self_ty, concrete);
+        }
+        let funcs = context.functions_with_n_name_parts(trait_fn.name_parts().len());
+        funcs.into_iter().find(|f| {
+            let params_ok = trait_fn
+                .name_parts()
+                .iter()
+                .zip(f.read().unwrap().name_parts())
+                .all(|(a, b)| match (a, b) {
+                    (FunctionNamePart::Text(a), FunctionNamePart::Text(b)) => {
+                        a.as_str() == b.as_str()
+                    }
+                    (FunctionNamePart::Parameter(a), FunctionNamePart::Parameter(b)) => a
+                        .ty()
+                        .convertible_to(b.ty())
+                        .within(&mut context)
+                        .is_ok_and(|converible| converible),
+                    _ => false,
+                });
+            let ret_ok = trait_fn
+                .return_type
+                // TODO: real return type range
+                .convertible_to(f.read().unwrap().return_type.clone())
+                .within(&mut context)
+                .is_ok_and(|convertible| convertible);
+
+            params_ok && ret_ok
+        })
     }
 
     /// Find destructor for type
@@ -108,9 +115,15 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
     where
         Self: Sized,
     {
-        let ty = self.builtin().types().reference_to(ty);
-        let name = format!("clone <:{ty}>");
-        self.function_with_name(&name)
+        match ty {
+            Type::Class(c) => c
+                .implements(self.builtin().traits().clonnable())
+                .within(self)
+                .ok()?
+                .into_iter()
+                .next(),
+            _ => None,
+        }
     }
 
     /// Debug function to print hierarchy of contexts

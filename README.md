@@ -31,6 +31,7 @@
 * [x] No tmps for literals inside of constructors
 * [x] Fix recursive trait (AsString with prints)
 * [x] Fix references in traits test
+* [x] Fix self mapping
 ---
 ### Current task
 * [ ] Printable trait should take references
