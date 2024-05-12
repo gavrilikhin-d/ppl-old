@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::hir::{SpecializeParameters, Type};
+use crate::hir::{SpecializeParameters, Trait, Type};
 
 use super::Context;
 
@@ -23,6 +23,41 @@ impl<'ctx> BuiltinContext<'ctx> {
             context: self.context,
         }
     }
+
+    /// Get builtin traits
+    pub fn traits(&self) -> BuiltinTraits<'ctx> {
+        BuiltinTraits {
+            context: self.context,
+        }
+    }
+}
+
+/// Helper struct to get builtin traits
+pub struct BuiltinTraits<'ctx> {
+    /// Builtin module
+    context: &'ctx dyn Context,
+}
+
+/// Helper macro to add builtin traits
+macro_rules! builtin_traits {
+    ($($name: ident),*) => {
+        $(pub fn $name(&self) -> Trait {
+            let name = stringify!($name);
+            self.get_trait(&format!("{}{}", name[0..1].to_uppercase(), &name[1..]))
+        })*
+    };
+}
+
+impl BuiltinTraits<'_> {
+    /// Get builtin trait by name
+    fn get_trait(&self, name: &str) -> Trait {
+        self.context
+            .find_type(name)
+            .expect(&format!("Builtin trait `{name}` should be present"))
+            .as_trait()
+    }
+
+    builtin_traits!(clonnable);
 }
 
 /// Helper struct to get builtin types
@@ -46,7 +81,7 @@ impl BuiltinTypes<'_> {
     fn get_type(&self, name: &str) -> Type {
         self.context
             .find_type(name)
-            .expect(format!("Builtin type `{name}` should be present",).as_str())
+            .expect(&format!("Builtin type `{name}` should be present"))
     }
 
     builtin_types!(none, bool, integer, rational, string, reference, i32, f64);
