@@ -3,7 +3,6 @@ use std::fmt::Display;
 use crate::{
     compilation::Compiler,
     hir::{Function, FunctionData, FunctionNamePart, ModuleData, SelfType, Type, Typed},
-    named::Named,
     semantics::{AddDeclaration, ConvertibleTo, FindDeclaration, Implements},
 };
 

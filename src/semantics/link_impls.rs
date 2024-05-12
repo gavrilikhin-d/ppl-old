@@ -2,7 +2,7 @@ use derive_visitor::{DriveMut, VisitorMut};
 use log::debug;
 
 use crate::{
-    hir::{Call, FunctionData, Generic, ModuleData, Type},
+    hir::{Call, FunctionData, Generic, ModuleData},
     semantics::{GenericContext, Monomorphize},
     DataHolder,
 };

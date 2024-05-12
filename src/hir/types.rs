@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    mutability::Mutable, named::Named, semantics::ReplaceSelf, syntax::Identifier,
+    mutability::Mutable, named::Named, syntax::Identifier,
     AddSourceLocation,
 };
 
