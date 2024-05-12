@@ -233,3 +233,11 @@ trait Destroy:
 	fn destroy <:&mut Self>
 //=================================
 
+//=================================
+//             Clonnable
+//=================================
+/// Trait for things that can be cloned
+trait Clonnable:
+	fn clone <:&Self>
+//=================================
+
