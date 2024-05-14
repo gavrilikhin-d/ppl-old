@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::{
     compilation::Compiler,
-    hir::{Function, FunctionData, FunctionNamePart, ModuleData, SelfType, Type, Typed},
+    hir::{Function, FunctionData, FunctionNamePart, ModuleData, Type, Typed},
     semantics::{AddDeclaration, ConvertibleTo, FindDeclaration, Implements},
 };
 

@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fmt::Display};
 
 use crate::{
-    hir::{FunctionData, GenericType, SelfType, Type, TypeReference, Typed},
+    hir::{FunctionData, GenericType, Type, TypeReference, Typed},
     named::Named,
     semantics::{AddDeclaration, ConvertibleTo, FindDeclaration, FindDeclarationHere},
 };

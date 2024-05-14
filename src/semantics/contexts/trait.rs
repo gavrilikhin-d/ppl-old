@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use crate::{
-    hir::{Class, Function, SelfType, Trait, Type, Variable},
+    hir::{Class, Function, Trait, Type, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
 };
