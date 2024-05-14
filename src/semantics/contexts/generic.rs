@@ -25,12 +25,10 @@ impl<'p> GenericContext<'p> {
     pub fn for_fn(f: &FunctionData, parent: &'p mut impl Context) -> Self {
         let mut candidate_context = Self::for_generics(f.generic_types.clone(), parent);
 
-        if let Some(ty) = f
-            .parameters()
-            .map(|p| p.ty())
-            .find(|ty| matches!(ty, Type::SelfType(_)))
-        {
-            candidate_context.generic_parameters.push(ty);
+        if let Some(tr) = &f.tr {
+            candidate_context
+                .generic_parameters
+                .push(tr.self_type().into());
         }
 
         return candidate_context;

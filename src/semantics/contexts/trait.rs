@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use crate::{
-    hir::{Class, Function, SelfType, Trait, Type, Variable},
+    hir::{Class, Function, Trait, Type, Variable},
     named::Named,
     semantics::{AddDeclaration, FindDeclaration, FindDeclarationHere},
 };
@@ -43,12 +43,7 @@ impl FindDeclarationHere for TraitContext<'_> {
             return None;
         }
 
-        Some(
-            SelfType {
-                associated_trait: self.tr.clone(),
-            }
-            .into(),
-        )
+        Some(self.tr.self_type().into())
     }
 
     fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Function> {
