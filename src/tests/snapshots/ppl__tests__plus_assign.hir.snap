@@ -4,13 +4,13 @@ expression: hir
 ---
 let mut value: Rational = 0.0
 let mut str: String = "Hello"
-println clone (value:Rational)
-(&value:ReferenceMut<Rational>) += 1.0
-println clone (value:Rational)
-(&str:ReferenceMut<String>) += " World!"
-println clone (str:String)
-destroy (value:Rational)
-destroy (str:String)
+`println <:Rational>`(`clone <:Reference<Rational>>`((value:Rational)))
+`<:ReferenceMut<Rational>> += <:Rational>`((&value:ReferenceMut<Rational>), 1.0)
+`println <:Rational>`(`clone <:Reference<Rational>>`((value:Rational)))
+`<:ReferenceMut<String>> += <:String>`((&str:ReferenceMut<String>), " World!")
+`println <:String>`(`clone <:Reference<String>>`((str:String)))
+`destroy <:ReferenceMut<Rational>>`((value:Rational))
+`destroy <:ReferenceMut<String>>`((str:String))
 
 ==MONOMORPHIZED==
 
@@ -19,7 +19,7 @@ destroy (str:String)
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = println String from (x:Rational)
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -28,14 +28,14 @@ fn println <x: Rational> -> None:
 fn <$arg0: Rational> + <$arg1: Rational> -> Rational
 
 fn <self: ReferenceMut<Rational>> += <other: Rational> -> None:
-	(self:ReferenceMut<Rational>) = (*self:Rational) + (other:Rational)
+	(self:ReferenceMut<Rational>) = `<:Rational> + <:Rational>`((*self:Rational), (other:Rational))
 
 
 @mangle_as("rational_as_string")
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = println String from (x:Rational)
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -44,4 +44,4 @@ fn println <x: Rational> -> None:
 fn <$arg0: String> + <$arg1: String> -> String
 
 fn <self: ReferenceMut<String>> += <other: String> -> None:
-	(self:ReferenceMut<String>) = (*self:String) + (other:String)
+	(self:ReferenceMut<String>) = `<:String> + <:String>`((*self:String), (other:String))

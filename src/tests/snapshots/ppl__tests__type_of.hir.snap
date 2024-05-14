@@ -2,8 +2,8 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let ty: Type<Integer> = type of 1
-println (ty:Type<Integer>)
+let ty: Type<Integer> = `type of <:Integer>`(1)
+`println <:Type<Integer>>`((ty:Type<Integer>))
 
 ==MONOMORPHIZED==
 
@@ -14,10 +14,10 @@ fn<Integer> type of <$arg0: Integer> -> Type<Integer>:
 
 
 fn<Integer> String from <ty: Type<Integer>> -> String:
-	let $tmp@4331: String = clone (ty:Type<Integer>).name
+	let $tmp@4331: String = `clone <:Reference<String>>`((ty:Type<Integer>).name)
 	return ($tmp@4331:String)
 
 
 fn println <x: Type<Integer>> -> None:
-	let $tmp@176: None = println String from (x:Type<Integer>)
+	let $tmp@176: None = `println <:String>`(`String from <:Type<Integer>>`((x:Type<Integer>)))
 	return ($tmp@176:None)

@@ -14,12 +14,12 @@ trait Test:
 
 fn required <x: Integer> -> None:
 	let $tmp@124: None = none
-	destroy (x:Integer)
+	`destroy <:ReferenceMut<Integer>>`((x:Integer))
 	return ($tmp@124:None)
 
-let res: Integer = default 1
-println clone (res:Integer)
-destroy (res:Integer)
+let res: Integer = `default <:Integer>`(1)
+`println <:Integer>`(`clone <:Reference<Integer>>`((res:Integer)))
+`destroy <:ReferenceMut<Integer>>`((res:Integer))
 
 ==MONOMORPHIZED==
 
@@ -32,5 +32,5 @@ fn default <x: Integer> -> Integer:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = println String from (x:Integer)
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
 	return ($tmp@176:None)

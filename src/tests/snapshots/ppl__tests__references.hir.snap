@@ -2,21 +2,21 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let n: Integer = size of (Type<I32>:Type<I32>)
-let address: MemoryAddress = allocate clone (n:Integer) bytes
-let value: ReferenceMut<I32> = (Type<I32>:Type<I32>) at (address:MemoryAddress)
-(value:ReferenceMut<I32>) = 0 as I32
-println (*value:I32)
-(value:ReferenceMut<I32>) = 1 as I32
-println (*value:I32)
-free (address:MemoryAddress)
-destroy (n:Integer)
+let n: Integer = `size of <:Type<I32>>`((Type<I32>:Type<I32>))
+let address: MemoryAddress = `allocate <:Integer> bytes`(`clone <:Reference<Integer>>`((n:Integer)))
+let value: ReferenceMut<I32> = `<:Type<I32>> at <:MemoryAddress>`((Type<I32>:Type<I32>), (address:MemoryAddress))
+(value:ReferenceMut<I32>) = `<:Integer> as I32`(0)
+`println <:I32>`((*value:I32))
+(value:ReferenceMut<I32>) = `<:Integer> as I32`(1)
+`println <:I32>`((*value:I32))
+`free <:MemoryAddress>`((address:MemoryAddress))
+`destroy <:ReferenceMut<Integer>>`((n:Integer))
 
 ==MONOMORPHIZED==
 
 
 fn<I32> size of <ty: Type<I32>> -> Integer:
-	let $tmp@4399: Integer = clone (ty:Type<I32>).size
+	let $tmp@4399: Integer = `clone <:Reference<Integer>>`((ty:Type<I32>).size)
 	return ($tmp@4399:Integer)
 
 
@@ -27,7 +27,7 @@ fn<I32> <ty: Type<I32>> at <address: MemoryAddress> -> ReferenceMut<I32>
 fn String from <$arg0: I32> -> String
 
 fn println <x: I32> -> None:
-	let $tmp@176: None = println String from (x:I32)
+	let $tmp@176: None = `println <:String>`(`String from <:I32>`((x:I32)))
 	return ($tmp@176:None)
 
 
@@ -36,5 +36,5 @@ fn println <x: I32> -> None:
 fn String from <$arg0: I32> -> String
 
 fn println <x: I32> -> None:
-	let $tmp@176: None = println String from (x:I32)
+	let $tmp@176: None = `println <:String>`(`String from <:I32>`((x:I32)))
 	return ($tmp@176:None)

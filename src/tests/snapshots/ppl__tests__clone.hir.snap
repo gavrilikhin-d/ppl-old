@@ -3,15 +3,15 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let mut x: Integer = 1
-let mut y: Integer = clone (x:Integer)
-println clone (x:Integer)
-println clone (y:Integer)
-destroy (y:Integer)
+let mut y: Integer = `clone <:Reference<Integer>>`((x:Integer))
+`println <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)))
+`println <:Integer>`(`clone <:Reference<Integer>>`((y:Integer)))
+`destroy <:ReferenceMut<Integer>>`((y:Integer))
 (y:Integer) = 2
-println clone (x:Integer)
-println clone (y:Integer)
-destroy (x:Integer)
-destroy (y:Integer)
+`println <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)))
+`println <:Integer>`(`clone <:Reference<Integer>>`((y:Integer)))
+`destroy <:ReferenceMut<Integer>>`((x:Integer))
+`destroy <:ReferenceMut<Integer>>`((y:Integer))
 
 ==MONOMORPHIZED==
 
@@ -20,7 +20,7 @@ destroy (y:Integer)
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = println String from (x:Integer)
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
 	return ($tmp@176:None)
 
 
@@ -29,7 +29,7 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = println String from (x:Integer)
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
 	return ($tmp@176:None)
 
 
@@ -38,7 +38,7 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = println String from (x:Integer)
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
 	return ($tmp@176:None)
 
 
@@ -47,5 +47,5 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = println String from (x:Integer)
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
 	return ($tmp@176:None)

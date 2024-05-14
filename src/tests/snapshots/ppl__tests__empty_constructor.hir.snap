@@ -4,7 +4,7 @@ expression: hir
 ---
 type A
 let a: A = A {  }
-println type of (a:A)
+`println <:Type<A>>`(`type of <:A>`((a:A)))
 
 ==MONOMORPHIZED==
 
@@ -15,10 +15,10 @@ fn<A> type of <$arg0: A> -> Type<A>:
 
 
 fn<A> String from <ty: Type<A>> -> String:
-	let $tmp@4331: String = clone (ty:Type<A>).name
+	let $tmp@4331: String = `clone <:Reference<String>>`((ty:Type<A>).name)
 	return ($tmp@4331:String)
 
 
 fn println <x: Type<A>> -> None:
-	let $tmp@176: None = println String from (x:Type<A>)
+	let $tmp@176: None = `println <:String>`(`String from <:Type<A>>`((x:Type<A>)))
 	return ($tmp@176:None)

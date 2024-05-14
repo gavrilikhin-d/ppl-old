@@ -2,21 +2,21 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-println 0.0
-println + 1.0
-println - 2.0
-println 1.0 + 2.0
-println 5.0 - 1.0
-println 2.5 * 2.0
-println 9.0 / 3 / 2
-println 0.0 == 0.0
-println 1.0 != 0.0
-println 0.0 < 1.0
-println 1.0 > 0.0
-println 0.0 <= 0.0
-println 0.0 <= 1.0
-println 0.0 >= 0.0
-println 1.0 >= 0.0
+`println <:Rational>`(0.0)
+`println <:Rational>`(`+ <:Rational>`(1.0))
+`println <:Rational>`(`- <:Rational>`(2.0))
+`println <:Rational>`(`<:Rational> + <:Rational>`(1.0, 2.0))
+`println <:Rational>`(`<:Rational> - <:Rational>`(5.0, 1.0))
+`println <:Rational>`(`<:Rational> * <:Rational>`(2.5, 2.0))
+`println <:Rational>`(`<:Rational> / <:Rational>`(9.0, `<:Integer> / <:Integer>`(3, 2)))
+`println <:Bool>`(`<:Rational> == <:Rational>`(0.0, 0.0))
+`println <:Bool>`(`<:Rational> != <:Rational>`(1.0, 0.0))
+`println <:Bool>`(`<:Rational> < <:Rational>`(0.0, 1.0))
+`println <:Bool>`(`<:Rational> > <:Rational>`(1.0, 0.0))
+`println <:Bool>`(`<:Rational> <= <:Rational>`(0.0, 0.0))
+`println <:Bool>`(`<:Rational> <= <:Rational>`(0.0, 1.0))
+`println <:Bool>`(`<:Rational> >= <:Rational>`(0.0, 0.0))
+`println <:Bool>`(`<:Rational> >= <:Rational>`(1.0, 0.0))
 
 ==MONOMORPHIZED==
 
@@ -25,7 +25,7 @@ println 1.0 >= 0.0
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = println String from (x:Rational)
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -34,7 +34,7 @@ fn println <x: Rational> -> None:
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = println String from (x:Rational)
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -43,7 +43,7 @@ fn println <x: Rational> -> None:
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = println String from (x:Rational)
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -52,7 +52,7 @@ fn println <x: Rational> -> None:
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = println String from (x:Rational)
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -61,7 +61,7 @@ fn println <x: Rational> -> None:
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = println String from (x:Rational)
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -70,7 +70,7 @@ fn println <x: Rational> -> None:
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = println String from (x:Rational)
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -79,7 +79,7 @@ fn println <x: Rational> -> None:
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = println String from (x:Rational)
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -94,7 +94,7 @@ fn String from <x: Bool> -> String:
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = println String from (x:Bool)
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
 	return ($tmp@176:None)
 
 
@@ -103,7 +103,7 @@ fn println <x: Bool> -> None:
 fn <$arg0: Rational> == <$arg1: Rational> -> Bool
 
 fn <x: Rational> != <y: Rational> -> Bool:
-	let $tmp@776: Bool = not (x:Rational) == (y:Rational)
+	let $tmp@776: Bool = `not <:Bool>`(`<:Rational> == <:Rational>`((x:Rational), (y:Rational)))
 	return ($tmp@776:Bool)
 
 
@@ -118,7 +118,7 @@ fn String from <x: Bool> -> String:
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = println String from (x:Bool)
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
 	return ($tmp@176:None)
 
 
@@ -133,7 +133,7 @@ fn String from <x: Bool> -> String:
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = println String from (x:Bool)
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
 	return ($tmp@176:None)
 
 
@@ -142,7 +142,7 @@ fn println <x: Bool> -> None:
 fn <$arg0: Rational> < <$arg1: Rational> -> Bool
 
 fn <x: Rational> > <y: Rational> -> Bool:
-	let $tmp@1032: Bool = (y:Rational) < (x:Rational)
+	let $tmp@1032: Bool = `<:Rational> < <:Rational>`((y:Rational), (x:Rational))
 	return ($tmp@1032:Bool)
 
 
@@ -157,7 +157,7 @@ fn String from <x: Bool> -> String:
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = println String from (x:Bool)
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
 	return ($tmp@176:None)
 
 
@@ -166,13 +166,13 @@ fn println <x: Bool> -> None:
 fn <$arg0: Rational> < <$arg1: Rational> -> Bool
 
 fn <x: Rational> > <y: Rational> -> Bool:
-	let $tmp@1032: Bool = (y:Rational) < (x:Rational)
+	let $tmp@1032: Bool = `<:Rational> < <:Rational>`((y:Rational), (x:Rational))
 	return ($tmp@1032:Bool)
 
 
 
 fn <x: Rational> <= <y: Rational> -> Bool:
-	let $tmp@1068: Bool = not (x:Rational) > (y:Rational)
+	let $tmp@1068: Bool = `not <:Bool>`(`<:Rational> > <:Rational>`((x:Rational), (y:Rational)))
 	return ($tmp@1068:Bool)
 
 
@@ -187,7 +187,7 @@ fn String from <x: Bool> -> String:
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = println String from (x:Bool)
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
 	return ($tmp@176:None)
 
 
@@ -196,13 +196,13 @@ fn println <x: Bool> -> None:
 fn <$arg0: Rational> < <$arg1: Rational> -> Bool
 
 fn <x: Rational> > <y: Rational> -> Bool:
-	let $tmp@1032: Bool = (y:Rational) < (x:Rational)
+	let $tmp@1032: Bool = `<:Rational> < <:Rational>`((y:Rational), (x:Rational))
 	return ($tmp@1032:Bool)
 
 
 
 fn <x: Rational> <= <y: Rational> -> Bool:
-	let $tmp@1068: Bool = not (x:Rational) > (y:Rational)
+	let $tmp@1068: Bool = `not <:Bool>`(`<:Rational> > <:Rational>`((x:Rational), (y:Rational)))
 	return ($tmp@1068:Bool)
 
 
@@ -217,7 +217,7 @@ fn String from <x: Bool> -> String:
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = println String from (x:Bool)
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
 	return ($tmp@176:None)
 
 
@@ -226,7 +226,7 @@ fn println <x: Bool> -> None:
 fn <$arg0: Rational> < <$arg1: Rational> -> Bool
 
 fn <x: Rational> >= <y: Rational> -> Bool:
-	let $tmp@1110: Bool = not (x:Rational) < (y:Rational)
+	let $tmp@1110: Bool = `not <:Bool>`(`<:Rational> < <:Rational>`((x:Rational), (y:Rational)))
 	return ($tmp@1110:Bool)
 
 
@@ -241,7 +241,7 @@ fn String from <x: Bool> -> String:
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = println String from (x:Bool)
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
 	return ($tmp@176:None)
 
 
@@ -250,7 +250,7 @@ fn println <x: Bool> -> None:
 fn <$arg0: Rational> < <$arg1: Rational> -> Bool
 
 fn <x: Rational> >= <y: Rational> -> Bool:
-	let $tmp@1110: Bool = not (x:Rational) < (y:Rational)
+	let $tmp@1110: Bool = `not <:Bool>`(`<:Rational> < <:Rational>`((x:Rational), (y:Rational)))
 	return ($tmp@1110:Bool)
 
 
@@ -265,5 +265,5 @@ fn String from <x: Bool> -> String:
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = println String from (x:Bool)
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
 	return ($tmp@176:None)

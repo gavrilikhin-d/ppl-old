@@ -3,7 +3,7 @@ source: src/tests/mod.rs
 expression: hir
 ---
 fn foo -> None:
-	let $tmp@10: None = println "foo"
+	let $tmp@10: None = `println <:String>`("foo")
 	return ($tmp@10:None)
 
-foo
+`foo`()

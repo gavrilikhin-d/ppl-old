@@ -3,12 +3,12 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let x: Integer = 0
-let address: MemoryAddress = address of (&x:Reference<Integer>)
-let x_mut_ref: ReferenceMut<Integer> = (Type<Integer>:Type<Integer>) at (address:MemoryAddress)
-println clone (x:Integer)
+let address: MemoryAddress = `address of <:Reference<Integer>>`((&x:Reference<Integer>))
+let x_mut_ref: ReferenceMut<Integer> = `<:Type<Integer>> at <:MemoryAddress>`((Type<Integer>:Type<Integer>), (address:MemoryAddress))
+`println <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)))
 (x_mut_ref:ReferenceMut<Integer>) = 1
-println clone (x:Integer)
-destroy (x:Integer)
+`println <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)))
+`destroy <:ReferenceMut<Integer>>`((x:Integer))
 
 ==MONOMORPHIZED==
 
@@ -23,7 +23,7 @@ fn<Integer> <ty: Type<Integer>> at <address: MemoryAddress> -> ReferenceMut<Inte
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = println String from (x:Integer)
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
 	return ($tmp@176:None)
 
 
@@ -32,5 +32,5 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = println String from (x:Integer)
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
 	return ($tmp@176:None)

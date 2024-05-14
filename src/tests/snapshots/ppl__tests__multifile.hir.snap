@@ -3,4 +3,4 @@ source: src/tests/mod.rs
 expression: hir
 ---
 use greet.greet <:String>
-greet "World"
+`greet <:String>`("World")
