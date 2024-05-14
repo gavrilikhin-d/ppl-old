@@ -20,17 +20,18 @@ macro_rules! e2e {
             let name = stringify!($name);
             let dir = Path::new(file).parent().unwrap().join(name);
 
-            let res = $crate::e2e::internal::compile(&tmp, &dir);
-            if let Err(err) = res {
+            let hir = $crate::e2e::internal::hir(&tmp, name, &dir);
+            if let Err(err) = hir {
                 assert_snapshot!(concat!(stringify!($name), ".error"), err);
                 return;
             }
-
-            let hir = $crate::e2e::internal::hir(&tmp, name, &dir);
+            let hir = hir.unwrap();
             assert_snapshot!(concat!(stringify!($name), ".hir"), hir);
 
             let ir = $crate::e2e::internal::ir(&tmp, name, &dir);
             assert_snapshot!(concat!(stringify!($name), ".ir"), ir);
+
+            $crate::e2e::internal::compile(&tmp, &dir);
 
             let (run_log, status) = $crate::e2e::internal::run(&tmp, name, &dir);
             assert_snapshot!(concat!(stringify!($name), ".run"), run_log);
@@ -60,10 +61,20 @@ pub mod internal {
 
     const PPL: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/target/debug/ppl");
 
-    pub fn compile(temp_dir: &Path, dir: &Path) -> Result<(), String> {
+    pub fn compile(temp_dir: &Path, dir: &Path) {
+        run_cmd! {
+            cd $dir;
+            $PPL build --output-dir $temp_dir
+        }
+        .map_err(|e| miette!("{e}"))
+        .unwrap();
+    }
+
+    pub fn hir(temp_dir: &Path, _name: &str, dir: &Path) -> Result<String, String> {
         let output = std::process::Command::new(PPL)
             .args(&["build"])
             .args(&["--output-dir", temp_dir.to_str().unwrap()])
+            .args(&["--emit", "hir"])
             .current_dir(dir)
             .output()
             .map_err(|e| miette!("{e}"))
@@ -74,23 +85,12 @@ pub mod internal {
             return Err(stderr);
         }
 
-        Ok(())
-    }
-
-    pub fn hir(temp_dir: &Path, _name: &str, dir: &Path) -> String {
-        run_cmd! {
-            cd $dir;
-            $PPL build --output-dir $temp_dir --emit hir
-        }
-        .map_err(|e| miette!("{e}"))
-        .unwrap();
-
         let mut hir = temp_dir.join(OutputType::HIR.named("main"));
         if !hir.exists() {
             hir = temp_dir.join(OutputType::HIR.named("lib"));
         }
 
-        std::fs::read_to_string(&hir).expect("failed to read HIR")
+        Ok(std::fs::read_to_string(&hir).expect("failed to read HIR"))
     }
 
     pub fn ir(temp_dir: &Path, name: &str, dir: &Path) -> String {
