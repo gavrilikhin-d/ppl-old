@@ -5,11 +5,11 @@ expression: hir
 type DestructibleClass
 
 fn destroy <$arg0: ReferenceMut<DestructibleClass>> -> None:
-	let $tmp@64: None = println "destructor"
+	let $tmp@64: None = `println <:String>`("destructor")
 	return ($tmp@64:None)
 
 let mut x: DestructibleClass = DestructibleClass {  }
-destroy (x:DestructibleClass)
+`destroy <:ReferenceMut<DestructibleClass>>`((x:DestructibleClass))
 (x:DestructibleClass) = DestructibleClass {  }
-println "done"
-destroy (x:DestructibleClass)
+`println <:String>`("done")
+`destroy <:ReferenceMut<DestructibleClass>>`((x:DestructibleClass))

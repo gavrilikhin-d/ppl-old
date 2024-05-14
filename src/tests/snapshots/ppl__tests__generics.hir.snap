@@ -11,17 +11,17 @@ fn<T> x of <p: Point<T>> -> T:
 	let $tmp@53: T = (p:Point<T>).x
 	return ($tmp@53:T)
 
-let x: Integer = x of Point<Integer> { x: 0, y: 0 }
+let x: Integer = `x of <:Point<Integer>>`(Point<Integer> { x: 0, y: 0 })
 
 fn<T> id <x: T> -> T:
 	let $tmp@127: T = (x:T)
 	return ($tmp@127:T)
 
-println clone (x:Integer) == 0
-println id 1 == 1
-println id "hello"
-id Point<Integer> { x: 0, y: 0 }
-destroy (x:Integer)
+`println <:Bool>`(`<:Integer> == <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)), 0))
+`println <:Bool>`(`<:Integer> == <:Integer>`(`id <:Integer>`(1), 1))
+`println <:String>`(`id <:String>`("hello"))
+`id <:Point<Integer>>`(Point<Integer> { x: 0, y: 0 })
+`destroy <:ReferenceMut<Integer>>`((x:Integer))
 
 ==MONOMORPHIZED==
 
@@ -40,7 +40,7 @@ fn String from <x: Bool> -> String:
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = println String from (x:Bool)
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
 	return ($tmp@176:None)
 
 
@@ -59,7 +59,7 @@ fn String from <x: Bool> -> String:
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = println String from (x:Bool)
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
 	return ($tmp@176:None)
 
 

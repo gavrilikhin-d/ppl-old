@@ -1,7 +1,8 @@
 use derive_visitor::DriveMut;
 
-use crate::hir::{Expression, Function, FunctionNamePart, Generic, Type, Typed};
+use crate::hir::{Expression, Function, Generic, Type, Typed};
 use crate::mutability::Mutable;
+use crate::named::Named;
 use crate::syntax::Ranged;
 use std::fmt::Display;
 use std::ops::Range;
@@ -31,22 +32,15 @@ impl Display for Call {
         let indent = "\t".repeat(f.width().unwrap_or(0));
         write!(f, "{indent}")?;
 
-        let mut arg = self.args.iter();
-
         write!(
             f,
-            "{}",
-            self.function
-                .read()
-                .unwrap()
-                .name_parts()
+            "`{}`({})",
+            self.function.name(),
+            self.args
                 .iter()
-                .map(|part| match part {
-                    FunctionNamePart::Text(text) => text.to_string(),
-                    FunctionNamePart::Parameter(_) => arg.next().unwrap().to_string(),
-                })
+                .map(|arg| arg.to_string())
                 .collect::<Vec<_>>()
-                .join(" ")
+                .join(", ")
         )
     }
 }

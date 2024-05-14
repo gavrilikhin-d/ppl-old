@@ -12,32 +12,32 @@ trait FooBar:
 
 
 fn foo <$arg0: None> -> None:
-	let $tmp@99: None = print "foo"
+	let $tmp@99: None = `print <:String>`("foo")
 	return ($tmp@99:None)
 
 
 fn bar <$arg0: None> -> None:
-	let $tmp@129: None = println "bar"
+	let $tmp@129: None = `println <:String>`("bar")
 	return ($tmp@129:None)
 
 
 fn<T: FooBar> foobar <x: T> -> None:
-	foo (x:T)
-	bar (x:T)
+	`foo <:T>`((x:T))
+	`bar <:T>`((x:T))
 
-foobar none
+`foobar <:None>`(none)
 
 ==MONOMORPHIZED==
 
 
 fn foo <$arg0: None> -> None:
-	return print "foo"
+	return `print <:String>`("foo")
 
 
 fn bar <$arg0: None> -> None:
-	return println "bar"
+	return `println <:String>`("bar")
 
 
 fn<None> foobar <x: None> -> None:
-	foo (x:None)
-	bar (x:None)
+	`foo <:None>`((x:None))
+	`bar <:None>`((x:None))

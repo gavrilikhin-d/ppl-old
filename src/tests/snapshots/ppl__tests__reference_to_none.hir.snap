@@ -3,8 +3,8 @@ source: src/tests/mod.rs
 expression: hir
 ---
 fn foo <$arg0: Reference<None>> -> None:
-	let $tmp@19: None = println "foo"
+	let $tmp@19: None = `println <:String>`("foo")
 	return ($tmp@19:None)
 
 let x: None = none
-foo (&x:Reference<None>)
+`foo <:Reference<None>>`((&x:Reference<None>))

@@ -3,12 +3,12 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let mut x: Integer = 1
-let y: ReferenceMut<Integer> = reference to mutable (&x:ReferenceMut<Integer>)
-println clone (*y:Integer)
+let y: ReferenceMut<Integer> = `reference to mutable <:ReferenceMut<Integer>>`((&x:ReferenceMut<Integer>))
+`println <:Integer>`(`clone <:Reference<Integer>>`((*y:Integer)))
 (y:ReferenceMut<Integer>) = 2
-println clone (*y:Integer)
-println clone (x:Integer)
-destroy (x:Integer)
+`println <:Integer>`(`clone <:Reference<Integer>>`((*y:Integer)))
+`println <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)))
+`destroy <:ReferenceMut<Integer>>`((x:Integer))
 
 ==MONOMORPHIZED==
 
@@ -22,7 +22,7 @@ fn<Integer> reference to mutable <ref: ReferenceMut<Integer>> -> ReferenceMut<In
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = println String from (x:Integer)
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
 	return ($tmp@176:None)
 
 
@@ -31,7 +31,7 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = println String from (x:Integer)
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
 	return ($tmp@176:None)
 
 
@@ -40,5 +40,5 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = println String from (x:Integer)
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
 	return ($tmp@176:None)

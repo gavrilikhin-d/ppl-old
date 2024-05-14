@@ -8,11 +8,11 @@ type Point:
 
 
 fn x of <p: Reference<Point>> -> Integer:
-	let $tmp@61: Integer = clone (*p:Point).x
+	let $tmp@61: Integer = `clone <:Reference<Integer>>`((*p:Point).x)
 	return ($tmp@61:Integer)
 
 let $tmp@80: Point = Point { x: 1, y: 2 }
-println x of (&$tmp@80:Reference<Point>)
+`println <:Integer>`(`x of <:Reference<Point>>`((&$tmp@80:Reference<Point>)))
 
 ==MONOMORPHIZED==
 
@@ -21,5 +21,5 @@ println x of (&$tmp@80:Reference<Point>)
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = println String from (x:Integer)
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
 	return ($tmp@176:None)

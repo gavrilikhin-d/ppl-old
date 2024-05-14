@@ -3,16 +3,16 @@ source: src/tests/mod.rs
 expression: hir
 ---
 fn call predeclared -> None:
-	predeclared 1
+	`predeclared <:Integer>`(1)
 
 
 fn<T> predeclared <x: T> -> None:
-	println "called predeclared"
+	`println <:String>`("called predeclared")
 
-call predeclared
+`call predeclared`()
 
 ==MONOMORPHIZED==
 
 
 fn<Integer> predeclared <x: Integer> -> None:
-	println "called predeclared"
+	`println <:String>`("called predeclared")

@@ -3,18 +3,18 @@ source: src/tests/mod.rs
 expression: hir
 ---
 fn <x: Integer> plus two -> Integer:
-	let $tmp@28: Integer = sum clone (x:Integer) 2
-	destroy (x:Integer)
+	let $tmp@28: Integer = `sum <:Integer> <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)), 2)
+	`destroy <:ReferenceMut<Integer>>`((x:Integer))
 	return ($tmp@28:Integer)
 
 
 fn sum <x: Integer> <y: Integer> -> Integer:
-	let $tmp@84: Integer = clone (x:Integer) + clone (y:Integer)
-	destroy (x:Integer)
-	destroy (y:Integer)
+	let $tmp@84: Integer = `<:Integer> + <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)), `clone <:Reference<Integer>>`((y:Integer)))
+	`destroy <:ReferenceMut<Integer>>`((x:Integer))
+	`destroy <:ReferenceMut<Integer>>`((y:Integer))
 	return ($tmp@84:Integer)
 
-println 2 plus two
+`println <:Integer>`(`<:Integer> plus two`(2))
 
 ==MONOMORPHIZED==
 
@@ -23,5 +23,5 @@ println 2 plus two
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = println String from (x:Integer)
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
 	return ($tmp@176:None)

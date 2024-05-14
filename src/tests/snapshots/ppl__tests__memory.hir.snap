@@ -2,24 +2,24 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let address: MemoryAddress = allocate 1 (Type<Integer>:Type<Integer>)
-let x: ReferenceMut<Integer> = (Type<Integer>:Type<Integer>) at (address:MemoryAddress)
+let address: MemoryAddress = `allocate <:Integer> <:Type<Integer>>`(1, (Type<Integer>:Type<Integer>))
+let x: ReferenceMut<Integer> = `<:Type<Integer>> at <:MemoryAddress>`((Type<Integer>:Type<Integer>), (address:MemoryAddress))
 (x:ReferenceMut<Integer>) = 0
-println clone (*x:Integer)
+`println <:Integer>`(`clone <:Reference<Integer>>`((*x:Integer)))
 (x:ReferenceMut<Integer>) = 1
-println clone (*x:Integer)
+`println <:Integer>`(`clone <:Reference<Integer>>`((*x:Integer)))
 
 ==MONOMORPHIZED==
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4399: Integer = clone (ty:Type<Integer>).size
+	let $tmp@4399: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
 	return ($tmp@4399:Integer)
 
 
 fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:
-	let $tmp@760: MemoryAddress = allocate clone (n:Integer) * size of (Type<Integer>:Type<Integer>) bytes
-	destroy (n:Integer)
+	let $tmp@760: MemoryAddress = `allocate <:Integer> bytes`(`<:Integer> * <:Integer>`(`clone <:Reference<Integer>>`((n:Integer)), `size of <:Type<Integer>>`((Type<Integer>:Type<Integer>))))
+	`destroy <:ReferenceMut<Integer>>`((n:Integer))
 	return ($tmp@760:MemoryAddress)
 
 
@@ -30,7 +30,7 @@ fn<Integer> <ty: Type<Integer>> at <address: MemoryAddress> -> ReferenceMut<Inte
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = println String from (x:Integer)
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
 	return ($tmp@176:None)
 
 
@@ -39,5 +39,5 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = println String from (x:Integer)
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
 	return ($tmp@176:None)
