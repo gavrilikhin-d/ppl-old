@@ -64,10 +64,7 @@ pub trait Context: FindDeclaration + AddDeclaration + Display {
     where
         Self: Sized,
     {
-        let self_ty: Type = SelfType {
-            associated_trait: trait_fn.tr.clone().unwrap(),
-        }
-        .into();
+        let self_ty: Type = trait_fn.tr.clone().unwrap().self_type().into();
         let mut context = GenericContext::for_generics(vec![self_ty.clone()], self);
         if let Some(concrete) = self_type_specialization.clone() {
             context.map_generic(self_ty, concrete);

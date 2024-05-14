@@ -11,6 +11,7 @@ use indexmap::IndexMap;
 
 use crate::{
     compilation::Module,
+    hir::SelfType,
     named::Named,
     syntax::{Identifier, Keyword, Ranged},
     AddSourceLocation,
@@ -23,6 +24,13 @@ use crate::DataHolder;
 #[derive(Debug, Clone)]
 pub struct Trait {
     inner: Arc<RwLock<TraitData>>,
+}
+
+impl Trait {
+    /// Get self type for this trait
+    pub fn self_type(&self) -> SelfType {
+        SelfType::for_trait(self.clone())
+    }
 }
 
 impl DataHolder for Trait {

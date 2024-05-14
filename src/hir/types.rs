@@ -4,10 +4,7 @@ use std::{
     fmt::{Debug, Display},
 };
 
-use crate::{
-    mutability::Mutable, named::Named, syntax::Identifier,
-    AddSourceLocation,
-};
+use crate::{mutability::Mutable, named::Named, syntax::Identifier, AddSourceLocation};
 
 use super::{Basename, BuiltinClass, Class, Generic, Member, Trait, TypeReference};
 use derive_more::{Display, From, TryInto};
@@ -106,6 +103,13 @@ pub struct SelfType {
     /// Trait associated with self type
     #[drive(skip)]
     pub associated_trait: Trait,
+}
+
+impl SelfType {
+    /// Create new self type for trait
+    pub fn for_trait(associated_trait: Trait) -> Self {
+        Self { associated_trait }
+    }
 }
 
 impl PartialEq for SelfType {

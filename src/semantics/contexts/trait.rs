@@ -43,12 +43,7 @@ impl FindDeclarationHere for TraitContext<'_> {
             return None;
         }
 
-        Some(
-            SelfType {
-                associated_trait: self.tr.clone(),
-            }
-            .into(),
-        )
+        Some(self.tr.self_type().into())
     }
 
     fn functions_with_n_name_parts_here(&self, n: usize) -> Vec<Function> {
