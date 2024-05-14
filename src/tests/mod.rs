@@ -62,13 +62,12 @@ fn ppl() {
     let name = "ppl";
     let dir = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/ppl"));
 
-    let res = crate::e2e::internal::compile(&tmp, dir);
-    if let Err(err) = res {
+    let hir = crate::e2e::internal::hir(&tmp, name, &dir);
+    if let Err(err) = hir {
         assert_snapshot!("ppl.error", err);
         return;
     }
-
-    let hir = crate::e2e::internal::hir(&tmp, name, &dir);
+    let hir = hir.unwrap();
     assert_snapshot!("ppl.hir", hir);
 
     let ir = crate::e2e::internal::ir(&tmp, name, &dir);
