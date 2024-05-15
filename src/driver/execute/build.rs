@@ -18,7 +18,7 @@ use crate::{
 use super::Execute;
 
 impl Execute for Build {
-    type Output = miette::Result<()>;
+    type Output = miette::Result<PathBuf>;
 
     fn execute(&self) -> Self::Output {
         let cwd = std::env::current_dir().map_err(|e| miette!("{e}"))?;
@@ -54,9 +54,7 @@ impl Execute for Build {
         )
         .map_err(|e| miette!("{e}"))?;
 
-        package.emit(compiler, output_dir, output_type, dependencies_dir)?;
-
-        Ok(())
+        package.emit(compiler, output_dir, output_type, dependencies_dir)
     }
 }
 

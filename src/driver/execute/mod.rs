@@ -1,5 +1,6 @@
 mod build;
 mod new;
+mod run;
 
 use super::Command;
 
@@ -18,7 +19,8 @@ impl Execute for Command {
     fn execute(&self) -> Self::Output {
         match self {
             Command::New(new) => new.execute(),
-            Command::Build(build) => build.execute(),
+            Command::Build(build) => build.execute().map(|_| {}),
+            Command::Run(run) => run.execute(),
         }
     }
 }
