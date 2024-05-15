@@ -66,7 +66,7 @@ pub extern "C" fn free_memory(address: MemoryAddress) {
 
 /// # PPL
 /// ```no_run
-/// fn<T> read <ty: Type<T>> at <address: MemoryAddress> -> Reference<T>
+/// fn<T> <ty: Type<T>> at <address: MemoryAddress> -> Reference<T>
 /// ```
 #[no_mangle]
 pub extern "C" fn read_memory(ty: Type, address: MemoryAddress) -> *mut c_void {

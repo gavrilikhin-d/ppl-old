@@ -29,21 +29,22 @@ fn<T> <array: &mut Array<T>> [ <i: Integer> ] -> &mut T:
 	return T at address
 
 fn<T> push <x: T> to <array: &mut Array<T>>:
+	let bytes = size of T
 	if array.size == array.capacity:
 		let new_capacity = array.capacity * 2
 		let new_data = allocate new_capacity T
 		let mut i = 0
 		while i < array.size:
-			let value = T at (new_data + i)
+			let value = T at (new_data + i * bytes)
 			value = array[i]
-			i = i + 1
+			i += 1
 		free array.data
 		array.data = new_data
 		array.capacity = new_capacity
 
-	let value = T at (array.data + array.size)
+	let value = T at (array.data + array.size * bytes)
 	value = x
-	array.size = array.size + 1
+	array.size += 1
 
 fn<T> <array: &Array<T>> is empty => array.size == 0
 fn<T> <array: &Array<T>> is not empty => array.size > 0
