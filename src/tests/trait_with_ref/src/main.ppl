@@ -3,7 +3,7 @@ trait Foo:
 
 fn foo <:&Integer> => println "foo integer"
 
-fn bar <x: &Foo> => foo x
+fn<T: Foo> bar <x: &T> => foo x
 
 let x = 0
 bar x

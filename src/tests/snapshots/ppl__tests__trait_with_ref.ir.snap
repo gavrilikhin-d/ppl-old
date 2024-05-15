@@ -37,7 +37,7 @@ declare %Integer @integer_from_i64(i64)
 define void @main.execute() !dbg !9 {
   call void @initialize(), !dbg !10
   call void @initialize.1(), !dbg !11
-  call void @"bar <:Reference<Foo>>"(ptr @x), !dbg !12
+  call void @"bar <:Reference<Integer>>"(ptr @x), !dbg !12
   call void @destroy_integer(ptr @x), !dbg !13
   br label %return, !dbg !13
 
@@ -67,11 +67,11 @@ return:                                           ; preds = %0
   ret void
 }
 
-define void @"bar <:Reference<Foo>>"(ptr %0) !dbg !19 {
+define private void @"bar <:Reference<Integer>>"(ptr %0) !dbg !19 {
   %x = alloca ptr, align 8
   store ptr %0, ptr %x, align 8
   call void @"foo <:Reference<Integer>>"(ptr %x), !dbg !20
-  br label %return, !dbg !21
+  br label %return, !dbg !20
 
 return:                                           ; preds = %1
   ret void
@@ -101,6 +101,5 @@ declare void @destroy_integer(ptr)
 !16 = !DILocation(line: 3, column: 22, scope: !14)
 !17 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !18 = !DILocation(line: 7, column: 8, scope: !17)
-!19 = distinct !DISubprogram(name: "bar <:Reference<Foo>>", linkageName: "bar <:Reference<Foo>>", scope: !9, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!20 = !DILocation(line: 5, column: 24, scope: !19)
-!21 = !DILocation(line: 5, column: 20, scope: !19)
+!19 = distinct !DISubprogram(name: "bar <:Reference<Integer>>", linkageName: "bar <:Reference<Integer>>", scope: !9, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!20 = !DILocation(line: 5, column: 30, scope: !19)
