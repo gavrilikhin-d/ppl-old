@@ -1,4 +1,4 @@
-use self::commands::{Build, New};
+use self::commands::{Build, New, Run};
 use clap::{Parser, Subcommand};
 use derive_more::From;
 
@@ -17,6 +17,8 @@ pub enum Command {
     New(New),
     /// Build package
     Build(Build),
+    /// Build and run package
+    Run(Run),
 }
 
 pub mod commands {
@@ -44,6 +46,19 @@ pub mod commands {
         #[arg(long = "emit", value_name = "output type")]
         pub output_type: Option<OutputType>,
     }
+
+    impl Default for Build {
+        fn default() -> Self {
+            Self {
+                output_dir: PathBuf::from("target"),
+                output_type: None,
+            }
+        }
+    }
+
+    /// Command to build and run a package
+    #[derive(Parser, Debug)]
+    pub struct Run {}
 
     pub mod compile {
         use std::str::FromStr;
