@@ -1,0 +1,28 @@
+type Matrix:
+	n: Integer
+	m: Integer
+	data: MemoryAddress
+
+type RowSlice:
+	m: Integer
+	data: MemoryAddress
+
+fn <n: Integer> x <m: Integer> Matrix -> Matrix:
+	let size = n * m
+	let bytes = size of Rational
+	let data = allocate size bytes
+	let mut i = 0
+	while i < size:
+		let value = Rational at (data + i)
+		data[i] = 0.0
+		i += 1
+
+	return Matrix { n, m, data }
+
+fn <matrix: Matrix> [ <i: Integer> ] -> RowSlice:
+	let m = matrix.m
+	let bytes = size of Rational
+	let data = matrix.data + i * m * bytes
+	return RowSlice { m, data }
+
+let a = 3 x 3 Matrix
