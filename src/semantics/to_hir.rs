@@ -553,6 +553,7 @@ impl ToHIR for ast::Parameter {
     /// Lower [`ast::Parameter`] to [`hir::Parameter`] within lowering context
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         let ty = self.ty.to_hir(context)?;
+        // FIXME: doesn't work with references to traits
         let ty = if matches!(ty.referenced_type, Type::Trait(_)) {
             let span = ty.span.clone();
             let referenced_type: Type = context.new_generic_for_trait(ty).into();
