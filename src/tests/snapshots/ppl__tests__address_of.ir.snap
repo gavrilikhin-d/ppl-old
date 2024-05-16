@@ -97,16 +97,15 @@ declare %MemoryAddress @address_of(ptr)
 
 define private void @initialize.4() !dbg !26 {
   %1 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !27
-  %2 = load %MemoryAddress, ptr @address, align 8, !dbg !28
-  %3 = call ptr @read_memory(%"Type<Integer>" %1, %MemoryAddress %2), !dbg !28
-  store ptr %3, ptr @x_mut_ref, align 8, !dbg !28
+  %2 = call ptr @read_memory(%"Type<Integer>" %1, ptr @address), !dbg !28
+  store ptr %2, ptr @x_mut_ref, align 8, !dbg !28
   br label %return, !dbg !28
 
 return:                                           ; preds = %0
   ret void
 }
 
-declare ptr @read_memory(%"Type<Integer>", %MemoryAddress)
+declare ptr @read_memory(%"Type<Integer>", ptr)
 
 define private void @"println <:Integer>"(%Integer %0) !dbg !29 {
   %x = alloca %Integer, align 8

@@ -3,7 +3,7 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let address: MemoryAddress = `allocate <:Integer> <:Type<Integer>>`(1, (Type<Integer>:Type<Integer>))
-let x: ReferenceMut<Integer> = `<:Type<Integer>> at <:MemoryAddress>`((Type<Integer>:Type<Integer>), (address:MemoryAddress))
+let x: ReferenceMut<Integer> = `<:Type<Integer>> at <:Reference<MemoryAddress>>`((Type<Integer>:Type<Integer>), (&address:Reference<MemoryAddress>))
 (x:ReferenceMut<Integer>) = 0
 `println <:Integer>`(`clone <:Reference<Integer>>`((*x:Integer)))
 (x:ReferenceMut<Integer>) = 1
@@ -24,7 +24,7 @@ fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:
 
 
 @mangle_as("read_memory")
-fn<Integer> <ty: Type<Integer>> at <address: MemoryAddress> -> ReferenceMut<Integer>
+fn<Integer> <ty: Type<Integer>> at <address: Reference<MemoryAddress>> -> ReferenceMut<Integer>
 
 @mangle_as("integer_as_string")
 fn String from <$arg0: Integer> -> String

@@ -2,6 +2,8 @@
 source: src/tests/mod.rs
 expression: run_log
 ---
+[]
 Empty
+[1]
 Not empty
 1

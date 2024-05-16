@@ -4,7 +4,7 @@ expression: hir
 ---
 let x: Integer = 0
 let address: MemoryAddress = `address of <:Reference<Integer>>`((&x:Reference<Integer>))
-let x_mut_ref: ReferenceMut<Integer> = `<:Type<Integer>> at <:MemoryAddress>`((Type<Integer>:Type<Integer>), (address:MemoryAddress))
+let x_mut_ref: ReferenceMut<Integer> = `<:Type<Integer>> at <:Reference<MemoryAddress>>`((Type<Integer>:Type<Integer>), (&address:Reference<MemoryAddress>))
 `println <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)))
 (x_mut_ref:ReferenceMut<Integer>) = 1
 `println <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)))
@@ -17,7 +17,7 @@ let x_mut_ref: ReferenceMut<Integer> = `<:Type<Integer>> at <:MemoryAddress>`((T
 fn<Integer> address of <ref: Reference<Integer>> -> MemoryAddress
 
 @mangle_as("read_memory")
-fn<Integer> <ty: Type<Integer>> at <address: MemoryAddress> -> ReferenceMut<Integer>
+fn<Integer> <ty: Type<Integer>> at <address: Reference<MemoryAddress>> -> ReferenceMut<Integer>
 
 @mangle_as("integer_as_string")
 fn String from <$arg0: Integer> -> String

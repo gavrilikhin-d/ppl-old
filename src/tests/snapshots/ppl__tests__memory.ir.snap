@@ -138,16 +138,15 @@ declare void @destroy_integer(ptr)
 
 define private void @initialize.3() !dbg !30 {
   %1 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !31
-  %2 = load %MemoryAddress, ptr @address, align 8, !dbg !32
-  %3 = call ptr @read_memory(%"Type<Integer>" %1, %MemoryAddress %2), !dbg !32
-  store ptr %3, ptr @x, align 8, !dbg !32
+  %2 = call ptr @read_memory(%"Type<Integer>" %1, ptr @address), !dbg !32
+  store ptr %2, ptr @x, align 8, !dbg !32
   br label %return, !dbg !32
 
 return:                                           ; preds = %0
   ret void
 }
 
-declare ptr @read_memory(%"Type<Integer>", %MemoryAddress)
+declare ptr @read_memory(%"Type<Integer>", ptr)
 
 define private void @"println <:Integer>"(%Integer %0) !dbg !33 {
   %x = alloca %Integer, align 8

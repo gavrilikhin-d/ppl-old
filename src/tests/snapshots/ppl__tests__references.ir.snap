@@ -75,8 +75,7 @@ define void @main.execute() !dbg !12 {
   %9 = load ptr, ptr @value, align 8, !dbg !23
   %10 = load i32, ptr %9, align 4, !dbg !23
   call void @"println <:I32>"(i32 %10), !dbg !23
-  %11 = load %MemoryAddress, ptr @address, align 8, !dbg !24
-  call void @free_memory(%MemoryAddress %11), !dbg !24
+  call void @free_memory(ptr @address), !dbg !24
   call void @destroy_integer(ptr @n), !dbg !25
   br label %return, !dbg !25
 
@@ -127,16 +126,15 @@ declare %MemoryAddress @allocate_n_bytes(%Integer)
 
 define private void @initialize.4() !dbg !32 {
   %1 = load %"Type<I32>", ptr @"Type<I32>", align 8, !dbg !33
-  %2 = load %MemoryAddress, ptr @address, align 8, !dbg !34
-  %3 = call ptr @read_memory(%"Type<I32>" %1, %MemoryAddress %2), !dbg !34
-  store ptr %3, ptr @value, align 8, !dbg !34
+  %2 = call ptr @read_memory(%"Type<I32>" %1, ptr @address), !dbg !34
+  store ptr %2, ptr @value, align 8, !dbg !34
   br label %return, !dbg !34
 
 return:                                           ; preds = %0
   ret void
 }
 
-declare ptr @read_memory(%"Type<I32>", %MemoryAddress)
+declare ptr @read_memory(%"Type<I32>", ptr)
 
 declare i32 @integer_as_i32(%Integer)
 
@@ -156,7 +154,7 @@ declare void @"println <:String>"(%String)
 
 declare %String @i32_as_string(i32)
 
-declare void @free_memory(%MemoryAddress)
+declare void @free_memory(ptr)
 
 declare void @destroy_integer(ptr)
 
