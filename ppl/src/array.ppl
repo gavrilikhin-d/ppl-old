@@ -35,15 +35,14 @@ fn<T> push <x: T> to <array: &mut Array<T>>:
 		let new_data = allocate new_capacity T
 		let mut i = 0
 		while i < array.size:
-			let value = T at (new_data + i * bytes)
-			copy array[i] to value
+			let offset = i * bytes
+			copy bytes bytes from (array.data + offset) to (new_data + offset)
 			i += 1
 		free array.data
 		array.data = new_data
 		array.capacity = new_capacity
 
-	let value = T at (array.data + array.size * bytes)
-	copy x to value
+	copy bytes bytes from (address of x) to (array.data + array.size * bytes)
 	array.size += 1
 
 fn<T> <array: &Array<T>> is empty => array.size == 0

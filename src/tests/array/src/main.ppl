@@ -9,7 +9,7 @@ if arr is not empty:
 println arr[0]
 
 let mut i = 2
-while i < 10:
+while i <= 10:
 	push i to arr
 	i += 1
 	println arr
