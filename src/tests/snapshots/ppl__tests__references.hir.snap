@@ -4,12 +4,12 @@ expression: hir
 ---
 let n: Integer = `size of <:Type<I32>>`((Type<I32>:Type<I32>))
 let address: MemoryAddress = `allocate <:Integer> bytes`(`clone <:Reference<Integer>>`((n:Integer)))
-let value: ReferenceMut<I32> = `<:Type<I32>> at <:MemoryAddress>`((Type<I32>:Type<I32>), (address:MemoryAddress))
+let value: ReferenceMut<I32> = `<:Type<I32>> at <:Reference<MemoryAddress>>`((Type<I32>:Type<I32>), (&address:Reference<MemoryAddress>))
 (value:ReferenceMut<I32>) = `<:Integer> as I32`(0)
 `println <:I32>`((*value:I32))
 (value:ReferenceMut<I32>) = `<:Integer> as I32`(1)
 `println <:I32>`((*value:I32))
-`free <:MemoryAddress>`((address:MemoryAddress))
+`free <:Reference<MemoryAddress>>`((&address:Reference<MemoryAddress>))
 `destroy <:ReferenceMut<Integer>>`((n:Integer))
 
 ==MONOMORPHIZED==
@@ -21,7 +21,7 @@ fn<I32> size of <ty: Type<I32>> -> Integer:
 
 
 @mangle_as("read_memory")
-fn<I32> <ty: Type<I32>> at <address: MemoryAddress> -> ReferenceMut<I32>
+fn<I32> <ty: Type<I32>> at <address: Reference<MemoryAddress>> -> ReferenceMut<I32>
 
 @mangle_as("i32_as_string")
 fn String from <$arg0: I32> -> String

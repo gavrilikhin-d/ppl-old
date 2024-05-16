@@ -1,4 +1,4 @@
-use libc::{c_void, malloc};
+use libc::{c_void, malloc, memcpy, size_t};
 
 use crate::{integer_from_i64, integer_from_u64, Integer, String, Type};
 
@@ -47,10 +47,10 @@ pub extern "C" fn allocate_n_bytes(n: Integer) -> MemoryAddress {
 
 /// # PPL
 /// ```no_run
-/// fn free <address: MemoryAddress>
+/// fn free <address: &MemoryAddress>
 /// ```
 #[no_mangle]
-pub extern "C" fn free_memory(address: MemoryAddress) {
+pub extern "C" fn free_memory(address: &MemoryAddress) {
     let address = unsafe { address.value.data.as_ref().unwrap() };
 
     let address = address.to_u64();
@@ -66,12 +66,14 @@ pub extern "C" fn free_memory(address: MemoryAddress) {
 
 /// # PPL
 /// ```no_run
-/// fn<T> <ty: Type<T>> at <address: MemoryAddress> -> Reference<T>
+/// fn<T> <ty: Type<T>> at <address: &MemoryAddress> -> Reference<T>
 /// ```
 #[no_mangle]
-pub extern "C" fn read_memory(ty: Type, address: MemoryAddress) -> *mut c_void {
-    let _ = ty;
+pub extern "C" fn read_memory(_ty: Type, address: &MemoryAddress) -> *mut c_void {
+    read_memory_impl(address)
+}
 
+fn read_memory_impl(address: &MemoryAddress) -> *mut c_void {
     let address = unsafe { address.value.data.as_ref().unwrap() };
 
     let address = address.to_u64().unwrap();
@@ -92,4 +94,18 @@ pub extern "C" fn address_of(ptr: *const c_void) -> MemoryAddress {
     MemoryAddress {
         value: integer_from_u64(address as u64),
     }
+}
+
+/// # PPL
+/// ```no_run
+/// /// Copy `n` bytes from `src` to `dst`
+/// @mangle_as("copy_bytes")
+/// fn copy <n: &Integer> bytes from <src: &MemoryAddress> to <dst: &MemoryAddress>
+/// ```
+#[no_mangle]
+pub extern "C" fn copy_bytes(n: &Integer, src: &MemoryAddress, dst: &MemoryAddress) {
+    let dest = read_memory_impl(dst);
+    let src = read_memory_impl(src);
+    let n = unsafe { n.data.as_ref().unwrap() }.to_usize().unwrap() as size_t;
+    unsafe { memcpy(dest, src, n) };
 }

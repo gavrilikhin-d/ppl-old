@@ -28,13 +28,24 @@ fn<T> allocate <n: Integer> <:Type<T>> => allocate n * (size of T) bytes
 
 /// Free previously allocated memory
 @mangle_as("free_memory")
-fn free <address: MemoryAddress>
+fn free <address: &MemoryAddress>
 
 // TODO: use `@` instead of `at`
 /// Value of specific type at memory address
 @mangle_as("read_memory")
-fn<T> <ty: Type<T>> at <address: MemoryAddress> -> ReferenceMut<T>
+fn<T> <ty: Type<T>> at <address: &MemoryAddress> -> ReferenceMut<T>
 
 /// Get memory address of a reference
 @mangle_as("address_of")
 fn<T> address of <ref: &T> -> MemoryAddress
+
+/// Copy `n` bytes from `src` to `dst`
+@mangle_as("copy_bytes")
+fn copy <n: &Integer> bytes from <src: &MemoryAddress> to <dst: &MemoryAddress>
+
+/// Copy `T` from `src` to `dst`
+fn<T> copy <:Type<T>> from <src: &MemoryAddress> to <dst: &MemoryAddress>:
+	copy (size of T) bytes from src to dst
+
+fn<T> copy <src: &T> to <dst: &mut T>:
+	copy T from (address of src) to (address of dst)
