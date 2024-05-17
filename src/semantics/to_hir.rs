@@ -847,36 +847,40 @@ impl ToHIR for ast::Module {
     /// 1. Use statements
     /// 2. Declare Types & Traits
     /// 3. Define Types
-    /// 4. Declare Functions & Global variables
-    /// 5. Define Traits
-    /// 6. Define Functions & Global
-    /// 7. Rest of statements
+    /// 4. Declare Functions
+    /// 5. Declare Global variables, Define Traits & Functions & Global & Rest of statements
     fn to_hir(&self, context: &mut impl Context) -> Result<Self::HIR, Self::Error> {
         use ast::Declaration as D;
         use ast::Statement as S;
 
         let mut errors = Vec::new();
 
+        macro_rules! to_ir {
+            () => {
+                |stmt: &S| {
+                    let res = stmt.to_hir(context);
+                    match res {
+                        Ok(mut stmt) => {
+                            stmt.monomorphize(context);
+                            context.module_mut().statements.push(stmt)
+                        }
+                        Err(err) => errors.push(err),
+                    }
+                }
+            };
+        }
+
         // Import things first
         self.statements
             .iter()
             .filter(|s| matches!(s, ast::Statement::Use(_)))
-            .for_each(|stmt: &S| {
-                let res = stmt.to_hir(context);
-                match res {
-                    Ok(mut stmt) => {
-                        stmt.monomorphize(context);
-                        context.module_mut().statements.push(stmt)
-                    }
-                    Err(err) => errors.push(err),
-                }
-            });
+            .for_each(to_ir!());
 
         let mut decls = HashMap::new();
 
         macro_rules! declare {
             () => {
-                |(i, stmt)| {
+                |(i, stmt): (usize, &S)| {
                     let decl: &D = match stmt {
                         S::Declaration(d) => d,
                         _ => return,
@@ -897,7 +901,7 @@ impl ToHIR for ast::Module {
 
         macro_rules! define {
             () => {
-                |(i, stmt)| {
+                |(i, stmt): (usize, &S)| {
                     let decl: &D = match stmt {
                         S::Declaration(d) => d,
                         _ => return,
@@ -933,41 +937,21 @@ impl ToHIR for ast::Module {
             .filter(|(_, s)| matches!(s, S::Declaration(D::Type(_))))
             .for_each(define!());
 
-        // Declare Functions & Global variables
+        // Declare Functions
         self.statements
             .iter()
             .enumerate()
-            .filter(|(_, s)| matches!(s, S::Declaration(D::Function(_) | D::Variable(_))))
+            .filter(|(_, s)| matches!(s, S::Declaration(D::Function(_))))
             .for_each(declare!());
-
-        // Define Traits
-        self.statements
-            .iter()
-            .enumerate()
-            .filter(|(_, s)| matches!(s, S::Declaration(D::Trait(_))))
-            .for_each(define!());
-
-        // Define Functions & Global variables
-        self.statements
-            .iter()
-            .enumerate()
-            .filter(|(_, s)| matches!(s, S::Declaration(D::Function(_) | D::Variable(_))))
-            .for_each(define!());
 
         // Add rest of statements
         self.statements
             .iter()
             .enumerate()
-            .filter(|(_, s)| !matches!(s, S::Use(_) | S::Declaration(_)))
-            .for_each(|(_, stmt)| {
-                let res = stmt.to_hir(context);
-                match res {
-                    Ok(mut stmt) => {
-                        stmt.monomorphize(context);
-                        context.module_mut().statements.push(stmt)
-                    }
-                    Err(err) => errors.push(err),
-                }
+            .filter(|(_, s)| !matches!(s, S::Use(_) | S::Declaration(D::Type(_))))
+            .for_each(|(i, stmt)| match stmt {
+                S::Declaration(D::Trait(_) | D::Function(_)) => define!()((i, stmt)),
+                _ => to_ir!()(stmt),
             });
 
         if !errors.is_empty() {

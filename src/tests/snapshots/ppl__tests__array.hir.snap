@@ -3,7 +3,6 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let mut arr: Array<Integer> = `<:Type<Integer>> [ ]`((Type<Integer>:Type<Integer>))
-let mut i: Integer = 2
 `println <:Array<Integer>>`((arr:Array<Integer>))
 if `<:Reference<Array<Integer>>> is empty`((&arr:ReferenceMut<Array<Integer>>)):
 	`println <:String>`("Empty")
@@ -14,6 +13,7 @@ if `<:Reference<Array<Integer>>> is not empty`((&arr:ReferenceMut<Array<Integer>
 	`println <:String>`("Not empty")
 
 `println <:Integer>`(`clone <:Reference<Integer>>`((*`<:Reference<Array<Integer>>> [ <:Integer> ]`((&arr:ReferenceMut<Array<Integer>>), 0):Integer)))
+let mut i: Integer = 2
 while `<:Integer> <= <:Integer>`(`clone <:Reference<Integer>>`((i:Integer)), 10):
 	`push <:Integer> to <:ReferenceMut<Array<Integer>>>`(`clone <:Reference<Integer>>`((i:Integer)), (&arr:ReferenceMut<Array<Integer>>))
 	`<:ReferenceMut<Integer>> += <:Integer>`((&i:ReferenceMut<Integer>), 1)

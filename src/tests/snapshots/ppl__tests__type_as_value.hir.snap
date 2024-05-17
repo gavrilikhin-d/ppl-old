@@ -2,12 +2,12 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let x: Type<Integer> = (Type<Integer>:Type<Integer>)
-let y: Integer = `clone <:Reference<Integer>>`((Type<Integer>:Type<Integer>).size)
 `println <:Bool>`(`<:Integer> == <:Integer>`(`size of <:Type<None>>`((Type<None>:Type<None>)), 0))
 `println <:Bool>`(`<:Integer> == <:Integer>`(`size of <:Type<Bool>>`((Type<Bool>:Type<Bool>)), 1))
 `println <:String>`(`String from <:Type<None>>`((Type<None>:Type<None>)))
 `println <:String>`(`String from <:Type<Type<Integer>>>`((Type<Type<Integer>>:Type<Type<Integer>>)))
+let x: Type<Integer> = (Type<Integer>:Type<Integer>)
+let y: Integer = `clone <:Reference<Integer>>`((Type<Integer>:Type<Integer>).size)
 `println <:Bool>`(`<:Integer> == <:Integer>`(`clone <:Reference<Integer>>`((y:Integer)), `size of <:Type<Integer>>`((Type<Integer>:Type<Integer>))))
 `println <:Type<Integer>>`((Type<Integer>:Type<Integer>))
 `destroy <:ReferenceMut<Integer>>`((y:Integer))

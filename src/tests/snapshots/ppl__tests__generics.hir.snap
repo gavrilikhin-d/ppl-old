@@ -12,12 +12,12 @@ fn<T> x of <p: Point<T>> -> T:
 	return ($tmp@53:T)
 
 let x: Integer = `x of <:Point<Integer>>`(Point<Integer> { x: 0, y: 0 })
+`println <:Bool>`(`<:Integer> == <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)), 0))
 
 fn<T> id <x: T> -> T:
 	let $tmp@127: T = (x:T)
 	return ($tmp@127:T)
 
-`println <:Bool>`(`<:Integer> == <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)), 0))
 `println <:Bool>`(`<:Integer> == <:Integer>`(`id <:Integer>`(1), 1))
 `println <:String>`(`id <:String>`("hello"))
 `id <:Point<Integer>>`(Point<Integer> { x: 0, y: 0 })
