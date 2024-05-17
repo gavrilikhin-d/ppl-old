@@ -1,28 +1,68 @@
 type Matrix:
-	n: Integer
-	m: Integer
-	data: MemoryAddress
+	rows: Integer
+	columns: Integer
+	data: Array<Rational>
 
 type RowSlice:
-	m: Integer
-	data: MemoryAddress
+	row: Integer
+	matrix: &Matrix
 
-fn <n: Integer> x <m: Integer> Matrix -> Matrix:
-	let size = n * m
-	let bytes = size of Rational
-	let data = allocate size bytes
+fn String from <slice: RowSlice> -> String:
+	let mut str = "["
+	let n = slice.matrix.columns
+	let mut i = n * slice.row
+	let end = i + n
+	let data = slice.matrix.data
+	if i < data.size:
+		str += (String from data[i])
+		i += 1
+		while (i < data.size) and (i < end):
+			str += ", "
+			str += (String from data[i])
+			i += 1
+	str += "]"
+	return str
+
+type MutRowSlice:
+	row: Integer
+	matrix: &mut Matrix
+
+fn RowSlice from <slice: MutRowSlice> -> RowSlice:
+	return RowSlice { row: slice.row, matrix: slice.matrix }
+
+fn String from <slice: MutRowSlice> -> String:
+	return String from (RowSlice from slice)
+
+fn <rows: Integer> x <columns: Integer> Matrix -> Matrix:
+	let size = rows * columns
+	let mut data = Rational[]
 	let mut i = 0
 	while i < size:
-		let value = Rational at (data + i)
-		data[i] = 0.0
+		push 0.0 to data 
 		i += 1
 
-	return Matrix { n, m, data }
+	return Matrix { rows, columns, data }
 
-fn <matrix: Matrix> [ <i: Integer> ] -> RowSlice:
-	let m = matrix.m
-	let bytes = size of Rational
-	let data = matrix.data + i * m * bytes
-	return RowSlice { m, data }
+fn <matrix: &Matrix> [ <row: Integer> ] -> RowSlice:
+	return RowSlice { matrix, row }
 
-let a = 3 x 3 Matrix
+fn <matrix: &mut Matrix> [ <row: Integer> ] -> MutRowSlice:
+	return MutRowSlice { matrix, row }
+
+fn String from <m: Matrix> -> String:
+	let mut str = "["
+	let mut i = 0
+	if i < m.rows:
+		str += (String from m[i])
+		i += 1
+		while i < m.rows:
+			str += "\n "
+			str += (String from m[i])
+			i += 1
+	str += "]"
+	return str
+
+
+let mut a = 3 x 3 Matrix
+println a
+println (a[1])
