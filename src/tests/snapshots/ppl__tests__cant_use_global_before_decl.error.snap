@@ -1,0 +1,14 @@
+---
+source: src/tests/mod.rs
+expression: err
+---
+Error: semantics::undefined_variable
+
+  × variable `global` is not defined
+   ╭─[main.ppl:2:9]
+ 1 │ fn before decl -> Integer:
+ 2 │     return global
+   ·            ───┬──
+   ·               ╰── reference to undefined variable
+ 3 │ 
+   ╰────

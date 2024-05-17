@@ -3,10 +3,10 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let mut value: Rational = 0.0
-let mut str: String = "Hello"
 `println <:Rational>`(`clone <:Reference<Rational>>`((value:Rational)))
 `<:ReferenceMut<Rational>> += <:Rational>`((&value:ReferenceMut<Rational>), 1.0)
 `println <:Rational>`(`clone <:Reference<Rational>>`((value:Rational)))
+let mut str: String = "Hello"
 `<:ReferenceMut<String>> += <:String>`((&str:ReferenceMut<String>), " World!")
 `println <:String>`(`clone <:Reference<String>>`((str:String)))
 `destroy <:ReferenceMut<Rational>>`((value:Rational))

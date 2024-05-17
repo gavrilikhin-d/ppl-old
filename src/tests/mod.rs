@@ -4,6 +4,7 @@ e2es! {
     address_of,
     array,
     candidate_not_viable,
+    cant_use_global_before_decl,
     clone,
     common_functions,
     constraints,

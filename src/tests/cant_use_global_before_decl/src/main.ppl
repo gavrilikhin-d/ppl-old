@@ -1,0 +1,10 @@
+fn before decl -> Integer:
+	return global
+
+let global = 0
+
+fn after decl -> Integer:
+	return global
+
+before decl
+after decl
