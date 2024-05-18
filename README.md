@@ -36,6 +36,9 @@
 ### Current task
 * [ ] Printable trait should take references
 ---
+* [ ] Make `2x` to mean `2 * x`. Add correct precedence
+* [ ] Support automatic conversions (Integer -> Rational, etc)
+* [ ] Use Swift/Java approach and pass by reference (and add `inout`)
 * [ ] Prefer candidates with mutable references, when possible
 * [ ] Fix problems with to_ir and loading references (especially globals). This causes issues in iterator
 * [ ] Benchmark for linear algebra
