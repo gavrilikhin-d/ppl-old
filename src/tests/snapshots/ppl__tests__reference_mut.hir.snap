@@ -14,8 +14,8 @@ let y: ReferenceMut<Integer> = `reference to mutable <:ReferenceMut<Integer>>`((
 
 
 fn<Integer> reference to mutable <ref: ReferenceMut<Integer>> -> ReferenceMut<Integer>:
-	let mut $tmp@4600: ReferenceMut<Integer> = (ref:ReferenceMut<Integer>)
-	return ($tmp@4600:ReferenceMut<Integer>)
+	let mut $tmp@4774: ReferenceMut<Integer> = (ref:ReferenceMut<Integer>)
+	return ($tmp@4774:ReferenceMut<Integer>)
 
 
 @mangle_as("integer_as_string")
