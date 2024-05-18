@@ -84,10 +84,7 @@ pub extern "C" fn integer_from_c_string(str: *const c_char) -> Integer {
 #[no_mangle]
 pub extern "C" fn integer_as_string(i: Integer) -> String {
     let str = i.as_ref().to_string();
-    let boxed = Box::new(str);
-    String {
-        data: Box::into_raw(boxed),
-    }
+    str.into()
 }
 
 /// Negates integer
@@ -256,10 +253,7 @@ pub extern "C" fn i32_plus_i32(x: i32, y: i32) -> i32 {
 /// ```
 #[no_mangle]
 pub extern "C" fn i32_as_string(x: i32) -> String {
-    let boxed = Box::new(x.to_string());
-    String {
-        data: Box::into_raw(boxed),
-    }
+    x.to_string().into()
 }
 
 /// # PPL

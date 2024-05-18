@@ -18,10 +18,7 @@ pub extern "C" fn memory_address_as_string(address: MemoryAddress) -> String {
     let value = address.value.as_ref();
 
     let hex = format!("0x{}", value.to_string_radix(16).to_uppercase());
-    let boxed = Box::new(hex);
-    String {
-        data: Box::into_raw(boxed),
-    }
+    hex.into()
 }
 
 /// # PPL
