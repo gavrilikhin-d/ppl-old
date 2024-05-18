@@ -22,8 +22,7 @@ use crate::syntax::Ranged;
 use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
 use super::{
-    error::*, AddDeclaration, Context, Convert, ConvertibleTo, Declare, FindDeclaration,
-    GenericContext, Implicit, ModuleContext,
+    error::*, Context, Convert, ConvertibleTo, Declare, GenericContext, Implicit, ModuleContext,
 };
 use crate::ast::{self, CallNamePart, FnKind, If};
 use crate::semantics::monomorphize::Monomorphize;
