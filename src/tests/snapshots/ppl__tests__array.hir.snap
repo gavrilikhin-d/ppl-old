@@ -12,7 +12,7 @@ if `<:Reference<Array<Integer>>> is empty`((&arr:ReferenceMut<Array<Integer>>)):
 if `<:Reference<Array<Integer>>> is not empty`((&arr:ReferenceMut<Array<Integer>>)):
 	`println <:String>`("Not empty")
 
-`println <:Integer>`(`clone <:Reference<Integer>>`((*`<:Reference<Array<Integer>>> [ <:Integer> ]`((&arr:ReferenceMut<Array<Integer>>), 0):Integer)))
+`println <:Integer>`(`clone <:Reference<Integer>>`((*`<:ReferenceMut<Array<Integer>>> [ <:Integer> ]`((&arr:ReferenceMut<Array<Integer>>), 0):Integer)))
 let mut i: Integer = 2
 while `<:Integer> <= <:Integer>`(`clone <:Reference<Integer>>`((i:Integer)), 10):
 	`push <:Integer> to <:ReferenceMut<Array<Integer>>>`(`clone <:Reference<Integer>>`((i:Integer)), (&arr:ReferenceMut<Array<Integer>>))
@@ -38,9 +38,9 @@ fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:
 fn<Integer> <$arg0: Type<Integer>> [ ] -> Array<Integer>:
 	let capacity: Integer = 8
 	let data: MemoryAddress = `allocate <:Integer> <:Type<Integer>>`(`clone <:Reference<Integer>>`((capacity:Integer)), (Type<Integer>:Type<Integer>))
-	let $tmp@260: Array<Integer> = Array<Integer> { size: 0, capacity: `clone <:Reference<Integer>>`((capacity:Integer)), data: (data:MemoryAddress) }
+	let $tmp@273: Array<Integer> = Array<Integer> { size: 0, capacity: `clone <:Reference<Integer>>`((capacity:Integer)), data: (data:MemoryAddress) }
 	`destroy <:ReferenceMut<Integer>>`((capacity:Integer))
-	return ($tmp@260:Array<Integer>)
+	return ($tmp@273:Array<Integer>)
 
 
 fn<Integer> String from <array: Array<Integer>> -> String:
@@ -56,9 +56,9 @@ fn<Integer> String from <array: Array<Integer>> -> String:
 		`destroy <:ReferenceMut<Integer>>`((i:Integer))
 
 	`<:ReferenceMut<String>> += <:String>`((&str:ReferenceMut<String>), "]")
-	let $tmp@1530: String = `clone <:Reference<String>>`((str:String))
+	let $tmp@1782: String = `clone <:Reference<String>>`((str:String))
 	`destroy <:ReferenceMut<String>>`((str:String))
-	return ($tmp@1530:String)
+	return ($tmp@1782:String)
 
 
 fn println <x: Array<Integer>> -> None:
@@ -68,8 +68,8 @@ fn println <x: Array<Integer>> -> None:
 
 
 fn<Integer> <array: Reference<Array<Integer>>> is empty -> Bool:
-	let $tmp@1206: Bool = `<:Integer> == <:Integer>`(`clone <:Reference<Integer>>`((*array:Array<Integer>).size), 0)
-	return ($tmp@1206:Bool)
+	let $tmp@1458: Bool = `<:Integer> == <:Integer>`(`clone <:Reference<Integer>>`((*array:Array<Integer>).size), 0)
+	return ($tmp@1458:Bool)
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
@@ -99,9 +99,9 @@ fn<Integer> push <x: Integer> to <array: ReferenceMut<Array<Integer>>> -> None:
 		let mut i: Integer = 0
 		while `<:Integer> < <:Integer>`(`clone <:Reference<Integer>>`((i:Integer)), `clone <:Reference<Integer>>`((*array:Array<Integer>).size)):
 			let offset: Integer = `<:Integer> * <:Integer>`(`clone <:Reference<Integer>>`((i:Integer)), `clone <:Reference<Integer>>`((bytes:Integer)))
-			let $tmp@947: MemoryAddress = `<:MemoryAddress> + <:Integer>`((*array:Array<Integer>).data, `clone <:Reference<Integer>>`((offset:Integer)))
-			let $tmp@972: MemoryAddress = `<:MemoryAddress> + <:Integer>`((new_data:MemoryAddress), `clone <:Reference<Integer>>`((offset:Integer)))
-			`copy <:Reference<Integer>> bytes from <:Reference<MemoryAddress>> to <:Reference<MemoryAddress>>`((&bytes:Reference<Integer>), (&$tmp@947:Reference<MemoryAddress>), (&$tmp@972:Reference<MemoryAddress>))
+			let $tmp@1199: MemoryAddress = `<:MemoryAddress> + <:Integer>`((*array:Array<Integer>).data, `clone <:Reference<Integer>>`((offset:Integer)))
+			let $tmp@1224: MemoryAddress = `<:MemoryAddress> + <:Integer>`((new_data:MemoryAddress), `clone <:Reference<Integer>>`((offset:Integer)))
+			`copy <:Reference<Integer>> bytes from <:Reference<MemoryAddress>> to <:Reference<MemoryAddress>>`((&bytes:Reference<Integer>), (&$tmp@1199:Reference<MemoryAddress>), (&$tmp@1224:Reference<MemoryAddress>))
 			`<:ReferenceMut<Integer>> += <:Integer>`((&i:ReferenceMut<Integer>), 1)
 			`destroy <:ReferenceMut<Integer>>`((offset:Integer))
 
@@ -112,9 +112,9 @@ fn<Integer> push <x: Integer> to <array: ReferenceMut<Array<Integer>>> -> None:
 		`destroy <:ReferenceMut<Integer>>`((new_capacity:Integer))
 		`destroy <:ReferenceMut<Integer>>`((i:Integer))
 
-	let $tmp@1100: MemoryAddress = `address of <:Reference<Integer>>`((&x:Reference<Integer>))
-	let $tmp@1118: MemoryAddress = `<:MemoryAddress> + <:Integer>`((*array:Array<Integer>).data, `<:Integer> * <:Integer>`(`clone <:Reference<Integer>>`((*array:Array<Integer>).size), `clone <:Reference<Integer>>`((bytes:Integer))))
-	`copy <:Reference<Integer>> bytes from <:Reference<MemoryAddress>> to <:Reference<MemoryAddress>>`((&bytes:Reference<Integer>), (&$tmp@1100:Reference<MemoryAddress>), (&$tmp@1118:Reference<MemoryAddress>))
+	let $tmp@1352: MemoryAddress = `address of <:Reference<Integer>>`((&x:Reference<Integer>))
+	let $tmp@1370: MemoryAddress = `<:MemoryAddress> + <:Integer>`((*array:Array<Integer>).data, `<:Integer> * <:Integer>`(`clone <:Reference<Integer>>`((*array:Array<Integer>).size), `clone <:Reference<Integer>>`((bytes:Integer))))
+	`copy <:Reference<Integer>> bytes from <:Reference<MemoryAddress>> to <:Reference<MemoryAddress>>`((&bytes:Reference<Integer>), (&$tmp@1352:Reference<MemoryAddress>), (&$tmp@1370:Reference<MemoryAddress>))
 	`<:ReferenceMut<Integer>> += <:Integer>`((&(*array:Array<Integer>).size:ReferenceMut<Integer>), 1)
 	`destroy <:ReferenceMut<Integer>>`((bytes:Integer))
 
@@ -132,9 +132,9 @@ fn<Integer> String from <array: Array<Integer>> -> String:
 		`destroy <:ReferenceMut<Integer>>`((i:Integer))
 
 	`<:ReferenceMut<String>> += <:String>`((&str:ReferenceMut<String>), "]")
-	let $tmp@1530: String = `clone <:Reference<String>>`((str:String))
+	let $tmp@1782: String = `clone <:Reference<String>>`((str:String))
 	`destroy <:ReferenceMut<String>>`((str:String))
-	return ($tmp@1530:String)
+	return ($tmp@1782:String)
 
 
 fn println <x: Array<Integer>> -> None:
@@ -144,8 +144,8 @@ fn println <x: Array<Integer>> -> None:
 
 
 fn<Integer> <array: Reference<Array<Integer>>> is not empty -> Bool:
-	let $tmp@1263: Bool = `<:Integer> > <:Integer>`(`clone <:Reference<Integer>>`((*array:Array<Integer>).size), 0)
-	return ($tmp@1263:Bool)
+	let $tmp@1515: Bool = `<:Integer> > <:Integer>`(`clone <:Reference<Integer>>`((*array:Array<Integer>).size), 0)
+	return ($tmp@1515:Bool)
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
@@ -159,11 +159,14 @@ fn<Integer> <ty: Type<Integer>> at <address: Reference<MemoryAddress>> -> Refere
 @mangle_as("read_memory")
 fn<Integer> <ty: Type<Integer>> at <address: Reference<MemoryAddress>> -> ReferenceMut<Integer>
 
-fn<Integer> <array: Reference<Array<Integer>>> [ <i: Integer> ] -> Reference<Integer>:
+fn<Integer> <array: ReferenceMut<Array<Integer>>> [ <i: Integer> ] -> ReferenceMut<Integer>:
+	let $tmp@630: String = "Index out of bounds"
+	`assert <:Bool> <:Reference<String>>`(`<:Bool> and <:Bool>`(`<:Integer> <= <:Integer>`(0, `clone <:Reference<Integer>>`((i:Integer))), `<:Integer> < <:Integer>`(`clone <:Reference<Integer>>`((i:Integer)), `clone <:Reference<Integer>>`((*array:Array<Integer>).size))), (&$tmp@630:Reference<String>))
 	let address: MemoryAddress = `<:MemoryAddress> + <:Integer>`((*array:Array<Integer>).data, `<:Integer> * <:Integer>`(`clone <:Reference<Integer>>`((i:Integer)), `size of <:Type<Integer>>`((Type<Integer>:Type<Integer>))))
-	let mut $tmp@467: ReferenceMut<Integer> = `<:Type<Integer>> at <:Reference<MemoryAddress>>`((Type<Integer>:Type<Integer>), (&address:Reference<MemoryAddress>))
+	let mut $tmp@704: ReferenceMut<Integer> = `<:Type<Integer>> at <:Reference<MemoryAddress>>`((Type<Integer>:Type<Integer>), (&address:Reference<MemoryAddress>))
 	`destroy <:ReferenceMut<Integer>>`((i:Integer))
-	return ($tmp@467:ReferenceMut<Integer>)
+	`destroy <:ReferenceMut<String>>`(($tmp@630:String))
+	return ($tmp@704:ReferenceMut<Integer>)
 
 
 @mangle_as("integer_as_string")
@@ -217,9 +220,9 @@ fn<Integer> push <x: Integer> to <array: ReferenceMut<Array<Integer>>> -> None:
 		let mut i: Integer = 0
 		while `<:Integer> < <:Integer>`(`clone <:Reference<Integer>>`((i:Integer)), `clone <:Reference<Integer>>`((*array:Array<Integer>).size)):
 			let offset: Integer = `<:Integer> * <:Integer>`(`clone <:Reference<Integer>>`((i:Integer)), `clone <:Reference<Integer>>`((bytes:Integer)))
-			let $tmp@947: MemoryAddress = `<:MemoryAddress> + <:Integer>`((*array:Array<Integer>).data, `clone <:Reference<Integer>>`((offset:Integer)))
-			let $tmp@972: MemoryAddress = `<:MemoryAddress> + <:Integer>`((new_data:MemoryAddress), `clone <:Reference<Integer>>`((offset:Integer)))
-			`copy <:Reference<Integer>> bytes from <:Reference<MemoryAddress>> to <:Reference<MemoryAddress>>`((&bytes:Reference<Integer>), (&$tmp@947:Reference<MemoryAddress>), (&$tmp@972:Reference<MemoryAddress>))
+			let $tmp@1199: MemoryAddress = `<:MemoryAddress> + <:Integer>`((*array:Array<Integer>).data, `clone <:Reference<Integer>>`((offset:Integer)))
+			let $tmp@1224: MemoryAddress = `<:MemoryAddress> + <:Integer>`((new_data:MemoryAddress), `clone <:Reference<Integer>>`((offset:Integer)))
+			`copy <:Reference<Integer>> bytes from <:Reference<MemoryAddress>> to <:Reference<MemoryAddress>>`((&bytes:Reference<Integer>), (&$tmp@1199:Reference<MemoryAddress>), (&$tmp@1224:Reference<MemoryAddress>))
 			`<:ReferenceMut<Integer>> += <:Integer>`((&i:ReferenceMut<Integer>), 1)
 			`destroy <:ReferenceMut<Integer>>`((offset:Integer))
 
@@ -230,9 +233,9 @@ fn<Integer> push <x: Integer> to <array: ReferenceMut<Array<Integer>>> -> None:
 		`destroy <:ReferenceMut<Integer>>`((new_capacity:Integer))
 		`destroy <:ReferenceMut<Integer>>`((i:Integer))
 
-	let $tmp@1100: MemoryAddress = `address of <:Reference<Integer>>`((&x:Reference<Integer>))
-	let $tmp@1118: MemoryAddress = `<:MemoryAddress> + <:Integer>`((*array:Array<Integer>).data, `<:Integer> * <:Integer>`(`clone <:Reference<Integer>>`((*array:Array<Integer>).size), `clone <:Reference<Integer>>`((bytes:Integer))))
-	`copy <:Reference<Integer>> bytes from <:Reference<MemoryAddress>> to <:Reference<MemoryAddress>>`((&bytes:Reference<Integer>), (&$tmp@1100:Reference<MemoryAddress>), (&$tmp@1118:Reference<MemoryAddress>))
+	let $tmp@1352: MemoryAddress = `address of <:Reference<Integer>>`((&x:Reference<Integer>))
+	let $tmp@1370: MemoryAddress = `<:MemoryAddress> + <:Integer>`((*array:Array<Integer>).data, `<:Integer> * <:Integer>`(`clone <:Reference<Integer>>`((*array:Array<Integer>).size), `clone <:Reference<Integer>>`((bytes:Integer))))
+	`copy <:Reference<Integer>> bytes from <:Reference<MemoryAddress>> to <:Reference<MemoryAddress>>`((&bytes:Reference<Integer>), (&$tmp@1352:Reference<MemoryAddress>), (&$tmp@1370:Reference<MemoryAddress>))
 	`<:ReferenceMut<Integer>> += <:Integer>`((&(*array:Array<Integer>).size:ReferenceMut<Integer>), 1)
 	`destroy <:ReferenceMut<Integer>>`((bytes:Integer))
 
@@ -257,9 +260,9 @@ fn<Integer> String from <array: Array<Integer>> -> String:
 		`destroy <:ReferenceMut<Integer>>`((i:Integer))
 
 	`<:ReferenceMut<String>> += <:String>`((&str:ReferenceMut<String>), "]")
-	let $tmp@1530: String = `clone <:Reference<String>>`((str:String))
+	let $tmp@1782: String = `clone <:Reference<String>>`((str:String))
 	`destroy <:ReferenceMut<String>>`((str:String))
-	return ($tmp@1530:String)
+	return ($tmp@1782:String)
 
 
 fn println <x: Array<Integer>> -> None:
