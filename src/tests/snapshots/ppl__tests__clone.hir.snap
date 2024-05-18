@@ -2,10 +2,11 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let mut x: Integer = 1
+let x: Integer = 1
 let mut y: Integer = (x:Integer)
 `println <:Integer>`((x:Integer))
 `println <:Integer>`((y:Integer))
+`println <:String>`("")
 (y:Integer) = 2
 `println <:Integer>`((x:Integer))
 `println <:Integer>`((y:Integer))

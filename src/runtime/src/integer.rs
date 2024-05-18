@@ -24,12 +24,6 @@ impl Integer {
     }
 }
 
-impl Drop for Integer {
-    fn drop(&mut self) {
-        let _ = unsafe { Arc::from_raw(self.0) };
-    }
-}
-
 impl<T> From<T> for Integer
 where
     rug::Integer: From<T>,
@@ -213,9 +207,7 @@ pub extern "C" fn integer_mod_integer(x: Integer, y: Integer) -> Integer {
 /// fn destroy <:Integer>
 /// ```
 #[no_mangle]
-pub extern "C" fn destroy_integer(x: Integer) {
-    drop(x)
-}
+pub extern "C" fn destroy_integer(x: Integer) {}
 
 /// # PPL
 /// ```no_run
