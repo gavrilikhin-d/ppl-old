@@ -86,6 +86,11 @@ impl<'llvm> Types<'llvm> {
         ty
     }
 
+    /// Get LLVM struct type for data of ARC type
+    pub fn arc_data(&self, name: &str) -> Option<StructType<'llvm>> {
+        self.llvm.get_struct_type(&format!("{name}Impl"))
+    }
+
     /// LLVM IR for [`Class`](Type::Class) type
     pub fn opaque(&self, name: &str) -> PointerType<'llvm> {
         self.get_or_add_opaque_struct(name);

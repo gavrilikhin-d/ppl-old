@@ -5,10 +5,12 @@ expression: ir
 ; ModuleID = 'main'
 source_filename = "src/main.ppl"
 
-%"Type<String>" = type { %String, %Integer }
+%"Type<String>" = type { ptr }
+%Point = type { ptr }
+%"Type<String>Impl" = type { %String, %Integer }
 %String = type { ptr }
 %Integer = type { ptr }
-%Point = type { %Integer, %Integer }
+%PointImpl = type { %Integer, %Integer }
 
 @"Type<String>" = private global %"Type<String>" zeroinitializer
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
@@ -16,10 +18,11 @@ source_filename = "src/main.ppl"
 
 define private void @initialize() !dbg !3 {
   %1 = alloca %"Type<String>", align 8, !dbg !7
-  %"Type<String>.name" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 0, !dbg !7
+  %"Type<String>.data" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 0, !dbg !7
+  %"Type<String>.name" = getelementptr inbounds %"Type<String>Impl", ptr %"Type<String>.data", i32 0, i32 0, !dbg !7
   %2 = call %String @string_from_c_string_and_length(ptr @0, i64 6), !dbg !8
   store %String %2, ptr %"Type<String>.name", align 8, !dbg !8
-  %"Type<String>.size" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 1, !dbg !8
+  %"Type<String>.size" = getelementptr inbounds %"Type<String>Impl", ptr %"Type<String>.data", i32 0, i32 1, !dbg !8
   %3 = call %Integer @integer_from_i64(i64 8), !dbg !8
   store %Integer %3, ptr %"Type<String>.size", align 8, !dbg !8
   %4 = load %"Type<String>", ptr %1, align 8, !dbg !8
@@ -50,27 +53,29 @@ define %Integer @"x of <:Reference<Point>>"(ptr %0) !dbg !12 {
   %p = alloca ptr, align 8
   store ptr %0, ptr %p, align 8
   %2 = load ptr, ptr %p, align 8, !dbg !13
-  %x = getelementptr inbounds %Point, ptr %2, i32 0, i32 0, !dbg !13
-  %3 = call %Integer @clone_integer(ptr %x), !dbg !13
+  %3 = getelementptr inbounds %Point, ptr %2, i32 0, i32 0, !dbg !13
+  %x = getelementptr inbounds %PointImpl, ptr %3, i32 0, i32 0, !dbg !13
+  %4 = call %Integer @clone_integer(ptr %x), !dbg !13
   %"$tmp@61" = alloca %Integer, align 8, !dbg !13
-  store %Integer %3, ptr %"$tmp@61", align 8, !dbg !13
-  %4 = load %Integer, ptr %"$tmp@61", align 8, !dbg !13
-  store %Integer %4, ptr %return_value, align 8, !dbg !13
+  store %Integer %4, ptr %"$tmp@61", align 8, !dbg !13
+  %5 = load %Integer, ptr %"$tmp@61", align 8, !dbg !13
+  store %Integer %5, ptr %return_value, align 8, !dbg !13
   br label %return, !dbg !13
 
 return:                                           ; preds = %1
-  %5 = load %Integer, ptr %return_value, align 8
-  ret %Integer %5
+  %6 = load %Integer, ptr %return_value, align 8
+  ret %Integer %6
 }
 
 declare %Integer @clone_integer(ptr)
 
 define private void @initialize.1() !dbg !14 {
   %1 = alloca %Point, align 8, !dbg !15
-  %Point.x = getelementptr inbounds %Point, ptr %1, i32 0, i32 0, !dbg !15
+  %Point.data = getelementptr inbounds %Point, ptr %1, i32 0, i32 0, !dbg !15
+  %Point.x = getelementptr inbounds %PointImpl, ptr %Point.data, i32 0, i32 0, !dbg !15
   %2 = call %Integer @integer_from_i64(i64 1), !dbg !16
   store %Integer %2, ptr %Point.x, align 8, !dbg !16
-  %Point.y = getelementptr inbounds %Point, ptr %1, i32 0, i32 1, !dbg !16
+  %Point.y = getelementptr inbounds %PointImpl, ptr %Point.data, i32 0, i32 1, !dbg !16
   %3 = call %Integer @integer_from_i64(i64 2), !dbg !17
   store %Integer %3, ptr %Point.y, align 8, !dbg !17
   %4 = load %Point, ptr %1, align 8, !dbg !17

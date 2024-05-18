@@ -5,10 +5,12 @@ expression: ir
 ; ModuleID = 'main'
 source_filename = "src/main.ppl"
 
-%"Type<String>" = type { %String, %Integer }
+%"Type<String>" = type { ptr }
+%"Type<Integer>" = type { ptr }
+%"Type<String>Impl" = type { %String, %Integer }
 %String = type { ptr }
 %Integer = type { ptr }
-%"Type<Integer>" = type { %String, %Integer }
+%"Type<Integer>Impl" = type { %String, %Integer }
 
 @"Type<String>" = private global %"Type<String>" zeroinitializer
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
@@ -18,10 +20,11 @@ source_filename = "src/main.ppl"
 
 define private void @initialize() !dbg !3 {
   %1 = alloca %"Type<String>", align 8, !dbg !7
-  %"Type<String>.name" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 0, !dbg !7
+  %"Type<String>.data" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 0, !dbg !7
+  %"Type<String>.name" = getelementptr inbounds %"Type<String>Impl", ptr %"Type<String>.data", i32 0, i32 0, !dbg !7
   %2 = call %String @string_from_c_string_and_length(ptr @0, i64 6), !dbg !8
   store %String %2, ptr %"Type<String>.name", align 8, !dbg !8
-  %"Type<String>.size" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 1, !dbg !8
+  %"Type<String>.size" = getelementptr inbounds %"Type<String>Impl", ptr %"Type<String>.data", i32 0, i32 1, !dbg !8
   %3 = call %Integer @integer_from_i64(i64 8), !dbg !8
   store %Integer %3, ptr %"Type<String>.size", align 8, !dbg !8
   %4 = load %"Type<String>", ptr %1, align 8, !dbg !8
@@ -38,10 +41,11 @@ declare %Integer @integer_from_i64(i64)
 
 define private void @initialize.1() !dbg !9 {
   %1 = alloca %"Type<Integer>", align 8, !dbg !10
-  %"Type<Integer>.name" = getelementptr inbounds %"Type<Integer>", ptr %1, i32 0, i32 0, !dbg !10
+  %"Type<Integer>.data" = getelementptr inbounds %"Type<Integer>", ptr %1, i32 0, i32 0, !dbg !10
+  %"Type<Integer>.name" = getelementptr inbounds %"Type<Integer>Impl", ptr %"Type<Integer>.data", i32 0, i32 0, !dbg !10
   %2 = call %String @string_from_c_string_and_length(ptr @1, i64 7), !dbg !11
   store %String %2, ptr %"Type<Integer>.name", align 8, !dbg !11
-  %"Type<Integer>.size" = getelementptr inbounds %"Type<Integer>", ptr %1, i32 0, i32 1, !dbg !11
+  %"Type<Integer>.size" = getelementptr inbounds %"Type<Integer>Impl", ptr %"Type<Integer>.data", i32 0, i32 1, !dbg !11
   %3 = call %Integer @integer_from_i64(i64 8), !dbg !11
   store %Integer %3, ptr %"Type<Integer>.size", align 8, !dbg !11
   %4 = load %"Type<Integer>", ptr %1, align 8, !dbg !11
@@ -108,17 +112,18 @@ define private %String @"String from <:Type<Integer>>"(%"Type<Integer>" %0) !dbg
   %return_value = alloca %String, align 8
   %ty = alloca %"Type<Integer>", align 8
   store %"Type<Integer>" %0, ptr %ty, align 8
-  %name = getelementptr inbounds %"Type<Integer>", ptr %ty, i32 0, i32 0, !dbg !23
-  %2 = call %String @clone_string(ptr %name), !dbg !23
+  %2 = getelementptr inbounds %"Type<Integer>", ptr %ty, i32 0, i32 0, !dbg !23
+  %name = getelementptr inbounds %"Type<Integer>Impl", ptr %2, i32 0, i32 0, !dbg !23
+  %3 = call %String @clone_string(ptr %name), !dbg !23
   %"$tmp@4331" = alloca %String, align 8, !dbg !23
-  store %String %2, ptr %"$tmp@4331", align 8, !dbg !23
-  %3 = load %String, ptr %"$tmp@4331", align 8, !dbg !23
-  store %String %3, ptr %return_value, align 8, !dbg !23
+  store %String %3, ptr %"$tmp@4331", align 8, !dbg !23
+  %4 = load %String, ptr %"$tmp@4331", align 8, !dbg !23
+  store %String %4, ptr %return_value, align 8, !dbg !23
   br label %return, !dbg !23
 
 return:                                           ; preds = %1
-  %4 = load %String, ptr %return_value, align 8
-  ret %String %4
+  %5 = load %String, ptr %return_value, align 8
+  ret %String %5
 }
 
 declare %String @clone_string(ptr)

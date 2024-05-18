@@ -5,10 +5,12 @@ expression: ir
 ; ModuleID = 'main'
 source_filename = "src/main.ppl"
 
-%"Type<String>" = type { %String, %Integer }
-%String = type { ptr }
+%"Type<String>" = type { ptr }
 %Integer = type { ptr }
-%"Point<Integer>" = type { %Integer, %Integer }
+%"Type<String>Impl" = type { %String, %Integer }
+%String = type { ptr }
+%"Point<Integer>" = type { ptr }
+%"Point<Integer>Impl" = type { %Integer, %Integer }
 
 @"Type<String>" = private global %"Type<String>" zeroinitializer
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
@@ -17,10 +19,11 @@ source_filename = "src/main.ppl"
 
 define private void @initialize() !dbg !3 {
   %1 = alloca %"Type<String>", align 8, !dbg !7
-  %"Type<String>.name" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 0, !dbg !7
+  %"Type<String>.data" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 0, !dbg !7
+  %"Type<String>.name" = getelementptr inbounds %"Type<String>Impl", ptr %"Type<String>.data", i32 0, i32 0, !dbg !7
   %2 = call %String @string_from_c_string_and_length(ptr @0, i64 6), !dbg !8
   store %String %2, ptr %"Type<String>.name", align 8, !dbg !8
-  %"Type<String>.size" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 1, !dbg !8
+  %"Type<String>.size" = getelementptr inbounds %"Type<String>Impl", ptr %"Type<String>.data", i32 0, i32 1, !dbg !8
   %3 = call %Integer @integer_from_i64(i64 8), !dbg !8
   store %Integer %3, ptr %"Type<String>.size", align 8, !dbg !8
   %4 = load %"Type<String>", ptr %1, align 8, !dbg !8
@@ -51,10 +54,11 @@ define void @main.execute() !dbg !9 {
   %9 = call %String @"id <:String>"(%String %8), !dbg !16
   call void @"println <:String>"(%String %9), !dbg !16
   %10 = alloca %"Point<Integer>", align 8, !dbg !17
-  %"Point<Integer>.x" = getelementptr inbounds %"Point<Integer>", ptr %10, i32 0, i32 0, !dbg !17
+  %"Point<Integer>.data" = getelementptr inbounds %"Point<Integer>", ptr %10, i32 0, i32 0, !dbg !17
+  %"Point<Integer>.x" = getelementptr inbounds %"Point<Integer>Impl", ptr %"Point<Integer>.data", i32 0, i32 0, !dbg !17
   %11 = call %Integer @integer_from_i64(i64 0), !dbg !18
   store %Integer %11, ptr %"Point<Integer>.x", align 8, !dbg !18
-  %"Point<Integer>.y" = getelementptr inbounds %"Point<Integer>", ptr %10, i32 0, i32 1, !dbg !18
+  %"Point<Integer>.y" = getelementptr inbounds %"Point<Integer>Impl", ptr %"Point<Integer>.data", i32 0, i32 1, !dbg !18
   %12 = call %Integer @integer_from_i64(i64 0), !dbg !19
   store %Integer %12, ptr %"Point<Integer>.y", align 8, !dbg !19
   %13 = load %"Point<Integer>", ptr %10, align 8, !dbg !19
@@ -68,10 +72,11 @@ return:                                           ; preds = %0
 
 define private void @initialize.1() !dbg !21 {
   %1 = alloca %"Point<Integer>", align 8, !dbg !22
-  %"Point<Integer>.x" = getelementptr inbounds %"Point<Integer>", ptr %1, i32 0, i32 0, !dbg !22
+  %"Point<Integer>.data" = getelementptr inbounds %"Point<Integer>", ptr %1, i32 0, i32 0, !dbg !22
+  %"Point<Integer>.x" = getelementptr inbounds %"Point<Integer>Impl", ptr %"Point<Integer>.data", i32 0, i32 0, !dbg !22
   %2 = call %Integer @integer_from_i64(i64 0), !dbg !23
   store %Integer %2, ptr %"Point<Integer>.x", align 8, !dbg !23
-  %"Point<Integer>.y" = getelementptr inbounds %"Point<Integer>", ptr %1, i32 0, i32 1, !dbg !23
+  %"Point<Integer>.y" = getelementptr inbounds %"Point<Integer>Impl", ptr %"Point<Integer>.data", i32 0, i32 1, !dbg !23
   %3 = call %Integer @integer_from_i64(i64 0), !dbg !24
   store %Integer %3, ptr %"Point<Integer>.y", align 8, !dbg !24
   %4 = load %"Point<Integer>", ptr %1, align 8, !dbg !24
@@ -87,14 +92,15 @@ define private %Integer @"x of <:Point<Integer>>"(%"Point<Integer>" %0) !dbg !25
   %return_value = alloca %Integer, align 8
   %p = alloca %"Point<Integer>", align 8
   store %"Point<Integer>" %0, ptr %p, align 8
-  %x = getelementptr inbounds %"Point<Integer>", ptr %p, i32 0, i32 0, !dbg !26
-  %2 = load %Integer, ptr %x, align 8, !dbg !26
-  store %Integer %2, ptr %return_value, align 8, !dbg !26
+  %2 = getelementptr inbounds %"Point<Integer>", ptr %p, i32 0, i32 0, !dbg !26
+  %x = getelementptr inbounds %"Point<Integer>Impl", ptr %2, i32 0, i32 0, !dbg !26
+  %3 = load %Integer, ptr %x, align 8, !dbg !26
+  store %Integer %3, ptr %return_value, align 8, !dbg !26
   br label %return, !dbg !26
 
 return:                                           ; preds = %1
-  %3 = load %Integer, ptr %return_value, align 8
-  ret %Integer %3
+  %4 = load %Integer, ptr %return_value, align 8
+  ret %Integer %4
 }
 
 define private void @"println <:Bool>"(i1 %0) !dbg !27 {

@@ -5,9 +5,10 @@ expression: ir
 ; ModuleID = 'main'
 source_filename = "src/main.ppl"
 
-%"Type<String>" = type { %String, %Integer }
-%String = type { ptr }
+%"Type<String>" = type { ptr }
 %Integer = type { ptr }
+%"Type<String>Impl" = type { %String, %Integer }
+%String = type { ptr }
 
 @"Type<String>" = private global %"Type<String>" zeroinitializer
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
@@ -15,10 +16,11 @@ source_filename = "src/main.ppl"
 
 define private void @initialize() !dbg !3 {
   %1 = alloca %"Type<String>", align 8, !dbg !7
-  %"Type<String>.name" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 0, !dbg !7
+  %"Type<String>.data" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 0, !dbg !7
+  %"Type<String>.name" = getelementptr inbounds %"Type<String>Impl", ptr %"Type<String>.data", i32 0, i32 0, !dbg !7
   %2 = call %String @string_from_c_string_and_length(ptr @0, i64 6), !dbg !8
   store %String %2, ptr %"Type<String>.name", align 8, !dbg !8
-  %"Type<String>.size" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 1, !dbg !8
+  %"Type<String>.size" = getelementptr inbounds %"Type<String>Impl", ptr %"Type<String>.data", i32 0, i32 1, !dbg !8
   %3 = call %Integer @integer_from_i64(i64 8), !dbg !8
   store %Integer %3, ptr %"Type<String>.size", align 8, !dbg !8
   %4 = load %"Type<String>", ptr %1, align 8, !dbg !8
