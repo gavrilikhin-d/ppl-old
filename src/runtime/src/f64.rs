@@ -65,9 +65,7 @@ pub extern "C" fn f64_star_f64(x: F64, y: F64) -> F64 {
 /// ```
 #[no_mangle]
 pub extern "C" fn f64_from_rational(r: Rational) -> F64 {
-    let r = unsafe { r.data.as_ref() }.unwrap();
-    let res = r.to_f64();
-    res
+    r.as_ref().to_f64()
 }
 
 /// Create rational from f64
@@ -80,8 +78,5 @@ pub extern "C" fn f64_from_rational(r: Rational) -> F64 {
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_from_f64(d: F64) -> Rational {
-    let r = Box::new(rug::Rational::from_f64(d).unwrap());
-    Rational {
-        data: Box::into_raw(r),
-    }
+    rug::Rational::from_f64(d).unwrap().into()
 }
