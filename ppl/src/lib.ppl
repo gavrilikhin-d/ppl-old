@@ -1,6 +1,7 @@
 use core.*
 
 use array.*
+use assert.*
 use i32.*
 use f64.*
 use memory.*

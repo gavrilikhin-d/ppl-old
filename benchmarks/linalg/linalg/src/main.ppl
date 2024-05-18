@@ -1,28 +1,112 @@
 type Matrix:
-	n: Integer
-	m: Integer
-	data: MemoryAddress
+	rows: Integer
+	columns: Integer
+	data: Array<Rational>
+
+type MutRowSlice:
+	row: Integer
+	matrix: &mut Matrix
+
+fn RowSlice from <slice: MutRowSlice> -> RowSlice:
+	return RowSlice { row: slice.row, matrix: slice.matrix }
+
+fn String from <slice: MutRowSlice> -> String:
+	return String from (RowSlice from slice)
+
+// FIXME: may be out of bounds
+fn <slice: &MutRowSlice> [ <column: &Integer> ] -> &mut Rational:
+	let i = slice.matrix.columns * slice.row + column
+	return slice.matrix.data[i]
+
 
 type RowSlice:
-	m: Integer
-	data: MemoryAddress
+	row: Integer
+	matrix: &Matrix
 
-fn <n: Integer> x <m: Integer> Matrix -> Matrix:
-	let size = n * m
-	let bytes = size of Rational
-	let data = allocate size bytes
+// FIXME: may be out of bounds
+fn <slice: &RowSlice> [ <column: &Integer> ] -> &Rational:
+	let i = slice.matrix.columns * slice.row + column
+	return slice.matrix.data[i]
+
+fn String from <slice: RowSlice> -> String:
+	let mut str = "["
+	let n = slice.matrix.columns
+	let mut i = n * slice.row
+	let end = i + n
+	let data = slice.matrix.data
+	if i < data.size:
+		str += (String from data[i])
+		i += 1
+		while (i < data.size) and (i < end):
+			str += ", "
+			str += (String from data[i])
+			i += 1
+	str += "]"
+	return str
+
+fn <rows: Integer> x <columns: Integer> Matrix -> Matrix:
+	let size = rows * columns
+	let mut data = Rational[]
 	let mut i = 0
 	while i < size:
-		let value = Rational at (data + i)
-		data[i] = 0.0
+		push 0.0 to data 
 		i += 1
 
-	return Matrix { n, m, data }
+	return Matrix { rows, columns, data }
 
-fn <matrix: Matrix> [ <i: Integer> ] -> RowSlice:
-	let m = matrix.m
-	let bytes = size of Rational
-	let data = matrix.data + i * m * bytes
-	return RowSlice { m, data }
+fn <matrix: &mut Matrix> [ <row: Integer> ] -> MutRowSlice:
+	return MutRowSlice { matrix, row }
 
-let a = 3 x 3 Matrix
+fn <matrix: &Matrix> [ <row: Integer> ] -> RowSlice:
+	return RowSlice { matrix, row }
+
+fn String from <m: Matrix> -> String:
+	let mut str = "["
+	let mut i = 0
+	if i < m.rows:
+		str += (String from m[i])
+		i += 1
+		while i < m.rows:
+			str += "\n "
+			str += (String from m[i])
+			i += 1
+	str += "]"
+	return str
+
+fn Matrix with <diagonal: Array<Rational>> on diagonal -> Matrix:
+	let n = diagonal.size
+	let mut m = n x n Matrix
+	let mut i = 0
+	while i < n:
+		(m[i])[i] = diagonal[i]
+		i += 1
+	return m
+
+fn rank <n: Integer> identity Matrix -> Matrix:
+	return Matrix with (repeat 1.0 n times) on diagonal
+
+fn <a: &Rational> * <m: &Matrix> -> Matrix:
+	let mut n = m.rows x m.columns Matrix
+	let mut i = 0
+	while i < n.data.size:
+		n.data[i] = a * m.data[i]
+		i += 1
+	return n
+
+fn <a: &Matrix> + <b: &Matrix> -> Matrix:
+	assert (a.rows == b.rows and a.columns == b.columns) "Can't add matrices of different dimensions"
+	let mut m = a.rows x a.columns Matrix
+	let mut i = 0
+	while i < m.data.size:
+		(m[0])[0] += a.data[i] + b.data[i]
+		i += 1
+	return m
+
+let e = rank 3 identity Matrix
+println e
+
+println 2.0 * e
+
+let mut a = 3 x 3 Matrix
+(a[0])[0] = 1.0
+println a

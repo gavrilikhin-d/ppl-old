@@ -1,5 +1,6 @@
 use core.*
 
+use assert.*
 use math.*
 use memory.*
 use printable.*
@@ -16,15 +17,24 @@ fn<T> <:Type<T>>[] -> Array<T>:
 	let data = allocate capacity T
 	return Array<T> { size: 0, capacity, data }
 
-// TODO: errors, if out of borders
+/// Create an array by repeating a value n times
+fn<T> repeat <x: T> <n: Integer> times -> Array<T>:
+	let mut array = T[]
+	let mut i = 0
+	while i < n:
+		push x to array
+		i += 1
+	return array
+
 /// Get i-th element of an array
-fn<T> <array: &Array<T>> [ <i: Integer> ] -> &T:
+fn<T> <array: &mut Array<T>> [ <i: Integer> ] -> &mut T:
+	assert (0 <= i and i < array.size) "Index out of bounds"
 	let address = array.data + i * (size of T)
 	return T at address
 
-// TODO: errors, if out of borders
 /// Get i-th element of an array
-fn<T> <array: &mut Array<T>> [ <i: Integer> ] -> &mut T:
+fn<T> <array: &Array<T>> [ <i: Integer> ] -> &T:
+	assert (0 <= i and i < array.size) "Index out of bounds"
 	let address = array.data + i * (size of T)
 	return T at address
 
