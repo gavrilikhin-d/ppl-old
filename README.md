@@ -36,6 +36,7 @@
 ### Current task
 * [ ] Printable trait should take references
 ---
+* [ ] Allow `m[i][j]`
 * [ ] Make `2x` to mean `2 * x`. Add correct precedence
 * [ ] Support automatic conversions (Integer -> Rational, etc)
 * [ ] Use Swift/Java approach and pass by reference (and add `inout`)
