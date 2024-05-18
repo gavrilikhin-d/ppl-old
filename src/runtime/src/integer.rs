@@ -140,10 +140,7 @@ pub extern "C" fn integer_slash_integer(x: Integer, y: Integer) -> Rational {
     let x = x.as_ref();
     let y = y.as_ref();
 
-    let boxed = Box::new(rug::Rational::from(x) / y);
-    Rational {
-        data: Box::into_raw(boxed),
-    }
+    (rug::Rational::from(x) / y).into()
 }
 
 /// Compare 2 integers for equality
