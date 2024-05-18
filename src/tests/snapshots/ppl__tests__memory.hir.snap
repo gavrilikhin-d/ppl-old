@@ -2,8 +2,8 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let address: MemoryAddress = `allocate <:Integer> <:Type<Integer>>`(1, (Type<Integer>:Type<Integer>))
-let x: ReferenceMut<Integer> = `<:Type<Integer>> at <:Reference<MemoryAddress>>`((Type<Integer>:Type<Integer>), (&address:Reference<MemoryAddress>))
+let address: MemoryAddress = `allocate <:Integer> <:Type<Integer>>`(1, Type<Integer> { name: "Integer", size: 8 })
+let x: ReferenceMut<Integer> = `<:Type<Integer>> at <:Reference<MemoryAddress>>`(Type<Integer> { name: "Integer", size: 8 }, (&address:Reference<MemoryAddress>))
 (x:ReferenceMut<Integer>) = 0
 `println <:Integer>`(`clone <:Reference<Integer>>`((*x:Integer)))
 (x:ReferenceMut<Integer>) = 1
@@ -18,7 +18,7 @@ fn<Integer> size of <ty: Type<Integer>> -> Integer:
 
 
 fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:
-	let $tmp@760: MemoryAddress = `allocate <:Integer> bytes`(`<:Integer> * <:Integer>`(`clone <:Reference<Integer>>`((n:Integer)), `size of <:Type<Integer>>`((Type<Integer>:Type<Integer>))))
+	let $tmp@760: MemoryAddress = `allocate <:Integer> bytes`(`<:Integer> * <:Integer>`(`clone <:Reference<Integer>>`((n:Integer)), `size of <:Type<Integer>>`(Type<Integer> { name: "Integer", size: 8 })))
 	`destroy <:ReferenceMut<Integer>>`((n:Integer))
 	return ($tmp@760:MemoryAddress)
 

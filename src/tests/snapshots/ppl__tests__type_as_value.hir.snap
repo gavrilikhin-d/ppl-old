@@ -2,14 +2,14 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-`println <:Bool>`(`<:Integer> == <:Integer>`(`size of <:Type<None>>`((Type<None>:Type<None>)), 0))
-`println <:Bool>`(`<:Integer> == <:Integer>`(`size of <:Type<Bool>>`((Type<Bool>:Type<Bool>)), 1))
-`println <:String>`(`String from <:Type<None>>`((Type<None>:Type<None>)))
-`println <:String>`(`String from <:Type<Type<Integer>>>`((Type<Type<Integer>>:Type<Type<Integer>>)))
-let x: Type<Integer> = (Type<Integer>:Type<Integer>)
-let y: Integer = `clone <:Reference<Integer>>`((Type<Integer>:Type<Integer>).size)
-`println <:Bool>`(`<:Integer> == <:Integer>`(`clone <:Reference<Integer>>`((y:Integer)), `size of <:Type<Integer>>`((Type<Integer>:Type<Integer>))))
-`println <:Type<Integer>>`((Type<Integer>:Type<Integer>))
+`println <:Bool>`(`<:Integer> == <:Integer>`(`size of <:Type<None>>`(Type<None> { name: "None", size: 0 }), 0))
+`println <:Bool>`(`<:Integer> == <:Integer>`(`size of <:Type<Bool>>`(Type<Bool> { name: "Bool", size: 1 }), 1))
+`println <:String>`(`String from <:Type<None>>`(Type<None> { name: "None", size: 0 }))
+`println <:String>`(`String from <:Type<Type<Integer>>>`(Type<Type<Integer>> { name: "Type<Integer>", size: 8 }))
+let x: Type<Integer> = Type<Integer> { name: "Integer", size: 8 }
+let y: Integer = `clone <:Reference<Integer>>`(Type<Integer> { name: "Integer", size: 8 }.size)
+`println <:Bool>`(`<:Integer> == <:Integer>`(`clone <:Reference<Integer>>`((y:Integer)), `size of <:Type<Integer>>`(Type<Integer> { name: "Integer", size: 8 })))
+`println <:Type<Integer>>`(Type<Integer> { name: "Integer", size: 8 })
 `destroy <:ReferenceMut<Integer>>`((y:Integer))
 
 ==MONOMORPHIZED==

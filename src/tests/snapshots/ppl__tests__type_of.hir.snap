@@ -9,7 +9,7 @@ let ty: Type<Integer> = `type of <:Integer>`(1)
 
 
 fn<Integer> type of <$arg0: Integer> -> Type<Integer>:
-	let $tmp@4309: Type<Integer> = (Type<Integer>:Type<Integer>)
+	let $tmp@4309: Type<Integer> = Type<Integer> { name: "Integer", size: 8 }
 	return ($tmp@4309:Type<Integer>)
 
 

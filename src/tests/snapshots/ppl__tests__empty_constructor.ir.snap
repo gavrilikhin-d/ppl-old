@@ -5,88 +5,43 @@ expression: ir
 ; ModuleID = 'main'
 source_filename = "src/main.ppl"
 
-%"Type<String>" = type { ptr }
-%"Type<A>" = type { ptr }
 %A = type { ptr }
-%"Type<String>Impl" = type { %String, %Integer }
+%"Type<A>" = type { ptr }
 %String = type { ptr }
-%Integer = type { ptr }
 %"Type<A>Impl" = type { %String, %Integer }
+%Integer = type { ptr }
 
-@"Type<String>" = private global %"Type<String>" zeroinitializer
-@0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
-@"Type<A>" = private global %"Type<A>" zeroinitializer
-@1 = private unnamed_addr constant [2 x i8] c"A\00", align 1
 @a = global %A zeroinitializer
+@0 = private unnamed_addr constant [2 x i8] c"A\00", align 1
 
-define private void @initialize() !dbg !3 {
-  %1 = alloca %"Type<String>", align 8, !dbg !7
-  %"Type<String>.data" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 0, !dbg !7
-  %"Type<String>.name" = getelementptr inbounds %"Type<String>Impl", ptr %"Type<String>.data", i32 0, i32 0, !dbg !7
-  %2 = call %String @string_from_c_string_and_length(ptr @0, i64 6), !dbg !8
-  store %String %2, ptr %"Type<String>.name", align 8, !dbg !8
-  %"Type<String>.size" = getelementptr inbounds %"Type<String>Impl", ptr %"Type<String>.data", i32 0, i32 1, !dbg !8
-  %3 = call %Integer @integer_from_i64(i64 8), !dbg !8
-  store %Integer %3, ptr %"Type<String>.size", align 8, !dbg !8
-  %4 = load %"Type<String>", ptr %1, align 8, !dbg !8
-  store %"Type<String>" %4, ptr @"Type<String>", align 8, !dbg !8
+define void @main.execute() !dbg !3 {
+  call void @initialize(), !dbg !7
+  %1 = load %A, ptr @a, align 8, !dbg !8
+  %2 = call %"Type<A>" @"type of <:A>"(%A %1), !dbg !8
+  call void @"println <:Type<A>>"(%"Type<A>" %2), !dbg !8
   br label %return, !dbg !8
 
 return:                                           ; preds = %0
   ret void
 }
 
-declare %String @string_from_c_string_and_length(ptr, i64)
-
-declare %Integer @integer_from_i64(i64)
-
-define private void @initialize.1() !dbg !9 {
-  %1 = alloca %"Type<A>", align 8, !dbg !10
-  %"Type<A>.data" = getelementptr inbounds %"Type<A>", ptr %1, i32 0, i32 0, !dbg !10
-  %"Type<A>.name" = getelementptr inbounds %"Type<A>Impl", ptr %"Type<A>.data", i32 0, i32 0, !dbg !10
-  %2 = call %String @string_from_c_string_and_length(ptr @1, i64 1), !dbg !11
-  store %String %2, ptr %"Type<A>.name", align 8, !dbg !11
-  %"Type<A>.size" = getelementptr inbounds %"Type<A>Impl", ptr %"Type<A>.data", i32 0, i32 1, !dbg !11
-  %3 = call %Integer @integer_from_i64(i64 8), !dbg !11
-  store %Integer %3, ptr %"Type<A>.size", align 8, !dbg !11
-  %4 = load %"Type<A>", ptr %1, align 8, !dbg !11
-  store %"Type<A>" %4, ptr @"Type<A>", align 8, !dbg !11
-  br label %return, !dbg !11
+define private void @initialize() !dbg !9 {
+  %1 = alloca %A, align 8, !dbg !10
+  %A.data = getelementptr inbounds %A, ptr %1, i32 0, i32 0, !dbg !10
+  store ptr %1, ptr @a, align 8, !dbg !10
+  br label %return, !dbg !10
 
 return:                                           ; preds = %0
   ret void
 }
 
-define void @main.execute() !dbg !12 {
-  call void @initialize(), !dbg !13
-  call void @initialize.1(), !dbg !13
-  call void @initialize.2(), !dbg !14
-  %1 = load %A, ptr @a, align 8, !dbg !15
-  %2 = call %"Type<A>" @"type of <:A>"(%A %1), !dbg !15
-  call void @"println <:Type<A>>"(%"Type<A>" %2), !dbg !15
-  br label %return, !dbg !15
-
-return:                                           ; preds = %0
-  ret void
-}
-
-define private void @initialize.2() !dbg !16 {
-  %1 = alloca %A, align 8, !dbg !17
-  %A.data = getelementptr inbounds %A, ptr %1, i32 0, i32 0, !dbg !17
-  store ptr %1, ptr @a, align 8, !dbg !17
-  br label %return, !dbg !17
-
-return:                                           ; preds = %0
-  ret void
-}
-
-define private void @"println <:Type<A>>"(%"Type<A>" %0) !dbg !18 {
+define private void @"println <:Type<A>>"(%"Type<A>" %0) !dbg !11 {
   %x = alloca %"Type<A>", align 8
   store %"Type<A>" %0, ptr %x, align 8
-  %2 = load %"Type<A>", ptr %x, align 8, !dbg !19
-  %3 = call %String @"String from <:Type<A>>"(%"Type<A>" %2), !dbg !19
-  call void @"println <:String>"(%String %3), !dbg !19
-  br label %return, !dbg !19
+  %2 = load %"Type<A>", ptr %x, align 8, !dbg !12
+  %3 = call %String @"String from <:Type<A>>"(%"Type<A>" %2), !dbg !12
+  call void @"println <:String>"(%String %3), !dbg !12
+  br label %return, !dbg !12
 
 return:                                           ; preds = %1
   ret void
@@ -94,18 +49,18 @@ return:                                           ; preds = %1
 
 declare void @"println <:String>"(%String)
 
-define private %String @"String from <:Type<A>>"(%"Type<A>" %0) !dbg !20 {
+define private %String @"String from <:Type<A>>"(%"Type<A>" %0) !dbg !13 {
   %return_value = alloca %String, align 8
   %ty = alloca %"Type<A>", align 8
   store %"Type<A>" %0, ptr %ty, align 8
-  %2 = getelementptr inbounds %"Type<A>", ptr %ty, i32 0, i32 0, !dbg !21
-  %name = getelementptr inbounds %"Type<A>Impl", ptr %2, i32 0, i32 0, !dbg !21
-  %3 = call %String @clone_string(ptr %name), !dbg !21
-  %"$tmp@4184" = alloca %String, align 8, !dbg !21
-  store %String %3, ptr %"$tmp@4184", align 8, !dbg !21
-  %4 = load %String, ptr %"$tmp@4184", align 8, !dbg !21
-  store %String %4, ptr %return_value, align 8, !dbg !21
-  br label %return, !dbg !21
+  %2 = getelementptr inbounds %"Type<A>", ptr %ty, i32 0, i32 0, !dbg !14
+  %name = getelementptr inbounds %"Type<A>Impl", ptr %2, i32 0, i32 0, !dbg !14
+  %3 = call %String @clone_string(ptr %name), !dbg !14
+  %"$tmp@4184" = alloca %String, align 8, !dbg !14
+  store %String %3, ptr %"$tmp@4184", align 8, !dbg !14
+  %4 = load %String, ptr %"$tmp@4184", align 8, !dbg !14
+  store %String %4, ptr %return_value, align 8, !dbg !14
+  br label %return, !dbg !14
 
 return:                                           ; preds = %1
   %5 = load %String, ptr %return_value, align 8
@@ -114,21 +69,33 @@ return:                                           ; preds = %1
 
 declare %String @clone_string(ptr)
 
-define private %"Type<A>" @"type of <:A>"(%A %0) !dbg !22 {
+define private %"Type<A>" @"type of <:A>"(%A %0) !dbg !15 {
   %return_value = alloca %"Type<A>", align 8
   %"$arg0" = alloca %A, align 8
   store %A %0, ptr %"$arg0", align 8
-  %2 = load %"Type<A>", ptr @"Type<A>", align 8, !dbg !23
-  %"$tmp@4309" = alloca %"Type<A>", align 8, !dbg !23
-  store %"Type<A>" %2, ptr %"$tmp@4309", align 8, !dbg !23
-  %3 = load %"Type<A>", ptr %"$tmp@4309", align 8, !dbg !23
-  store %"Type<A>" %3, ptr %return_value, align 8, !dbg !23
-  br label %return, !dbg !23
+  %2 = alloca %"Type<A>", align 8, !dbg !16
+  %"Type<A>.data" = getelementptr inbounds %"Type<A>", ptr %2, i32 0, i32 0, !dbg !16
+  %"Type<A>.name" = getelementptr inbounds %"Type<A>Impl", ptr %"Type<A>.data", i32 0, i32 0, !dbg !16
+  %3 = call %String @string_from_c_string_and_length(ptr @0, i64 1), !dbg !17
+  store %String %3, ptr %"Type<A>.name", align 8, !dbg !17
+  %"Type<A>.size" = getelementptr inbounds %"Type<A>Impl", ptr %"Type<A>.data", i32 0, i32 1, !dbg !17
+  %4 = call %Integer @integer_from_i64(i64 8), !dbg !17
+  store %Integer %4, ptr %"Type<A>.size", align 8, !dbg !17
+  %5 = load %"Type<A>", ptr %2, align 8, !dbg !17
+  %"$tmp@4309" = alloca %"Type<A>", align 8, !dbg !17
+  store %"Type<A>" %5, ptr %"$tmp@4309", align 8, !dbg !17
+  %6 = load %"Type<A>", ptr %"$tmp@4309", align 8, !dbg !16
+  store %"Type<A>" %6, ptr %return_value, align 8, !dbg !16
+  br label %return, !dbg !16
 
 return:                                           ; preds = %1
-  %4 = load %"Type<A>", ptr %return_value, align 8
-  ret %"Type<A>" %4
+  %7 = load %"Type<A>", ptr %return_value, align 8
+  ret %"Type<A>" %7
 }
+
+declare %String @string_from_c_string_and_length(ptr, i64)
+
+declare %Integer @integer_from_i64(i64)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
@@ -136,24 +103,18 @@ return:                                           ; preds = %1
 !0 = !{i32 2, !"Debug Info Version", i32 3}
 !1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "ppl", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, sysroot: "/")
 !2 = !DIFile(filename: "src/main.ppl", directory: ".")
-!3 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!3 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !4 = !DISubroutineType(types: !5)
 !5 = !{!6}
 !6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
-!7 = !DILocation(line: 2, column: 21, scope: !3)
-!8 = !DILocation(line: 0, scope: !3)
-!9 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!10 = !DILocation(line: 2, column: 21, scope: !9)
-!11 = !DILocation(line: 0, scope: !9)
-!12 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!13 = !DILocation(line: 2, column: 21, scope: !12)
-!14 = !DILocation(line: 1, column: 8, scope: !12)
-!15 = !DILocation(line: 2, column: 19, scope: !12)
-!16 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !12, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!17 = !DILocation(line: 1, column: 8, scope: !16)
-!18 = distinct !DISubprogram(name: "println <:Type<A>>", linkageName: "println <:Type<A>>", scope: !12, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!19 = !DILocation(line: 2, column: 21, scope: !18)
-!20 = distinct !DISubprogram(name: "String from <:Type<A>>", linkageName: "String from <:Type<A>>", scope: !18, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!21 = !DILocation(line: 2, column: 21, scope: !20)
-!22 = distinct !DISubprogram(name: "type of <:A>", linkageName: "type of <:A>", scope: !12, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!23 = !DILocation(line: 2, column: 21, scope: !22)
+!7 = !DILocation(line: 1, column: 8, scope: !3)
+!8 = !DILocation(line: 2, column: 19, scope: !3)
+!9 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !3, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!10 = !DILocation(line: 1, column: 8, scope: !9)
+!11 = distinct !DISubprogram(name: "println <:Type<A>>", linkageName: "println <:Type<A>>", scope: !3, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!12 = !DILocation(line: 2, column: 21, scope: !11)
+!13 = distinct !DISubprogram(name: "String from <:Type<A>>", linkageName: "String from <:Type<A>>", scope: !11, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!14 = !DILocation(line: 2, column: 21, scope: !13)
+!15 = distinct !DISubprogram(name: "type of <:A>", linkageName: "type of <:A>", scope: !3, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!16 = !DILocation(line: 2, column: 21, scope: !15)
+!17 = !DILocation(line: 0, scope: !15)

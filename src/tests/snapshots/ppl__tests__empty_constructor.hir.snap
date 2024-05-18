@@ -10,7 +10,7 @@ let a: A = A {  }
 
 
 fn<A> type of <$arg0: A> -> Type<A>:
-	let $tmp@4309: Type<A> = (Type<A>:Type<A>)
+	let $tmp@4309: Type<A> = Type<A> { name: "A", size: 8 }
 	return ($tmp@4309:Type<A>)
 
 

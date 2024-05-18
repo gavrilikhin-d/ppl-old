@@ -8,8 +8,8 @@ expression: hir
 `println <:String>`(`String from <:Bool>`(true))
 `println <:String>`(`String from <:Integer>`(0))
 `println <:String>`(`String from <:Rational>`(0.0))
-`println <:String>`(`String from <:Type<Integer>>`((Type<Integer>:Type<Integer>)))
-`println <:String>`(`String from <:Type<Array<Integer>>>`((Type<Array<Integer>>:Type<Array<Integer>>)))
+`println <:String>`(`String from <:Type<Integer>>`(Type<Integer> { name: "Integer", size: 8 }))
+`println <:String>`(`String from <:Type<Array<Integer>>>`(Type<Array<Integer>> { name: "Array<Integer>", size: 8 }))
 
 ==MONOMORPHIZED==
 

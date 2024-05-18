@@ -5,96 +5,53 @@ expression: ir
 ; ModuleID = 'main'
 source_filename = "src/main.ppl"
 
-%"Type<String>" = type { ptr }
-%"Type<Integer>" = type { ptr }
 %Integer = type { ptr }
 %MemoryAddress = type { ptr }
-%"Type<String>Impl" = type { %String, %Integer }
 %String = type { ptr }
+%"Type<Integer>" = type { ptr }
 %"Type<Integer>Impl" = type { %String, %Integer }
 
-@"Type<String>" = private global %"Type<String>" zeroinitializer
-@0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
-@"Type<Integer>" = private global %"Type<Integer>" zeroinitializer
-@1 = private unnamed_addr constant [8 x i8] c"Integer\00", align 1
 @x = global %Integer zeroinitializer
 @address = global %MemoryAddress zeroinitializer
 @x_mut_ref = global ptr null
+@0 = private unnamed_addr constant [8 x i8] c"Integer\00", align 1
 
-define private void @initialize() !dbg !3 {
-  %1 = alloca %"Type<String>", align 8, !dbg !7
-  %"Type<String>.data" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 0, !dbg !7
-  %"Type<String>.name" = getelementptr inbounds %"Type<String>Impl", ptr %"Type<String>.data", i32 0, i32 0, !dbg !7
-  %2 = call %String @string_from_c_string_and_length(ptr @0, i64 6), !dbg !8
-  store %String %2, ptr %"Type<String>.name", align 8, !dbg !8
-  %"Type<String>.size" = getelementptr inbounds %"Type<String>Impl", ptr %"Type<String>.data", i32 0, i32 1, !dbg !8
-  %3 = call %Integer @integer_from_i64(i64 8), !dbg !8
-  store %Integer %3, ptr %"Type<String>.size", align 8, !dbg !8
-  %4 = load %"Type<String>", ptr %1, align 8, !dbg !8
-  store %"Type<String>" %4, ptr @"Type<String>", align 8, !dbg !8
-  br label %return, !dbg !8
+define void @main.execute() !dbg !3 {
+  call void @initialize(), !dbg !7
+  %1 = call %Integer @clone_integer(ptr @x), !dbg !8
+  call void @"println <:Integer>"(%Integer %1), !dbg !8
+  call void @initialize.1(), !dbg !9
+  call void @initialize.2(), !dbg !10
+  %2 = load ptr, ptr @x_mut_ref, align 8, !dbg !11
+  %3 = call %Integer @integer_from_i64(i64 1), !dbg !12
+  store %Integer %3, ptr %2, align 8, !dbg !12
+  %4 = call %Integer @clone_integer(ptr @x), !dbg !13
+  call void @"println <:Integer>"(%Integer %4), !dbg !13
+  call void @destroy_integer(ptr @x), !dbg !14
+  br label %return, !dbg !14
 
 return:                                           ; preds = %0
   ret void
 }
 
-declare %String @string_from_c_string_and_length(ptr, i64)
+define private void @initialize() !dbg !15 {
+  %1 = call %Integer @integer_from_i64(i64 0), !dbg !16
+  store %Integer %1, ptr @x, align 8, !dbg !16
+  br label %return, !dbg !16
+
+return:                                           ; preds = %0
+  ret void
+}
 
 declare %Integer @integer_from_i64(i64)
 
-define private void @initialize.1() !dbg !9 {
-  %1 = alloca %"Type<Integer>", align 8, !dbg !10
-  %"Type<Integer>.data" = getelementptr inbounds %"Type<Integer>", ptr %1, i32 0, i32 0, !dbg !10
-  %"Type<Integer>.name" = getelementptr inbounds %"Type<Integer>Impl", ptr %"Type<Integer>.data", i32 0, i32 0, !dbg !10
-  %2 = call %String @string_from_c_string_and_length(ptr @1, i64 7), !dbg !11
-  store %String %2, ptr %"Type<Integer>.name", align 8, !dbg !11
-  %"Type<Integer>.size" = getelementptr inbounds %"Type<Integer>Impl", ptr %"Type<Integer>.data", i32 0, i32 1, !dbg !11
-  %3 = call %Integer @integer_from_i64(i64 8), !dbg !11
-  store %Integer %3, ptr %"Type<Integer>.size", align 8, !dbg !11
-  %4 = load %"Type<Integer>", ptr %1, align 8, !dbg !11
-  store %"Type<Integer>" %4, ptr @"Type<Integer>", align 8, !dbg !11
-  br label %return, !dbg !11
-
-return:                                           ; preds = %0
-  ret void
-}
-
-define void @main.execute() !dbg !12 {
-  call void @initialize(), !dbg !13
-  call void @initialize.1(), !dbg !14
-  call void @initialize.2(), !dbg !15
-  %1 = call %Integer @clone_integer(ptr @x), !dbg !16
-  call void @"println <:Integer>"(%Integer %1), !dbg !16
-  call void @initialize.3(), !dbg !17
-  call void @initialize.4(), !dbg !14
-  %2 = load ptr, ptr @x_mut_ref, align 8, !dbg !18
-  %3 = call %Integer @integer_from_i64(i64 1), !dbg !19
-  store %Integer %3, ptr %2, align 8, !dbg !19
-  %4 = call %Integer @clone_integer(ptr @x), !dbg !20
-  call void @"println <:Integer>"(%Integer %4), !dbg !20
-  call void @destroy_integer(ptr @x), !dbg !21
-  br label %return, !dbg !21
-
-return:                                           ; preds = %0
-  ret void
-}
-
-define private void @initialize.2() !dbg !22 {
-  %1 = call %Integer @integer_from_i64(i64 0), !dbg !23
-  store %Integer %1, ptr @x, align 8, !dbg !23
-  br label %return, !dbg !23
-
-return:                                           ; preds = %0
-  ret void
-}
-
-define private void @"println <:Integer>"(%Integer %0) !dbg !24 {
+define private void @"println <:Integer>"(%Integer %0) !dbg !17 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
-  %2 = load %Integer, ptr %x, align 8, !dbg !25
-  %3 = call %String @integer_as_string(%Integer %2), !dbg !25
-  call void @"println <:String>"(%String %3), !dbg !25
-  br label %return, !dbg !25
+  %2 = load %Integer, ptr %x, align 8, !dbg !18
+  %3 = call %String @integer_as_string(%Integer %2), !dbg !18
+  call void @"println <:String>"(%String %3), !dbg !18
+  br label %return, !dbg !18
 
 return:                                           ; preds = %1
   ret void
@@ -106,10 +63,10 @@ declare %String @integer_as_string(%Integer)
 
 declare %Integer @clone_integer(ptr)
 
-define private void @initialize.3() !dbg !26 {
-  %1 = call %MemoryAddress @address_of(ptr @x), !dbg !27
-  store %MemoryAddress %1, ptr @address, align 8, !dbg !27
-  br label %return, !dbg !27
+define private void @initialize.1() !dbg !19 {
+  %1 = call %MemoryAddress @address_of(ptr @x), !dbg !20
+  store %MemoryAddress %1, ptr @address, align 8, !dbg !20
+  br label %return, !dbg !20
 
 return:                                           ; preds = %0
   ret void
@@ -117,17 +74,27 @@ return:                                           ; preds = %0
 
 declare %MemoryAddress @address_of(ptr)
 
-define private void @initialize.4() !dbg !28 {
-  %1 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !29
-  %2 = call ptr @read_memory(%"Type<Integer>" %1, ptr @address), !dbg !30
-  store ptr %2, ptr @x_mut_ref, align 8, !dbg !30
-  br label %return, !dbg !30
+define private void @initialize.2() !dbg !21 {
+  %1 = alloca %"Type<Integer>", align 8, !dbg !22
+  %"Type<Integer>.data" = getelementptr inbounds %"Type<Integer>", ptr %1, i32 0, i32 0, !dbg !22
+  %"Type<Integer>.name" = getelementptr inbounds %"Type<Integer>Impl", ptr %"Type<Integer>.data", i32 0, i32 0, !dbg !22
+  %2 = call %String @string_from_c_string_and_length(ptr @0, i64 7), !dbg !23
+  store %String %2, ptr %"Type<Integer>.name", align 8, !dbg !23
+  %"Type<Integer>.size" = getelementptr inbounds %"Type<Integer>Impl", ptr %"Type<Integer>.data", i32 0, i32 1, !dbg !23
+  %3 = call %Integer @integer_from_i64(i64 8), !dbg !23
+  store %Integer %3, ptr %"Type<Integer>.size", align 8, !dbg !23
+  %4 = load %"Type<Integer>", ptr %1, align 8, !dbg !23
+  %5 = call ptr @read_memory(%"Type<Integer>" %4, ptr @address), !dbg !24
+  store ptr %5, ptr @x_mut_ref, align 8, !dbg !24
+  br label %return, !dbg !24
 
 return:                                           ; preds = %0
   ret void
 }
 
 declare ptr @read_memory(%"Type<Integer>", ptr)
+
+declare %String @string_from_c_string_and_length(ptr, i64)
 
 declare void @destroy_integer(ptr)
 
@@ -137,31 +104,25 @@ declare void @destroy_integer(ptr)
 !0 = !{i32 2, !"Debug Info Version", i32 3}
 !1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "ppl", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, sysroot: "/")
 !2 = !DIFile(filename: "src/main.ppl", directory: ".")
-!3 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !2, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!3 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !4 = !DISubroutineType(types: !5)
 !5 = !{!6}
 !6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
-!7 = !DILocation(line: 7, scope: !3)
-!8 = !DILocation(line: 0, scope: !3)
-!9 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!10 = !DILocation(line: 4, column: 16, scope: !9)
-!11 = !DILocation(line: 0, scope: !9)
-!12 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!13 = !DILocation(line: 7, scope: !12)
-!14 = !DILocation(line: 4, column: 16, scope: !12)
-!15 = !DILocation(line: 0, column: 8, scope: !12)
-!16 = !DILocation(line: 1, column: 8, scope: !12)
-!17 = !DILocation(line: 3, column: 14, scope: !12)
-!18 = !DILocation(line: 5, scope: !12)
-!19 = !DILocation(line: 5, column: 12, scope: !12)
-!20 = !DILocation(line: 6, column: 8, scope: !12)
-!21 = !DILocation(line: 0, scope: !12)
-!22 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !12, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!23 = !DILocation(line: 0, column: 8, scope: !22)
-!24 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !12, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!25 = !DILocation(line: 7, scope: !24)
-!26 = distinct !DISubprogram(name: "initialize.3", linkageName: "initialize.3", scope: !12, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!27 = !DILocation(line: 3, column: 25, scope: !26)
-!28 = distinct !DISubprogram(name: "initialize.4", linkageName: "initialize.4", scope: !12, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!29 = !DILocation(line: 4, column: 16, scope: !28)
-!30 = !DILocation(line: 4, column: 27, scope: !28)
+!7 = !DILocation(line: 0, column: 8, scope: !3)
+!8 = !DILocation(line: 1, column: 8, scope: !3)
+!9 = !DILocation(line: 3, column: 14, scope: !3)
+!10 = !DILocation(line: 4, column: 16, scope: !3)
+!11 = !DILocation(line: 5, scope: !3)
+!12 = !DILocation(line: 5, column: 12, scope: !3)
+!13 = !DILocation(line: 6, column: 8, scope: !3)
+!14 = !DILocation(line: 0, scope: !3)
+!15 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !3, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!16 = !DILocation(line: 0, column: 8, scope: !15)
+!17 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !3, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!18 = !DILocation(line: 7, scope: !17)
+!19 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !3, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!20 = !DILocation(line: 3, column: 25, scope: !19)
+!21 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !3, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!22 = !DILocation(line: 4, column: 16, scope: !21)
+!23 = !DILocation(line: 0, scope: !21)
+!24 = !DILocation(line: 4, column: 27, scope: !21)
