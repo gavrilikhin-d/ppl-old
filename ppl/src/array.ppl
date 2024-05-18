@@ -16,6 +16,15 @@ fn<T> <:Type<T>>[] -> Array<T>:
 	let data = allocate capacity T
 	return Array<T> { size: 0, capacity, data }
 
+/// Create an array by repeating a value n times
+fn<T> repeat <x: T> <n: Integer> times -> Array<T>:
+	let mut array = T[]
+	let mut i = 0
+	while i < n:
+		push x to array
+		i += 1
+	return array
+
 // TODO: errors, if out of borders
 /// Get i-th element of an array
 fn<T> <array: &Array<T>> [ <i: Integer> ] -> &T:
