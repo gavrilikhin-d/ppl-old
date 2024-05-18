@@ -1,6 +1,6 @@
 use inkwell::{
     context::ContextRef,
-    types::{FloatType, IntType, PointerType, StructType, VoidType},
+    types::{BasicTypeEnum, FloatType, IntType, PointerType, StructType, VoidType},
     AddressSpace,
 };
 
@@ -71,20 +71,30 @@ impl<'llvm> Types<'llvm> {
     }
 
     /// Get wrapper around pointer to opaque impl
-    fn with_impl(&self, name: &str) -> StructType<'llvm> {
+    pub fn arc(&self, name: &str, field_types: &[BasicTypeEnum<'llvm>]) -> StructType<'llvm> {
         if let Some(ty) = self.llvm.get_struct_type(name) {
             return ty;
         }
 
+        let data_ty = self.llvm.opaque_struct_type(&format!("{name}Impl"));
+        if !field_types.is_empty() {
+            data_ty.set_body(field_types, false);
+        }
+
         let ty = self.llvm.opaque_struct_type(name);
-        ty.set_body(&[self.opaque(&format!("{name}Impl")).into()], false);
+        ty.set_body(&[self.pointer().into()], false);
         ty
+    }
+
+    /// Get LLVM struct type for data of ARC type
+    pub fn arc_data(&self, name: &str) -> Option<StructType<'llvm>> {
+        self.llvm.get_struct_type(&format!("{name}Impl"))
     }
 
     /// LLVM IR for [`Class`](Type::Class) type
     pub fn opaque(&self, name: &str) -> PointerType<'llvm> {
         self.get_or_add_opaque_struct(name);
-        self.llvm.ptr_type(AddressSpace::default())
+        self.pointer()
     }
 
     /// LLVM IR for [`None`](Type::None) type
@@ -94,21 +104,26 @@ impl<'llvm> Types<'llvm> {
 
     /// LLVM IR for [`Integer`](Type::Integer) type
     pub fn integer(&self) -> StructType<'llvm> {
-        self.with_impl("Integer")
+        self.arc("Integer", &[])
     }
 
     /// LLVM IR for `Rational` type
     pub fn rational(&self) -> StructType<'llvm> {
-        self.with_impl("Rational")
+        self.arc("Rational", &[])
     }
 
     /// LLVM IR for [`String`](Type::String) type
     pub fn string(&self) -> StructType<'llvm> {
-        self.with_impl("String")
+        self.arc("String", &[])
     }
 
     /// LLVM IR for C string type
     pub fn c_string(&self) -> PointerType<'llvm> {
+        self.pointer()
+    }
+
+    /// LLVM IR for pointer type
+    pub fn pointer(&self) -> PointerType<'llvm> {
         self.llvm.ptr_type(AddressSpace::default())
     }
 }

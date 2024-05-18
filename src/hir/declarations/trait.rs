@@ -6,7 +6,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use derive_visitor::DriveMut;
+use derive_visitor::{DriveMut, VisitorMut};
 use indexmap::IndexMap;
 
 use crate::{
@@ -99,10 +99,15 @@ pub struct TraitData {
     #[drive(skip)]
     pub supertraits: Vec<Trait>,
     /// Associated functions
+    #[drive(with = "drive_functions")]
     pub functions: IndexMap<String, Function>,
     /// Module this trait is located in
     #[drive(skip)]
     pub module: Module,
+}
+
+fn drive_functions<V: VisitorMut>(funcs: &mut IndexMap<String, Function>, visitor: &mut V) {
+    funcs.values_mut().for_each(|f| f.drive_mut(visitor));
 }
 
 impl TraitData {

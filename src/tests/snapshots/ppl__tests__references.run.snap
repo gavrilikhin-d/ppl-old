@@ -2,5 +2,26 @@
 source: src/tests/mod.rs
 expression: run_log
 ---
-0
-1
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==4961==ERROR: AddressSanitizer: SEGV on unknown address 0xd10103ffd5032383 (pc 0x00010133253c bp 0x00016effe480 sp 0x00016effe470 T0)
+==4961==The signal is caused by a READ memory access.
+    #0 0x10133253c in rug::ext::xmpz64::fits_u64::h0cb5d3d34e870f0a xmpz64.rs:232
+    #1 0x101330900 in rug::integer::casts::_$LT$impl$u20$az..CheckedCast$LT$u64$GT$$u20$for$u20$$RF$rug..integer..big..Integer$GT$::checked_cast::ha1d2fd6891399af0 casts.rs:57
+    #2 0x101330264 in rug::integer::big::Integer::to_u64::hd87aea55d6ded3ae big.rs:1367
+    #3 0x10132e51c in runtime::memory::read_memory_impl::h6ec466adc51af51c memory.rs:78
+    #4 0x10132e4b0 in read_memory memory.rs:72
+    #5 0x100e03b74  (references.out:arm64+0x100003b74)
+
+==4961==Register values:
+ x[0] = 0xd10103ffd503237f   x[1] = 0x0000000100e081c0   x[2] = 0x0000000195152ca8   x[3] = 0x0000603000001c50  
+ x[4] = 0x0000603000001c50   x[5] = 0x0000000000000001   x[6] = 0x000000016e804000   x[7] = 0x0000000000000001  
+ x[8] = 0xd10103ffd503237f   x[9] = 0x000000016effe488  x[10] = 0x0000603000001c30  x[11] = 0x0000000000000000  
+x[12] = 0xffffffffffffffff  x[13] = 0x0000000000000000  x[14] = 0x00007fffffffffff  x[15] = 0x000010700001ffff  
+x[16] = 0x000000010132e484  x[17] = 0x00000002071cf638  x[18] = 0x0000000000000000  x[19] = 0x0000000101215ff0  
+x[20] = 0x0000000100e03bb8  x[21] = 0x000000016effe600  x[22] = 0x0000000101215910  x[23] = 0x000000016effe680  
+x[24] = 0x000000016effe6c0  x[25] = 0x0000000194e422db  x[26] = 0x0000000000000000  x[27] = 0x0000000000000000  
+x[28] = 0x0000000000000000     fp = 0x000000016effe480     lr = 0x000000010133253c     sp = 0x000000016effe470  
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV xmpz64.rs:232 in rug::ext::xmpz64::fits_u64::h0cb5d3d34e870f0a
+==4961==ABORTING
