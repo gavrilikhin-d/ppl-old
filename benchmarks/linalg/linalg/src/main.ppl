@@ -3,9 +3,30 @@ type Matrix:
 	columns: Integer
 	data: Array<Rational>
 
+type MutRowSlice:
+	row: Integer
+	matrix: &mut Matrix
+
+fn RowSlice from <slice: MutRowSlice> -> RowSlice:
+	return RowSlice { row: slice.row, matrix: slice.matrix }
+
+fn String from <slice: MutRowSlice> -> String:
+	return String from (RowSlice from slice)
+
+// FIXME: may be out of bounds
+fn <slice: &MutRowSlice> [ <column: &Integer> ] -> &mut Rational:
+	let i = slice.matrix.columns * slice.row + column
+	return slice.matrix.data[i]
+
+
 type RowSlice:
 	row: Integer
 	matrix: &Matrix
+
+// FIXME: may be out of bounds
+fn <slice: &RowSlice> [ <column: &Integer> ] -> &Rational:
+	let i = slice.matrix.columns * slice.row + column
+	return slice.matrix.data[i]
 
 fn String from <slice: RowSlice> -> String:
 	let mut str = "["
@@ -23,16 +44,6 @@ fn String from <slice: RowSlice> -> String:
 	str += "]"
 	return str
 
-type MutRowSlice:
-	row: Integer
-	matrix: &mut Matrix
-
-fn RowSlice from <slice: MutRowSlice> -> RowSlice:
-	return RowSlice { row: slice.row, matrix: slice.matrix }
-
-fn String from <slice: MutRowSlice> -> String:
-	return String from (RowSlice from slice)
-
 fn <rows: Integer> x <columns: Integer> Matrix -> Matrix:
 	let size = rows * columns
 	let mut data = Rational[]
@@ -43,11 +54,11 @@ fn <rows: Integer> x <columns: Integer> Matrix -> Matrix:
 
 	return Matrix { rows, columns, data }
 
-fn <matrix: &Matrix> [ <row: Integer> ] -> RowSlice:
-	return RowSlice { matrix, row }
-
 fn <matrix: &mut Matrix> [ <row: Integer> ] -> MutRowSlice:
 	return MutRowSlice { matrix, row }
+
+fn <matrix: &Matrix> [ <row: Integer> ] -> RowSlice:
+	return RowSlice { matrix, row }
 
 fn String from <m: Matrix> -> String:
 	let mut str = "["
@@ -64,5 +75,6 @@ fn String from <m: Matrix> -> String:
 
 
 let mut a = 3 x 3 Matrix
+(a[0])[0] = 1.0
 println a
 println (a[1])
