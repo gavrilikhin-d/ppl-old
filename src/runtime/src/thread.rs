@@ -8,7 +8,7 @@ use crate::Integer;
 /// ```
 #[no_mangle]
 pub extern "C" fn sleep_ms(ms: Integer) {
-    let ms = unsafe { ms.data.as_ref().unwrap() };
+    let ms = ms.as_ref();
     let ms = ms.to_u64();
     if ms.is_none() {
         return;

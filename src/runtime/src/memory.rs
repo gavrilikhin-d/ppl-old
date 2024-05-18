@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use libc::{c_void, malloc, memcpy, size_t};
 
 use crate::{integer_from_i64, integer_from_u64, Integer, String, Type};
@@ -13,7 +15,7 @@ pub struct MemoryAddress {
 /// ```
 #[no_mangle]
 pub extern "C" fn memory_address_as_string(address: MemoryAddress) -> String {
-    let value = unsafe { address.value.data.as_ref().unwrap() };
+    let value = address.value.as_ref();
 
     let hex = format!("0x{}", value.to_string_radix(16).to_uppercase());
     let boxed = Box::new(hex);
@@ -28,7 +30,7 @@ pub extern "C" fn memory_address_as_string(address: MemoryAddress) -> String {
 /// ```
 #[no_mangle]
 pub extern "C" fn allocate_n_bytes(n: Integer) -> MemoryAddress {
-    let n = unsafe { n.data.as_ref().unwrap() };
+    let n = n.as_ref();
 
     let n = n.to_usize();
     if n.is_none() {
@@ -51,7 +53,7 @@ pub extern "C" fn allocate_n_bytes(n: Integer) -> MemoryAddress {
 /// ```
 #[no_mangle]
 pub extern "C" fn free_memory(address: &MemoryAddress) {
-    let address = unsafe { address.value.data.as_ref().unwrap() };
+    let address = address.value.as_ref();
 
     let address = address.to_u64();
     if address.is_none() {
@@ -74,7 +76,7 @@ pub extern "C" fn read_memory(_ty: Type, address: &MemoryAddress) -> *mut c_void
 }
 
 fn read_memory_impl(address: &MemoryAddress) -> *mut c_void {
-    let address = unsafe { address.value.data.as_ref().unwrap() };
+    let address = address.value.as_ref();
 
     let address = address.to_u64().unwrap();
 
@@ -106,6 +108,16 @@ pub extern "C" fn address_of(ptr: *const c_void) -> MemoryAddress {
 pub extern "C" fn copy_bytes(n: &Integer, src: &MemoryAddress, dst: &MemoryAddress) {
     let dest = read_memory_impl(dst);
     let src = read_memory_impl(src);
-    let n = unsafe { n.data.as_ref().unwrap() }.to_usize().unwrap() as size_t;
+    let n = n.as_ref().to_usize().unwrap() as size_t;
     unsafe { memcpy(dest, src, n) };
+}
+
+#[no_mangle]
+pub extern "C" fn increment_strong_count(ptr: *const c_void) {
+    unsafe { Arc::increment_strong_count(ptr) }
+}
+
+#[no_mangle]
+pub extern "C" fn decrement_strong_count(ptr: *const c_void) {
+    unsafe { Arc::decrement_strong_count(ptr) }
 }

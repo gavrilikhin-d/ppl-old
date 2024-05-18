@@ -2,49 +2,67 @@ use std::ffi::c_char;
 
 use rug::ops::Pow;
 
-use crate::{Rational, String};
+use crate::{decrement_strong_count, increment_strong_count, Rational, String};
+
+use std::sync::Arc;
 
 /// Big integer number.
 /// Wrapper around pointer to [`rug::Integer`].
 ///
 /// # PPL
 /// ```no_run
-/// type IntegerImpl
-///
 /// @builtin
-/// type Integer:
-///     impl: Reference<IntegerImpl>
+/// type Integer
 /// ```
 #[repr(C)]
-pub struct Integer {
-    pub data: *mut rug::Integer,
+pub struct Integer(pub *const rug::Integer);
+
+impl Clone for Integer {
+    fn clone(&self) -> Self {
+        increment_strong_count(self.0 as *const _);
+        Self(self.0)
+    }
 }
 
-/// Construct [`Integer`](ppl::semantics::Type::Integer) from i32
+impl Drop for Integer {
+    fn drop(&mut self) {
+        decrement_strong_count(self.0 as *const _);
+    }
+}
+
+impl Integer {
+    /// Get the inner value
+    pub fn as_ref(&self) -> &rug::Integer {
+        unsafe { &*self.0 }
+    }
+}
+
+impl<T> From<T> for Integer
+where
+    rug::Integer: From<T>,
+{
+    fn from(x: T) -> Self {
+        let this = Arc::new(rug::Integer::from(x));
+        Self(Arc::into_raw(this))
+    }
+}
+
+/// Construct [`Integer`] from [`i32`]
 #[no_mangle]
 pub extern "C" fn integer_from_i32(value: i32) -> Integer {
-    let boxed = Box::new(value.into());
-    Integer {
-        data: Box::into_raw(boxed),
-    }
+    integer_from_i64(value as i64)
 }
 
-/// Construct [`Integer`](ppl::semantics::Type::Integer) from i64
+/// Construct [`Integer`] from [`i64`]
 #[no_mangle]
 pub extern "C" fn integer_from_i64(value: i64) -> Integer {
-    let boxed = Box::new(value.into());
-    Integer {
-        data: Box::into_raw(boxed),
-    }
+    rug::Integer::from(value).into()
 }
 
-/// Construct [`Integer`](ppl::semantics::Type::Integer) from u64
+/// Construct [`Integer`] from [`u64`]
 #[no_mangle]
 pub extern "C" fn integer_from_u64(value: u64) -> Integer {
-    let boxed = Box::new(value.into());
-    Integer {
-        data: Box::into_raw(boxed),
-    }
+    rug::Integer::from(value).into()
 }
 
 /// Construct [`Integer`](ppl::semantics::Type::Integer) from a C string
@@ -54,13 +72,10 @@ pub extern "C" fn integer_from_c_string(str: *const c_char) -> Integer {
 
     let c_str = unsafe { core::ffi::CStr::from_ptr(str) };
     let str = c_str.to_str().unwrap();
-    let boxed = Box::new(str.parse::<rug::Integer>().unwrap());
-    Integer {
-        data: Box::into_raw(boxed),
-    }
+    str.parse::<rug::Integer>().unwrap().into()
 }
 
-/// Converts `Integer` to `String`
+/// Converts [`Integer`] to [`String`]
 ///
 /// # PPL
 /// ```no_run
@@ -68,8 +83,7 @@ pub extern "C" fn integer_from_c_string(str: *const c_char) -> Integer {
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_as_string(i: Integer) -> String {
-    let i = unsafe { i.data.as_ref().unwrap() };
-    let str = i.to_string();
+    let str = i.as_ref().to_string();
     let boxed = Box::new(str);
     String {
         data: Box::into_raw(boxed),
@@ -78,51 +92,41 @@ pub extern "C" fn integer_as_string(i: Integer) -> String {
 
 /// Negates integer
 ///
-/// Runtime for builtin ppl's function:
-/// ```ppl
+/// # PPL
+/// ```no_run
 /// fn - <:Integer> -> Integer
 /// ```
 #[no_mangle]
 pub extern "C" fn minus_integer(i: Integer) -> Integer {
-    let i = unsafe { i.data.as_ref().unwrap() };
-    let boxed = Box::new(rug::Integer::from(-i));
-    Integer {
-        data: Box::into_raw(boxed),
-    }
+    (-i.as_ref()).into()
 }
 
 /// Add 2 integers
 ///
-/// Runtime for builtin ppl's function:
-/// ```ppl
+/// # PPL
+/// ```no_run
 /// fn <:Integer> + <:Integer> -> Integer
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_plus_integer(x: Integer, y: Integer) -> Integer {
-    let x = unsafe { x.data.as_ref().unwrap() };
-    let y = unsafe { y.data.as_ref().unwrap() };
+    let x = x.as_ref();
+    let y = y.as_ref();
 
-    let boxed = Box::new(rug::Integer::from(x + y));
-    Integer {
-        data: Box::into_raw(boxed),
-    }
+    (x + y).into()
 }
 
 /// Multiply 2 integers
 ///
-/// Runtime for builtin ppl's function:
-/// ```ppl
+/// # PPL
+/// ```no_run
 /// fn <:Integer> * <:Integer> -> Integer
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_star_integer(x: Integer, y: Integer) -> Integer {
-    let x = unsafe { x.data.as_ref().unwrap() };
-    let y = unsafe { y.data.as_ref().unwrap() };
+    let x = x.as_ref();
+    let y = y.as_ref();
 
-    let boxed = Box::new(rug::Integer::from(x * y));
-    Integer {
-        data: Box::into_raw(boxed),
-    }
+    (x * y).into()
 }
 
 /// Divide 2 integers
@@ -133,8 +137,8 @@ pub extern "C" fn integer_star_integer(x: Integer, y: Integer) -> Integer {
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_slash_integer(x: Integer, y: Integer) -> Rational {
-    let x = unsafe { x.data.as_ref().unwrap() };
-    let y = unsafe { y.data.as_ref().unwrap() };
+    let x = x.as_ref();
+    let y = y.as_ref();
 
     let boxed = Box::new(rug::Rational::from(x) / y);
     Rational {
@@ -144,28 +148,28 @@ pub extern "C" fn integer_slash_integer(x: Integer, y: Integer) -> Rational {
 
 /// Compare 2 integers for equality
 ///
-/// Runtime for builtin ppl's function:
-/// ```ppl
+/// # PPL
+/// ```no_run
 /// fn <:Integer> == <:Integer> -> Bool
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_eq_integer(x: Integer, y: Integer) -> bool {
-    let x = unsafe { x.data.as_ref().unwrap() };
-    let y = unsafe { y.data.as_ref().unwrap() };
+    let x = x.as_ref();
+    let y = y.as_ref();
 
     x == y
 }
 
 /// Is one integer less than another?
 ///
-/// Runtime for builtin ppl's function:
-/// ```ppl
+/// # PPL
+/// ```no_run
 /// fn <:Integer> < <:Integer> -> Bool
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_less_integer(x: Integer, y: Integer) -> bool {
-    let x = unsafe { x.data.as_ref().unwrap() };
-    let y = unsafe { y.data.as_ref().unwrap() };
+    let x = x.as_ref();
+    let y = y.as_ref();
 
     x < y
 }
@@ -178,12 +182,7 @@ pub extern "C" fn integer_less_integer(x: Integer, y: Integer) -> bool {
 /// ```
 #[no_mangle]
 pub extern "C" fn sqrt_integer(i: Integer) -> Integer {
-    let i = unsafe { i.data.as_ref().unwrap() };
-
-    let boxed = Box::new(i.clone().root(2));
-    Integer {
-        data: Box::into_raw(boxed),
-    }
+    i.as_ref().clone().root(2).into()
 }
 
 /// Calculate `x` in `n`th power
@@ -194,16 +193,13 @@ pub extern "C" fn sqrt_integer(i: Integer) -> Integer {
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_power_integer(x: Integer, n: Integer) -> Integer {
-    let x = unsafe { x.data.as_ref().unwrap() };
-    let n = unsafe { n.data.as_ref().unwrap() };
+    let x = x.as_ref();
+    let n = n.as_ref();
 
     // TODO: support other powers
     let res: rug::Integer = x.pow(n.to_u32().unwrap()).into();
 
-    let boxed = Box::new(res);
-    Integer {
-        data: Box::into_raw(boxed),
-    }
+    res.into()
 }
 
 /// # PPL
@@ -212,15 +208,11 @@ pub extern "C" fn integer_power_integer(x: Integer, n: Integer) -> Integer {
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_mod_integer(x: Integer, y: Integer) -> Integer {
-    let x = unsafe { x.data.as_ref().unwrap() };
-    let y = unsafe { y.data.as_ref().unwrap() };
+    let x = x.as_ref();
+    let y = y.as_ref();
 
     let res = x.clone().modulo(y);
-
-    let boxed = Box::new(res);
-    Integer {
-        data: Box::into_raw(boxed),
-    }
+    res.into()
 }
 
 /// # PPL
@@ -228,8 +220,8 @@ pub extern "C" fn integer_mod_integer(x: Integer, y: Integer) -> Integer {
 /// fn destroy <:&mut Integer>
 /// ```
 #[no_mangle]
-pub extern "C" fn destroy_integer(x: *mut Integer) {
-    let _ = unsafe { Box::from_raw(x.as_ref().unwrap().data) };
+pub extern "C" fn destroy_integer(x: &mut Integer) {
+    decrement_strong_count(x.0 as *const _);
 }
 
 /// # PPL
@@ -239,10 +231,7 @@ pub extern "C" fn destroy_integer(x: *mut Integer) {
 /// ```
 #[no_mangle]
 pub extern "C" fn clone_integer(x: &Integer) -> Integer {
-    let value = unsafe { x.data.as_ref() }.unwrap().clone();
-    Integer {
-        data: Box::into_raw(Box::new(value)),
-    }
+    x.clone()
 }
 
 /// # PPL
@@ -284,9 +273,7 @@ pub extern "C" fn i32_as_string(x: i32) -> String {
 /// ```
 #[no_mangle]
 pub extern "C" fn integer_as_i32(x: Integer) -> i32 {
-    debug_assert!(!x.data.is_null());
-
-    let integer = unsafe { Box::from_raw(x.data) };
+    let integer = x.as_ref();
     integer
         .to_i32()
         .expect(&format!("Integer `{integer}` is too big to fit into i32"))

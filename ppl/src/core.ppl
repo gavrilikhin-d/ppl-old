@@ -112,11 +112,11 @@ fn <x: Integer> % <y: Integer> -> Integer
 @mangle_as("integer_as_string")
 fn String from <:Integer> -> String
 
-@mangle_as("destroy_integer")
-fn destroy <:&mut Integer>
-
 @mangle_as("clone_integer")
 fn clone <:&Integer> -> Integer
+
+@mangle_as("destroy_integer")
+fn destroy <:&mut Integer>
 //---------------------------------
 
 //=================================
