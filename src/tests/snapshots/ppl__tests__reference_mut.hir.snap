@@ -4,17 +4,18 @@ expression: hir
 ---
 let mut x: Integer = 1
 let y: ReferenceMut<Integer> = `reference to mutable <:ReferenceMut<Integer>>`((&x:ReferenceMut<Integer>))
-`println <:Integer>`((*y:Integer))
+`println <:Integer>`(`clone <:Reference<Integer>>`((*y:Integer)))
 (y:ReferenceMut<Integer>) = 2
-`println <:Integer>`((*y:Integer))
-`println <:Integer>`((x:Integer))
+`println <:Integer>`(`clone <:Reference<Integer>>`((*y:Integer)))
+`println <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)))
+`destroy <:ReferenceMut<Integer>>`((x:Integer))
 
 ==MONOMORPHIZED==
 
 
 fn<Integer> reference to mutable <ref: ReferenceMut<Integer>> -> ReferenceMut<Integer>:
-	let mut $tmp@4628: ReferenceMut<Integer> = (ref:ReferenceMut<Integer>)
-	return ($tmp@4628:ReferenceMut<Integer>)
+	let mut $tmp@4747: ReferenceMut<Integer> = (ref:ReferenceMut<Integer>)
+	return ($tmp@4747:ReferenceMut<Integer>)
 
 
 @mangle_as("integer_as_string")

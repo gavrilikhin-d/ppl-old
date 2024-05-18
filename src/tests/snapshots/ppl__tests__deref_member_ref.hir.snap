@@ -8,7 +8,7 @@ type Point:
 
 
 fn x of <p: Reference<Point>> -> Integer:
-	let $tmp@61: Integer = (*p:Point).x
+	let $tmp@61: Integer = `clone <:Reference<Integer>>`((*p:Point).x)
 	return ($tmp@61:Integer)
 
 let $tmp@80: Point = Point { x: 1, y: 2 }

@@ -38,67 +38,71 @@ define void @main.execute() !dbg !9 {
   call void @initialize(), !dbg !10
   call void @initialize.1(), !dbg !11
   call void @initialize.2(), !dbg !12
-  %1 = load %Integer, ptr @y, align 8, !dbg !13
+  %1 = call %Integer @clone_integer(ptr @y), !dbg !13
   call void @"println <:Integer>"(%Integer %1), !dbg !13
-  br label %return, !dbg !13
-
-return:                                           ; preds = %0
-  ret void
-}
-
-define private void @initialize.1() !dbg !14 {
-  %1 = call %Integer @integer_from_i64(i64 1), !dbg !15
-  store %Integer %1, ptr @x, align 8, !dbg !15
+  call void @destroy_integer(ptr @x), !dbg !14
+  call void @destroy_integer(ptr @y), !dbg !15
   br label %return, !dbg !15
 
 return:                                           ; preds = %0
   ret void
 }
 
-define %Integer @"get x"() !dbg !16 {
-  %return_value = alloca %Integer, align 8
-  %1 = load %Integer, ptr @x, align 8, !dbg !17
-  %"$tmp@22" = alloca %Integer, align 8, !dbg !17
-  store %Integer %1, ptr %"$tmp@22", align 8, !dbg !17
-  %2 = load %Integer, ptr %"$tmp@22", align 8, !dbg !17
-  store %Integer %2, ptr %return_value, align 8, !dbg !17
+define private void @initialize.1() !dbg !16 {
+  %1 = call %Integer @integer_from_i64(i64 1), !dbg !17
+  store %Integer %1, ptr @x, align 8, !dbg !17
   br label %return, !dbg !17
-
-return:                                           ; preds = %0
-  %3 = load %Integer, ptr %return_value, align 8
-  ret %Integer %3
-}
-
-define private void @initialize.2() !dbg !18 {
-  %1 = call %Integer @"get x"(), !dbg !19
-  store %Integer %1, ptr @y, align 8, !dbg !19
-  br label %return, !dbg !19
 
 return:                                           ; preds = %0
   ret void
 }
 
-define %Integer @"get y"() !dbg !20 {
+define %Integer @"get x"() !dbg !18 {
   %return_value = alloca %Integer, align 8
-  %1 = load %Integer, ptr @y, align 8, !dbg !21
-  %"$tmp@51" = alloca %Integer, align 8, !dbg !21
-  store %Integer %1, ptr %"$tmp@51", align 8, !dbg !21
-  %2 = load %Integer, ptr %"$tmp@51", align 8, !dbg !21
-  store %Integer %2, ptr %return_value, align 8, !dbg !21
-  br label %return, !dbg !21
+  %1 = call %Integer @clone_integer(ptr @x), !dbg !19
+  %"$tmp@22" = alloca %Integer, align 8, !dbg !19
+  store %Integer %1, ptr %"$tmp@22", align 8, !dbg !19
+  %2 = load %Integer, ptr %"$tmp@22", align 8, !dbg !19
+  store %Integer %2, ptr %return_value, align 8, !dbg !19
+  br label %return, !dbg !19
 
 return:                                           ; preds = %0
   %3 = load %Integer, ptr %return_value, align 8
   ret %Integer %3
 }
 
-define private void @"println <:Integer>"(%Integer %0) !dbg !22 {
+declare %Integer @clone_integer(ptr)
+
+define private void @initialize.2() !dbg !20 {
+  %1 = call %Integer @"get x"(), !dbg !21
+  store %Integer %1, ptr @y, align 8, !dbg !21
+  br label %return, !dbg !21
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define %Integer @"get y"() !dbg !22 {
+  %return_value = alloca %Integer, align 8
+  %1 = call %Integer @clone_integer(ptr @y), !dbg !23
+  %"$tmp@51" = alloca %Integer, align 8, !dbg !23
+  store %Integer %1, ptr %"$tmp@51", align 8, !dbg !23
+  %2 = load %Integer, ptr %"$tmp@51", align 8, !dbg !23
+  store %Integer %2, ptr %return_value, align 8, !dbg !23
+  br label %return, !dbg !23
+
+return:                                           ; preds = %0
+  %3 = load %Integer, ptr %return_value, align 8
+  ret %Integer %3
+}
+
+define private void @"println <:Integer>"(%Integer %0) !dbg !24 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
-  %2 = load %Integer, ptr %x, align 8, !dbg !23
-  %3 = call %String @integer_as_string(%Integer %2), !dbg !23
-  call void @"println <:String>"(%String %3), !dbg !23
-  br label %return, !dbg !23
+  %2 = load %Integer, ptr %x, align 8, !dbg !25
+  %3 = call %String @integer_as_string(%Integer %2), !dbg !25
+  call void @"println <:String>"(%String %3), !dbg !25
+  br label %return, !dbg !25
 
 return:                                           ; preds = %1
   ret void
@@ -107,6 +111,8 @@ return:                                           ; preds = %1
 declare void @"println <:String>"(%String)
 
 declare %String @integer_as_string(%Integer)
+
+declare void @destroy_integer(ptr)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
@@ -125,13 +131,15 @@ declare %String @integer_as_string(%Integer)
 !11 = !DILocation(line: 0, column: 8, scope: !9)
 !12 = !DILocation(line: 3, column: 8, scope: !9)
 !13 = !DILocation(line: 6, column: 8, scope: !9)
-!14 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!15 = !DILocation(line: 0, column: 8, scope: !14)
-!16 = distinct !DISubprogram(name: "get x", linkageName: "get x", scope: !9, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!17 = !DILocation(line: 1, column: 12, scope: !16)
-!18 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !9, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!19 = !DILocation(line: 3, column: 8, scope: !18)
-!20 = distinct !DISubprogram(name: "get y", linkageName: "get y", scope: !9, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!21 = !DILocation(line: 4, column: 12, scope: !20)
-!22 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !9, file: !2, line: 6, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!23 = !DILocation(line: 6, column: 9, scope: !22)
+!14 = !DILocation(line: 0, scope: !9)
+!15 = !DILocation(line: 3, scope: !9)
+!16 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!17 = !DILocation(line: 0, column: 8, scope: !16)
+!18 = distinct !DISubprogram(name: "get x", linkageName: "get x", scope: !9, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!19 = !DILocation(line: 1, column: 12, scope: !18)
+!20 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !9, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!21 = !DILocation(line: 3, column: 8, scope: !20)
+!22 = distinct !DISubprogram(name: "get y", linkageName: "get y", scope: !9, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!23 = !DILocation(line: 4, column: 12, scope: !22)
+!24 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !9, file: !2, line: 6, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!25 = !DILocation(line: 6, column: 9, scope: !24)

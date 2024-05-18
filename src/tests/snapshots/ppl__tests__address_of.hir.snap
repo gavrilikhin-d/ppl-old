@@ -3,11 +3,12 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let x: Integer = 0
-`println <:Integer>`((x:Integer))
+`println <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)))
 let address: MemoryAddress = `address of <:Reference<Integer>>`((&x:Reference<Integer>))
 let x_mut_ref: ReferenceMut<Integer> = `<:Type<Integer>> at <:Reference<MemoryAddress>>`((Type<Integer>:Type<Integer>), (&address:Reference<MemoryAddress>))
 (x_mut_ref:ReferenceMut<Integer>) = 1
-`println <:Integer>`((x:Integer))
+`println <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)))
+`destroy <:ReferenceMut<Integer>>`((x:Integer))
 
 ==MONOMORPHIZED==
 

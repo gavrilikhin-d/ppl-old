@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use libc::{c_void, malloc, memcpy, size_t};
 
 use crate::{integer_from_i64, integer_from_u64, Integer, String, Type};
@@ -108,4 +110,14 @@ pub extern "C" fn copy_bytes(n: &Integer, src: &MemoryAddress, dst: &MemoryAddre
     let src = read_memory_impl(src);
     let n = n.as_ref().to_usize().unwrap() as size_t;
     unsafe { memcpy(dest, src, n) };
+}
+
+#[no_mangle]
+pub extern "C" fn increment_strong_count(ptr: *const c_void) {
+    unsafe { Arc::increment_strong_count(ptr) }
+}
+
+#[no_mangle]
+pub extern "C" fn decrement_strong_count(ptr: *const c_void) {
+    unsafe { Arc::decrement_strong_count(ptr) }
 }

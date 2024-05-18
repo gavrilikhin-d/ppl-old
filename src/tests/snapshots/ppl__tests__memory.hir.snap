@@ -5,20 +5,21 @@ expression: hir
 let address: MemoryAddress = `allocate <:Integer> <:Type<Integer>>`(1, (Type<Integer>:Type<Integer>))
 let x: ReferenceMut<Integer> = `<:Type<Integer>> at <:Reference<MemoryAddress>>`((Type<Integer>:Type<Integer>), (&address:Reference<MemoryAddress>))
 (x:ReferenceMut<Integer>) = 0
-`println <:Integer>`((*x:Integer))
+`println <:Integer>`(`clone <:Reference<Integer>>`((*x:Integer)))
 (x:ReferenceMut<Integer>) = 1
-`println <:Integer>`((*x:Integer))
+`println <:Integer>`(`clone <:Reference<Integer>>`((*x:Integer)))
 
 ==MONOMORPHIZED==
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4280: Integer = (ty:Type<Integer>).size
-	return ($tmp@4280:Integer)
+	let $tmp@4399: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4399:Integer)
 
 
 fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:
-	let $tmp@760: MemoryAddress = `allocate <:Integer> bytes`(`<:Integer> * <:Integer>`((n:Integer), `size of <:Type<Integer>>`((Type<Integer>:Type<Integer>))))
+	let $tmp@760: MemoryAddress = `allocate <:Integer> bytes`(`<:Integer> * <:Integer>`(`clone <:Reference<Integer>>`((n:Integer)), `size of <:Type<Integer>>`((Type<Integer>:Type<Integer>))))
+	`destroy <:ReferenceMut<Integer>>`((n:Integer))
 	return ($tmp@760:MemoryAddress)
 
 

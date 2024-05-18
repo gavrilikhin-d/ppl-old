@@ -9,13 +9,13 @@ let ty: Type<Integer> = `type of <:Integer>`(1)
 
 
 fn<Integer> type of <$arg0: Integer> -> Type<Integer>:
-	let $tmp@4337: Type<Integer> = (Type<Integer>:Type<Integer>)
-	return ($tmp@4337:Type<Integer>)
+	let $tmp@4456: Type<Integer> = (Type<Integer>:Type<Integer>)
+	return ($tmp@4456:Type<Integer>)
 
 
 fn<Integer> String from <ty: Type<Integer>> -> String:
-	let $tmp@4212: String = `clone <:Reference<String>>`((ty:Type<Integer>).name)
-	return ($tmp@4212:String)
+	let $tmp@4331: String = `clone <:Reference<String>>`((ty:Type<Integer>).name)
+	return ($tmp@4331:String)
 
 
 fn println <x: Type<Integer>> -> None:

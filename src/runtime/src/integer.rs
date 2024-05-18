@@ -2,7 +2,7 @@ use std::ffi::c_char;
 
 use rug::ops::Pow;
 
-use crate::{Rational, String};
+use crate::{decrement_strong_count, increment_strong_count, Rational, String};
 
 use std::sync::Arc;
 
@@ -15,7 +15,20 @@ use std::sync::Arc;
 /// type Integer
 /// ```
 #[repr(C)]
-pub struct Integer(*const rug::Integer);
+pub struct Integer(pub *const rug::Integer);
+
+impl Clone for Integer {
+    fn clone(&self) -> Self {
+        increment_strong_count(self.0 as *const _);
+        Self(self.0)
+    }
+}
+
+impl Drop for Integer {
+    fn drop(&mut self) {
+        decrement_strong_count(self.0 as *const _);
+    }
+}
 
 impl Integer {
     /// Get the inner value
@@ -204,19 +217,21 @@ pub extern "C" fn integer_mod_integer(x: Integer, y: Integer) -> Integer {
 
 /// # PPL
 /// ```no_run
-/// fn destroy <:Integer>
+/// fn destroy <:&mut Integer>
 /// ```
 #[no_mangle]
-pub extern "C" fn destroy_integer(x: Integer) {}
+pub extern "C" fn destroy_integer(x: &mut Integer) {
+    decrement_strong_count(x.0 as *const _);
+}
 
 /// # PPL
 /// ```no_run
 /// @mangle_as("clone_integer")
-/// fn clone <:Integer> -> Integer
+/// fn clone <:&Integer> -> Integer
 /// ```
 #[no_mangle]
-pub extern "C" fn clone_integer(x: Integer) -> Integer {
-    x
+pub extern "C" fn clone_integer(x: &Integer) -> Integer {
+    x.clone()
 }
 
 /// # PPL
