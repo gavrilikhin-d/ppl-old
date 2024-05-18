@@ -10,15 +10,15 @@ use crate::compilation::Compiler;
 use crate::from_decimal::FromDecimal;
 use crate::hir::{
     self, FunctionNamePart, Generic, GenericType, Member, ModuleData, Parameter, Specialize, Type,
-    TypeReference, Typed, Variable, VariableData,
+    TypeReference, Typed,
 };
-use crate::mutability::{Mutability, Mutable};
+use crate::mutability::Mutable;
 use crate::named::Named;
 use crate::semantics::clone::Clonner;
 use crate::semantics::{
     InsertDestructors, ParameterNamer, TemporariesInserter, TraitFunctionsLinker,
 };
-use crate::syntax::{Identifier, Keyword, Ranged};
+use crate::syntax::Ranged;
 use crate::{AddSourceLocation, ErrVec, SourceLocation, WithSourceLocation};
 
 use super::{
