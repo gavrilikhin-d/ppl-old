@@ -13,8 +13,8 @@ let x: ReferenceMut<Integer> = `<:Type<Integer>> at <:Reference<MemoryAddress>>`
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4399: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4399:Integer)
+	let $tmp@4252: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4252:Integer)
 
 
 fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:

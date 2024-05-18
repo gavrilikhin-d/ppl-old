@@ -16,8 +16,8 @@ let value: ReferenceMut<I32> = `<:Type<I32>> at <:Reference<MemoryAddress>>`((Ty
 
 
 fn<I32> size of <ty: Type<I32>> -> Integer:
-	let $tmp@4399: Integer = `clone <:Reference<Integer>>`((ty:Type<I32>).size)
-	return ($tmp@4399:Integer)
+	let $tmp@4252: Integer = `clone <:Reference<Integer>>`((ty:Type<I32>).size)
+	return ($tmp@4252:Integer)
 
 
 @mangle_as("read_memory")

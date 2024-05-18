@@ -81,9 +81,9 @@ define private ptr @"reference to mutable <:ReferenceMut<Integer>>"(ptr %0) !dbg
   %ref = alloca ptr, align 8
   store ptr %0, ptr %ref, align 8
   %2 = load ptr, ptr %ref, align 8, !dbg !24
-  %"$tmp@4747" = alloca ptr, align 8, !dbg !24
-  store ptr %2, ptr %"$tmp@4747", align 8, !dbg !24
-  %3 = load ptr, ptr %"$tmp@4747", align 8, !dbg !24
+  %"$tmp@4600" = alloca ptr, align 8, !dbg !24
+  store ptr %2, ptr %"$tmp@4600", align 8, !dbg !24
+  %3 = load ptr, ptr %"$tmp@4600", align 8, !dbg !24
   store ptr %3, ptr %return_value, align 8, !dbg !24
   br label %return, !dbg !24
 
