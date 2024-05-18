@@ -538,10 +538,10 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Call {
             .iter()
             .zip(self.function.read().unwrap().parameters().map(|p| p.ty()))
             .filter_map(|(arg, p)| {
-                if !p.is_any_reference() {
-                    arg.to_ir(context)
-                } else {
+                if p.is_any_reference() {
                     arg.lower_to_ir_without_load(context)
+                } else {
+                    arg.to_ir(context)
                 }
                 .map(|x| x.into())
             })
@@ -645,15 +645,7 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for Expression {
         context.set_debug_location(self.start());
 
         match self {
-            Expression::VariableReference(var) => {
-                let var = var.to_ir(context);
-                if var.is_none() {
-                    return None;
-                }
-
-                Some(var.unwrap().into())
-            }
-
+            Expression::VariableReference(var) => var.to_ir(context).map(Into::into),
             Expression::Literal(l) => l.to_ir(context),
             Expression::Call(call) => call.to_ir(context).try_as_basic_value().left(),
             Expression::TypeReference(_) => {

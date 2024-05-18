@@ -36,6 +36,7 @@
 ### Current task
 * [ ] Printable trait should take references
 ---
+* [ ] Fix problems with to_ir and loading references (especially globals). This causes issues in iterator
 * [ ] Benchmark for linear algebra
 * [ ] Sum of series benchmark
 * [ ] Use traits to check for `clone` and `destructoy` functions
