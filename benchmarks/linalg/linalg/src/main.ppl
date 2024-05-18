@@ -98,7 +98,7 @@ fn <a: &Matrix> + <b: &Matrix> -> Matrix:
 	let mut m = a.rows x a.columns Matrix
 	let mut i = 0
 	while i < m.data.size:
-		(m[0])[0] += a.data[i] + b.data[i]
+		m.data[i] += a.data[i] + b.data[i]
 		i += 1
 	return m
 
@@ -108,5 +108,6 @@ println e
 println 2.0 * e
 
 let mut a = 3 x 3 Matrix
-(a[0])[0] = 1.0
+(a[1])[0] = 1.0
 println a
+println a + e
