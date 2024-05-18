@@ -67,11 +67,8 @@ fn String from <x: Bool> -> String:
 //=================================
 //            Integer
 //=================================
-type IntegerImpl
-
 @builtin
-type Integer:
-	impl: Reference<IntegerImpl>
+type Integer
 
 @mangle_as("integer_eq_integer")
 fn <:Integer> == <:Integer> -> Bool
@@ -122,11 +119,8 @@ fn destroy <:&mut Integer>
 //=================================
 //            Rational
 //=================================
-type RationalImpl
-
 @builtin
-type Rational:
-	impl: Reference<RationalImpl>
+type Rational
 
 @mangle_as("rational_eq_rational")
 fn <:Rational> == <:Rational> -> Bool
@@ -165,11 +159,8 @@ fn clone <:&Rational> -> Rational
 //=================================
 //            String
 //=================================
-type StringImpl
-
 @builtin
-type String:
-	impl: Reference<StringImpl>
+type String
 
 /// Concatenate 2 strings
 @mangle_as("string_plus_string")
