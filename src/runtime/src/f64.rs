@@ -13,10 +13,7 @@ type F64 = f64;
 /// ```
 #[no_mangle]
 pub extern "C" fn f64_as_string(d: F64) -> String {
-    let boxed = Box::new(d.to_string());
-    String {
-        data: Box::into_raw(boxed),
-    }
+    d.to_string().into()
 }
 
 /// Negates f64
