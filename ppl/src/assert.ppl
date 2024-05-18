@@ -1,0 +1,4 @@
+use core.*
+
+@mangle_as("assert")
+fn assert <condition: Bool> <message: &String>
