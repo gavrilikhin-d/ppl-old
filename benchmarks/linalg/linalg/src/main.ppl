@@ -73,8 +73,40 @@ fn String from <m: Matrix> -> String:
 	str += "]"
 	return str
 
+fn Matrix with <diagonal: Array<Rational>> on diagonal -> Matrix:
+	let n = diagonal.size
+	let mut m = n x n Matrix
+	let mut i = 0
+	while i < n:
+		(m[i])[i] = diagonal[i]
+		i += 1
+	return m
+
+fn rank <n: Integer> identity Matrix -> Matrix:
+	return Matrix with (repeat 1.0 n times) on diagonal
+
+fn <a: &Rational> * <m: &Matrix> -> Matrix:
+	let mut n = m.rows x m.columns Matrix
+	let mut i = 0
+	while i < n.data.size:
+		n.data[i] = a * m.data[i]
+		i += 1
+	return n
+
+fn <a: &Matrix> + <b: &Matrix> -> Matrix:
+	assert (a.rows == b.rows and a.columns == b.columns) "Can't add matrices of different dimensions"
+	let mut m = a.rows x a.columns Matrix
+	let mut i = 0
+	while i < m.data.size:
+		(m[0])[0] += a.data[i] + b.data[i]
+		i += 1
+	return m
+
+let e = rank 3 identity Matrix
+println e
+
+println 2.0 * e
 
 let mut a = 3 x 3 Matrix
 (a[0])[0] = 1.0
 println a
-println (a[1])
