@@ -987,62 +987,40 @@ impl ReplaceWithTypeInfo for TypeReference {
             return self.clone().into();
         }
 
-        let name = self.type_for_type.name().to_string();
-        let variable = if let Some(var) = context.module().find_variable(&name) {
-            var
-        } else {
-            let var = Variable::new(VariableData {
-                keyword: Keyword::<"let">::at(self.start()),
-                mutability: Mutability::Immutable,
-                name: Identifier::from(name).at(self.start()),
-                ty: self.type_for_type.clone(),
-                type_reference: None,
-                initializer: Some(
-                    hir::Constructor {
-                        ty: hir::TypeReference {
-                            span: self.range(),
-                            referenced_type: self.type_for_type.clone(),
-                            type_for_type: context
-                                .builtin()
-                                .types()
-                                .type_of(self.type_for_type.clone()),
-                        },
-                        initializers: vec![
-                            hir::Initializer {
-                                span: 0..0,
-                                index: 0,
-                                member: self.type_for_type.members()[0].clone(),
-                                value: hir::Literal::String {
-                                    span: 0..0,
-                                    value: self.referenced_type.name().to_string(),
-                                    ty: context.builtin().types().string(),
-                                }
-                                .into(),
-                            },
-                            hir::Initializer {
-                                span: 0..0,
-                                index: 1,
-                                member: self.type_for_type.members()[1].clone(),
-                                value: hir::Literal::Integer {
-                                    span: 0..0,
-                                    value: self.referenced_type.size_in_bytes().into(),
-                                    ty: context.builtin().types().integer(),
-                                }
-                                .into(),
-                            },
-                        ],
-                        rbrace: self.end() - 1,
+        hir::Constructor {
+            ty: hir::TypeReference {
+                span: self.range(),
+                referenced_type: self.type_for_type.clone(),
+                type_for_type: context
+                    .builtin()
+                    .types()
+                    .type_of(self.type_for_type.clone()),
+            },
+            initializers: vec![
+                hir::Initializer {
+                    span: 0..0,
+                    index: 0,
+                    member: self.type_for_type.members()[0].clone(),
+                    value: hir::Literal::String {
+                        span: 0..0,
+                        value: self.referenced_type.name().to_string(),
+                        ty: context.builtin().types().string(),
                     }
                     .into(),
-                ),
-            });
-            context.module_mut().add_variable(var.clone());
-            var.into()
-        };
-
-        hir::VariableReference {
-            span: self.range(),
-            variable,
+                },
+                hir::Initializer {
+                    span: 0..0,
+                    index: 1,
+                    member: self.type_for_type.members()[1].clone(),
+                    value: hir::Literal::Integer {
+                        span: 0..0,
+                        value: self.referenced_type.size_in_bytes().into(),
+                        ty: context.builtin().types().integer(),
+                    }
+                    .into(),
+                },
+            ],
+            rbrace: self.end() - 1,
         }
         .into()
     }
