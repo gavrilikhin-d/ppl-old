@@ -5,18 +5,16 @@ expression: hir
 let x: Integer = 1
 
 fn get x -> Integer:
-	let $tmp@22: Integer = `clone <:Reference<Integer>>`((x:Integer))
+	let $tmp@22: Integer = (x:Integer)
 	return ($tmp@22:Integer)
 
 let y: Integer = `get x`()
 
 fn get y -> Integer:
-	let $tmp@51: Integer = `clone <:Reference<Integer>>`((y:Integer))
+	let $tmp@51: Integer = (y:Integer)
 	return ($tmp@51:Integer)
 
-`println <:Integer>`(`clone <:Reference<Integer>>`((y:Integer)))
-`destroy <:ReferenceMut<Integer>>`((x:Integer))
-`destroy <:ReferenceMut<Integer>>`((y:Integer))
+`println <:Integer>`((y:Integer))
 
 ==MONOMORPHIZED==
 

@@ -3,15 +3,12 @@ source: src/tests/mod.rs
 expression: hir
 ---
 fn <x: Integer> plus two -> Integer:
-	let $tmp@28: Integer = `sum <:Integer> <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)), 2)
-	`destroy <:ReferenceMut<Integer>>`((x:Integer))
+	let $tmp@28: Integer = `sum <:Integer> <:Integer>`((x:Integer), 2)
 	return ($tmp@28:Integer)
 
 
 fn sum <x: Integer> <y: Integer> -> Integer:
-	let $tmp@84: Integer = `<:Integer> + <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)), `clone <:Reference<Integer>>`((y:Integer)))
-	`destroy <:ReferenceMut<Integer>>`((x:Integer))
-	`destroy <:ReferenceMut<Integer>>`((y:Integer))
+	let $tmp@84: Integer = `<:Integer> + <:Integer>`((x:Integer), (y:Integer))
 	return ($tmp@84:Integer)
 
 `println <:Integer>`(`<:Integer> plus two`(2))

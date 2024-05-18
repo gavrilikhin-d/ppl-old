@@ -36,26 +36,22 @@ declare %Integer @integer_from_i64(i64)
 define void @main.execute() !dbg !9 {
   call void @initialize(), !dbg !10
   call void @initialize.1(), !dbg !11
-  call void @destroy_integer(ptr @if), !dbg !12
-  %1 = call %Integer @integer_from_i64(i64 2), !dbg !13
-  store %Integer %1, ptr @if, align 8, !dbg !13
-  call void @destroy_integer(ptr @if), !dbg !14
+  %1 = call %Integer @integer_from_i64(i64 2), !dbg !12
+  store %Integer %1, ptr @if, align 8, !dbg !12
+  br label %return, !dbg !12
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define private void @initialize.1() !dbg !13 {
+  %1 = call %Integer @integer_from_i64(i64 1), !dbg !14
+  store %Integer %1, ptr @if, align 8, !dbg !14
   br label %return, !dbg !14
 
 return:                                           ; preds = %0
   ret void
 }
-
-define private void @initialize.1() !dbg !15 {
-  %1 = call %Integer @integer_from_i64(i64 1), !dbg !16
-  store %Integer %1, ptr @if, align 8, !dbg !16
-  br label %return, !dbg !16
-
-return:                                           ; preds = %0
-  ret void
-}
-
-declare void @destroy_integer(ptr)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
@@ -72,8 +68,6 @@ declare void @destroy_integer(ptr)
 !9 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !10 = !DILocation(line: 1, column: 8, scope: !9)
 !11 = !DILocation(line: 0, column: 15, scope: !9)
-!12 = !DILocation(line: 1, scope: !9)
-!13 = !DILocation(line: 1, column: 7, scope: !9)
-!14 = !DILocation(line: 0, scope: !9)
-!15 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!16 = !DILocation(line: 0, column: 15, scope: !15)
+!12 = !DILocation(line: 1, column: 7, scope: !9)
+!13 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!14 = !DILocation(line: 0, column: 15, scope: !13)

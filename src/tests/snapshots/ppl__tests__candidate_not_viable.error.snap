@@ -39,12 +39,12 @@ Advice:   ☞ candidate is not viable
         × expected `Rational` type, got `Integer`
       
       Error:   × Rational
-           ╭─[core.ppl:143:19]
-       142 │ @mangle_as("rational_plus_rational")
-       143 │ fn <:Rational> + <:Rational> -> Rational
+           ╭─[core.ppl:137:19]
+       136 │ @mangle_as("rational_plus_rational")
+       137 │ fn <:Rational> + <:Rational> -> Rational
            ·                   ▲
            ·                   ╰── this has `Rational` type
-       144 │
+       138 │
            ╰────
       Error:   × Integer
          ╭─[main.ppl:1:7]
@@ -59,12 +59,12 @@ Advice:   ☞ candidate is not viable
         × expected `String` type, got `Rational`
       
       Error:   × String
-           ╭─[core.ppl:176:5]
-       175 │ @mangle_as("string_plus_string")
-       176 │ fn <:String> + <:String> -> String
+           ╭─[core.ppl:170:5]
+       169 │ @mangle_as("string_plus_string")
+       170 │ fn <:String> + <:String> -> String
            ·     ▲
            ·     ╰── this has `String` type
-       177 │
+       171 │
            ╰────
       Error:   × Rational
          ╭─[main.ppl:1:1]

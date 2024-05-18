@@ -94,9 +94,9 @@ define private %String @"String from <:Type<A>>"(%"Type<A>" %0) !dbg !20 {
   store %"Type<A>" %0, ptr %ty, align 8
   %name = getelementptr inbounds %"Type<A>", ptr %ty, i32 0, i32 0, !dbg !21
   %2 = call %String @clone_string(ptr %name), !dbg !21
-  %"$tmp@4331" = alloca %String, align 8, !dbg !21
-  store %String %2, ptr %"$tmp@4331", align 8, !dbg !21
-  %3 = load %String, ptr %"$tmp@4331", align 8, !dbg !21
+  %"$tmp@4212" = alloca %String, align 8, !dbg !21
+  store %String %2, ptr %"$tmp@4212", align 8, !dbg !21
+  %3 = load %String, ptr %"$tmp@4212", align 8, !dbg !21
   store %String %3, ptr %return_value, align 8, !dbg !21
   br label %return, !dbg !21
 
@@ -112,9 +112,9 @@ define private %"Type<A>" @"type of <:A>"(ptr %0) !dbg !22 {
   %"$arg0" = alloca ptr, align 8
   store ptr %0, ptr %"$arg0", align 8
   %2 = load %"Type<A>", ptr @"Type<A>", align 8, !dbg !23
-  %"$tmp@4456" = alloca %"Type<A>", align 8, !dbg !23
-  store %"Type<A>" %2, ptr %"$tmp@4456", align 8, !dbg !23
-  %3 = load %"Type<A>", ptr %"$tmp@4456", align 8, !dbg !23
+  %"$tmp@4337" = alloca %"Type<A>", align 8, !dbg !23
+  store %"Type<A>" %2, ptr %"$tmp@4337", align 8, !dbg !23
+  %3 = load %"Type<A>", ptr %"$tmp@4337", align 8, !dbg !23
   store %"Type<A>" %3, ptr %return_value, align 8, !dbg !23
   br label %return, !dbg !23
 

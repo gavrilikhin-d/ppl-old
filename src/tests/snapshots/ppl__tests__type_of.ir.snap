@@ -79,9 +79,9 @@ define private %"Type<Integer>" @"type of <:Integer>"(%Integer %0) !dbg !18 {
   %"$arg0" = alloca %Integer, align 8
   store %Integer %0, ptr %"$arg0", align 8
   %2 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !19
-  %"$tmp@4456" = alloca %"Type<Integer>", align 8, !dbg !19
-  store %"Type<Integer>" %2, ptr %"$tmp@4456", align 8, !dbg !19
-  %3 = load %"Type<Integer>", ptr %"$tmp@4456", align 8, !dbg !19
+  %"$tmp@4337" = alloca %"Type<Integer>", align 8, !dbg !19
+  store %"Type<Integer>" %2, ptr %"$tmp@4337", align 8, !dbg !19
+  %3 = load %"Type<Integer>", ptr %"$tmp@4337", align 8, !dbg !19
   store %"Type<Integer>" %3, ptr %return_value, align 8, !dbg !19
   br label %return, !dbg !19
 
@@ -110,9 +110,9 @@ define private %String @"String from <:Type<Integer>>"(%"Type<Integer>" %0) !dbg
   store %"Type<Integer>" %0, ptr %ty, align 8
   %name = getelementptr inbounds %"Type<Integer>", ptr %ty, i32 0, i32 0, !dbg !23
   %2 = call %String @clone_string(ptr %name), !dbg !23
-  %"$tmp@4331" = alloca %String, align 8, !dbg !23
-  store %String %2, ptr %"$tmp@4331", align 8, !dbg !23
-  %3 = load %String, ptr %"$tmp@4331", align 8, !dbg !23
+  %"$tmp@4212" = alloca %String, align 8, !dbg !23
+  store %String %2, ptr %"$tmp@4212", align 8, !dbg !23
+  %3 = load %String, ptr %"$tmp@4212", align 8, !dbg !23
   store %String %3, ptr %return_value, align 8, !dbg !23
   br label %return, !dbg !23
 

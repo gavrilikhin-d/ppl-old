@@ -7,9 +7,8 @@ type Point<T>:
 	y: T
 
 let p: Point<Integer> = Point<Integer> { x: 1, y: 2 }
-let x: Integer = `clone <:Reference<Integer>>`((p:Point<Integer>).x)
-`println <:Bool>`(`<:Integer> == <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)), 1))
-`destroy <:ReferenceMut<Integer>>`((x:Integer))
+let x: Integer = (p:Point<Integer>).x
+`println <:Bool>`(`<:Integer> == <:Integer>`((x:Integer), 1))
 
 ==MONOMORPHIZED==
 

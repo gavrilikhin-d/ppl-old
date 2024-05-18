@@ -3,6 +3,4 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let mut if: Integer = 1
-`destroy <:ReferenceMut<Integer>>`((if:Integer))
 (if:Integer) = 2
-`destroy <:ReferenceMut<Integer>>`((if:Integer))

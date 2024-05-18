@@ -3,12 +3,11 @@ source: src/tests/mod.rs
 expression: hir
 ---
 fn foo <x: Reference<Integer>> -> None:
-	let $tmp@24: None = `println <:Integer>`(`clone <:Reference<Integer>>`((*x:Integer)))
+	let $tmp@24: None = `println <:Integer>`((*x:Integer))
 	return ($tmp@24:None)
 
 let $tmp@39: Integer = 42
 `foo <:Reference<Integer>>`((&$tmp@39:Reference<Integer>))
-`destroy <:ReferenceMut<Integer>>`(($tmp@39:Integer))
 
 ==MONOMORPHIZED==
 
