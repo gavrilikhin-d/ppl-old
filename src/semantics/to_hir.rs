@@ -607,6 +607,7 @@ impl ToHIR for ast::Assignment {
         let target = self.target.to_hir(context)?;
         if target.is_immutable() {
             return Err(AssignmentToImmutable {
+                ty: target.ty(),
                 at: self.target.range().into(),
             }
             .into());

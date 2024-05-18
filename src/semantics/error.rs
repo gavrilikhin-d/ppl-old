@@ -55,8 +55,10 @@ pub struct UnknownAnnotation {
 #[error("assignment to immutable")]
 #[diagnostic(code(semantics::assignment_to_immutable))]
 pub struct AssignmentToImmutable {
+    /// Type of immutable thing
+    pub ty: Type,
     /// Span of immutable thing
-    #[label("this value is immutable")]
+    #[label("this value is an immutable `{ty}`")]
     pub at: SourceSpan,
 }
 
