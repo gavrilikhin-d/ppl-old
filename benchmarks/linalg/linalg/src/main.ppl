@@ -102,11 +102,57 @@ fn <a: &Matrix> + <b: &Matrix> -> Matrix:
 		i += 1
 	return m
 
-let e = rank 3 identity Matrix
-println e
+fn <a: Matrix> * <b: Matrix> -> Matrix:
+	assert a.columns == b.rows "Can't multiply matrices of incompatible dimensions"
+	let mut n = a.rows x b.columns Matrix
+	let mut i = 0
+	while i < a.rows:
+		let mut j = 0
+		while j < b.columns:
+			let mut k = 0
+			while k < a.columns:
+				(n[i])[j] += (a[i])[k] * (b[k])[j]
+				k += 1
+			j += 1
+		i += 1
+	return n
 
-println 2.0 * e
+fn transposed <m: Matrix> -> Matrix:
+	let columns = m.columns
+	let rows = m.rows
+	let mut n = columns x rows Matrix
+	let mut i = 0
+	while i < rows:
+		let mut j = 0
+		while j < columns:
+			(n[j])[i] = (m[i])[j]
+			j += 1
+		i += 1
+	return n
 
-let mut a = 3 x 3 Matrix
-(a[0])[0] = 1.0
-println a
+fn Matrix from <array: Array<Rational>> -> Matrix:
+	let mut rows = 1
+	if data is empty:
+		rows = 0
+	return Matrix { rows, columns: data.size, data }
+
+fn Vector from <data: Array<Rational>> -> Matrix:
+	let row = Matrix from data
+	return transposed row
+
+// let e = rank 3 identity Matrix
+// println e
+
+// println 2.0 * e
+let ones = repeat 1.0 3 times
+println (Vector from ones)
+
+// fn run code:
+// 	let mut a = rank 3 identity Matrix
+// 	(a[0])[1] = 1.0
+// 	println a
+// 	let b = transposed a
+// 	println b
+// 	println a * b
+
+// run code
