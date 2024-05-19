@@ -151,21 +151,30 @@ fn <rows: Integer> x <columns: Integer> Hilbert Matrix -> Matrix:
 		i += 1
 	return m
 
+fn add <a: RowSlice> to <b: MutRowSlice>:
+	assert a.matrix.columns == b.matrix.columns "Can't add rows of different lengths"
+	let n = a.matrix.columns
+	let mut i = 0
+	while i < n:
+		b[i] += a[i]
+		i += 1
+
+fn add <a: MutRowSlice> to <b: MutRowSlice>:
+	add (RowSlice from a) to b
+
 
 fn gauss <a: Matrix> <b: Matrix> -> Matrix:
 	assert a.rows == a.columns "Matrix must be square"
 	assert a.rows == b.rows "Matrix and vector must have the same number of rows"
-	let n = a.rows
 	return b
 
 // let m = 3 x 3 Hilbert Matrix
 // print m
 
 fn run code:
-	let mut a = 1
-	let mut b = 2
-	swap a and b
-	print a
-	print b
+	let mut e = rank 3 identity Matrix
+	add e[0] to e[1]
+	add e[1] to e[2]
+	println e
 
 run code
