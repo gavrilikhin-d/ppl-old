@@ -28,7 +28,7 @@ impl Clone for Rational {
 
 impl Drop for Rational {
     fn drop(&mut self) {
-        let _ = unsafe { Box::from_raw(self.data) };
+        // let _ = unsafe { Box::from_raw(self.data) };
     }
 }
 

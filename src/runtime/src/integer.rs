@@ -28,7 +28,7 @@ impl Clone for Integer {
 
 impl Drop for Integer {
     fn drop(&mut self) {
-        let _ = unsafe { Box::from_raw(self.data) };
+        // let _ = unsafe { Box::from_raw(self.data) };
     }
 }
 
