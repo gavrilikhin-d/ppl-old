@@ -560,19 +560,23 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Constructor {
             .expect("non-basic type constructor");
         let alloca = context.builder.build_alloca(ty, "").unwrap();
 
-        let ptr = context
-            .builder
-            .build_struct_gep(
-                ty,
-                alloca,
-                0,
-                format!("{}.data", self.ty.referenced_type.name()).as_str(),
-            )
-            .unwrap();
+        let ptr = context.builder.build_struct_gep(ty, alloca, 0, "").unwrap();
         let data_ty = context
             .types()
             .arc_data(&self.ty.referenced_type.name())
             .unwrap();
+        let arc = context
+            .builder
+            .build_call(
+                context.functions().create_arc(),
+                &[data_ty.size_of().unwrap().into()],
+                "",
+            )
+            .unwrap()
+            .try_as_basic_value()
+            .left()
+            .unwrap();
+        context.builder.build_store(ptr, arc).unwrap();
         for init in self.initializers.iter().filter(|i| !i.value.ty().is_none()) {
             let field = context
                 .builder

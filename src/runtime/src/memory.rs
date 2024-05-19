@@ -110,6 +110,12 @@ pub extern "C" fn copy_bytes(n: &Integer, src: &MemoryAddress, dst: &MemoryAddre
 }
 
 #[no_mangle]
+pub extern "C" fn create_arc(bytes: usize) -> *const c_void {
+    let bytes = unsafe { Arc::<[u8]>::new_zeroed_slice(bytes).assume_init() };
+    Arc::into_raw(bytes) as *const c_void
+}
+
+#[no_mangle]
 pub extern "C" fn increment_strong_count(ptr: *const c_void) {
     unsafe { Arc::increment_strong_count(ptr) }
 }

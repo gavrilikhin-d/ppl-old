@@ -1,3 +1,5 @@
+#![feature(new_uninit)]
+
 mod r#f64;
 pub use r#f64::*;
 
