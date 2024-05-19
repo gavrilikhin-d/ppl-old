@@ -10,13 +10,13 @@ let a: A = A {  }
 
 
 fn<A> type of <$arg0: A> -> Type<A>:
-	let $tmp@4483: Type<A> = Type<A> { name: "A", size: 8 }
-	return ($tmp@4483:Type<A>)
+	let $tmp@4639: Type<A> = (Type<A>:Type<A>)
+	return ($tmp@4639:Type<A>)
 
 
 fn<A> String from <ty: Type<A>> -> String:
-	let $tmp@4358: String = `clone <:Reference<String>>`((ty:Type<A>).name)
-	return ($tmp@4358:String)
+	let $tmp@4514: String = `clone <:Reference<String>>`((ty:Type<A>).name)
+	return ($tmp@4514:String)
 
 
 fn println <x: Type<A>> -> None:

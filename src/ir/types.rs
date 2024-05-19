@@ -1,6 +1,6 @@
 use inkwell::{
     context::ContextRef,
-    types::{BasicTypeEnum, FloatType, IntType, PointerType, StructType, VoidType},
+    types::{FloatType, IntType, PointerType, StructType, VoidType},
     AddressSpace,
 };
 
@@ -71,24 +71,14 @@ impl<'llvm> Types<'llvm> {
     }
 
     /// Get wrapper around pointer to opaque impl
-    pub fn arc(&self, name: &str, field_types: &[BasicTypeEnum<'llvm>]) -> StructType<'llvm> {
+    fn with_impl(&self, name: &str) -> StructType<'llvm> {
         if let Some(ty) = self.llvm.get_struct_type(name) {
             return ty;
         }
 
-        let data_ty = self.llvm.opaque_struct_type(&format!("{name}Impl"));
-        if !field_types.is_empty() {
-            data_ty.set_body(field_types, false);
-        }
-
         let ty = self.llvm.opaque_struct_type(name);
-        ty.set_body(&[self.pointer().into()], false);
+        ty.set_body(&[self.opaque(&format!("{name}Impl")).into()], false);
         ty
-    }
-
-    /// Get LLVM struct type for data of ARC type
-    pub fn arc_data(&self, name: &str) -> Option<StructType<'llvm>> {
-        self.llvm.get_struct_type(&format!("{name}Impl"))
     }
 
     /// LLVM IR for [`Class`](Type::Class) type
@@ -104,17 +94,17 @@ impl<'llvm> Types<'llvm> {
 
     /// LLVM IR for [`Integer`](Type::Integer) type
     pub fn integer(&self) -> StructType<'llvm> {
-        self.arc("Integer", &[])
+        self.with_impl("Integer")
     }
 
     /// LLVM IR for `Rational` type
     pub fn rational(&self) -> StructType<'llvm> {
-        self.arc("Rational", &[])
+        self.with_impl("Rational")
     }
 
     /// LLVM IR for [`String`](Type::String) type
     pub fn string(&self) -> StructType<'llvm> {
-        self.arc("String", &[])
+        self.with_impl("String")
     }
 
     /// LLVM IR for C string type

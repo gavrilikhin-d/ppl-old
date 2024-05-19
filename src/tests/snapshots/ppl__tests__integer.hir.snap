@@ -2,7 +2,7 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-`println <:Integer>`(`default <:Type<Integer>>`(Type<Integer> { name: "Integer", size: 8 }))
+`println <:Integer>`(`default <:Type<Integer>>`((Type<Integer>:Type<Integer>)))
 `println <:Integer>`(`+ <:Integer>`(1))
 `println <:Integer>`(`- <:Integer>`(2))
 `println <:Integer>`(`<:Integer> + <:Integer>`(2, 1))

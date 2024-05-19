@@ -71,9 +71,13 @@ fn String from <x: Bool> -> String:
 //=================================
 //            Integer
 //=================================
-@builtin
-type Integer
+type IntegerImpl
 
+@builtin
+type Integer:
+	impl: Reference<IntegerImpl>
+
+@builtin
 fn default <:Type<Integer>> => 0
 
 @mangle_as("integer_eq_integer")
@@ -115,18 +119,21 @@ fn <x: Integer> % <y: Integer> -> Integer
 @mangle_as("integer_as_string")
 fn String from <:Integer> -> String
 
-@mangle_as("clone_integer")
-fn clone <:&Integer> -> Integer
-
 @mangle_as("destroy_integer")
 fn destroy <:&mut Integer>
+
+@mangle_as("clone_integer")
+fn clone <:&Integer> -> Integer
 //---------------------------------
 
 //=================================
 //            Rational
 //=================================
+type RationalImpl
+
 @builtin
-type Rational
+type Rational:
+	impl: Reference<RationalImpl>
 
 fn default <:Type<Rational>> => 0.0
 
@@ -167,8 +174,11 @@ fn clone <:&Rational> -> Rational
 //=================================
 //            String
 //=================================
+type StringImpl
+
 @builtin
-type String
+type String:
+	impl: Reference<StringImpl>
 
 fn default <:Type<String>> => ""
 

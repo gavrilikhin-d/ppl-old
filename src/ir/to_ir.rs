@@ -247,16 +247,24 @@ impl<'llvm, C: Context<'llvm>> ToIR<'llvm, C> for ClassData {
             return context.types().f64().into();
         }
 
-        if self.is_any_reference() {
+        if self.members.is_empty() {
             return context.types().opaque(&self.basename).into();
         }
 
-        let field_types = self
-            .members
-            .iter()
-            .filter_map(|m| m.ty().to_ir(context).try_into_basic_type().ok())
-            .collect::<Vec<_>>();
-        context.types().arc(&self.name(), &field_types).into()
+        if let Some(ty) = context.llvm().get_struct_type(&self.name()) {
+            return ty.into();
+        }
+
+        let ty = context.llvm().opaque_struct_type(&self.name());
+        ty.set_body(
+            self.members
+                .iter()
+                .filter_map(|m| m.ty().to_ir(context).try_into_basic_type().ok())
+                .collect::<Vec<_>>()
+                .as_slice(),
+            false,
+        );
+        ty.into()
     }
 }
 
@@ -559,30 +567,12 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Constructor {
             .try_into_basic_type()
             .expect("non-basic type constructor");
         let alloca = context.builder.build_alloca(ty, "").unwrap();
-
-        let ptr = context.builder.build_struct_gep(ty, alloca, 0, "").unwrap();
-        let data_ty = context
-            .types()
-            .arc_data(&self.ty.referenced_type.name())
-            .unwrap();
-        let arc = context
-            .builder
-            .build_call(
-                context.functions().create_arc(),
-                &[data_ty.size_of().unwrap().into()],
-                "",
-            )
-            .unwrap()
-            .try_as_basic_value()
-            .left()
-            .unwrap();
-        context.builder.build_store(ptr, arc).unwrap();
         for init in self.initializers.iter().filter(|i| !i.value.ty().is_none()) {
             let field = context
                 .builder
                 .build_struct_gep(
-                    data_ty,
-                    ptr,
+                    ty,
+                    alloca,
                     init.index as u32,
                     format!("{}.{}", self.ty.referenced_type.name(), init.member.name()).as_str(),
                 )
@@ -618,16 +608,10 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for MemberReference 
 
         let base = base.unwrap().into_pointer_value();
         let ty = self.base.ty().to_ir(context).try_into_basic_type().unwrap();
-        let ptr = context
-            .builder
-            .build_struct_gep(ty, base, 0, "")
-            .unwrap()
-            .into();
-        let data_ty = context.types().arc_data(&self.base.ty().name()).unwrap();
         Some(
             context
                 .builder
-                .build_struct_gep(data_ty, ptr, self.index as u32, &self.member.name())
+                .build_struct_gep(ty, base, self.index as u32, &self.member.name())
                 .unwrap()
                 .into(),
         )

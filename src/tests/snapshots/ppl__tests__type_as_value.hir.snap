@@ -2,22 +2,22 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-`println <:Bool>`(`<:Integer> == <:Integer>`(`size of <:Type<None>>`(Type<None> { name: "None", size: 0 }), 0))
-`println <:Bool>`(`<:Integer> == <:Integer>`(`size of <:Type<Bool>>`(Type<Bool> { name: "Bool", size: 1 }), 1))
-`println <:String>`(`String from <:Type<None>>`(Type<None> { name: "None", size: 0 }))
-`println <:String>`(`String from <:Type<Type<Integer>>>`(Type<Type<Integer>> { name: "Type<Integer>", size: 8 }))
-let x: Type<Integer> = Type<Integer> { name: "Integer", size: 8 }
-let y: Integer = `clone <:Reference<Integer>>`(Type<Integer> { name: "Integer", size: 8 }.size)
-`println <:Bool>`(`<:Integer> == <:Integer>`(`clone <:Reference<Integer>>`((y:Integer)), `size of <:Type<Integer>>`(Type<Integer> { name: "Integer", size: 8 })))
-`println <:Type<Integer>>`(Type<Integer> { name: "Integer", size: 8 })
+`println <:Bool>`(`<:Integer> == <:Integer>`(`size of <:Type<None>>`((Type<None>:Type<None>)), 0))
+`println <:Bool>`(`<:Integer> == <:Integer>`(`size of <:Type<Bool>>`((Type<Bool>:Type<Bool>)), 1))
+`println <:String>`(`String from <:Type<None>>`((Type<None>:Type<None>)))
+`println <:String>`(`String from <:Type<Type<Integer>>>`((Type<Type<Integer>>:Type<Type<Integer>>)))
+let x: Type<Integer> = (Type<Integer>:Type<Integer>)
+let y: Integer = `clone <:Reference<Integer>>`((Type<Integer>:Type<Integer>).size)
+`println <:Bool>`(`<:Integer> == <:Integer>`(`clone <:Reference<Integer>>`((y:Integer)), `size of <:Type<Integer>>`((Type<Integer>:Type<Integer>))))
+`println <:Type<Integer>>`((Type<Integer>:Type<Integer>))
 `destroy <:ReferenceMut<Integer>>`((y:Integer))
 
 ==MONOMORPHIZED==
 
 
 fn<None> size of <ty: Type<None>> -> Integer:
-	let $tmp@4426: Integer = `clone <:Reference<Integer>>`((ty:Type<None>).size)
-	return ($tmp@4426:Integer)
+	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<None>).size)
+	return ($tmp@4582:Integer)
 
 
 fn String from <x: Bool> -> String:
@@ -36,8 +36,8 @@ fn println <x: Bool> -> None:
 
 
 fn<Bool> size of <ty: Type<Bool>> -> Integer:
-	let $tmp@4426: Integer = `clone <:Reference<Integer>>`((ty:Type<Bool>).size)
-	return ($tmp@4426:Integer)
+	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<Bool>).size)
+	return ($tmp@4582:Integer)
 
 
 fn String from <x: Bool> -> String:
@@ -56,18 +56,18 @@ fn println <x: Bool> -> None:
 
 
 fn<None> String from <ty: Type<None>> -> String:
-	let $tmp@4358: String = `clone <:Reference<String>>`((ty:Type<None>).name)
-	return ($tmp@4358:String)
+	let $tmp@4514: String = `clone <:Reference<String>>`((ty:Type<None>).name)
+	return ($tmp@4514:String)
 
 
 fn<Type<Integer>> String from <ty: Type<Type<Integer>>> -> String:
-	let $tmp@4358: String = `clone <:Reference<String>>`((ty:Type<Type<Integer>>).name)
-	return ($tmp@4358:String)
+	let $tmp@4514: String = `clone <:Reference<String>>`((ty:Type<Type<Integer>>).name)
+	return ($tmp@4514:String)
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4426: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4426:Integer)
+	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4582:Integer)
 
 
 fn String from <x: Bool> -> String:
@@ -86,8 +86,8 @@ fn println <x: Bool> -> None:
 
 
 fn<Integer> String from <ty: Type<Integer>> -> String:
-	let $tmp@4358: String = `clone <:Reference<String>>`((ty:Type<Integer>).name)
-	return ($tmp@4358:String)
+	let $tmp@4514: String = `clone <:Reference<String>>`((ty:Type<Integer>).name)
+	return ($tmp@4514:String)
 
 
 fn println <x: Type<Integer>> -> None:

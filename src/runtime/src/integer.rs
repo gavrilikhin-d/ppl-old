@@ -2,38 +2,40 @@ use std::ffi::c_char;
 
 use rug::ops::Pow;
 
-use crate::{decrement_strong_count, increment_strong_count, Rational, String};
-
-use std::sync::Arc;
+use crate::{Rational, String};
 
 /// Big integer number.
 /// Wrapper around pointer to [`rug::Integer`].
 ///
 /// # PPL
 /// ```no_run
+/// type IntegerImpl
+///
 /// @builtin
-/// type Integer
+/// type Integer:
+///     impl: Reference<IntegerImpl>
 /// ```
 #[repr(C)]
-pub struct Integer(pub *const rug::Integer);
+pub struct Integer {
+    pub data: *mut rug::Integer,
+}
 
 impl Clone for Integer {
     fn clone(&self) -> Self {
-        increment_strong_count(self.0 as *const _);
-        Self(self.0)
+        self.as_ref().into()
     }
 }
 
 impl Drop for Integer {
     fn drop(&mut self) {
-        decrement_strong_count(self.0 as *const _);
+        let _ = unsafe { Box::from_raw(self.data) };
     }
 }
 
 impl Integer {
     /// Get the inner value
     pub fn as_ref(&self) -> &rug::Integer {
-        unsafe { &*self.0 }
+        unsafe { &*self.data }
     }
 }
 
@@ -42,8 +44,10 @@ where
     rug::Integer: From<T>,
 {
     fn from(x: T) -> Self {
-        let this = Arc::new(rug::Integer::from(x));
-        Self(Arc::into_raw(this))
+        let this = Box::new(rug::Integer::from(x));
+        Self {
+            data: Box::into_raw(this),
+        }
     }
 }
 
@@ -215,7 +219,7 @@ pub extern "C" fn integer_mod_integer(x: Integer, y: Integer) -> Integer {
 /// ```
 #[no_mangle]
 pub extern "C" fn destroy_integer(x: &mut Integer) {
-    decrement_strong_count(x.0 as *const _);
+    let _ = unsafe { Box::from_raw(x.data) };
 }
 
 /// # PPL

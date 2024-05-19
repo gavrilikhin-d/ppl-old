@@ -1,8 +1,8 @@
-use std::{ffi::c_char, sync::Arc};
+use std::ffi::c_char;
 
 use rug::{ops::Pow, Integer};
 
-use crate::{decrement_strong_count, increment_strong_count, String};
+use crate::String;
 
 /// Rational number.
 /// Wrapper around pointer to [`rug::Rational`].
@@ -16,25 +16,26 @@ use crate::{decrement_strong_count, increment_strong_count, String};
 ///     impl: Reference<RationalImpl>
 /// ```
 #[repr(C)]
-pub struct Rational(pub *const rug::Rational);
+pub struct Rational {
+    pub data: *mut rug::Rational,
+}
 
 impl Clone for Rational {
     fn clone(&self) -> Self {
-        increment_strong_count(self.0 as *const _);
-        Self(self.0)
+        self.as_ref().into()
     }
 }
 
 impl Drop for Rational {
     fn drop(&mut self) {
-        decrement_strong_count(self.0 as *const _);
+        let _ = unsafe { Box::from_raw(self.data) };
     }
 }
 
 impl Rational {
     /// Get the inner value
     pub fn as_ref(&self) -> &rug::Rational {
-        unsafe { &*self.0 }
+        unsafe { &*self.data }
     }
 }
 
@@ -43,8 +44,10 @@ where
     rug::Rational: From<T>,
 {
     fn from(x: T) -> Self {
-        let this = Arc::new(rug::Rational::from(x));
-        Self(Arc::into_raw(this))
+        let this = Box::new(rug::Rational::from(x));
+        Self {
+            data: Box::into_raw(this),
+        }
     }
 }
 
@@ -156,7 +159,7 @@ pub extern "C" fn rational_less_rational(x: Rational, y: Rational) -> bool {
 /// ```
 #[no_mangle]
 pub extern "C" fn destroy_rational(x: &mut Rational) {
-    decrement_strong_count(x.0 as *const _);
+    let _ = unsafe { Box::from_raw(x.data) };
 }
 
 /// # PPL

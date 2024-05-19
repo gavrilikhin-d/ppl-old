@@ -1,6 +1,4 @@
-use std::{ffi::c_char, io::Write, sync::Arc};
-
-use crate::{decrement_strong_count, increment_strong_count};
+use std::{ffi::c_char, io::Write};
 
 /// PPL's String type.
 /// Wrapper around pointer to [`std::string::String`].
@@ -14,25 +12,26 @@ use crate::{decrement_strong_count, increment_strong_count};
 ///     impl: Reference<StringImpl>
 /// ```
 #[repr(C)]
-pub struct String(pub *const std::string::String);
+pub struct String {
+    pub data: *mut std::string::String,
+}
 
 impl Clone for String {
     fn clone(&self) -> Self {
-        increment_strong_count(self.0 as *const _);
-        Self(self.0)
+        self.as_ref().into()
     }
 }
 
 impl Drop for String {
     fn drop(&mut self) {
-        decrement_strong_count(self.0 as *const _);
+        let _ = unsafe { Box::from_raw(self.data) };
     }
 }
 
 impl String {
     /// Get the inner value
     pub fn as_ref(&self) -> &std::string::String {
-        unsafe { &*self.0 }
+        unsafe { &*self.data }
     }
 }
 
@@ -41,8 +40,10 @@ where
     std::string::String: From<T>,
 {
     fn from(x: T) -> Self {
-        let this = Arc::new(std::string::String::from(x));
-        Self(Arc::into_raw(this))
+        let this = Box::new(std::string::String::from(x));
+        Self {
+            data: Box::into_raw(this),
+        }
     }
 }
 
@@ -89,7 +90,7 @@ pub extern "C" fn print_string(str: String) {
 /// ```
 #[no_mangle]
 pub extern "C" fn destroy_string(x: &mut String) {
-    decrement_strong_count(x.0 as *const _);
+    let _ = unsafe { Box::from_raw(x.data) };
 }
 
 /// # PPL
