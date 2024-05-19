@@ -3,8 +3,6 @@ use core.*
 @builtin
 type F64
 
-fn default <:Type<F64>> => F64 from 0.0
-
 fn + <x: F64> => x
 
 @mangle_as("minus_f64")

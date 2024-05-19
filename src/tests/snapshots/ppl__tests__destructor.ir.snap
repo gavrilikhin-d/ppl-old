@@ -5,34 +5,57 @@ expression: ir
 ; ModuleID = 'main'
 source_filename = "src/main.ppl"
 
-%DestructibleClass = type { ptr }
+%"Type<String>" = type { %String, %Integer }
 %String = type { ptr }
+%Integer = type { ptr }
 
-@0 = private unnamed_addr constant [11 x i8] c"destructor\00", align 1
-@x = global %DestructibleClass zeroinitializer
-@1 = private unnamed_addr constant [5 x i8] c"done\00", align 1
+@"Type<String>" = private global %"Type<String>" zeroinitializer
+@0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
+@1 = private unnamed_addr constant [11 x i8] c"destructor\00", align 1
+@x = global ptr null
+@2 = private unnamed_addr constant [5 x i8] c"done\00", align 1
 
-define void @main.execute() !dbg !3 {
-  call void @initialize(), !dbg !7
-  call void @"destroy <:ReferenceMut<DestructibleClass>>"(ptr @x), !dbg !8
-  %1 = alloca %DestructibleClass, align 8, !dbg !9
-  %DestructibleClass.data = getelementptr inbounds %DestructibleClass, ptr %1, i32 0, i32 0, !dbg !9
-  store ptr %1, ptr @x, align 8, !dbg !9
-  %2 = call %String @string_from_c_string_and_length(ptr @1, i64 4), !dbg !10
-  call void @"println <:String>"(%String %2), !dbg !10
-  call void @"destroy <:ReferenceMut<DestructibleClass>>"(ptr @x), !dbg !11
-  br label %return, !dbg !11
+define private void @initialize() !dbg !3 {
+  %1 = alloca %"Type<String>", align 8, !dbg !7
+  %"Type<String>.name" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 0, !dbg !7
+  %2 = call %String @string_from_c_string_and_length(ptr @0, i64 6), !dbg !8
+  store %String %2, ptr %"Type<String>.name", align 8, !dbg !8
+  %"Type<String>.size" = getelementptr inbounds %"Type<String>", ptr %1, i32 0, i32 1, !dbg !8
+  %3 = call %Integer @integer_from_i64(i64 8), !dbg !8
+  store %Integer %3, ptr %"Type<String>.size", align 8, !dbg !8
+  %4 = load %"Type<String>", ptr %1, align 8, !dbg !8
+  store %"Type<String>" %4, ptr @"Type<String>", align 8, !dbg !8
+  br label %return, !dbg !8
 
 return:                                           ; preds = %0
   ret void
 }
 
-define void @"destroy <:ReferenceMut<DestructibleClass>>"(ptr %0) !dbg !12 {
+declare %String @string_from_c_string_and_length(ptr, i64)
+
+declare %Integer @integer_from_i64(i64)
+
+define void @main.execute() !dbg !9 {
+  call void @initialize(), !dbg !10
+  call void @initialize.1(), !dbg !11
+  call void @"destroy <:ReferenceMut<DestructibleClass>>"(ptr @x), !dbg !12
+  %1 = alloca ptr, align 8, !dbg !13
+  store ptr %1, ptr @x, align 8, !dbg !13
+  %2 = call %String @string_from_c_string_and_length(ptr @2, i64 4), !dbg !14
+  call void @"println <:String>"(%String %2), !dbg !14
+  call void @"destroy <:ReferenceMut<DestructibleClass>>"(ptr @x), !dbg !15
+  br label %return, !dbg !15
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define void @"destroy <:ReferenceMut<DestructibleClass>>"(ptr %0) !dbg !16 {
   %"$arg0" = alloca ptr, align 8
   store ptr %0, ptr %"$arg0", align 8
-  %2 = call %String @string_from_c_string_and_length(ptr @0, i64 10), !dbg !13
-  call void @"println <:String>"(%String %2), !dbg !13
-  br label %return, !dbg !14
+  %2 = call %String @string_from_c_string_and_length(ptr @1, i64 10), !dbg !17
+  call void @"println <:String>"(%String %2), !dbg !17
+  br label %return, !dbg !18
 
 return:                                           ; preds = %1
   ret void
@@ -40,13 +63,10 @@ return:                                           ; preds = %1
 
 declare void @"println <:String>"(%String)
 
-declare %String @string_from_c_string_and_length(ptr, i64)
-
-define private void @initialize() !dbg !15 {
-  %1 = alloca %DestructibleClass, align 8, !dbg !16
-  %DestructibleClass.data = getelementptr inbounds %DestructibleClass, ptr %1, i32 0, i32 0, !dbg !16
-  store ptr %1, ptr @x, align 8, !dbg !16
-  br label %return, !dbg !16
+define private void @initialize.1() !dbg !19 {
+  %1 = alloca ptr, align 8, !dbg !20
+  store ptr %1, ptr @x, align 8, !dbg !20
+  br label %return, !dbg !20
 
 return:                                           ; preds = %0
   ret void
@@ -58,17 +78,21 @@ return:                                           ; preds = %0
 !0 = !{i32 2, !"Debug Info Version", i32 3}
 !1 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "ppl", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, sysroot: "/")
 !2 = !DIFile(filename: "src/main.ppl", directory: ".")
-!3 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!3 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !2, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !4 = !DISubroutineType(types: !5)
 !5 = !{!6}
 !6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
-!7 = !DILocation(line: 4, column: 12, scope: !3)
-!8 = !DILocation(line: 5, scope: !3)
-!9 = !DILocation(line: 5, column: 4, scope: !3)
-!10 = !DILocation(line: 7, column: 8, scope: !3)
-!11 = !DILocation(line: 4, scope: !3)
-!12 = distinct !DISubprogram(name: "destroy <:ReferenceMut<DestructibleClass>>", linkageName: "destroy <:ReferenceMut<DestructibleClass>>", scope: !3, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!13 = !DILocation(line: 2, column: 48, scope: !12)
-!14 = !DILocation(line: 2, column: 40, scope: !12)
-!15 = distinct !DISubprogram(name: "initialize", linkageName: "initialize", scope: !3, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!16 = !DILocation(line: 4, column: 12, scope: !15)
+!7 = !DILocation(line: 5, column: 16, scope: !3)
+!8 = !DILocation(line: 0, scope: !3)
+!9 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!10 = !DILocation(line: 5, column: 16, scope: !9)
+!11 = !DILocation(line: 4, column: 12, scope: !9)
+!12 = !DILocation(line: 5, scope: !9)
+!13 = !DILocation(line: 5, column: 4, scope: !9)
+!14 = !DILocation(line: 7, column: 8, scope: !9)
+!15 = !DILocation(line: 4, scope: !9)
+!16 = distinct !DISubprogram(name: "destroy <:ReferenceMut<DestructibleClass>>", linkageName: "destroy <:ReferenceMut<DestructibleClass>>", scope: !9, file: !2, line: 2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!17 = !DILocation(line: 2, column: 48, scope: !16)
+!18 = !DILocation(line: 2, column: 40, scope: !16)
+!19 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!20 = !DILocation(line: 4, column: 12, scope: !19)

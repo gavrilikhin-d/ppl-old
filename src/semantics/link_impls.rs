@@ -22,7 +22,7 @@ impl<'ctx, C: Context> TraitFunctionsLinker<'ctx, C> {
 
     fn enter_module_data(&mut self, module: &mut ModuleData) {
         module.monomorphized_functions.drive_mut(self);
-        module.iter_functions_mut().for_each(|f| f.drive_mut(self));
+        module.functions.drive_mut(self);
     }
 
     fn enter_function_data(&mut self, f: &mut FunctionData) {

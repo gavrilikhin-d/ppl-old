@@ -27,7 +27,7 @@ indexmap = "2.2.6"
 gimli = { version = "0.29.0", default-features = false }
 insta = "1.38.0"
 cmd_lib = "1.9.3"
-derive-visitor = { version = "0.3.0", git = "https://github.com/andylokandy/derive-visitor", branch = "fix" }
+derive-visitor = "0.3.0"
 
 [build-dependencies]
 clap = { version = "4.5.4", features = ["derive"] }

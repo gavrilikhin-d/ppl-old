@@ -6,8 +6,6 @@ use math.*
 type MemoryAddress:
 	value: Integer
 
-fn default <:Type<MemoryAddress>> => MemoryAddress { value: 0 }
-
 /// Interpret and integer as memory address
 fn <value: Integer> as MemoryAddress => MemoryAddress { value }
 

@@ -402,7 +402,15 @@ impl ClassData {
         if let Some(builtin) = &self.builtin {
             return builtin.size_in_bytes();
         }
-        return POINTER_SIZE;
+
+        if self.is_opaque() {
+            return POINTER_SIZE;
+        }
+
+        self.members
+            .iter()
+            .map(|m| m.ty().size_in_bytes())
+            .sum::<usize>()
     }
 }
 
