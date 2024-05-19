@@ -8,3 +8,4 @@ use memory.*
 use threads.*
 use math.*
 use printable.*
+use swap.*

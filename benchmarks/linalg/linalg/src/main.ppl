@@ -151,19 +151,21 @@ fn <rows: Integer> x <columns: Integer> Hilbert Matrix -> Matrix:
 		i += 1
 	return m
 
-// let e = rank 3 identity Matrix
-// println e
 
-// println 2.0 * e
-let ones = repeat 1.0 3 times
-println (5 x 5 Hilbert Matrix)
+fn gauss <a: Matrix> <b: Matrix> -> Matrix:
+	assert a.rows == a.columns "Matrix must be square"
+	assert a.rows == b.rows "Matrix and vector must have the same number of rows"
+	let n = a.rows
+	return b
 
-// fn run code:
-// 	let mut a = rank 3 identity Matrix
-// 	(a[0])[1] = 1.0
-// 	println a
-// 	let b = transposed a
-// 	println b
-// 	println a * b
+// let m = 3 x 3 Hilbert Matrix
+// print m
 
-// run code
+fn run code:
+	let mut a = 1
+	let mut b = 2
+	swap a and b
+	print a
+	print b
+
+run code
