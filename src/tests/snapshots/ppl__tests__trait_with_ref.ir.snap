@@ -8,10 +8,19 @@ source_filename = "src/main.ppl"
 %"Type<String>" = type { %String, %Integer }
 %String = type { ptr }
 %Integer = type { ptr }
+%"Type<MemoryAddress>" = type { %String, %Integer }
+%"Type<I32>" = type { %String, %Integer }
+%"Type<F64>" = type { %String, %Integer }
 
 @"Type<String>" = private global %"Type<String>" zeroinitializer
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
-@1 = private unnamed_addr constant [12 x i8] c"foo integer\00", align 1
+@"Type<MemoryAddress>" = private global %"Type<MemoryAddress>" zeroinitializer
+@1 = private unnamed_addr constant [14 x i8] c"MemoryAddress\00", align 1
+@"Type<I32>" = private global %"Type<I32>" zeroinitializer
+@2 = private unnamed_addr constant [4 x i8] c"I32\00", align 1
+@"Type<F64>" = private global %"Type<F64>" zeroinitializer
+@3 = private unnamed_addr constant [4 x i8] c"F64\00", align 1
+@4 = private unnamed_addr constant [12 x i8] c"foo integer\00", align 1
 @x = global %Integer zeroinitializer
 
 define private void @initialize() !dbg !3 {
@@ -34,23 +43,74 @@ declare %String @string_from_c_string_and_length(ptr, i64)
 
 declare %Integer @integer_from_i64(i64)
 
-define void @main.execute() !dbg !9 {
-  call void @initialize(), !dbg !10
-  call void @initialize.1(), !dbg !11
-  call void @"bar <:Reference<Integer>>"(ptr @x), !dbg !12
-  call void @destroy_integer(ptr @x), !dbg !13
-  br label %return, !dbg !13
+define private void @initialize.1() !dbg !9 {
+  %1 = alloca %"Type<MemoryAddress>", align 8, !dbg !10
+  %"Type<MemoryAddress>.name" = getelementptr inbounds %"Type<MemoryAddress>", ptr %1, i32 0, i32 0, !dbg !10
+  %2 = call %String @string_from_c_string_and_length(ptr @1, i64 13), !dbg !11
+  store %String %2, ptr %"Type<MemoryAddress>.name", align 8, !dbg !11
+  %"Type<MemoryAddress>.size" = getelementptr inbounds %"Type<MemoryAddress>", ptr %1, i32 0, i32 1, !dbg !11
+  %3 = call %Integer @integer_from_i64(i64 8), !dbg !11
+  store %Integer %3, ptr %"Type<MemoryAddress>.size", align 8, !dbg !11
+  %4 = load %"Type<MemoryAddress>", ptr %1, align 8, !dbg !11
+  store %"Type<MemoryAddress>" %4, ptr @"Type<MemoryAddress>", align 8, !dbg !11
+  br label %return, !dbg !11
 
 return:                                           ; preds = %0
   ret void
 }
 
-define void @"foo <:Reference<Integer>>"(ptr %0) !dbg !14 {
+define private void @initialize.2() !dbg !12 {
+  %1 = alloca %"Type<I32>", align 8, !dbg !13
+  %"Type<I32>.name" = getelementptr inbounds %"Type<I32>", ptr %1, i32 0, i32 0, !dbg !13
+  %2 = call %String @string_from_c_string_and_length(ptr @2, i64 3), !dbg !14
+  store %String %2, ptr %"Type<I32>.name", align 8, !dbg !14
+  %"Type<I32>.size" = getelementptr inbounds %"Type<I32>", ptr %1, i32 0, i32 1, !dbg !14
+  %3 = call %Integer @integer_from_i64(i64 4), !dbg !14
+  store %Integer %3, ptr %"Type<I32>.size", align 8, !dbg !14
+  %4 = load %"Type<I32>", ptr %1, align 8, !dbg !14
+  store %"Type<I32>" %4, ptr @"Type<I32>", align 8, !dbg !14
+  br label %return, !dbg !14
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define private void @initialize.3() !dbg !15 {
+  %1 = alloca %"Type<F64>", align 8, !dbg !16
+  %"Type<F64>.name" = getelementptr inbounds %"Type<F64>", ptr %1, i32 0, i32 0, !dbg !16
+  %2 = call %String @string_from_c_string_and_length(ptr @3, i64 3), !dbg !17
+  store %String %2, ptr %"Type<F64>.name", align 8, !dbg !17
+  %"Type<F64>.size" = getelementptr inbounds %"Type<F64>", ptr %1, i32 0, i32 1, !dbg !17
+  %3 = call %Integer @integer_from_i64(i64 8), !dbg !17
+  store %Integer %3, ptr %"Type<F64>.size", align 8, !dbg !17
+  %4 = load %"Type<F64>", ptr %1, align 8, !dbg !17
+  store %"Type<F64>" %4, ptr @"Type<F64>", align 8, !dbg !17
+  br label %return, !dbg !17
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define void @main.execute() !dbg !18 {
+  call void @initialize(), !dbg !19
+  call void @initialize.1(), !dbg !19
+  call void @initialize.2(), !dbg !20
+  call void @initialize.3(), !dbg !21
+  call void @initialize.4(), !dbg !22
+  call void @"bar <:Reference<Integer>>"(ptr @x), !dbg !23
+  call void @destroy_integer(ptr @x), !dbg !24
+  br label %return, !dbg !24
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define void @"foo <:Reference<Integer>>"(ptr %0) !dbg !25 {
   %"$arg0" = alloca ptr, align 8
   store ptr %0, ptr %"$arg0", align 8
-  %2 = call %String @string_from_c_string_and_length(ptr @1, i64 11), !dbg !15
-  call void @"println <:String>"(%String %2), !dbg !15
-  br label %return, !dbg !16
+  %2 = call %String @string_from_c_string_and_length(ptr @4, i64 11), !dbg !26
+  call void @"println <:String>"(%String %2), !dbg !26
+  br label %return, !dbg !27
 
 return:                                           ; preds = %1
   ret void
@@ -58,20 +118,20 @@ return:                                           ; preds = %1
 
 declare void @"println <:String>"(%String)
 
-define private void @initialize.1() !dbg !17 {
-  %1 = call %Integer @integer_from_i64(i64 0), !dbg !18
-  store %Integer %1, ptr @x, align 8, !dbg !18
-  br label %return, !dbg !18
+define private void @initialize.4() !dbg !28 {
+  %1 = call %Integer @integer_from_i64(i64 0), !dbg !29
+  store %Integer %1, ptr @x, align 8, !dbg !29
+  br label %return, !dbg !29
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @"bar <:Reference<Integer>>"(ptr %0) !dbg !19 {
+define private void @"bar <:Reference<Integer>>"(ptr %0) !dbg !30 {
   %x = alloca ptr, align 8
   store ptr %0, ptr %x, align 8
-  call void @"foo <:Reference<Integer>>"(ptr %x), !dbg !20
-  br label %return, !dbg !20
+  call void @"foo <:Reference<Integer>>"(ptr %x), !dbg !31
+  br label %return, !dbg !31
 
 return:                                           ; preds = %1
   ret void
@@ -91,15 +151,26 @@ declare void @destroy_integer(ptr)
 !6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
 !7 = !DILocation(line: 8, column: 5, scope: !3)
 !8 = !DILocation(line: 0, scope: !3)
-!9 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!9 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, line: 8, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !10 = !DILocation(line: 8, column: 5, scope: !9)
-!11 = !DILocation(line: 7, column: 8, scope: !9)
-!12 = !DILocation(line: 8, column: 4, scope: !9)
-!13 = !DILocation(line: 7, scope: !9)
-!14 = distinct !DISubprogram(name: "foo <:Reference<Integer>>", linkageName: "foo <:Reference<Integer>>", scope: !9, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!15 = !DILocation(line: 3, column: 30, scope: !14)
-!16 = !DILocation(line: 3, column: 22, scope: !14)
-!17 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!18 = !DILocation(line: 7, column: 8, scope: !17)
-!19 = distinct !DISubprogram(name: "bar <:Reference<Integer>>", linkageName: "bar <:Reference<Integer>>", scope: !9, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!20 = !DILocation(line: 5, column: 30, scope: !19)
+!11 = !DILocation(line: 0, scope: !9)
+!12 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !2, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!13 = !DILocation(line: 3, column: 34, scope: !12)
+!14 = !DILocation(line: 0, scope: !12)
+!15 = distinct !DISubprogram(name: "initialize.3", linkageName: "initialize.3", scope: !2, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!16 = !DILocation(line: 3, column: 29, scope: !15)
+!17 = !DILocation(line: 0, scope: !15)
+!18 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!19 = !DILocation(line: 8, column: 5, scope: !18)
+!20 = !DILocation(line: 3, column: 34, scope: !18)
+!21 = !DILocation(line: 3, column: 29, scope: !18)
+!22 = !DILocation(line: 7, column: 8, scope: !18)
+!23 = !DILocation(line: 8, column: 4, scope: !18)
+!24 = !DILocation(line: 7, scope: !18)
+!25 = distinct !DISubprogram(name: "foo <:Reference<Integer>>", linkageName: "foo <:Reference<Integer>>", scope: !18, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!26 = !DILocation(line: 3, column: 30, scope: !25)
+!27 = !DILocation(line: 3, column: 22, scope: !25)
+!28 = distinct !DISubprogram(name: "initialize.4", linkageName: "initialize.4", scope: !18, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!29 = !DILocation(line: 7, column: 8, scope: !28)
+!30 = distinct !DISubprogram(name: "bar <:Reference<Integer>>", linkageName: "bar <:Reference<Integer>>", scope: !18, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!31 = !DILocation(line: 5, column: 30, scope: !30)

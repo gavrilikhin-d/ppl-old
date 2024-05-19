@@ -29,6 +29,8 @@ type None
 
 /// Convert `None` to `String`
 fn String from <:None> => "none"
+
+fn default <:Type<None>> => none
 //---------------------------------
 
 
@@ -37,6 +39,8 @@ fn String from <:None> => "none"
 //=================================
 @builtin
 type Bool
+
+fn default <:Type<Bool>> => false
 
 /// Negate boolean value
 fn not <x:Bool> -> Bool:
@@ -72,6 +76,9 @@ type IntegerImpl
 @builtin
 type Integer:
 	impl: Reference<IntegerImpl>
+
+@builtin
+fn default <:Type<Integer>> => 0
 
 @mangle_as("integer_eq_integer")
 fn <:Integer> == <:Integer> -> Bool
@@ -128,6 +135,8 @@ type RationalImpl
 type Rational:
 	impl: Reference<RationalImpl>
 
+fn default <:Type<Rational>> => 0.0
+
 @mangle_as("rational_eq_rational")
 fn <:Rational> == <:Rational> -> Bool
 
@@ -170,6 +179,8 @@ type StringImpl
 @builtin
 type String:
 	impl: Reference<StringImpl>
+
+fn default <:Type<String>> => ""
 
 /// Concatenate 2 strings
 @mangle_as("string_plus_string")
@@ -239,5 +250,13 @@ trait Destructible:
 /// Trait for things that can be cloned
 trait Clonnable:
 	fn clone <:&Self> -> Self
+//=================================
+
+//=================================
+//             Default
+//=================================
+/// Trait for things that have default value
+trait Default:
+	fn default <:Type<Self>> -> Self
 //=================================
 
