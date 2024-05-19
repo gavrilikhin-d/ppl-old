@@ -1,0 +1,6 @@
+use core.*
+
+fn<T> swap <a: &mut T> and <b: &mut T>:
+	let tmp: T = a
+	a = b
+	b = tmp
