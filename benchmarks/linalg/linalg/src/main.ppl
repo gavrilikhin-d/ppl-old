@@ -151,13 +151,19 @@ fn <rows: Integer> x <columns: Integer> Hilbert Matrix -> Matrix:
 		i += 1
 	return m
 
-fn add <a: RowSlice> to <b: MutRowSlice>:
+fn add <k: Rational> <a: RowSlice> to <b: MutRowSlice>:
 	assert a.matrix.columns == b.matrix.columns "Can't add rows of different lengths"
 	let n = a.matrix.columns
 	let mut i = 0
 	while i < n:
-		b[i] += a[i]
+		b[i] += k * a[i]
 		i += 1
+
+fn add <k: Rational> <a: MutRowSlice> to <b: MutRowSlice>:
+	add k (RowSlice from a) to b
+
+fn add <a: RowSlice> to <b: MutRowSlice>:
+	add 1.0 a to b
 
 fn add <a: MutRowSlice> to <b: MutRowSlice>:
 	add (RowSlice from a) to b
@@ -174,7 +180,7 @@ fn gauss <a: Matrix> <b: Matrix> -> Matrix:
 fn run code:
 	let mut e = rank 3 identity Matrix
 	add e[0] to e[1]
-	add e[1] to e[2]
+	add -2.0 e[1] to e[2]
 	println e
 
 run code
