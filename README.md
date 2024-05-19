@@ -36,6 +36,7 @@
 ### Current task
 * [ ] Printable trait should take references
 ---
+* [ ] mutable parameters
 * [ ] migrate to pass-by-ref (branch `arc`)
 * [ ] Prefer candidates with mutable references, when possible
 * [ ] Fix problems with to_ir and loading references (especially globals). This causes issues in iterator

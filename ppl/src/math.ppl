@@ -11,6 +11,17 @@ trait Add:
 		self = self + other
 //=================================
 
+//=================================
+//            Add
+//=================================
+/// Trait for `-` operation
+trait Sub:
+	fn <:Self> - <:Self> -> Self
+
+	fn <self: ReferenceMut<Self>> -= <other: Self>:
+		self = self - other
+//=================================
+
 
 //=================================
 //            Multiply
