@@ -567,7 +567,6 @@ impl<'llvm, 'm> ToIR<'llvm, FunctionContext<'llvm, 'm, '_>> for Constructor {
             .try_into_basic_type()
             .expect("non-basic type constructor");
         let alloca = context.builder.build_alloca(ty, "").unwrap();
-
         for init in self.initializers.iter().filter(|i| !i.value.ty().is_none()) {
             let field = context
                 .builder

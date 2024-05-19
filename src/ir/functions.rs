@@ -56,4 +56,9 @@ impl<'llvm, 'm> Functions<'llvm, 'm> {
     add_builtin_function!(
         string_from_c_string_and_length: (c_string, u64) -> string
     );
+
+    // Create arc for class
+    add_builtin_function!(
+        create_arc: (u64) -> pointer
+    );
 }
