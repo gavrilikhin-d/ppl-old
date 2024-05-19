@@ -130,7 +130,7 @@ fn transposed <m: Matrix> -> Matrix:
 		i += 1
 	return n
 
-fn Matrix from <array: Array<Rational>> -> Matrix:
+fn Matrix from <data: Array<Rational>> -> Matrix:
 	let mut rows = 1
 	if data is empty:
 		rows = 0
@@ -140,12 +140,23 @@ fn Vector from <data: Array<Rational>> -> Matrix:
 	let row = Matrix from data
 	return transposed row
 
+fn <rows: Integer> x <columns: Integer> Hilbert Matrix -> Matrix:
+	let mut m = rows x columns Matrix
+	let mut i = 0
+	while i < rows:
+		let mut j = 0
+		while j < columns:
+			(m[i])[j] = 1 / (i + j + 1)
+			j += 1
+		i += 1
+	return m
+
 // let e = rank 3 identity Matrix
 // println e
 
 // println 2.0 * e
 let ones = repeat 1.0 3 times
-println (Vector from ones)
+println (5 x 5 Hilbert Matrix)
 
 // fn run code:
 // 	let mut a = rank 3 identity Matrix
