@@ -66,7 +66,10 @@ pub extern "C" fn rational_from_c_string(str: *const c_char) -> Rational {
 pub extern "C" fn rational_as_string(r: Rational) -> String {
     let value = r.as_ref();
 
-    maybe_to_decimal_string(value).into()
+    let boxed = Box::new(maybe_to_decimal_string(value));
+    String {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Negates rational

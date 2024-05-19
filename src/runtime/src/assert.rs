@@ -7,7 +7,7 @@ use crate::String;
 /// ```
 #[no_mangle]
 pub extern "C" fn assert(condition: bool, message: &String) {
-    let message = message.as_ref();
+    let message = unsafe { message.data.as_ref().unwrap() };
     if !condition {
         println!("Assertion failed: {message}");
     }
