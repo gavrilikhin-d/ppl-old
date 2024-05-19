@@ -168,19 +168,65 @@ fn add <a: RowSlice> to <b: MutRowSlice>:
 fn add <a: MutRowSlice> to <b: MutRowSlice>:
 	add (RowSlice from a) to b
 
+fn det <a_: Matrix> -> Rational:
+	let mut a = a_
+	assert a.rows == a.columns "Matrix must be square"
+	let n = a.rows
+	let mut i = 0
+	while i < n:
+		let mut j = i + 1
+		while j < n:
+			let k = (a[j])[i] / (a[i])[i] // FIXME: division by zero
+			if k != 0.0:
+				add -k (a[i]) to (a[j])
+			j += 1
+		i += 1
 
-fn gauss <a: Matrix> <b: Matrix> -> Matrix:
+	let mut d = 1.0
+	i = 0
+	while i < n:
+		d *= (a[i])[i]
+		i += 1
+	return d
+
+
+fn gauss <a_: Matrix> <b_: Matrix> -> Matrix:
+	let mut a = a_
+	let mut b = b_
 	assert a.rows == a.columns "Matrix must be square"
 	assert a.rows == b.rows "Matrix and vector must have the same number of rows"
+	let n = a.rows
+	let mut i = 0
+	while i < n:
+		let mut j = i + 1
+		while j < n:
+			let k = (a[j])[i] / (a[i])[i] // FIXME: division by zero
+			if k != 0.0:
+				add -k (a[i]) to (a[j])
+				(b[j])[0] -= k * (b[i])[0]
+			j += 1
+		i += 1
+
+	i = n - 1
+	while i > 0:
+		let mut j = i - 1
+		while j >= 0:
+			let k = (a[j])[i] / (a[i])[i] // FIXME: division by zero
+			if k != 0.0:
+				add -k (a[i]) to (a[j])
+				(b[j])[0] -= k * (b[i])[0]
+			j -= 1
+		i -= 1
+
 	return b
 
 // let m = 3 x 3 Hilbert Matrix
 // print m
 
 fn run code:
-	let mut e = rank 3 identity Matrix
-	add e[0] to e[1]
-	add -2.0 e[1] to e[2]
-	println e
+	let mut a = 3 x 3 Hilbert Matrix
+	println (det a)
+// let mut b = Vector from (repeat 1.0 3 times)
+// gauss a b 
 
 run code
