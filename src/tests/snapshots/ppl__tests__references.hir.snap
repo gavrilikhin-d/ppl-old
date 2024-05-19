@@ -2,9 +2,9 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let n: Integer = `size of <:Type<I32>>`(Type<I32> { name: "I32", size: 4 })
+let n: Integer = `size of <:Type<I32>>`((Type<I32>:Type<I32>))
 let address: MemoryAddress = `allocate <:Integer> bytes`(`clone <:Reference<Integer>>`((n:Integer)))
-let value: ReferenceMut<I32> = `<:Type<I32>> at <:Reference<MemoryAddress>>`(Type<I32> { name: "I32", size: 4 }, (&address:Reference<MemoryAddress>))
+let value: ReferenceMut<I32> = `<:Type<I32>> at <:Reference<MemoryAddress>>`((Type<I32>:Type<I32>), (&address:Reference<MemoryAddress>))
 (value:ReferenceMut<I32>) = `<:Integer> as I32`(0)
 `println <:I32>`((*value:I32))
 (value:ReferenceMut<I32>) = `<:Integer> as I32`(1)
@@ -16,8 +16,8 @@ let value: ReferenceMut<I32> = `<:Type<I32>> at <:Reference<MemoryAddress>>`(Typ
 
 
 fn<I32> size of <ty: Type<I32>> -> Integer:
-	let $tmp@4426: Integer = `clone <:Reference<Integer>>`((ty:Type<I32>).size)
-	return ($tmp@4426:Integer)
+	let $tmp@4399: Integer = `clone <:Reference<Integer>>`((ty:Type<I32>).size)
+	return ($tmp@4399:Integer)
 
 
 @mangle_as("read_memory")

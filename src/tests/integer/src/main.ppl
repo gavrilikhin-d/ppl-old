@@ -1,4 +1,4 @@
-println (default Integer)
+println 0
 println +1
 println -2
 println 2 + 1

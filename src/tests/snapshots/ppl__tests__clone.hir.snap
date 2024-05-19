@@ -2,11 +2,10 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-let x: Integer = 1
+let mut x: Integer = 1
 let mut y: Integer = `clone <:Reference<Integer>>`((x:Integer))
 `println <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)))
 `println <:Integer>`(`clone <:Reference<Integer>>`((y:Integer)))
-`println <:String>`("")
 `destroy <:ReferenceMut<Integer>>`((y:Integer))
 (y:Integer) = 2
 `println <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)))

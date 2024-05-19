@@ -1,8 +1,8 @@
-use std::{ffi::c_char, sync::Arc};
+use std::ffi::c_char;
 
 use rug::{ops::Pow, Integer};
 
-use crate::{decrement_strong_count, increment_strong_count, String};
+use crate::String;
 
 /// Rational number.
 /// Wrapper around pointer to [`rug::Rational`].
@@ -16,46 +16,21 @@ use crate::{decrement_strong_count, increment_strong_count, String};
 ///     impl: Reference<RationalImpl>
 /// ```
 #[repr(C)]
-pub struct Rational(pub *const rug::Rational);
-
-impl Clone for Rational {
-    fn clone(&self) -> Self {
-        increment_strong_count(self.0 as *const _);
-        Self(self.0)
-    }
+pub struct Rational {
+    pub data: *mut rug::Rational,
 }
 
-impl Drop for Rational {
-    fn drop(&mut self) {
-        decrement_strong_count(self.0 as *const _);
-    }
-}
-
-impl Rational {
-    /// Get the inner value
-    pub fn as_ref(&self) -> &rug::Rational {
-        unsafe { &*self.0 }
-    }
-}
-
-impl<T> From<T> for Rational
-where
-    rug::Rational: From<T>,
-{
-    fn from(x: T) -> Self {
-        let this = Arc::new(rug::Rational::from(x));
-        Self(Arc::into_raw(this))
-    }
-}
-
-/// Construct [`Rational`] from a C string
+/// Construct [`Rational`](ppl::semantics::Type::Rational) from a C string
 #[no_mangle]
 pub extern "C" fn rational_from_c_string(str: *const c_char) -> Rational {
     debug_assert!(!str.is_null());
 
     let c_str = unsafe { core::ffi::CStr::from_ptr(str) };
     let str = c_str.to_str().unwrap();
-    str.parse::<rug::Rational>().unwrap().into()
+    let boxed = Box::new(str.parse::<rug::Rational>().unwrap());
+    Rational {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// # PPL
@@ -64,89 +39,102 @@ pub extern "C" fn rational_from_c_string(str: *const c_char) -> Rational {
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_as_string(r: Rational) -> String {
-    let value = r.as_ref();
+    let value = unsafe { r.data.as_ref().unwrap() };
 
-    maybe_to_decimal_string(value).into()
+    let boxed = Box::new(maybe_to_decimal_string(value));
+    String {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Negates rational
 ///
-/// # PPL
-/// ```no_run
+/// Runtime for builtin ppl's function:
+/// ```ppl
 /// fn - <:Rational> -> Rational
 /// ```
 #[no_mangle]
 pub extern "C" fn minus_rational(r: Rational) -> Rational {
-    (-r.as_ref()).into()
+    let r = unsafe { r.data.as_ref().unwrap() };
+    let boxed = Box::new(rug::Rational::from(-r));
+    Rational {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Add 2 rationals
 ///
-/// # PPL
-/// ```no_run
+/// Runtime for builtin ppl's function:
+/// ```ppl
 /// fn <:Rational> + <:Rational> -> Rational
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_plus_rational(x: Rational, y: Rational) -> Rational {
-    let x = x.as_ref();
-    let y = y.as_ref();
+    let x = unsafe { x.data.as_ref().unwrap() };
+    let y = unsafe { y.data.as_ref().unwrap() };
 
-    (x + y).into()
+    let boxed = Box::new(rug::Rational::from(x + y));
+    Rational {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Multiply 2 rationals
 ///
-/// # PPL
-/// ```no_run
+/// Runtime for builtin ppl's function:
+/// ```ppl
 /// fn <:Rational> * <:Rational> -> Rational
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_star_rational(x: Rational, y: Rational) -> Rational {
-    let x = x.as_ref();
-    let y = y.as_ref();
-
-    (x * y).into()
+    let x = unsafe { x.data.as_ref().unwrap() };
+    let y = unsafe { y.data.as_ref().unwrap() };
+    let boxed = Box::new(rug::Rational::from(x * y));
+    Rational {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Divide 2 rationals
 ///
-/// # PPL
-/// ```no_run
+/// Runtime for builtin ppl's function:
+/// ```ppl
 /// fn <:Rational> / <:Rational> -> Rational
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_slash_rational(x: Rational, y: Rational) -> Rational {
-    let x = x.as_ref();
-    let y = y.as_ref();
-
-    (x / y).into()
+    let x = unsafe { x.data.as_ref().unwrap() };
+    let y = unsafe { y.data.as_ref().unwrap() };
+    let boxed = Box::new(rug::Rational::from(x / y));
+    Rational {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Compare 2 rationals for equality
 ///
-/// # PPL
-/// ```no_run
+/// Runtime for builtin ppl's function:
+/// ```ppl
 /// fn <:Rational> == <:Rational> -> Bool
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_eq_rational(x: Rational, y: Rational) -> bool {
-    let x = x.as_ref();
-    let y = y.as_ref();
+    let x = unsafe { x.data.as_ref().unwrap() };
+    let y = unsafe { y.data.as_ref().unwrap() };
 
     x == y
 }
 
 /// Is one rational less than another?
 ///
-/// # PPL
-/// ```no_run
+/// Runtime for builtin ppl's function:
+/// ```ppl
 /// fn <:Rational> < <:Rational> -> Bool
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_less_rational(x: Rational, y: Rational) -> bool {
-    let x = x.as_ref();
-    let y = y.as_ref();
-
+    let x = unsafe { x.data.as_ref().unwrap() };
+    let y = unsafe { y.data.as_ref().unwrap() };
     x < y
 }
 
@@ -155,8 +143,8 @@ pub extern "C" fn rational_less_rational(x: Rational, y: Rational) -> bool {
 /// fn destroy <:&mut Rational>
 /// ```
 #[no_mangle]
-pub extern "C" fn destroy_rational(x: &mut Rational) {
-    decrement_strong_count(x.0 as *const _);
+pub extern "C" fn destroy_rational(x: *mut Rational) {
+    let _ = unsafe { Box::from_raw(x.as_ref().unwrap().data) };
 }
 
 /// # PPL
@@ -166,7 +154,10 @@ pub extern "C" fn destroy_rational(x: &mut Rational) {
 /// ```
 #[no_mangle]
 pub extern "C" fn clone_rational(x: &Rational) -> Rational {
-    x.clone()
+    let value = unsafe { x.data.as_ref() }.unwrap().clone();
+    Rational {
+        data: Box::into_raw(Box::new(value)),
+    }
 }
 
 pub fn maybe_to_decimal_string(r: &rug::Rational) -> std::string::String {

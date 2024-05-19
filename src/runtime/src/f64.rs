@@ -13,7 +13,10 @@ type F64 = f64;
 /// ```
 #[no_mangle]
 pub extern "C" fn f64_as_string(d: F64) -> String {
-    d.to_string().into()
+    let boxed = Box::new(d.to_string());
+    String {
+        data: Box::into_raw(boxed),
+    }
 }
 
 /// Negates f64
@@ -62,7 +65,9 @@ pub extern "C" fn f64_star_f64(x: F64, y: F64) -> F64 {
 /// ```
 #[no_mangle]
 pub extern "C" fn f64_from_rational(r: Rational) -> F64 {
-    r.as_ref().to_f64()
+    let r = unsafe { r.data.as_ref() }.unwrap();
+    let res = r.to_f64();
+    res
 }
 
 /// Create rational from f64
@@ -75,5 +80,8 @@ pub extern "C" fn f64_from_rational(r: Rational) -> F64 {
 /// ```
 #[no_mangle]
 pub extern "C" fn rational_from_f64(d: F64) -> Rational {
-    rug::Rational::from_f64(d).unwrap().into()
+    let r = Box::new(rug::Rational::from_f64(d).unwrap());
+    Rational {
+        data: Box::into_raw(r),
+    }
 }
