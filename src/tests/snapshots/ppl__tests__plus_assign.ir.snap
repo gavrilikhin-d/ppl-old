@@ -8,16 +8,25 @@ source_filename = "src/main.ppl"
 %"Type<String>" = type { %String, %Integer }
 %String = type { ptr }
 %Integer = type { ptr }
+%"Type<MemoryAddress>" = type { %String, %Integer }
+%"Type<I32>" = type { %String, %Integer }
+%"Type<F64>" = type { %String, %Integer }
 %Rational = type { ptr }
 
 @"Type<String>" = private global %"Type<String>" zeroinitializer
 @0 = private unnamed_addr constant [7 x i8] c"String\00", align 1
+@"Type<MemoryAddress>" = private global %"Type<MemoryAddress>" zeroinitializer
+@1 = private unnamed_addr constant [14 x i8] c"MemoryAddress\00", align 1
+@"Type<I32>" = private global %"Type<I32>" zeroinitializer
+@2 = private unnamed_addr constant [4 x i8] c"I32\00", align 1
+@"Type<F64>" = private global %"Type<F64>" zeroinitializer
+@3 = private unnamed_addr constant [4 x i8] c"F64\00", align 1
 @value = global %Rational zeroinitializer
-@1 = private unnamed_addr constant [2 x i8] c"0\00", align 1
-@2 = private unnamed_addr constant [2 x i8] c"1\00", align 1
+@4 = private unnamed_addr constant [2 x i8] c"0\00", align 1
+@5 = private unnamed_addr constant [2 x i8] c"1\00", align 1
 @str = global %String zeroinitializer
-@3 = private unnamed_addr constant [6 x i8] c"Hello\00", align 1
-@4 = private unnamed_addr constant [8 x i8] c" World!\00", align 1
+@6 = private unnamed_addr constant [6 x i8] c"Hello\00", align 1
+@7 = private unnamed_addr constant [8 x i8] c" World!\00", align 1
 
 define private void @initialize() !dbg !3 {
   %1 = alloca %"Type<String>", align 8, !dbg !7
@@ -39,32 +48,83 @@ declare %String @string_from_c_string_and_length(ptr, i64)
 
 declare %Integer @integer_from_i64(i64)
 
-define void @main.execute() !dbg !9 {
-  call void @initialize(), !dbg !10
-  call void @initialize.1(), !dbg !11
-  %1 = call %Rational @clone_rational(ptr @value), !dbg !12
-  call void @"println <:Rational>"(%Rational %1), !dbg !12
-  %2 = call %Rational @rational_from_c_string(ptr @2), !dbg !13
-  call void @"<:ReferenceMut<Rational>> += <:Rational>"(ptr @value, %Rational %2), !dbg !13
-  %3 = call %Rational @clone_rational(ptr @value), !dbg !14
-  call void @"println <:Rational>"(%Rational %3), !dbg !14
-  call void @initialize.2(), !dbg !15
-  %4 = call %String @string_from_c_string_and_length(ptr @4, i64 7), !dbg !16
-  call void @"<:ReferenceMut<String>> += <:String>"(ptr @str, %String %4), !dbg !16
-  %5 = call %String @clone_string(ptr @str), !dbg !17
-  call void @"println <:String>"(%String %5), !dbg !17
-  call void @destroy_rational(ptr @value), !dbg !18
-  call void @destroy_string(ptr @str), !dbg !19
-  br label %return, !dbg !19
+define private void @initialize.1() !dbg !9 {
+  %1 = alloca %"Type<MemoryAddress>", align 8, !dbg !10
+  %"Type<MemoryAddress>.name" = getelementptr inbounds %"Type<MemoryAddress>", ptr %1, i32 0, i32 0, !dbg !10
+  %2 = call %String @string_from_c_string_and_length(ptr @1, i64 13), !dbg !11
+  store %String %2, ptr %"Type<MemoryAddress>.name", align 8, !dbg !11
+  %"Type<MemoryAddress>.size" = getelementptr inbounds %"Type<MemoryAddress>", ptr %1, i32 0, i32 1, !dbg !11
+  %3 = call %Integer @integer_from_i64(i64 8), !dbg !11
+  store %Integer %3, ptr %"Type<MemoryAddress>.size", align 8, !dbg !11
+  %4 = load %"Type<MemoryAddress>", ptr %1, align 8, !dbg !11
+  store %"Type<MemoryAddress>" %4, ptr @"Type<MemoryAddress>", align 8, !dbg !11
+  br label %return, !dbg !11
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @initialize.1() !dbg !20 {
-  %1 = call %Rational @rational_from_c_string(ptr @1), !dbg !21
-  store %Rational %1, ptr @value, align 8, !dbg !21
-  br label %return, !dbg !21
+define private void @initialize.2() !dbg !12 {
+  %1 = alloca %"Type<I32>", align 8, !dbg !13
+  %"Type<I32>.name" = getelementptr inbounds %"Type<I32>", ptr %1, i32 0, i32 0, !dbg !13
+  %2 = call %String @string_from_c_string_and_length(ptr @2, i64 3), !dbg !14
+  store %String %2, ptr %"Type<I32>.name", align 8, !dbg !14
+  %"Type<I32>.size" = getelementptr inbounds %"Type<I32>", ptr %1, i32 0, i32 1, !dbg !14
+  %3 = call %Integer @integer_from_i64(i64 4), !dbg !14
+  store %Integer %3, ptr %"Type<I32>.size", align 8, !dbg !14
+  %4 = load %"Type<I32>", ptr %1, align 8, !dbg !14
+  store %"Type<I32>" %4, ptr @"Type<I32>", align 8, !dbg !14
+  br label %return, !dbg !14
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define private void @initialize.3() !dbg !15 {
+  %1 = alloca %"Type<F64>", align 8, !dbg !16
+  %"Type<F64>.name" = getelementptr inbounds %"Type<F64>", ptr %1, i32 0, i32 0, !dbg !16
+  %2 = call %String @string_from_c_string_and_length(ptr @3, i64 3), !dbg !17
+  store %String %2, ptr %"Type<F64>.name", align 8, !dbg !17
+  %"Type<F64>.size" = getelementptr inbounds %"Type<F64>", ptr %1, i32 0, i32 1, !dbg !17
+  %3 = call %Integer @integer_from_i64(i64 8), !dbg !17
+  store %Integer %3, ptr %"Type<F64>.size", align 8, !dbg !17
+  %4 = load %"Type<F64>", ptr %1, align 8, !dbg !17
+  store %"Type<F64>" %4, ptr @"Type<F64>", align 8, !dbg !17
+  br label %return, !dbg !17
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define void @main.execute() !dbg !18 {
+  call void @initialize(), !dbg !19
+  call void @initialize.1(), !dbg !19
+  call void @initialize.2(), !dbg !20
+  call void @initialize.3(), !dbg !21
+  call void @initialize.4(), !dbg !22
+  %1 = call %Rational @clone_rational(ptr @value), !dbg !23
+  call void @"println <:Rational>"(%Rational %1), !dbg !23
+  %2 = call %Rational @rational_from_c_string(ptr @5), !dbg !24
+  call void @"<:ReferenceMut<Rational>> += <:Rational>"(ptr @value, %Rational %2), !dbg !24
+  %3 = call %Rational @clone_rational(ptr @value), !dbg !25
+  call void @"println <:Rational>"(%Rational %3), !dbg !25
+  call void @initialize.5(), !dbg !26
+  %4 = call %String @string_from_c_string_and_length(ptr @7, i64 7), !dbg !27
+  call void @"<:ReferenceMut<String>> += <:String>"(ptr @str, %String %4), !dbg !27
+  %5 = call %String @clone_string(ptr @str), !dbg !28
+  call void @"println <:String>"(%String %5), !dbg !28
+  call void @destroy_rational(ptr @value), !dbg !29
+  call void @destroy_string(ptr @str), !dbg !30
+  br label %return, !dbg !30
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define private void @initialize.4() !dbg !31 {
+  %1 = call %Rational @rational_from_c_string(ptr @4), !dbg !32
+  store %Rational %1, ptr @value, align 8, !dbg !32
+  br label %return, !dbg !32
 
 return:                                           ; preds = %0
   ret void
@@ -72,13 +132,13 @@ return:                                           ; preds = %0
 
 declare %Rational @rational_from_c_string(ptr)
 
-define private void @"println <:Rational>"(%Rational %0) !dbg !22 {
+define private void @"println <:Rational>"(%Rational %0) !dbg !33 {
   %x = alloca %Rational, align 8
   store %Rational %0, ptr %x, align 8
-  %2 = load %Rational, ptr %x, align 8, !dbg !23
-  %3 = call %String @rational_as_string(%Rational %2), !dbg !23
-  call void @"println <:String>"(%String %3), !dbg !23
-  br label %return, !dbg !23
+  %2 = load %Rational, ptr %x, align 8, !dbg !34
+  %3 = call %String @rational_as_string(%Rational %2), !dbg !34
+  call void @"println <:String>"(%String %3), !dbg !34
+  br label %return, !dbg !34
 
 return:                                           ; preds = %1
   ret void
@@ -90,18 +150,18 @@ declare %String @rational_as_string(%Rational)
 
 declare %Rational @clone_rational(ptr)
 
-define private void @"<:ReferenceMut<Rational>> += <:Rational>"(ptr %0, %Rational %1) !dbg !24 {
+define private void @"<:ReferenceMut<Rational>> += <:Rational>"(ptr %0, %Rational %1) !dbg !35 {
   %self = alloca ptr, align 8
   store ptr %0, ptr %self, align 8
   %other = alloca %Rational, align 8
   store %Rational %1, ptr %other, align 8
-  %3 = load ptr, ptr %self, align 8, !dbg !25
-  %4 = load ptr, ptr %self, align 8, !dbg !25
-  %5 = load %Rational, ptr %4, align 8, !dbg !25
-  %6 = load %Rational, ptr %other, align 8, !dbg !25
-  %7 = call %Rational @rational_plus_rational(%Rational %5, %Rational %6), !dbg !25
-  store %Rational %7, ptr %3, align 8, !dbg !25
-  br label %return, !dbg !25
+  %3 = load ptr, ptr %self, align 8, !dbg !36
+  %4 = load ptr, ptr %self, align 8, !dbg !36
+  %5 = load %Rational, ptr %4, align 8, !dbg !36
+  %6 = load %Rational, ptr %other, align 8, !dbg !36
+  %7 = call %Rational @rational_plus_rational(%Rational %5, %Rational %6), !dbg !36
+  store %Rational %7, ptr %3, align 8, !dbg !36
+  br label %return, !dbg !36
 
 return:                                           ; preds = %2
   ret void
@@ -109,27 +169,27 @@ return:                                           ; preds = %2
 
 declare %Rational @rational_plus_rational(%Rational, %Rational)
 
-define private void @initialize.2() !dbg !26 {
-  %1 = call %String @string_from_c_string_and_length(ptr @3, i64 5), !dbg !27
-  store %String %1, ptr @str, align 8, !dbg !27
-  br label %return, !dbg !27
+define private void @initialize.5() !dbg !37 {
+  %1 = call %String @string_from_c_string_and_length(ptr @6, i64 5), !dbg !38
+  store %String %1, ptr @str, align 8, !dbg !38
+  br label %return, !dbg !38
 
 return:                                           ; preds = %0
   ret void
 }
 
-define private void @"<:ReferenceMut<String>> += <:String>"(ptr %0, %String %1) !dbg !28 {
+define private void @"<:ReferenceMut<String>> += <:String>"(ptr %0, %String %1) !dbg !39 {
   %self = alloca ptr, align 8
   store ptr %0, ptr %self, align 8
   %other = alloca %String, align 8
   store %String %1, ptr %other, align 8
-  %3 = load ptr, ptr %self, align 8, !dbg !29
-  %4 = load ptr, ptr %self, align 8, !dbg !29
-  %5 = load %String, ptr %4, align 8, !dbg !29
-  %6 = load %String, ptr %other, align 8, !dbg !29
-  %7 = call %String @string_plus_string(%String %5, %String %6), !dbg !29
-  store %String %7, ptr %3, align 8, !dbg !29
-  br label %return, !dbg !29
+  %3 = load ptr, ptr %self, align 8, !dbg !40
+  %4 = load ptr, ptr %self, align 8, !dbg !40
+  %5 = load %String, ptr %4, align 8, !dbg !40
+  %6 = load %String, ptr %other, align 8, !dbg !40
+  %7 = call %String @string_plus_string(%String %5, %String %6), !dbg !40
+  store %String %7, ptr %3, align 8, !dbg !40
+  br label %return, !dbg !40
 
 return:                                           ; preds = %2
   ret void
@@ -155,24 +215,35 @@ declare void @destroy_string(ptr)
 !6 = !DIBasicType(name: "i32", size: 32, encoding: DW_ATE_signed)
 !7 = !DILocation(line: 7, column: 11, scope: !3)
 !8 = !DILocation(line: 0, scope: !3)
-!9 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!9 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !2, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !10 = !DILocation(line: 7, column: 11, scope: !9)
-!11 = !DILocation(line: 0, column: 16, scope: !9)
-!12 = !DILocation(line: 1, column: 8, scope: !9)
-!13 = !DILocation(line: 2, column: 9, scope: !9)
-!14 = !DILocation(line: 3, column: 8, scope: !9)
-!15 = !DILocation(line: 5, column: 14, scope: !9)
-!16 = !DILocation(line: 6, column: 7, scope: !9)
-!17 = !DILocation(line: 7, column: 8, scope: !9)
-!18 = !DILocation(line: 0, scope: !9)
-!19 = !DILocation(line: 5, scope: !9)
-!20 = distinct !DISubprogram(name: "initialize.1", linkageName: "initialize.1", scope: !9, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!21 = !DILocation(line: 0, column: 16, scope: !20)
-!22 = distinct !DISubprogram(name: "println <:Rational>", linkageName: "println <:Rational>", scope: !9, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!23 = !DILocation(line: 7, column: 11, scope: !22)
-!24 = distinct !DISubprogram(name: "<:ReferenceMut<Rational>> += <:Rational>", linkageName: "<:ReferenceMut<Rational>> += <:Rational>", scope: !9, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!25 = !DILocation(line: 7, column: 11, scope: !24)
-!26 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !9, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!27 = !DILocation(line: 5, column: 14, scope: !26)
-!28 = distinct !DISubprogram(name: "<:ReferenceMut<String>> += <:String>", linkageName: "<:ReferenceMut<String>> += <:String>", scope: !9, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!29 = !DILocation(line: 7, column: 11, scope: !28)
+!11 = !DILocation(line: 0, scope: !9)
+!12 = distinct !DISubprogram(name: "initialize.2", linkageName: "initialize.2", scope: !2, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!13 = !DILocation(line: 5, column: 1, scope: !12)
+!14 = !DILocation(line: 0, scope: !12)
+!15 = distinct !DISubprogram(name: "initialize.3", linkageName: "initialize.3", scope: !2, file: !2, line: 3, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!16 = !DILocation(line: 3, column: 11, scope: !15)
+!17 = !DILocation(line: 0, scope: !15)
+!18 = distinct !DISubprogram(name: "main.execute", linkageName: "main.execute", scope: !2, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!19 = !DILocation(line: 7, column: 11, scope: !18)
+!20 = !DILocation(line: 5, column: 1, scope: !18)
+!21 = !DILocation(line: 3, column: 11, scope: !18)
+!22 = !DILocation(line: 0, column: 16, scope: !18)
+!23 = !DILocation(line: 1, column: 8, scope: !18)
+!24 = !DILocation(line: 2, column: 9, scope: !18)
+!25 = !DILocation(line: 3, column: 8, scope: !18)
+!26 = !DILocation(line: 5, column: 14, scope: !18)
+!27 = !DILocation(line: 6, column: 7, scope: !18)
+!28 = !DILocation(line: 7, column: 8, scope: !18)
+!29 = !DILocation(line: 0, scope: !18)
+!30 = !DILocation(line: 5, scope: !18)
+!31 = distinct !DISubprogram(name: "initialize.4", linkageName: "initialize.4", scope: !18, file: !2, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!32 = !DILocation(line: 0, column: 16, scope: !31)
+!33 = distinct !DISubprogram(name: "println <:Rational>", linkageName: "println <:Rational>", scope: !18, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!34 = !DILocation(line: 7, column: 11, scope: !33)
+!35 = distinct !DISubprogram(name: "<:ReferenceMut<Rational>> += <:Rational>", linkageName: "<:ReferenceMut<Rational>> += <:Rational>", scope: !18, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!36 = !DILocation(line: 7, column: 11, scope: !35)
+!37 = distinct !DISubprogram(name: "initialize.5", linkageName: "initialize.5", scope: !18, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!38 = !DILocation(line: 5, column: 14, scope: !37)
+!39 = distinct !DISubprogram(name: "<:ReferenceMut<String>> += <:String>", linkageName: "<:ReferenceMut<String>> += <:String>", scope: !18, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!40 = !DILocation(line: 7, column: 11, scope: !39)

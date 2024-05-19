@@ -19,12 +19,12 @@ Advice:   ☞ candidate is not viable
         × expected `Integer` type, got `Rational`
       
       Error:   × Integer
-          ╭─[core.ppl:88:5]
-       87 │ @mangle_as("integer_plus_integer")
-       88 │ fn <:Integer> + <:Integer> -> Integer
+          ╭─[core.ppl:95:5]
+       94 │ @mangle_as("integer_plus_integer")
+       95 │ fn <:Integer> + <:Integer> -> Integer
           ·     ▲
           ·     ╰── this has `Integer` type
-       89 │
+       96 │
           ╰────
       Error:   × Rational
          ╭─[main.ppl:1:1]
@@ -39,12 +39,12 @@ Advice:   ☞ candidate is not viable
         × expected `Rational` type, got `Integer`
       
       Error:   × Rational
-           ╭─[core.ppl:143:19]
-       142 │ @mangle_as("rational_plus_rational")
-       143 │ fn <:Rational> + <:Rational> -> Rational
+           ╭─[core.ppl:152:19]
+       151 │ @mangle_as("rational_plus_rational")
+       152 │ fn <:Rational> + <:Rational> -> Rational
            ·                   ▲
            ·                   ╰── this has `Rational` type
-       144 │
+       153 │
            ╰────
       Error:   × Integer
          ╭─[main.ppl:1:7]
@@ -59,12 +59,12 @@ Advice:   ☞ candidate is not viable
         × expected `String` type, got `Rational`
       
       Error:   × String
-           ╭─[core.ppl:176:5]
-       175 │ @mangle_as("string_plus_string")
-       176 │ fn <:String> + <:String> -> String
+           ╭─[core.ppl:187:5]
+       186 │ @mangle_as("string_plus_string")
+       187 │ fn <:String> + <:String> -> String
            ·     ▲
            ·     ╰── this has `String` type
-       177 │
+       188 │
            ╰────
       Error:   × Rational
          ╭─[main.ppl:1:1]
@@ -79,12 +79,12 @@ Advice:   ☞ candidate is not viable
         × expected `MemoryAddress` type, got `Rational`
       
       Error:   × MemoryAddress
-          ╭─[memory.ppl:13:5]
-       12 │ /// Get another memory address by adding offset to this one
-       13 │ fn <address: MemoryAddress> + <offset: Integer> -> MemoryAddress:
+          ╭─[memory.ppl:15:5]
+       14 │ /// Get another memory address by adding offset to this one
+       15 │ fn <address: MemoryAddress> + <offset: Integer> -> MemoryAddress:
           ·     ───┬───
           ·        ╰── this has `MemoryAddress` type
-       14 │     let value = address.value + offset
+       16 │     let value = address.value + offset
           ╰────
       Error:   × Rational
          ╭─[main.ppl:1:1]
@@ -99,12 +99,12 @@ Advice:   ☞ candidate is not viable
         × expected `I32` type, got `Rational`
       
       Error:   × I32
-          ╭─[i32.ppl:12:5]
-       11 │ @mangle_as("i32_plus_i32")
-       12 │ fn <:I32> + <:I32> -> I32
+          ╭─[i32.ppl:14:5]
+       13 │ @mangle_as("i32_plus_i32")
+       14 │ fn <:I32> + <:I32> -> I32
           ·     ▲
           ·     ╰── this has `I32` type
-       13 │
+       15 │
           ╰────
       Error:   × Rational
          ╭─[main.ppl:1:1]
@@ -119,12 +119,12 @@ Advice:   ☞ candidate is not viable
         × expected `F64` type, got `Rational`
       
       Error:   × F64
-          ╭─[f64.ppl:12:5]
-       11 │ @mangle_as("f64_plus_f64")
-       12 │ fn <:F64> + <:F64> -> F64
+          ╭─[f64.ppl:14:5]
+       13 │ @mangle_as("f64_plus_f64")
+       14 │ fn <:F64> + <:F64> -> F64
           ·     ▲
           ·     ╰── this has `F64` type
-       13 │
+       15 │
           ╰────
       Error:   × Rational
          ╭─[main.ppl:1:1]

@@ -11,6 +11,12 @@ type Array<T>:
 	capacity: Integer
 	data: MemoryAddress
 
+fn<T> default <:Type<Array<T>>> -> Array<T>:
+	let size = 0
+	let capacity = 0
+	let data = default MemoryAddress
+	return Array<T> { size, capacity, data }
+
 /// Create an empty array
 fn<T> <:Type<T>>[] -> Array<T>:
 	let capacity = 8
