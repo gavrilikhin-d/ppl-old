@@ -151,21 +151,82 @@ fn <rows: Integer> x <columns: Integer> Hilbert Matrix -> Matrix:
 		i += 1
 	return m
 
+fn add <k: Rational> <a: RowSlice> to <b: MutRowSlice>:
+	assert a.matrix.columns == b.matrix.columns "Can't add rows of different lengths"
+	let n = a.matrix.columns
+	let mut i = 0
+	while i < n:
+		b[i] += k * a[i]
+		i += 1
 
-fn gauss <a: Matrix> <b: Matrix> -> Matrix:
+fn add <k: Rational> <a: MutRowSlice> to <b: MutRowSlice>:
+	add k (RowSlice from a) to b
+
+fn add <a: RowSlice> to <b: MutRowSlice>:
+	add 1.0 a to b
+
+fn add <a: MutRowSlice> to <b: MutRowSlice>:
+	add (RowSlice from a) to b
+
+fn det <a_: Matrix> -> Rational:
+	let mut a = a_
+	assert a.rows == a.columns "Matrix must be square"
+	let n = a.rows
+	let mut i = 0
+	while i < n:
+		let mut j = i + 1
+		while j < n:
+			let k = (a[j])[i] / (a[i])[i] // FIXME: division by zero
+			if k != 0.0:
+				add -k (a[i]) to (a[j])
+			j += 1
+		i += 1
+
+	let mut d = 1.0
+	i = 0
+	while i < n:
+		d *= (a[i])[i]
+		i += 1
+	return d
+
+
+fn gauss <a_: Matrix> <b_: Matrix> -> Matrix:
+	let mut a = a_
+	let mut b = b_
 	assert a.rows == a.columns "Matrix must be square"
 	assert a.rows == b.rows "Matrix and vector must have the same number of rows"
 	let n = a.rows
+	let mut i = 0
+	while i < n:
+		let mut j = i + 1
+		while j < n:
+			let k = (a[j])[i] / (a[i])[i] // FIXME: division by zero
+			if k != 0.0:
+				add -k (a[i]) to (a[j])
+				(b[j])[0] -= k * (b[i])[0]
+			j += 1
+		i += 1
+
+	i = n - 1
+	while i > 0:
+		let mut j = i - 1
+		while j >= 0:
+			let k = (a[j])[i] / (a[i])[i] // FIXME: division by zero
+			if k != 0.0:
+				add -k (a[i]) to (a[j])
+				(b[j])[0] -= k * (b[i])[0]
+			j -= 1
+		i -= 1
+
 	return b
 
 // let m = 3 x 3 Hilbert Matrix
 // print m
 
 fn run code:
-	let mut a = 1
-	let mut b = 2
-	swap a and b
-	print a
-	print b
+	let mut a = 3 x 3 Hilbert Matrix
+	println (det a)
+// let mut b = Vector from (repeat 1.0 3 times)
+// gauss a b 
 
 run code
