@@ -15,7 +15,6 @@ pub struct MemberReference {
     #[drive(skip)]
     pub span: std::ops::Range<usize>,
     /// Base expression
-    #[drive(skip)]
     pub base: Box<Expression>,
     /// Referenced variable name
     #[drive(skip)]
