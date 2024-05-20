@@ -18,7 +18,8 @@ expression: hir
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -27,7 +28,8 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -36,7 +38,8 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -45,7 +48,8 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -54,7 +58,8 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -63,7 +68,8 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -72,7 +78,8 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -81,5 +88,6 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((copy x:Rational)))
+	let $tmp@185: String = `String from <:Rational>`((copy x:Rational))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)

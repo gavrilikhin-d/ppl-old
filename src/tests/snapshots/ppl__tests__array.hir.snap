@@ -5,12 +5,16 @@ expression: hir
 let mut arr: Array<Integer> = `<:Type<Integer>> [ ]`((copy Type<Integer>:Type<Integer>))
 `println <:Array<Integer>>`((copy arr:Array<Integer>))
 if `<:Reference<Array<Integer>>> is empty`((&arr:ReferenceMut<Array<Integer>>)):
-	`println <:String>`("Empty")
+	let $tmp@62: String = "Empty"
+	`println <:Reference<String>>`((&$tmp@62:Reference<String>))
+	`destroy <:ReferenceMut<String>>`(($tmp@62:String))
 
 `push <:Integer> to <:ReferenceMut<Array<Integer>>>`(1, (&arr:ReferenceMut<Array<Integer>>))
 `println <:Array<Integer>>`((copy arr:Array<Integer>))
 if `<:Reference<Array<Integer>>> is not empty`((&arr:ReferenceMut<Array<Integer>>)):
-	`println <:String>`("Not empty")
+	let $tmp@126: String = "Not empty"
+	`println <:Reference<String>>`((&$tmp@126:Reference<String>))
+	`destroy <:ReferenceMut<String>>`(($tmp@126:String))
 
 `println <:Integer>`(`clone <:Reference<Integer>>`((*`<:ReferenceMut<Array<Integer>>> [ <:Integer> ]`((&arr:ReferenceMut<Array<Integer>>), 0):Integer)))
 let mut i: Integer = 2
@@ -25,8 +29,8 @@ while `<:Integer> <= <:Integer>`(`clone <:Reference<Integer>>`((i:Integer)), 10)
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4582:Integer)
+	let $tmp@4584: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4584:Integer)
 
 
 fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:
@@ -60,7 +64,8 @@ fn<Integer> String from <array: Array<Integer>> -> String:
 
 
 fn println <x: Array<Integer>> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Array<Integer>>`((copy x:Array<Integer>)))
+	let $tmp@185: String = `String from <:Array<Integer>>`((copy x:Array<Integer>))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -71,13 +76,13 @@ fn<Integer> <array: Reference<Array<Integer>>> is empty -> Bool:
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4582:Integer)
+	let $tmp@4584: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4584:Integer)
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4582:Integer)
+	let $tmp@4584: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4584:Integer)
 
 
 fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:
@@ -134,7 +139,8 @@ fn<Integer> String from <array: Array<Integer>> -> String:
 
 
 fn println <x: Array<Integer>> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Array<Integer>>`((copy x:Array<Integer>)))
+	let $tmp@185: String = `String from <:Array<Integer>>`((copy x:Array<Integer>))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -145,8 +151,8 @@ fn<Integer> <array: Reference<Array<Integer>>> is not empty -> Bool:
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4582:Integer)
+	let $tmp@4584: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4584:Integer)
 
 
 @mangle_as("read_memory")
@@ -169,7 +175,8 @@ fn<Integer> <array: ReferenceMut<Array<Integer>>> [ <i: Integer> ] -> ReferenceM
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -190,13 +197,13 @@ fn <x: Integer> <= <y: Integer> -> Bool:
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4582:Integer)
+	let $tmp@4584: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4584:Integer)
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4582:Integer)
+	let $tmp@4584: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4584:Integer)
 
 
 fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:
@@ -260,5 +267,6 @@ fn<Integer> String from <array: Array<Integer>> -> String:
 
 
 fn println <x: Array<Integer>> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Array<Integer>>`((copy x:Array<Integer>)))
+	let $tmp@185: String = `String from <:Array<Integer>>`((copy x:Array<Integer>))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)

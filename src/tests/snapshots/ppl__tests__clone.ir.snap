@@ -22,6 +22,7 @@ source_filename = "src/main.ppl"
 @3 = private unnamed_addr constant [4 x i8] c"F64\00", align 1
 @x = global %Integer zeroinitializer
 @y = global %Integer zeroinitializer
+@"$tmp@53" = global %String zeroinitializer
 @4 = private unnamed_addr constant [1 x i8] zeroinitializer, align 1
 
 define private void @initialize() !dbg !3 {
@@ -103,18 +104,19 @@ define void @main.execute() !dbg !18 {
   call void @"println <:Integer>"(%Integer %1), !dbg !24
   %2 = call %Integer @clone_integer(ptr @y), !dbg !25
   call void @"println <:Integer>"(%Integer %2), !dbg !25
-  %3 = call %String @string_from_c_string_and_length(ptr @4, i64 0), !dbg !26
-  call void @"println <:String>"(%String %3), !dbg !26
+  call void @initialize.6(), !dbg !26
+  call void @"println <:Reference<String>>"(ptr @"$tmp@53"), !dbg !26
   call void @destroy_integer(ptr @y), !dbg !27
-  %4 = call %Integer @integer_from_i64(i64 2), !dbg !28
-  store %Integer %4, ptr @y, align 8, !dbg !28
-  %5 = call %Integer @clone_integer(ptr @x), !dbg !29
-  call void @"println <:Integer>"(%Integer %5), !dbg !29
-  %6 = call %Integer @clone_integer(ptr @y), !dbg !30
-  call void @"println <:Integer>"(%Integer %6), !dbg !30
+  %3 = call %Integer @integer_from_i64(i64 2), !dbg !28
+  store %Integer %3, ptr @y, align 8, !dbg !28
+  %4 = call %Integer @clone_integer(ptr @x), !dbg !29
+  call void @"println <:Integer>"(%Integer %4), !dbg !29
+  %5 = call %Integer @clone_integer(ptr @y), !dbg !30
+  call void @"println <:Integer>"(%Integer %5), !dbg !30
   call void @destroy_integer(ptr @x), !dbg !31
   call void @destroy_integer(ptr @y), !dbg !32
-  br label %return, !dbg !32
+  call void @destroy_string(ptr @"$tmp@53"), !dbg !26
+  br label %return, !dbg !26
 
 return:                                           ; preds = %0
   ret void
@@ -145,18 +147,31 @@ define private void @"println <:Integer>"(%Integer %0) !dbg !37 {
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !38
   %3 = call %String @integer_as_string(%Integer %2), !dbg !38
-  call void @"println <:String>"(%String %3), !dbg !38
+  %"$tmp@185" = alloca %String, align 8, !dbg !38
+  store %String %3, ptr %"$tmp@185", align 8, !dbg !38
+  call void @"println <:Reference<String>>"(ptr %"$tmp@185"), !dbg !38
   br label %return, !dbg !38
 
 return:                                           ; preds = %1
   ret void
 }
 
-declare void @"println <:String>"(%String)
-
 declare %String @integer_as_string(%Integer)
 
+declare void @"println <:Reference<String>>"(ptr)
+
+define private void @initialize.6() !dbg !39 {
+  %1 = call %String @string_from_c_string_and_length(ptr @4, i64 0), !dbg !40
+  store %String %1, ptr @"$tmp@53", align 8, !dbg !40
+  br label %return, !dbg !40
+
+return:                                           ; preds = %0
+  ret void
+}
+
 declare void @destroy_integer(ptr)
+
+declare void @destroy_string(ptr)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
@@ -200,3 +215,5 @@ declare void @destroy_integer(ptr)
 !36 = !DILocation(line: 1, column: 12, scope: !35)
 !37 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !18, file: !2, line: 10, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !38 = !DILocation(line: 10, scope: !37)
+!39 = distinct !DISubprogram(name: "initialize.6", linkageName: "initialize.6", scope: !18, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!40 = !DILocation(line: 5, column: 8, scope: !39)

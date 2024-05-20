@@ -22,6 +22,7 @@ source_filename = "src/main.ppl"
 @3 = private unnamed_addr constant [4 x i8] c"F64\00", align 1
 @4 = private unnamed_addr constant [11 x i8] c"destructor\00", align 1
 @x = global ptr null
+@"$tmp@179" = global %String zeroinitializer
 @5 = private unnamed_addr constant [5 x i8] c"done\00", align 1
 
 define private void @initialize() !dbg !3 {
@@ -101,10 +102,11 @@ define void @main.execute() !dbg !18 {
   call void @"destroy <:ReferenceMut<DestructibleClass>>"(ptr @x), !dbg !24
   %1 = alloca ptr, align 8, !dbg !25
   store ptr %1, ptr @x, align 8, !dbg !25
-  %2 = call %String @string_from_c_string_and_length(ptr @5, i64 4), !dbg !26
-  call void @"println <:String>"(%String %2), !dbg !26
+  call void @initialize.5(), !dbg !26
+  call void @"println <:Reference<String>>"(ptr @"$tmp@179"), !dbg !26
   call void @"destroy <:ReferenceMut<DestructibleClass>>"(ptr @x), !dbg !27
-  br label %return, !dbg !27
+  call void @destroy_string(ptr @"$tmp@179"), !dbg !26
+  br label %return, !dbg !26
 
 return:                                           ; preds = %0
   ret void
@@ -114,19 +116,33 @@ define void @"destroy <:ReferenceMut<DestructibleClass>>"(ptr %0) !dbg !28 {
   %"$arg0" = alloca ptr, align 8
   store ptr %0, ptr %"$arg0", align 8
   %2 = call %String @string_from_c_string_and_length(ptr @4, i64 10), !dbg !29
-  call void @"println <:String>"(%String %2), !dbg !29
+  %"$tmp@72" = alloca %String, align 8, !dbg !29
+  store %String %2, ptr %"$tmp@72", align 8, !dbg !29
+  call void @"println <:Reference<String>>"(ptr %"$tmp@72"), !dbg !29
+  call void @destroy_string(ptr %"$tmp@72"), !dbg !29
   br label %return, !dbg !30
 
 return:                                           ; preds = %1
   ret void
 }
 
-declare void @"println <:String>"(%String)
+declare void @"println <:Reference<String>>"(ptr)
+
+declare void @destroy_string(ptr)
 
 define private void @initialize.4() !dbg !31 {
   %1 = alloca ptr, align 8, !dbg !32
   store ptr %1, ptr @x, align 8, !dbg !32
   br label %return, !dbg !32
+
+return:                                           ; preds = %0
+  ret void
+}
+
+define private void @initialize.5() !dbg !33 {
+  %1 = call %String @string_from_c_string_and_length(ptr @5, i64 4), !dbg !34
+  store %String %1, ptr @"$tmp@179", align 8, !dbg !34
+  br label %return, !dbg !34
 
 return:                                           ; preds = %0
   ret void
@@ -168,3 +184,5 @@ return:                                           ; preds = %0
 !30 = !DILocation(line: 2, column: 40, scope: !28)
 !31 = distinct !DISubprogram(name: "initialize.4", linkageName: "initialize.4", scope: !18, file: !2, line: 4, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !32 = !DILocation(line: 4, column: 12, scope: !31)
+!33 = distinct !DISubprogram(name: "initialize.5", linkageName: "initialize.5", scope: !18, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!34 = !DILocation(line: 7, column: 8, scope: !33)

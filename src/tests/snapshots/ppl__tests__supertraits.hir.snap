@@ -12,12 +12,16 @@ trait FooBar:
 
 
 fn foo <$arg0: None> -> None:
-	let $tmp@99: None = `print <:String>`("foo")
+	let $tmp@105: String = "foo"
+	let $tmp@99: None = `print <:Reference<String>>`((&$tmp@105:Reference<String>))
+	`destroy <:ReferenceMut<String>>`(($tmp@105:String))
 	return ($tmp@99:None)
 
 
 fn bar <$arg0: None> -> None:
-	let $tmp@129: None = `println <:String>`("bar")
+	let $tmp@137: String = "bar"
+	let $tmp@129: None = `println <:Reference<String>>`((&$tmp@137:Reference<String>))
+	`destroy <:ReferenceMut<String>>`(($tmp@137:String))
 	return ($tmp@129:None)
 
 
@@ -31,13 +35,15 @@ fn<T: FooBar> foobar <x: T> -> None:
 
 
 fn foo <$arg0: None> -> None:
-	let $tmp@99: None = `print <:String>`("foo")
+	let $tmp@105: String = "foo"
+	let $tmp@99: None = `print <:Reference<String>>`((&$tmp@105:Reference<String>))
 	return ($tmp@99:None)
 
 
 
 fn bar <$arg0: None> -> None:
-	let $tmp@129: None = `println <:String>`("bar")
+	let $tmp@137: String = "bar"
+	let $tmp@129: None = `println <:Reference<String>>`((&$tmp@137:Reference<String>))
 	return ($tmp@129:None)
 
 

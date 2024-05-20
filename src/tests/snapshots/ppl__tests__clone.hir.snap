@@ -6,13 +6,15 @@ let x: Integer = 1
 let mut y: Integer = `clone <:Reference<Integer>>`((x:Integer))
 `println <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)))
 `println <:Integer>`(`clone <:Reference<Integer>>`((y:Integer)))
-`println <:String>`("")
+let $tmp@53: String = ""
+`println <:Reference<String>>`((&$tmp@53:Reference<String>))
 `destroy <:ReferenceMut<Integer>>`((y:Integer))
 (y:Integer) = 2
 `println <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)))
 `println <:Integer>`(`clone <:Reference<Integer>>`((y:Integer)))
 `destroy <:ReferenceMut<Integer>>`((x:Integer))
 `destroy <:ReferenceMut<Integer>>`((y:Integer))
+`destroy <:ReferenceMut<String>>`(($tmp@53:String))
 
 ==MONOMORPHIZED==
 
@@ -21,7 +23,8 @@ let mut y: Integer = `clone <:Reference<Integer>>`((x:Integer))
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -30,7 +33,8 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -39,7 +43,8 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -48,5 +53,6 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)

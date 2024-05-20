@@ -142,16 +142,18 @@ define private void @"println <:Bool>"(i1 %0) !dbg !33 {
   store i1 %0, ptr %x, align 1
   %2 = load i1, ptr %x, align 1, !dbg !34
   %3 = call %String @"String from <:Bool>"(i1 %2), !dbg !34
-  call void @"println <:String>"(%String %3), !dbg !34
+  %"$tmp@185" = alloca %String, align 8, !dbg !34
+  store %String %3, ptr %"$tmp@185", align 8, !dbg !34
+  call void @"println <:Reference<String>>"(ptr %"$tmp@185"), !dbg !34
   br label %return, !dbg !34
 
 return:                                           ; preds = %1
   ret void
 }
 
-declare void @"println <:String>"(%String)
-
 declare %String @"String from <:Bool>"(i1)
+
+declare void @"println <:Reference<String>>"(ptr)
 
 declare i1 @integer_eq_integer(%Integer, %Integer)
 

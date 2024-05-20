@@ -9,15 +9,16 @@ let ty: Type<Integer> = `type of <:Integer>`(1)
 
 
 fn<Integer> type of <$arg0: Integer> -> Type<Integer>:
-	let $tmp@4639: Type<Integer> = (copy Type<Integer>:Type<Integer>)
-	return ($tmp@4639:Type<Integer>)
+	let $tmp@4641: Type<Integer> = (copy Type<Integer>:Type<Integer>)
+	return ($tmp@4641:Type<Integer>)
 
 
 fn<Integer> String from <ty: Type<Integer>> -> String:
-	let $tmp@4514: String = `clone <:Reference<String>>`((ty:Type<Integer>).name)
-	return ($tmp@4514:String)
+	let $tmp@4516: String = `clone <:Reference<String>>`((ty:Type<Integer>).name)
+	return ($tmp@4516:String)
 
 
 fn println <x: Type<Integer>> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Type<Integer>>`((copy x:Type<Integer>)))
+	let $tmp@185: String = `String from <:Type<Integer>>`((copy x:Type<Integer>))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)

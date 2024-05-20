@@ -139,9 +139,9 @@ define private %Integer @"size of <:Type<I32>>"(%"Type<I32>" %0) !dbg !36 {
   store %"Type<I32>" %0, ptr %ty, align 8
   %size = getelementptr inbounds %"Type<I32>", ptr %ty, i32 0, i32 1, !dbg !37
   %2 = call %Integer @clone_integer(ptr %size), !dbg !37
-  %"$tmp@4582" = alloca %Integer, align 8, !dbg !37
-  store %Integer %2, ptr %"$tmp@4582", align 8, !dbg !37
-  %3 = load %Integer, ptr %"$tmp@4582", align 8, !dbg !37
+  %"$tmp@4584" = alloca %Integer, align 8, !dbg !37
+  store %Integer %2, ptr %"$tmp@4584", align 8, !dbg !37
+  %3 = load %Integer, ptr %"$tmp@4584", align 8, !dbg !37
   store %Integer %3, ptr %return_value, align 8, !dbg !37
   br label %return, !dbg !37
 
@@ -183,16 +183,18 @@ define private void @"println <:I32>"(i32 %0) !dbg !43 {
   store i32 %0, ptr %x, align 4
   %2 = load i32, ptr %x, align 4, !dbg !44
   %3 = call %String @i32_as_string(i32 %2), !dbg !44
-  call void @"println <:String>"(%String %3), !dbg !44
+  %"$tmp@185" = alloca %String, align 8, !dbg !44
+  store %String %3, ptr %"$tmp@185", align 8, !dbg !44
+  call void @"println <:Reference<String>>"(ptr %"$tmp@185"), !dbg !44
   br label %return, !dbg !45
 
 return:                                           ; preds = %1
   ret void
 }
 
-declare void @"println <:String>"(%String)
-
 declare %String @i32_as_string(i32)
+
+declare void @"println <:Reference<String>>"(ptr)
 
 declare void @free_memory(ptr)
 

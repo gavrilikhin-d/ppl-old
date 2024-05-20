@@ -139,14 +139,14 @@ define private void @"println <:Type<A>>"(%"Type<A>" %0) !dbg !27 {
   store %"Type<A>" %0, ptr %x, align 8
   %2 = load %"Type<A>", ptr %x, align 8, !dbg !28
   %3 = call %String @"String from <:Type<A>>"(%"Type<A>" %2), !dbg !28
-  call void @"println <:String>"(%String %3), !dbg !28
+  %"$tmp@185" = alloca %String, align 8, !dbg !28
+  store %String %3, ptr %"$tmp@185", align 8, !dbg !28
+  call void @"println <:Reference<String>>"(ptr %"$tmp@185"), !dbg !28
   br label %return, !dbg !28
 
 return:                                           ; preds = %1
   ret void
 }
-
-declare void @"println <:String>"(%String)
 
 define private %String @"String from <:Type<A>>"(%"Type<A>" %0) !dbg !29 {
   %return_value = alloca %String, align 8
@@ -154,9 +154,9 @@ define private %String @"String from <:Type<A>>"(%"Type<A>" %0) !dbg !29 {
   store %"Type<A>" %0, ptr %ty, align 8
   %name = getelementptr inbounds %"Type<A>", ptr %ty, i32 0, i32 0, !dbg !30
   %2 = call %String @clone_string(ptr %name), !dbg !30
-  %"$tmp@4514" = alloca %String, align 8, !dbg !30
-  store %String %2, ptr %"$tmp@4514", align 8, !dbg !30
-  %3 = load %String, ptr %"$tmp@4514", align 8, !dbg !30
+  %"$tmp@4516" = alloca %String, align 8, !dbg !30
+  store %String %2, ptr %"$tmp@4516", align 8, !dbg !30
+  %3 = load %String, ptr %"$tmp@4516", align 8, !dbg !30
   store %String %3, ptr %return_value, align 8, !dbg !30
   br label %return, !dbg !30
 
@@ -167,14 +167,16 @@ return:                                           ; preds = %1
 
 declare %String @clone_string(ptr)
 
+declare void @"println <:Reference<String>>"(ptr)
+
 define private %"Type<A>" @"type of <:A>"(ptr %0) !dbg !31 {
   %return_value = alloca %"Type<A>", align 8
   %"$arg0" = alloca ptr, align 8
   store ptr %0, ptr %"$arg0", align 8
   %2 = load %"Type<A>", ptr @"Type<A>", align 8, !dbg !32
-  %"$tmp@4639" = alloca %"Type<A>", align 8, !dbg !32
-  store %"Type<A>" %2, ptr %"$tmp@4639", align 8, !dbg !32
-  %3 = load %"Type<A>", ptr %"$tmp@4639", align 8, !dbg !32
+  %"$tmp@4641" = alloca %"Type<A>", align 8, !dbg !32
+  store %"Type<A>" %2, ptr %"$tmp@4641", align 8, !dbg !32
+  %3 = load %"Type<A>", ptr %"$tmp@4641", align 8, !dbg !32
   store %"Type<A>" %3, ptr %return_value, align 8, !dbg !32
   br label %return, !dbg !32
 

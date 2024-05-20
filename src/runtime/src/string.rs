@@ -72,12 +72,13 @@ pub extern "C" fn string_plus_string(x: String, y: String) -> String {
 
 /// Print string to stdout
 ///
-/// Runtime for builtin ppl's function:
-/// ```ppl
-/// fn print <str: String> -> None
+/// # PPL
+/// ```no_run
+/// @mangle_as("print_string")
+/// fn print <str: &String> -> None
 /// ```
 #[no_mangle]
-pub extern "C" fn print_string(str: String) {
+pub extern "C" fn print_string(str: &String) {
     let str = str.as_ref();
 
     print!("{str}");
