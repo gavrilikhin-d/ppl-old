@@ -283,12 +283,30 @@ fn replace <dst: MutColumnSlice> with <src: Matrix>:
 	assert src.columns == 1 "Can't replace column with matrix"
 	replace dst with (0 column of src)
 
+fn cramer <a_: Matrix> <b_: Matrix> -> Matrix:
+	let mut a = a_
+	let mut b = b_
+	assert a.rows == a.columns "Matrix must be square"
+	assert a.rows == b.rows "Matrix and vector must have the same number of rows"
+	let det = det (copy of a)
+
+	let mut x = Rational[]
+	let n = a.rows
+	let mut i = 0
+	while i < n:
+		let mut a_copy = copy of a
+		replace (i column of a_copy) with b
+		push ((det a_copy) / det) to x
+		i += 1
+
+	return Vector from x
+
 fn run code:
 	let n = Integer from (env "N")
-	let mut a = n x n Hilbert Matrix
-	let mut b = Vector from (repeat 1.0 n times)
-	let x = gauss (copy of a) b
-	println x
-	println a * x
+	let a = n x n Hilbert Matrix
+	let x = Vector from (repeat 1.0 n times)
+	let b = a * x
+	let x_calc = gauss a b
+	println x_calc
 
 run code
