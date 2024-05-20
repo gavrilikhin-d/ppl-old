@@ -243,11 +243,53 @@ fn gauss <a_: Matrix> <b_: Matrix> -> Matrix:
 
 	return b
 
+type MutColumnSlice:
+	column: Integer
+	matrix: &mut Matrix
+
+fn <column: Integer> column of <matrix: &mut Matrix> -> MutColumnSlice:
+	return MutColumnSlice { matrix, column }
+
+fn <slice: MutColumnSlice> [ <row: Integer> ] -> &mut Rational:
+	let i = row * slice.matrix.columns + slice.column
+	return slice.matrix.data[i]
+
+type ColumnSlice:
+	column: Integer
+	matrix: &Matrix
+
+fn <column: Integer> column of <matrix: &Matrix> -> ColumnSlice:
+	return ColumnSlice { matrix, column }
+
+fn <slice: ColumnSlice> [ <row: Integer> ] -> &Rational:
+	let i = row * slice.matrix.columns + slice.column
+	return slice.matrix.data[i]
+
+fn ColumnSlice from <slice: MutColumnSlice> -> ColumnSlice:
+	return ColumnSlice { column: slice.column, matrix: slice.matrix }
+
+fn replace <dst: MutColumnSlice> with <src: ColumnSlice>:
+	assert dst.matrix.rows == src.matrix.rows "Can't replace columns of different lengths"
+	let n = dst.matrix.rows
+	let mut i = 0
+	while i < n:
+		dst[i] = src[i]
+		i += 1
+
+fn replace <dst: MutColumnSlice> with <src: MutColumnSlice>:
+	replace dst with (ColumnSlice from src)
+
+fn replace <dst: MutColumnSlice> with <src: Matrix>:
+	assert src.columns == 1 "Can't replace column with matrix"
+	replace dst with (0 column of src)
+
 fn run code:
 	let mut a = 3 x 3 Hilbert Matrix
-// println (det a)
 	let mut b = Vector from (repeat 1.0 3 times)
-	let x = gauss (copy of a) (copy of b) 
-	println a * x
+	replace (1 column of a) with b
+	println a
+// let x = gauss (copy of a) (copy of b) 
+// println x
+// println a * x
 
 run code
