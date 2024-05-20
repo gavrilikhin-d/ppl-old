@@ -66,7 +66,10 @@ impl<'ctx> TemporariesInserter {
 
     fn exit_return(&mut self, ret: &mut Return) {
         ret.value_mut().map(|expr| {
-            if !matches!(expr, Expression::Literal(_)) {
+            if !matches!(
+                expr,
+                Expression::Literal(_) | Expression::VariableReference(_)
+            ) {
                 self.replace_with_tmp(expr)
             }
         });

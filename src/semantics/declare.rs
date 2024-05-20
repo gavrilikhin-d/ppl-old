@@ -11,8 +11,7 @@ use crate::{
 
 use super::{
     error::{CantDeduceReturnType, Error, ReturnTypeMismatch},
-    Context, Convert, ConvertibleTo, FunctionContext, GenericContext, Monomorphize, ToHIR,
-    TraitContext,
+    Context, Convert, FunctionContext, GenericContext, Monomorphize, ToHIR, TraitContext,
 };
 
 use crate::DataHolder;
@@ -108,9 +107,9 @@ impl Declare for ast::FunctionDeclaration {
         }
 
         if self.implicit_return {
-            let return_type = f_context.function.read().unwrap().return_type.clone();
+            let mut return_type = f_context.function.read().unwrap().return_type.clone();
             let expr: hir::Expression = body.pop().unwrap().try_into().unwrap();
-            if self.return_type.is_none() {
+            if return_type == Type::Unknown {
                 if expr.ty() == Type::Unknown {
                     return Err(CantDeduceReturnType {
                         at: self.name_parts.range().into(),
@@ -118,13 +117,14 @@ impl Declare for ast::FunctionDeclaration {
                     .into());
                 }
 
-                declaration.write().unwrap().return_type = expr.ty().clone();
-            } else if !expr
-                .ty()
-                .convertible_to(return_type.clone())
-                .within(context)
-                .is_ok_and(|convertible| convertible)
-            {
+                return_type = expr.ty();
+                declaration.write().unwrap().return_type = return_type.clone();
+            }
+
+            let conversion = expr
+                .convert_to(return_type.clone().at(expr.range())) // Fake source location doesn't matter as long as we don't reuse this error
+                .within(context);
+            if conversion.is_err() {
                 return Err(ReturnTypeMismatch {
                     expected: return_type.clone(),
                     got: expr.ty(),
@@ -132,7 +132,9 @@ impl Declare for ast::FunctionDeclaration {
                 }
                 .into());
             }
-            body = vec![hir::Return::Implicit { value: expr }.into()];
+
+            let value = conversion.unwrap();
+            body = vec![hir::Return::Implicit { value }.into()];
         }
 
         declaration.write().unwrap().body = body.clone();

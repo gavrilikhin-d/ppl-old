@@ -21,7 +21,7 @@ let mut y: Integer = `clone <:Reference<Integer>>`((x:Integer))
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
 	return ($tmp@176:None)
 
 
@@ -30,7 +30,7 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
 	return ($tmp@176:None)
 
 
@@ -39,7 +39,7 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
 	return ($tmp@176:None)
 
 
@@ -48,5 +48,5 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
 	return ($tmp@176:None)

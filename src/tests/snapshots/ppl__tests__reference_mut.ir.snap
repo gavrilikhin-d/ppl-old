@@ -139,15 +139,12 @@ define private ptr @"reference to mutable <:ReferenceMut<Integer>>"(ptr %0) !dbg
   %ref = alloca ptr, align 8
   store ptr %0, ptr %ref, align 8
   %2 = load ptr, ptr %ref, align 8, !dbg !35
-  %"$tmp@4930" = alloca ptr, align 8, !dbg !35
-  store ptr %2, ptr %"$tmp@4930", align 8, !dbg !35
-  %3 = load ptr, ptr %"$tmp@4930", align 8, !dbg !35
-  store ptr %3, ptr %return_value, align 8, !dbg !35
+  store ptr %2, ptr %return_value, align 8, !dbg !35
   br label %return, !dbg !35
 
 return:                                           ; preds = %1
-  %4 = load ptr, ptr %return_value, align 8
-  ret ptr %4
+  %3 = load ptr, ptr %return_value, align 8
+  ret ptr %3
 }
 
 define private void @"println <:Integer>"(%Integer %0) !dbg !36 {

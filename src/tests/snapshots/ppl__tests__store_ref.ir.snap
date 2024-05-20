@@ -115,8 +115,8 @@ define %RefWrapper @"wrap <:Reference<Integer>>"(ptr %0) !dbg !26 {
   store ptr %0, ptr %x, align 8
   %2 = alloca %RefWrapper, align 8, !dbg !27
   %RefWrapper.x = getelementptr inbounds %RefWrapper, ptr %2, i32 0, i32 0, !dbg !27
-  %3 = call %Integer @clone_integer(ptr %x), !dbg !28
-  store %Integer %3, ptr %RefWrapper.x, align 8, !dbg !28
+  %3 = load ptr, ptr %x, align 8, !dbg !28
+  store ptr %3, ptr %RefWrapper.x, align 8, !dbg !28
   %4 = load %RefWrapper, ptr %2, align 8, !dbg !28
   %"$tmp@56" = alloca %RefWrapper, align 8, !dbg !28
   store %RefWrapper %4, ptr %"$tmp@56", align 8, !dbg !28
@@ -128,8 +128,6 @@ return:                                           ; preds = %1
   %6 = load %RefWrapper, ptr %return_value, align 8
   ret %RefWrapper %6
 }
-
-declare %Integer @clone_integer(ptr)
 
 define private void @initialize.4() !dbg !29 {
   %1 = call %Integer @integer_from_i64(i64 5), !dbg !30
@@ -164,6 +162,8 @@ return:                                           ; preds = %1
 declare void @"println <:String>"(%String)
 
 declare %String @integer_as_string(%Integer)
+
+declare %Integer @clone_integer(ptr)
 
 declare void @destroy_integer(ptr)
 

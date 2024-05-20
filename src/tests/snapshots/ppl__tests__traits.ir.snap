@@ -132,12 +132,15 @@ define private %Integer @"default <:Integer>"(%Integer %0) !dbg !31 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !32
-  store %Integer %2, ptr %return_value, align 8, !dbg !32
+  %"$tmp@59" = alloca %Integer, align 8, !dbg !32
+  store %Integer %2, ptr %"$tmp@59", align 8, !dbg !32
+  %3 = load %Integer, ptr %"$tmp@59", align 8, !dbg !32
+  store %Integer %3, ptr %return_value, align 8, !dbg !32
   br label %return, !dbg !32
 
 return:                                           ; preds = %1
-  %3 = load %Integer, ptr %return_value, align 8
-  ret %Integer %3
+  %4 = load %Integer, ptr %return_value, align 8
+  ret %Integer %4
 }
 
 define private void @"println <:Integer>"(%Integer %0) !dbg !33 {

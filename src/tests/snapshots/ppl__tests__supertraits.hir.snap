@@ -22,8 +22,8 @@ fn bar <$arg0: None> -> None:
 
 
 fn<T: FooBar> foobar <x: T> -> None:
-	`foo <:T>`((x:T))
-	`bar <:T>`((x:T))
+	`foo <:T>`((copy x:T))
+	`bar <:T>`((copy x:T))
 
 `foobar <:None>`(none)
 
@@ -31,13 +31,17 @@ fn<T: FooBar> foobar <x: T> -> None:
 
 
 fn foo <$arg0: None> -> None:
-	return `print <:String>`("foo")
+	let $tmp@99: None = `print <:String>`("foo")
+	return ($tmp@99:None)
+
 
 
 fn bar <$arg0: None> -> None:
-	return `println <:String>`("bar")
+	let $tmp@129: None = `println <:String>`("bar")
+	return ($tmp@129:None)
+
 
 
 fn<None> foobar <x: None> -> None:
-	`foo <:None>`((x:None))
-	`bar <:None>`((x:None))
+	`foo <:None>`((copy x:None))
+	`bar <:None>`((copy x:None))
