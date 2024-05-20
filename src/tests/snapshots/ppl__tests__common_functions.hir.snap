@@ -3,7 +3,9 @@ source: src/tests/mod.rs
 expression: hir
 ---
 fn foo -> None:
-	let $tmp@10: None = `println <:String>`("foo")
+	let $tmp@18: String = "foo"
+	let $tmp@10: None = `println <:Reference<String>>`((&$tmp@18:Reference<String>))
+	`destroy <:ReferenceMut<String>>`(($tmp@18:String))
 	return ($tmp@10:None)
 
 `foo`()

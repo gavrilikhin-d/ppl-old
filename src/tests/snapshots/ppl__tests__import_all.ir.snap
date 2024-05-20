@@ -106,16 +106,18 @@ return:                                           ; preds = %0
 
 define private void @"println <:None>"() !dbg !22 {
   %1 = call %String @"String from <:None>"(), !dbg !23
-  call void @"println <:String>"(%String %1), !dbg !23
+  %"$tmp@185" = alloca %String, align 8, !dbg !23
+  store %String %1, ptr %"$tmp@185", align 8, !dbg !23
+  call void @"println <:Reference<String>>"(ptr %"$tmp@185"), !dbg !23
   br label %return, !dbg !23
 
 return:                                           ; preds = %0
   ret void
 }
 
-declare void @"println <:String>"(%String)
-
 declare %String @"String from <:None>"()
+
+declare void @"println <:Reference<String>>"(ptr)
 
 declare void @"do nothing"()
 
@@ -124,7 +126,9 @@ define private void @"println <:Integer>"(%Integer %0) !dbg !24 {
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !25
   %3 = call %String @integer_as_string(%Integer %2), !dbg !25
-  call void @"println <:String>"(%String %3), !dbg !25
+  %"$tmp@185" = alloca %String, align 8, !dbg !25
+  store %String %3, ptr %"$tmp@185", align 8, !dbg !25
+  call void @"println <:Reference<String>>"(ptr %"$tmp@185"), !dbg !25
   br label %return, !dbg !25
 
 return:                                           ; preds = %1

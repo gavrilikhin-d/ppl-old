@@ -105,14 +105,19 @@ return:                                           ; preds = %0
 
 define void @"foo <:Reference<None>>"() !dbg !22 {
   %1 = call %String @string_from_c_string_and_length(ptr @4, i64 3), !dbg !23
-  call void @"println <:String>"(%String %1), !dbg !23
+  %"$tmp@27" = alloca %String, align 8, !dbg !23
+  store %String %1, ptr %"$tmp@27", align 8, !dbg !23
+  call void @"println <:Reference<String>>"(ptr %"$tmp@27"), !dbg !23
+  call void @destroy_string(ptr %"$tmp@27"), !dbg !23
   br label %return, !dbg !24
 
 return:                                           ; preds = %0
   ret void
 }
 
-declare void @"println <:String>"(%String)
+declare void @"println <:Reference<String>>"(ptr)
+
+declare void @destroy_string(ptr)
 
 define private void @initialize.4() !dbg !25 {
   br label %return, !dbg !26

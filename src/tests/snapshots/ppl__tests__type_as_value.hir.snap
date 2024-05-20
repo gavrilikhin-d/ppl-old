@@ -4,20 +4,24 @@ expression: hir
 ---
 `println <:Bool>`(`<:Integer> == <:Integer>`(`size of <:Type<None>>`((copy Type<None>:Type<None>)), 0))
 `println <:Bool>`(`<:Integer> == <:Integer>`(`size of <:Type<Bool>>`((copy Type<Bool>:Type<Bool>)), 1))
-`println <:String>`(`String from <:Type<None>>`((copy Type<None>:Type<None>)))
-`println <:String>`(`String from <:Type<Type<Integer>>>`((copy Type<Type<Integer>>:Type<Type<Integer>>)))
+let $tmp@65: String = `String from <:Type<None>>`((copy Type<None>:Type<None>))
+`println <:Reference<String>>`((&$tmp@65:Reference<String>))
+let $tmp@92: String = `String from <:Type<Type<Integer>>>`((copy Type<Type<Integer>>:Type<Type<Integer>>))
+`println <:Reference<String>>`((&$tmp@92:Reference<String>))
 let x: Type<Integer> = (copy Type<Integer>:Type<Integer>)
 let y: Integer = `clone <:Reference<Integer>>`((Type<Integer>:Type<Integer>).size)
 `println <:Bool>`(`<:Integer> == <:Integer>`(`clone <:Reference<Integer>>`((y:Integer)), `size of <:Type<Integer>>`((copy Type<Integer>:Type<Integer>))))
 `println <:Type<Integer>>`((copy Type<Integer>:Type<Integer>))
+`destroy <:ReferenceMut<String>>`(($tmp@65:String))
+`destroy <:ReferenceMut<String>>`(($tmp@92:String))
 `destroy <:ReferenceMut<Integer>>`((y:Integer))
 
 ==MONOMORPHIZED==
 
 
 fn<None> size of <ty: Type<None>> -> Integer:
-	let $tmp@4583: Integer = `clone <:Reference<Integer>>`((ty:Type<None>).size)
-	return ($tmp@4583:Integer)
+	let $tmp@4584: Integer = `clone <:Reference<Integer>>`((ty:Type<None>).size)
+	return ($tmp@4584:Integer)
 
 
 fn String from <x: Bool> -> String:
@@ -28,14 +32,15 @@ fn String from <x: Bool> -> String:
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((copy x:Bool)))
+	let $tmp@185: String = `String from <:Bool>`((copy x:Bool))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
 
 fn<Bool> size of <ty: Type<Bool>> -> Integer:
-	let $tmp@4583: Integer = `clone <:Reference<Integer>>`((ty:Type<Bool>).size)
-	return ($tmp@4583:Integer)
+	let $tmp@4584: Integer = `clone <:Reference<Integer>>`((ty:Type<Bool>).size)
+	return ($tmp@4584:Integer)
 
 
 fn String from <x: Bool> -> String:
@@ -46,24 +51,25 @@ fn String from <x: Bool> -> String:
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((copy x:Bool)))
+	let $tmp@185: String = `String from <:Bool>`((copy x:Bool))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
 
 fn<None> String from <ty: Type<None>> -> String:
-	let $tmp@4515: String = `clone <:Reference<String>>`((ty:Type<None>).name)
-	return ($tmp@4515:String)
+	let $tmp@4516: String = `clone <:Reference<String>>`((ty:Type<None>).name)
+	return ($tmp@4516:String)
 
 
 fn<Type<Integer>> String from <ty: Type<Type<Integer>>> -> String:
-	let $tmp@4515: String = `clone <:Reference<String>>`((ty:Type<Type<Integer>>).name)
-	return ($tmp@4515:String)
+	let $tmp@4516: String = `clone <:Reference<String>>`((ty:Type<Type<Integer>>).name)
+	return ($tmp@4516:String)
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4583: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4583:Integer)
+	let $tmp@4584: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4584:Integer)
 
 
 fn String from <x: Bool> -> String:
@@ -74,16 +80,18 @@ fn String from <x: Bool> -> String:
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((copy x:Bool)))
+	let $tmp@185: String = `String from <:Bool>`((copy x:Bool))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
 
 fn<Integer> String from <ty: Type<Integer>> -> String:
-	let $tmp@4515: String = `clone <:Reference<String>>`((ty:Type<Integer>).name)
-	return ($tmp@4515:String)
+	let $tmp@4516: String = `clone <:Reference<String>>`((ty:Type<Integer>).name)
+	return ($tmp@4516:String)
 
 
 fn println <x: Type<Integer>> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Type<Integer>>`((copy x:Type<Integer>)))
+	let $tmp@185: String = `String from <:Type<Integer>>`((copy x:Type<Integer>))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)

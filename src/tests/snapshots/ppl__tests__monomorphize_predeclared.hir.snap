@@ -7,7 +7,9 @@ fn call predeclared -> None:
 
 
 fn<T> predeclared <x: T> -> None:
-	`println <:String>`("called predeclared")
+	let $tmp@72: String = "called predeclared"
+	`println <:Reference<String>>`((&$tmp@72:Reference<String>))
+	`destroy <:ReferenceMut<String>>`(($tmp@72:String))
 
 `call predeclared`()
 
@@ -15,4 +17,5 @@ fn<T> predeclared <x: T> -> None:
 
 
 fn<Integer> predeclared <x: Integer> -> None:
-	`println <:String>`("called predeclared")
+	let $tmp@72: String = "called predeclared"
+	`println <:Reference<String>>`((&$tmp@72:Reference<String>))

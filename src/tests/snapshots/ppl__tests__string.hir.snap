@@ -2,23 +2,39 @@
 source: src/tests/mod.rs
 expression: hir
 ---
-`println <:String>`(`<:String> + <:String>`(`<:String> + <:String>`("Hello", " "), "World!"))
-`println <:String>`(`String from <:None>`(none))
-`println <:String>`(`String from <:Bool>`(false))
-`println <:String>`(`String from <:Bool>`(true))
-`println <:String>`(`String from <:Integer>`(0))
-`println <:String>`(`String from <:Rational>`(0.0))
-`println <:String>`(`String from <:Type<Integer>>`((copy Type<Integer>:Type<Integer>)))
-`println <:String>`(`String from <:Type<Array<Integer>>>`((copy Type<Array<Integer>>:Type<Array<Integer>>)))
+let $tmp@8: String = `<:String> + <:String>`(`<:String> + <:String>`("Hello", " "), "World!")
+`println <:Reference<String>>`((&$tmp@8:Reference<String>))
+let $tmp@42: String = `String from <:None>`(none)
+`println <:Reference<String>>`((&$tmp@42:Reference<String>))
+let $tmp@69: String = `String from <:Bool>`(false)
+`println <:Reference<String>>`((&$tmp@69:Reference<String>))
+let $tmp@97: String = `String from <:Bool>`(true)
+`println <:Reference<String>>`((&$tmp@97:Reference<String>))
+let $tmp@124: String = `String from <:Integer>`(0)
+`println <:Reference<String>>`((&$tmp@124:Reference<String>))
+let $tmp@148: String = `String from <:Rational>`(0.0)
+`println <:Reference<String>>`((&$tmp@148:Reference<String>))
+let $tmp@174: String = `String from <:Type<Integer>>`((copy Type<Integer>:Type<Integer>))
+`println <:Reference<String>>`((&$tmp@174:Reference<String>))
+let $tmp@204: String = `String from <:Type<Array<Integer>>>`((copy Type<Array<Integer>>:Type<Array<Integer>>))
+`println <:Reference<String>>`((&$tmp@204:Reference<String>))
+`destroy <:ReferenceMut<String>>`(($tmp@8:String))
+`destroy <:ReferenceMut<String>>`(($tmp@42:String))
+`destroy <:ReferenceMut<String>>`(($tmp@69:String))
+`destroy <:ReferenceMut<String>>`(($tmp@97:String))
+`destroy <:ReferenceMut<String>>`(($tmp@124:String))
+`destroy <:ReferenceMut<String>>`(($tmp@148:String))
+`destroy <:ReferenceMut<String>>`(($tmp@174:String))
+`destroy <:ReferenceMut<String>>`(($tmp@204:String))
 
 ==MONOMORPHIZED==
 
 
 fn<Integer> String from <ty: Type<Integer>> -> String:
-	let $tmp@4515: String = `clone <:Reference<String>>`((ty:Type<Integer>).name)
-	return ($tmp@4515:String)
+	let $tmp@4516: String = `clone <:Reference<String>>`((ty:Type<Integer>).name)
+	return ($tmp@4516:String)
 
 
 fn<Array<Integer>> String from <ty: Type<Array<Integer>>> -> String:
-	let $tmp@4515: String = `clone <:Reference<String>>`((ty:Type<Array<Integer>>).name)
-	return ($tmp@4515:String)
+	let $tmp@4516: String = `clone <:Reference<String>>`((ty:Type<Array<Integer>>).name)
+	return ($tmp@4516:String)

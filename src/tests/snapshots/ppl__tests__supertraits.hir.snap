@@ -19,7 +19,9 @@ fn foo <$arg0: None> -> None:
 
 
 fn bar <$arg0: None> -> None:
-	let $tmp@129: None = `println <:String>`("bar")
+	let $tmp@137: String = "bar"
+	let $tmp@129: None = `println <:Reference<String>>`((&$tmp@137:Reference<String>))
+	`destroy <:ReferenceMut<String>>`(($tmp@137:String))
 	return ($tmp@129:None)
 
 
@@ -40,7 +42,8 @@ fn foo <$arg0: None> -> None:
 
 
 fn bar <$arg0: None> -> None:
-	let $tmp@129: None = `println <:String>`("bar")
+	let $tmp@137: String = "bar"
+	let $tmp@129: None = `println <:Reference<String>>`((&$tmp@137:Reference<String>))
 	return ($tmp@129:None)
 
 

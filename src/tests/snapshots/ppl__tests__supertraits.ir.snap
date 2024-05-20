@@ -121,14 +121,17 @@ declare void @destroy_string(ptr)
 
 define void @"bar <:None>"() !dbg !27 {
   %1 = call %String @string_from_c_string_and_length(ptr @5, i64 3), !dbg !28
-  call void @"println <:String>"(%String %1), !dbg !28
+  %"$tmp@137" = alloca %String, align 8, !dbg !28
+  store %String %1, ptr %"$tmp@137", align 8, !dbg !28
+  call void @"println <:Reference<String>>"(ptr %"$tmp@137"), !dbg !28
+  call void @destroy_string(ptr %"$tmp@137"), !dbg !28
   br label %return, !dbg !29
 
 return:                                           ; preds = %0
   ret void
 }
 
-declare void @"println <:String>"(%String)
+declare void @"println <:Reference<String>>"(ptr)
 
 define private void @"foobar <:None>"() !dbg !30 {
   call void @"foo <:None>"(), !dbg !31

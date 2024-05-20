@@ -104,14 +104,19 @@ return:                                           ; preds = %0
 
 define void @foo() !dbg !21 {
   %1 = call %String @string_from_c_string_and_length(ptr @4, i64 3), !dbg !22
-  call void @"println <:String>"(%String %1), !dbg !22
+  %"$tmp@18" = alloca %String, align 8, !dbg !22
+  store %String %1, ptr %"$tmp@18", align 8, !dbg !22
+  call void @"println <:Reference<String>>"(ptr %"$tmp@18"), !dbg !22
+  call void @destroy_string(ptr %"$tmp@18"), !dbg !22
   br label %return, !dbg !23
 
 return:                                           ; preds = %0
   ret void
 }
 
-declare void @"println <:String>"(%String)
+declare void @"println <:Reference<String>>"(ptr)
+
+declare void @destroy_string(ptr)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}

@@ -111,8 +111,7 @@ define void @main.execute() !dbg !18 {
   call void @initialize.5(), !dbg !26
   %4 = call %String @string_from_c_string_and_length(ptr @7, i64 7), !dbg !27
   call void @"<:ReferenceMut<String>> += <:String>"(ptr @str, %String %4), !dbg !27
-  %5 = call %String @clone_string(ptr @str), !dbg !28
-  call void @"println <:String>"(%String %5), !dbg !28
+  call void @"println <:Reference<String>>"(ptr @str), !dbg !28
   call void @destroy_rational(ptr @value), !dbg !29
   call void @destroy_string(ptr @str), !dbg !30
   br label %return, !dbg !30
@@ -137,16 +136,18 @@ define private void @"println <:Rational>"(%Rational %0) !dbg !33 {
   store %Rational %0, ptr %x, align 8
   %2 = load %Rational, ptr %x, align 8, !dbg !34
   %3 = call %String @rational_as_string(%Rational %2), !dbg !34
-  call void @"println <:String>"(%String %3), !dbg !34
+  %"$tmp@185" = alloca %String, align 8, !dbg !34
+  store %String %3, ptr %"$tmp@185", align 8, !dbg !34
+  call void @"println <:Reference<String>>"(ptr %"$tmp@185"), !dbg !34
   br label %return, !dbg !34
 
 return:                                           ; preds = %1
   ret void
 }
 
-declare void @"println <:String>"(%String)
-
 declare %String @rational_as_string(%Rational)
+
+declare void @"println <:Reference<String>>"(ptr)
 
 declare %Rational @clone_rational(ptr)
 
@@ -196,8 +197,6 @@ return:                                           ; preds = %2
 }
 
 declare %String @string_plus_string(%String, %String)
-
-declare %String @clone_string(ptr)
 
 declare void @destroy_rational(ptr)
 

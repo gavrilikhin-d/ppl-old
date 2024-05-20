@@ -7,7 +7,9 @@ trait Foo:
 
 
 fn foo <$arg0: Reference<Integer>> -> None:
-	let $tmp@51: None = `println <:String>`("foo integer")
+	let $tmp@59: String = "foo integer"
+	let $tmp@51: None = `println <:Reference<String>>`((&$tmp@59:Reference<String>))
+	`destroy <:ReferenceMut<String>>`(($tmp@59:String))
 	return ($tmp@51:None)
 
 
@@ -23,7 +25,8 @@ let x: Integer = 0
 
 
 fn foo <$arg0: Reference<Integer>> -> None:
-	let $tmp@51: None = `println <:String>`("foo integer")
+	let $tmp@59: String = "foo integer"
+	let $tmp@51: None = `println <:Reference<String>>`((&$tmp@59:Reference<String>))
 	return ($tmp@51:None)
 
 

@@ -16,8 +16,8 @@ let value: ReferenceMut<I32> = `<:Type<I32>> at <:Reference<MemoryAddress>>`((co
 
 
 fn<I32> size of <ty: Type<I32>> -> Integer:
-	let $tmp@4583: Integer = `clone <:Reference<Integer>>`((ty:Type<I32>).size)
-	return ($tmp@4583:Integer)
+	let $tmp@4584: Integer = `clone <:Reference<Integer>>`((ty:Type<I32>).size)
+	return ($tmp@4584:Integer)
 
 
 @mangle_as("read_memory")
@@ -27,7 +27,8 @@ fn<I32> <ty: Type<I32>> at <address: Reference<MemoryAddress>> -> ReferenceMut<I
 fn String from <$arg0: I32> -> String
 
 fn println <x: I32> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:I32>`((copy x:I32)))
+	let $tmp@185: String = `String from <:I32>`((copy x:I32))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -36,5 +37,6 @@ fn println <x: I32> -> None:
 fn String from <$arg0: I32> -> String
 
 fn println <x: I32> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:I32>`((copy x:I32)))
+	let $tmp@185: String = `String from <:I32>`((copy x:I32))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)

@@ -22,5 +22,6 @@ let y: RefWrapper = `wrap <:Reference<Integer>>`((&x:Reference<Integer>))
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)

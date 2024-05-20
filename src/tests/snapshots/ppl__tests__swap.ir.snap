@@ -177,14 +177,16 @@ define private void @"println <:Integer>"(%Integer %0) !dbg !41 {
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !42
   %3 = call %String @integer_as_string(%Integer %2), !dbg !42
-  call void @"println <:String>"(%String %3), !dbg !42
+  %"$tmp@185" = alloca %String, align 8, !dbg !42
+  store %String %3, ptr %"$tmp@185", align 8, !dbg !42
+  call void @"println <:Reference<String>>"(ptr %"$tmp@185"), !dbg !42
   br label %return, !dbg !42
 
 return:                                           ; preds = %1
   ret void
 }
 
-declare void @"println <:String>"(%String)
+declare void @"println <:Reference<String>>"(ptr)
 
 define private void @"swap <:ReferenceMut<Integer>> and <:ReferenceMut<Integer>>"(ptr %0, ptr %1) !dbg !43 {
   %a = alloca ptr, align 8

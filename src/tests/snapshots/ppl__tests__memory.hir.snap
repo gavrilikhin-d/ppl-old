@@ -13,8 +13,8 @@ let x: ReferenceMut<Integer> = `<:Type<Integer>> at <:Reference<MemoryAddress>>`
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4583: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4583:Integer)
+	let $tmp@4584: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4584:Integer)
 
 
 fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:
@@ -30,7 +30,8 @@ fn<Integer> <ty: Type<Integer>> at <address: Reference<MemoryAddress>> -> Refere
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -39,5 +40,6 @@ fn println <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
+	let $tmp@185: String = `String from <:Integer>`((copy x:Integer))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)

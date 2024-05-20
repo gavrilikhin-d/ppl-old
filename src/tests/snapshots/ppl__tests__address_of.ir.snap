@@ -149,16 +149,18 @@ define private void @"println <:Integer>"(%Integer %0) !dbg !35 {
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !36
   %3 = call %String @integer_as_string(%Integer %2), !dbg !36
-  call void @"println <:String>"(%String %3), !dbg !36
+  %"$tmp@185" = alloca %String, align 8, !dbg !36
+  store %String %3, ptr %"$tmp@185", align 8, !dbg !36
+  call void @"println <:Reference<String>>"(ptr %"$tmp@185"), !dbg !36
   br label %return, !dbg !36
 
 return:                                           ; preds = %1
   ret void
 }
 
-declare void @"println <:String>"(%String)
-
 declare %String @integer_as_string(%Integer)
+
+declare void @"println <:Reference<String>>"(ptr)
 
 declare %Integer @clone_integer(ptr)
 

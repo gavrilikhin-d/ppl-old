@@ -115,14 +115,16 @@ define private void @"predeclared <:Integer>"(%Integer %0) !dbg !25 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = call %String @string_from_c_string_and_length(ptr @4, i64 18), !dbg !26
-  call void @"println <:String>"(%String %2), !dbg !26
+  %"$tmp@72" = alloca %String, align 8, !dbg !26
+  store %String %2, ptr %"$tmp@72", align 8, !dbg !26
+  call void @"println <:Reference<String>>"(ptr %"$tmp@72"), !dbg !26
   br label %return, !dbg !26
 
 return:                                           ; preds = %1
   ret void
 }
 
-declare void @"println <:String>"(%String)
+declare void @"println <:Reference<String>>"(ptr)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}

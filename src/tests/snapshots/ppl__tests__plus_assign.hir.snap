@@ -8,7 +8,7 @@ let mut value: Rational = 0.0
 `println <:Rational>`(`clone <:Reference<Rational>>`((value:Rational)))
 let mut str: String = "Hello"
 `<:ReferenceMut<String>> += <:String>`((&str:ReferenceMut<String>), " World!")
-`println <:String>`(`clone <:Reference<String>>`((str:String)))
+`println <:Reference<String>>`((&str:Reference<String>))
 `destroy <:ReferenceMut<Rational>>`((value:Rational))
 `destroy <:ReferenceMut<String>>`((str:String))
 
@@ -19,7 +19,8 @@ let mut str: String = "Hello"
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((copy x:Rational)))
+	let $tmp@185: String = `String from <:Rational>`((copy x:Rational))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
@@ -35,7 +36,8 @@ fn <self: ReferenceMut<Rational>> += <other: Rational> -> None:
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((copy x:Rational)))
+	let $tmp@185: String = `String from <:Rational>`((copy x:Rational))
+	let $tmp@176: None = `println <:Reference<String>>`((&$tmp@185:Reference<String>))
 	return ($tmp@176:None)
 
 
