@@ -3,7 +3,8 @@ source: src/tests/mod.rs
 expression: hir
 ---
 `println <:Rational>`(0.0)
-`println <:Rational>`(`+ <:Rational>`(1.0))
+let $tmp@21: Rational = 1.0
+`println <:Rational>`(`clone <:Reference<Rational>>`((*`+ <:Reference<Rational>>`((&$tmp@21:Reference<Rational>)):Rational)))
 `println <:Rational>`(`- <:Rational>`(2.0))
 `println <:Rational>`(`<:Rational> + <:Rational>`(1.0, 2.0))
 `println <:Rational>`(`<:Rational> - <:Rational>`(5.0, 1.0))
@@ -17,6 +18,7 @@ expression: hir
 `println <:Bool>`(`<:Rational> <= <:Rational>`(0.0, 1.0))
 `println <:Bool>`(`<:Rational> >= <:Rational>`(0.0, 0.0))
 `println <:Bool>`(`<:Rational> >= <:Rational>`(1.0, 0.0))
+`destroy <:ReferenceMut<Rational>>`(($tmp@21:Rational))
 
 ==MONOMORPHIZED==
 

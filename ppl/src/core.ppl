@@ -86,7 +86,7 @@ fn <:Integer> == <:Integer> -> Bool
 @mangle_as("integer_less_integer")
 fn <:Integer> < <:Integer> -> Bool
 
-fn + <x: Integer> => x
+fn + <x: &Integer> => x
 
 @mangle_as("minus_integer")
 fn - <:Integer> -> Integer
@@ -143,7 +143,7 @@ fn <:Rational> == <:Rational> -> Bool
 @mangle_as("rational_less_rational")
 fn <:Rational> < <:Rational> -> Bool
 
-fn + <x: Rational> => x
+fn + <x: &Rational> => x
 
 @mangle_as("minus_rational")
 fn - <:Rational> -> Rational
