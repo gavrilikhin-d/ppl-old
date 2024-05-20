@@ -962,14 +962,14 @@ impl ToHIR for ast::Module {
         let mut module = context.module().clone();
         let name = module.name().to_string();
 
-        debug!(target: &format!("{name}-hir"), "\n{:#}", module);
+        debug!(target: &format!("hir-{name}"), "\n{:#}", module);
         trace!(target: "steps", "Running passes on `{}`", module.source_file.path().display());
         module.drive_mut(&mut ParameterNamer::new());
         module.drive_mut(&mut TraitFunctionsLinker::new(context));
         module.drive_mut(&mut Clonner::new(context));
         module.drive_mut(&mut TemporariesInserter::new());
         module.insert_destructors(context);
-        debug!(target: &format!("{name}-hir-after-passes"), "\n{:#}", module);
+        debug!(target: &format!("hir-after-passes-{name}"), "\n{:#}", module);
 
         Ok(module)
     }
