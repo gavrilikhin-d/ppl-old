@@ -1,0 +1,26 @@
+---
+source: src/tests/mod.rs
+expression: hir
+---
+type RefWrapper:
+	x: Reference<Integer>
+
+
+fn wrap <x: Reference<Integer>> -> RefWrapper:
+	let $tmp@56: RefWrapper = RefWrapper { x: `clone <:Reference<Integer>>`((x:Reference<Integer>)) }
+	return ($tmp@56:RefWrapper)
+
+let x: Integer = 5
+let y: RefWrapper = `wrap <:Reference<Integer>>`((&x:Reference<Integer>))
+`println <:Integer>`(`clone <:Reference<Integer>>`((*(y:RefWrapper).x:Integer)))
+`destroy <:ReferenceMut<Integer>>`((x:Integer))
+
+==MONOMORPHIZED==
+
+
+@mangle_as("integer_as_string")
+fn String from <$arg0: Integer> -> String
+
+fn println <x: Integer> -> None:
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
+	return ($tmp@176:None)

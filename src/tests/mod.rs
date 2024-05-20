@@ -39,6 +39,7 @@ e2es! {
     references,
     specify_variable_ty,
     star,
+    store_ref,
     string,
     supertraits,
     traits,
