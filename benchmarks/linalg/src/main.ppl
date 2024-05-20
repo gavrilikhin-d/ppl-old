@@ -284,12 +284,11 @@ fn replace <dst: MutColumnSlice> with <src: Matrix>:
 	replace dst with (0 column of src)
 
 fn run code:
-	let mut a = 3 x 3 Hilbert Matrix
-	let mut b = Vector from (repeat 1.0 3 times)
-	replace (1 column of a) with b
-	println a
-// let x = gauss (copy of a) (copy of b) 
-// println x
-// println a * x
+	let n = Integer from (env "N")
+	let mut a = n x n Hilbert Matrix
+	let mut b = Vector from (repeat 1.0 n times)
+	let x = gauss (copy of a) b
+	println x
+	println a * x
 
 run code
