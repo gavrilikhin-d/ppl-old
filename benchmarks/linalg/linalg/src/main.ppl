@@ -3,6 +3,14 @@ type Matrix:
 	columns: Integer
 	data: Array<Rational>
 
+fn copy of <m: Matrix> -> Matrix:
+	let mut n = m.rows x m.columns Matrix
+	let mut i = 0
+	while i < n.data.size:
+		n.data[i] = m.data[i]
+		i += 1
+	return n
+
 type MutRowSlice:
 	row: Integer
 	matrix: &mut Matrix
@@ -151,6 +159,17 @@ fn <rows: Integer> x <columns: Integer> Hilbert Matrix -> Matrix:
 		i += 1
 	return m
 
+fn <row_: MutRowSlice> *= <k: Rational>:
+	let mut row = row_
+	let n = row.matrix.columns
+	let mut i = 0
+	while i < n:
+		row[i] *= k
+		i += 1
+
+fn <row: MutRowSlice> /= <k: Rational>:
+	row *= 1.0 / k
+
 fn add <k: Rational> <a: RowSlice> to <b: MutRowSlice>:
 	assert a.matrix.columns == b.matrix.columns "Can't add rows of different lengths"
 	let n = a.matrix.columns
@@ -198,9 +217,13 @@ fn gauss <a_: Matrix> <b_: Matrix> -> Matrix:
 	let n = a.rows
 	let mut i = 0
 	while i < n:
+		let d = clone (a[i])[i]
+		assert d != 0.0 "FIXME: division by zero"
+		a[i] /= d
+		(b[i])[0] /= d
 		let mut j = i + 1
 		while j < n:
-			let k = (a[j])[i] / (a[i])[i] // FIXME: division by zero
+			let k = clone (a[j])[i]
 			if k != 0.0:
 				add -k (a[i]) to (a[j])
 				(b[j])[0] -= k * (b[i])[0]
@@ -211,7 +234,7 @@ fn gauss <a_: Matrix> <b_: Matrix> -> Matrix:
 	while i > 0:
 		let mut j = i - 1
 		while j >= 0:
-			let k = (a[j])[i] / (a[i])[i] // FIXME: division by zero
+			let k = clone (a[j])[i]
 			if k != 0.0:
 				add -k (a[i]) to (a[j])
 				(b[j])[0] -= k * (b[i])[0]
@@ -220,13 +243,11 @@ fn gauss <a_: Matrix> <b_: Matrix> -> Matrix:
 
 	return b
 
-// let m = 3 x 3 Hilbert Matrix
-// print m
-
 fn run code:
 	let mut a = 3 x 3 Hilbert Matrix
-	println (det a)
-// let mut b = Vector from (repeat 1.0 3 times)
-// gauss a b 
+// println (det a)
+	let mut b = Vector from (repeat 1.0 3 times)
+	let x = gauss (copy of a) (copy of b) 
+	println a * x
 
 run code
