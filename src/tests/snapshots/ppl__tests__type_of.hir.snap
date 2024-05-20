@@ -3,13 +3,13 @@ source: src/tests/mod.rs
 expression: hir
 ---
 let ty: Type<Integer> = `type of <:Integer>`(1)
-`println <:Type<Integer>>`((ty:Type<Integer>))
+`println <:Type<Integer>>`((copy ty:Type<Integer>))
 
 ==MONOMORPHIZED==
 
 
 fn<Integer> type of <$arg0: Integer> -> Type<Integer>:
-	let $tmp@4639: Type<Integer> = (Type<Integer>:Type<Integer>)
+	let $tmp@4639: Type<Integer> = (copy Type<Integer>:Type<Integer>)
 	return ($tmp@4639:Type<Integer>)
 
 
@@ -19,5 +19,5 @@ fn<Integer> String from <ty: Type<Integer>> -> String:
 
 
 fn println <x: Type<Integer>> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Type<Integer>>`((x:Type<Integer>)))
+	let $tmp@176: None = `println <:String>`(`String from <:Type<Integer>>`((copy x:Type<Integer>)))
 	return ($tmp@176:None)

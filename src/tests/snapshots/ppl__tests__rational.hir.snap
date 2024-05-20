@@ -25,7 +25,7 @@ expression: hir
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((copy x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -34,7 +34,7 @@ fn println <x: Rational> -> None:
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((copy x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -43,7 +43,7 @@ fn println <x: Rational> -> None:
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((copy x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -52,7 +52,7 @@ fn println <x: Rational> -> None:
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((copy x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -61,7 +61,7 @@ fn println <x: Rational> -> None:
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((copy x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -70,7 +70,7 @@ fn println <x: Rational> -> None:
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((copy x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -79,22 +79,20 @@ fn println <x: Rational> -> None:
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((copy x:Rational)))
 	return ($tmp@176:None)
 
 
 
 fn String from <x: Bool> -> String:
 	if (x:Bool):
-		let $tmp@1314: String = "true"
-		return ($tmp@1314:String)
+		return "true"
 
-	let $tmp@1329: String = "false"
-	return ($tmp@1329:String)
+	return "false"
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((copy x:Bool)))
 	return ($tmp@176:None)
 
 
@@ -103,61 +101,33 @@ fn println <x: Bool> -> None:
 fn <$arg0: Rational> == <$arg1: Rational> -> Bool
 
 fn <x: Rational> != <y: Rational> -> Bool:
-	let $tmp@776: Bool = `not <:Bool>`(`<:Rational> == <:Rational>`((x:Rational), (y:Rational)))
-	return ($tmp@776:Bool)
+	let $tmp@719: Bool = `not <:Bool>`(`<:Rational> == <:Rational>`((copy x:Rational), (copy y:Rational)))
+	return ($tmp@719:Bool)
 
 
 
 fn String from <x: Bool> -> String:
 	if (x:Bool):
-		let $tmp@1314: String = "true"
-		return ($tmp@1314:String)
+		return "true"
 
-	let $tmp@1329: String = "false"
-	return ($tmp@1329:String)
+	return "false"
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((copy x:Bool)))
 	return ($tmp@176:None)
 
 
 
 fn String from <x: Bool> -> String:
 	if (x:Bool):
-		let $tmp@1314: String = "true"
-		return ($tmp@1314:String)
+		return "true"
 
-	let $tmp@1329: String = "false"
-	return ($tmp@1329:String)
+	return "false"
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
-	return ($tmp@176:None)
-
-
-
-@mangle_as("rational_less_rational")
-fn <$arg0: Rational> < <$arg1: Rational> -> Bool
-
-fn <x: Rational> > <y: Rational> -> Bool:
-	let $tmp@1032: Bool = `<:Rational> < <:Rational>`((y:Rational), (x:Rational))
-	return ($tmp@1032:Bool)
-
-
-
-fn String from <x: Bool> -> String:
-	if (x:Bool):
-		let $tmp@1314: String = "true"
-		return ($tmp@1314:String)
-
-	let $tmp@1329: String = "false"
-	return ($tmp@1329:String)
-
-
-fn println <x: Bool> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((copy x:Bool)))
 	return ($tmp@176:None)
 
 
@@ -166,28 +136,48 @@ fn println <x: Bool> -> None:
 fn <$arg0: Rational> < <$arg1: Rational> -> Bool
 
 fn <x: Rational> > <y: Rational> -> Bool:
-	let $tmp@1032: Bool = `<:Rational> < <:Rational>`((y:Rational), (x:Rational))
-	return ($tmp@1032:Bool)
+	let $tmp@847: Bool = `<:Rational> < <:Rational>`((copy y:Rational), (copy x:Rational))
+	return ($tmp@847:Bool)
+
+
+
+fn String from <x: Bool> -> String:
+	if (x:Bool):
+		return "true"
+
+	return "false"
+
+
+fn println <x: Bool> -> None:
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((copy x:Bool)))
+	return ($tmp@176:None)
+
+
+
+@mangle_as("rational_less_rational")
+fn <$arg0: Rational> < <$arg1: Rational> -> Bool
+
+fn <x: Rational> > <y: Rational> -> Bool:
+	let $tmp@847: Bool = `<:Rational> < <:Rational>`((copy y:Rational), (copy x:Rational))
+	return ($tmp@847:Bool)
 
 
 
 fn <x: Rational> <= <y: Rational> -> Bool:
-	let $tmp@1068: Bool = `not <:Bool>`(`<:Rational> > <:Rational>`((x:Rational), (y:Rational)))
-	return ($tmp@1068:Bool)
+	let $tmp@883: Bool = `not <:Bool>`(`<:Rational> > <:Rational>`((copy x:Rational), (copy y:Rational)))
+	return ($tmp@883:Bool)
 
 
 
 fn String from <x: Bool> -> String:
 	if (x:Bool):
-		let $tmp@1314: String = "true"
-		return ($tmp@1314:String)
+		return "true"
 
-	let $tmp@1329: String = "false"
-	return ($tmp@1329:String)
+	return "false"
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((copy x:Bool)))
 	return ($tmp@176:None)
 
 
@@ -196,28 +186,26 @@ fn println <x: Bool> -> None:
 fn <$arg0: Rational> < <$arg1: Rational> -> Bool
 
 fn <x: Rational> > <y: Rational> -> Bool:
-	let $tmp@1032: Bool = `<:Rational> < <:Rational>`((y:Rational), (x:Rational))
-	return ($tmp@1032:Bool)
+	let $tmp@847: Bool = `<:Rational> < <:Rational>`((copy y:Rational), (copy x:Rational))
+	return ($tmp@847:Bool)
 
 
 
 fn <x: Rational> <= <y: Rational> -> Bool:
-	let $tmp@1068: Bool = `not <:Bool>`(`<:Rational> > <:Rational>`((x:Rational), (y:Rational)))
-	return ($tmp@1068:Bool)
+	let $tmp@883: Bool = `not <:Bool>`(`<:Rational> > <:Rational>`((copy x:Rational), (copy y:Rational)))
+	return ($tmp@883:Bool)
 
 
 
 fn String from <x: Bool> -> String:
 	if (x:Bool):
-		let $tmp@1314: String = "true"
-		return ($tmp@1314:String)
+		return "true"
 
-	let $tmp@1329: String = "false"
-	return ($tmp@1329:String)
+	return "false"
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((copy x:Bool)))
 	return ($tmp@176:None)
 
 
@@ -226,22 +214,20 @@ fn println <x: Bool> -> None:
 fn <$arg0: Rational> < <$arg1: Rational> -> Bool
 
 fn <x: Rational> >= <y: Rational> -> Bool:
-	let $tmp@1110: Bool = `not <:Bool>`(`<:Rational> < <:Rational>`((x:Rational), (y:Rational)))
-	return ($tmp@1110:Bool)
+	let $tmp@925: Bool = `not <:Bool>`(`<:Rational> < <:Rational>`((copy x:Rational), (copy y:Rational)))
+	return ($tmp@925:Bool)
 
 
 
 fn String from <x: Bool> -> String:
 	if (x:Bool):
-		let $tmp@1314: String = "true"
-		return ($tmp@1314:String)
+		return "true"
 
-	let $tmp@1329: String = "false"
-	return ($tmp@1329:String)
+	return "false"
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((copy x:Bool)))
 	return ($tmp@176:None)
 
 
@@ -250,20 +236,18 @@ fn println <x: Bool> -> None:
 fn <$arg0: Rational> < <$arg1: Rational> -> Bool
 
 fn <x: Rational> >= <y: Rational> -> Bool:
-	let $tmp@1110: Bool = `not <:Bool>`(`<:Rational> < <:Rational>`((x:Rational), (y:Rational)))
-	return ($tmp@1110:Bool)
+	let $tmp@925: Bool = `not <:Bool>`(`<:Rational> < <:Rational>`((copy x:Rational), (copy y:Rational)))
+	return ($tmp@925:Bool)
 
 
 
 fn String from <x: Bool> -> String:
 	if (x:Bool):
-		let $tmp@1314: String = "true"
-		return ($tmp@1314:String)
+		return "true"
 
-	let $tmp@1329: String = "false"
-	return ($tmp@1329:String)
+	return "false"
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((copy x:Bool)))
 	return ($tmp@176:None)

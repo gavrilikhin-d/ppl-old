@@ -11,5 +11,5 @@ expression: hir
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
 	return ($tmp@176:None)

@@ -21,7 +21,7 @@ let mut b: Integer = 2
 fn String from <$arg0: Integer> -> String
 
 fn print <x: Integer> -> None:
-	let $tmp@128: None = `print <:String>`(`String from <:Integer>`((x:Integer)))
+	let $tmp@128: None = `print <:String>`(`String from <:Integer>`((copy x:Integer)))
 	return ($tmp@128:None)
 
 
@@ -30,7 +30,7 @@ fn print <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
 	return ($tmp@176:None)
 
 
@@ -38,14 +38,14 @@ fn println <x: Integer> -> None:
 fn<Integer> swap <a: ReferenceMut<Integer>> and <b: ReferenceMut<Integer>> -> None:
 	let tmp: Integer = (*a:Integer)
 	(a:ReferenceMut<Integer>) = (*b:Integer)
-	(b:ReferenceMut<Integer>) = (tmp:Integer)
+	(b:ReferenceMut<Integer>) = (copy tmp:Integer)
 
 
 @mangle_as("integer_as_string")
 fn String from <$arg0: Integer> -> String
 
 fn print <x: Integer> -> None:
-	let $tmp@128: None = `print <:String>`(`String from <:Integer>`((x:Integer)))
+	let $tmp@128: None = `print <:String>`(`String from <:Integer>`((copy x:Integer)))
 	return ($tmp@128:None)
 
 
@@ -54,5 +54,5 @@ fn print <x: Integer> -> None:
 fn String from <$arg0: Integer> -> String
 
 fn println <x: Integer> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((x:Integer)))
+	let $tmp@176: None = `println <:String>`(`String from <:Integer>`((copy x:Integer)))
 	return ($tmp@176:None)

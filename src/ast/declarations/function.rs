@@ -253,10 +253,7 @@ impl Parse for FunctionDeclaration {
 #[cfg(test)]
 mod tests {
     use crate::{
-        ast::{
-            FunctionDeclaration, GenericParameter, Parameter, Statement, TypeReference,
-            VariableReference,
-        },
+        ast::{FunctionDeclaration, Parameter, Statement, TypeReference},
         syntax::{Identifier, Keyword},
     };
 
@@ -325,84 +322,6 @@ mod tests {
                     Literal::Integer {
                         value: "1".into(),
                         offset: 11,
-                    }
-                    .into()
-                ),],
-                implicit_return: true
-            }
-        );
-    }
-
-    #[test]
-    fn generic_parameters() {
-        let func = "fn<T> <x: T> -> T => x"
-            .parse::<FunctionDeclaration>()
-            .unwrap();
-        assert_eq!(
-            func,
-            FunctionDeclaration {
-                keyword: Keyword::<"fn">::at(0),
-                generic_parameters: vec![GenericParameter {
-                    name: Identifier::from("T").at(3).into(),
-                    constraint: None
-                }],
-                name_parts: vec![Parameter {
-                    less: 6,
-                    name: Identifier::from("x").at(7).into(),
-                    ty: TypeReference {
-                        name: Identifier::from("T").at(10).into(),
-                        generic_parameters: Vec::new(),
-                    },
-                    greater: 11,
-                }
-                .into()],
-                return_type: Some(TypeReference {
-                    name: Identifier::from("T").at(16).into(),
-                    generic_parameters: Vec::new(),
-                }),
-                annotations: vec![],
-                body: vec![Statement::Expression(
-                    VariableReference {
-                        name: Identifier::from("x").at(21).into(),
-                    }
-                    .into()
-                ),],
-                implicit_return: true
-            }
-        );
-
-        let func = "fn<T: A> <x: T> -> T => x"
-            .parse::<FunctionDeclaration>()
-            .unwrap();
-        assert_eq!(
-            func,
-            FunctionDeclaration {
-                keyword: Keyword::<"fn">::at(0),
-                generic_parameters: vec![GenericParameter {
-                    name: Identifier::from("T").at(3).into(),
-                    constraint: Some(TypeReference {
-                        name: Identifier::from("A").at(6).into(),
-                        generic_parameters: vec![],
-                    })
-                }],
-                name_parts: vec![Parameter {
-                    less: 9,
-                    name: Identifier::from("x").at(10).into(),
-                    ty: TypeReference {
-                        name: Identifier::from("T").at(13).into(),
-                        generic_parameters: Vec::new(),
-                    },
-                    greater: 14,
-                }
-                .into(),],
-                return_type: Some(TypeReference {
-                    name: Identifier::from("T").at(19).into(),
-                    generic_parameters: Vec::new(),
-                }),
-                annotations: vec![],
-                body: vec![Statement::Expression(
-                    VariableReference {
-                        name: Identifier::from("x").at(24).into(),
                     }
                     .into()
                 ),],

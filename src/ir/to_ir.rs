@@ -630,6 +630,7 @@ impl<'llvm, 'm> HIRExpressionLoweringWithoutLoad<'llvm, 'm> for ImplicitConversi
         match self.kind {
             Reference => self.expression.lower_to_ir_without_load(context),
             Dereference => self.expression.to_ir(context),
+            Copy => self.expression.to_ir(context),
         }
     }
 }

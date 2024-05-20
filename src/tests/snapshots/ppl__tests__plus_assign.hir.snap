@@ -19,7 +19,7 @@ let mut str: String = "Hello"
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((copy x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -28,14 +28,14 @@ fn println <x: Rational> -> None:
 fn <$arg0: Rational> + <$arg1: Rational> -> Rational
 
 fn <self: ReferenceMut<Rational>> += <other: Rational> -> None:
-	(self:ReferenceMut<Rational>) = `<:Rational> + <:Rational>`((*self:Rational), (other:Rational))
+	(self:ReferenceMut<Rational>) = `<:Rational> + <:Rational>`((*self:Rational), (copy other:Rational))
 
 
 @mangle_as("rational_as_string")
 fn String from <$arg0: Rational> -> String
 
 fn println <x: Rational> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((x:Rational)))
+	let $tmp@176: None = `println <:String>`(`String from <:Rational>`((copy x:Rational)))
 	return ($tmp@176:None)
 
 
@@ -44,4 +44,4 @@ fn println <x: Rational> -> None:
 fn <$arg0: String> + <$arg1: String> -> String
 
 fn <self: ReferenceMut<String>> += <other: String> -> None:
-	(self:ReferenceMut<String>) = `<:String> + <:String>`((*self:String), (other:String))
+	(self:ReferenceMut<String>) = `<:String> + <:String>`((*self:String), (copy other:String))

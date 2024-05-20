@@ -4,13 +4,13 @@ expression: hir
 ---
 type A
 let a: A = A {  }
-`println <:Type<A>>`(`type of <:A>`((a:A)))
+`println <:Type<A>>`(`type of <:A>`((copy a:A)))
 
 ==MONOMORPHIZED==
 
 
 fn<A> type of <$arg0: A> -> Type<A>:
-	let $tmp@4639: Type<A> = (Type<A>:Type<A>)
+	let $tmp@4639: Type<A> = (copy Type<A>:Type<A>)
 	return ($tmp@4639:Type<A>)
 
 
@@ -20,5 +20,5 @@ fn<A> String from <ty: Type<A>> -> String:
 
 
 fn println <x: Type<A>> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Type<A>>`((x:Type<A>)))
+	let $tmp@176: None = `println <:String>`(`String from <:Type<A>>`((copy x:Type<A>)))
 	return ($tmp@176:None)

@@ -149,12 +149,15 @@ define private %Integer @"x of <:Point<Integer>>"(%"Point<Integer>" %0) !dbg !36
   store %"Point<Integer>" %0, ptr %p, align 8
   %x = getelementptr inbounds %"Point<Integer>", ptr %p, i32 0, i32 0, !dbg !37
   %2 = load %Integer, ptr %x, align 8, !dbg !37
-  store %Integer %2, ptr %return_value, align 8, !dbg !37
+  %"$tmp@53" = alloca %Integer, align 8, !dbg !37
+  store %Integer %2, ptr %"$tmp@53", align 8, !dbg !37
+  %3 = load %Integer, ptr %"$tmp@53", align 8, !dbg !37
+  store %Integer %3, ptr %return_value, align 8, !dbg !37
   br label %return, !dbg !37
 
 return:                                           ; preds = %1
-  %3 = load %Integer, ptr %return_value, align 8
-  ret %Integer %3
+  %4 = load %Integer, ptr %return_value, align 8
+  ret %Integer %4
 }
 
 define private void @"println <:Bool>"(i1 %0) !dbg !38 {
@@ -182,12 +185,15 @@ define private %Integer @"id <:Integer>"(%Integer %0) !dbg !41 {
   %x = alloca %Integer, align 8
   store %Integer %0, ptr %x, align 8
   %2 = load %Integer, ptr %x, align 8, !dbg !42
-  store %Integer %2, ptr %return_value, align 8, !dbg !42
+  %"$tmp@127" = alloca %Integer, align 8, !dbg !42
+  store %Integer %2, ptr %"$tmp@127", align 8, !dbg !42
+  %3 = load %Integer, ptr %"$tmp@127", align 8, !dbg !42
+  store %Integer %3, ptr %return_value, align 8, !dbg !42
   br label %return, !dbg !42
 
 return:                                           ; preds = %1
-  %3 = load %Integer, ptr %return_value, align 8
-  ret %Integer %3
+  %4 = load %Integer, ptr %return_value, align 8
+  ret %Integer %4
 }
 
 define private %String @"id <:String>"(%String %0) !dbg !43 {
@@ -195,12 +201,15 @@ define private %String @"id <:String>"(%String %0) !dbg !43 {
   %x = alloca %String, align 8
   store %String %0, ptr %x, align 8
   %2 = load %String, ptr %x, align 8, !dbg !44
-  store %String %2, ptr %return_value, align 8, !dbg !44
+  %"$tmp@127" = alloca %String, align 8, !dbg !44
+  store %String %2, ptr %"$tmp@127", align 8, !dbg !44
+  %3 = load %String, ptr %"$tmp@127", align 8, !dbg !44
+  store %String %3, ptr %return_value, align 8, !dbg !44
   br label %return, !dbg !44
 
 return:                                           ; preds = %1
-  %3 = load %String, ptr %return_value, align 8
-  ret %String %3
+  %4 = load %String, ptr %return_value, align 8
+  ret %String %4
 }
 
 define private %"Point<Integer>" @"id <:Point<Integer>>"(%"Point<Integer>" %0) !dbg !45 {
@@ -208,12 +217,15 @@ define private %"Point<Integer>" @"id <:Point<Integer>>"(%"Point<Integer>" %0) !
   %x = alloca %"Point<Integer>", align 8
   store %"Point<Integer>" %0, ptr %x, align 8
   %2 = load %"Point<Integer>", ptr %x, align 8, !dbg !46
-  store %"Point<Integer>" %2, ptr %return_value, align 8, !dbg !46
+  %"$tmp@127" = alloca %"Point<Integer>", align 8, !dbg !46
+  store %"Point<Integer>" %2, ptr %"$tmp@127", align 8, !dbg !46
+  %3 = load %"Point<Integer>", ptr %"$tmp@127", align 8, !dbg !46
+  store %"Point<Integer>" %3, ptr %return_value, align 8, !dbg !46
   br label %return, !dbg !46
 
 return:                                           ; preds = %1
-  %3 = load %"Point<Integer>", ptr %return_value, align 8
-  ret %"Point<Integer>" %3
+  %4 = load %"Point<Integer>", ptr %return_value, align 8
+  ret %"Point<Integer>" %4
 }
 
 declare void @destroy_integer(ptr)

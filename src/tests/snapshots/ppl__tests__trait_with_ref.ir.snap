@@ -131,7 +131,7 @@ define private void @"bar <:Reference<Integer>>"(ptr %0) !dbg !30 {
   %x = alloca ptr, align 8
   store ptr %0, ptr %x, align 8
   call void @"foo <:Reference<Integer>>"(ptr %x), !dbg !31
-  br label %return, !dbg !31
+  br label %return, !dbg !32
 
 return:                                           ; preds = %1
   ret void
@@ -174,3 +174,4 @@ declare void @destroy_integer(ptr)
 !29 = !DILocation(line: 7, column: 8, scope: !28)
 !30 = distinct !DISubprogram(name: "bar <:Reference<Integer>>", linkageName: "bar <:Reference<Integer>>", scope: !18, file: !2, line: 5, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !31 = !DILocation(line: 5, column: 30, scope: !30)
+!32 = !DILocation(line: 5, column: 26, scope: !30)

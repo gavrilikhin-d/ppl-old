@@ -19,12 +19,12 @@ Advice:   ☞ candidate is not viable
         × expected `Self` type, got `Rational`
       
       Error:   × Self
-          ╭─[math.ppl:33:19]
-       32 │
-       33 │     fn <x: Self> != <y: Self> => not (x == y)
+          ╭─[math.ppl:39:19]
+       38 │
+       39 │     fn <x: Self> != <y: Self> => not (x == y)
           ·                      ┬
           ·                      ╰── this has `Self` type
-       34 │
+       40 │
           ╰────
       Error:   × Rational
          ╭─[main.ppl:1:6]
@@ -39,12 +39,12 @@ Advice:   ☞ candidate is not viable
         × expected `Self` type, got `Rational`
       
       Error:   × Self
-          ╭─[math.ppl:33:19]
-       32 │
-       33 │     fn <x: Self> != <y: Self> => not (x == y)
+          ╭─[math.ppl:39:19]
+       38 │
+       39 │     fn <x: Self> != <y: Self> => not (x == y)
           ·                      ┬
           ·                      ╰── this has `Self` type
-       34 │
+       40 │
           ╰────
       Error:   × Rational
          ╭─[main.ppl:1:6]

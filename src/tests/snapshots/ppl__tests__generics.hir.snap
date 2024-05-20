@@ -8,14 +8,14 @@ type Point<T>:
 
 
 fn<T> x of <p: Point<T>> -> T:
-	let $tmp@53: T = (p:Point<T>).x
+	let $tmp@53: T = (copy (p:Point<T>).x:T)
 	return ($tmp@53:T)
 
 let x: Integer = `x of <:Point<Integer>>`(Point<Integer> { x: 0, y: 0 })
 `println <:Bool>`(`<:Integer> == <:Integer>`(`clone <:Reference<Integer>>`((x:Integer)), 0))
 
 fn<T> id <x: T> -> T:
-	let $tmp@127: T = (x:T)
+	let $tmp@127: T = (copy x:T)
 	return ($tmp@127:T)
 
 `println <:Bool>`(`<:Integer> == <:Integer>`(`id <:Integer>`(1), 1))
@@ -27,46 +27,49 @@ fn<T> id <x: T> -> T:
 
 
 fn<Integer> x of <p: Point<Integer>> -> Integer:
-	return (p:Point<Integer>).x
+	let $tmp@53: Integer = (copy (p:Point<Integer>).x:Integer)
+	return ($tmp@53:Integer)
+
 
 
 fn String from <x: Bool> -> String:
 	if (x:Bool):
-		let $tmp@1314: String = "true"
-		return ($tmp@1314:String)
+		return "true"
 
-	let $tmp@1329: String = "false"
-	return ($tmp@1329:String)
+	return "false"
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((copy x:Bool)))
 	return ($tmp@176:None)
 
 
 
 fn<Integer> id <x: Integer> -> Integer:
-	return (x:Integer)
+	let $tmp@127: Integer = (copy x:Integer)
+	return ($tmp@127:Integer)
+
 
 
 fn String from <x: Bool> -> String:
 	if (x:Bool):
-		let $tmp@1314: String = "true"
-		return ($tmp@1314:String)
+		return "true"
 
-	let $tmp@1329: String = "false"
-	return ($tmp@1329:String)
+	return "false"
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((copy x:Bool)))
 	return ($tmp@176:None)
 
 
 
 fn<String> id <x: String> -> String:
-	return (x:String)
+	let $tmp@127: String = (copy x:String)
+	return ($tmp@127:String)
+
 
 
 fn<Point<Integer>> id <x: Point<Integer>> -> Point<Integer>:
-	return (x:Point<Integer>)
+	let $tmp@127: Point<Integer> = (copy x:Point<Integer>)
+	return ($tmp@127:Point<Integer>)

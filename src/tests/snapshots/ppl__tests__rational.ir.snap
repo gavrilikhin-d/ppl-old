@@ -243,9 +243,9 @@ define private i1 @"<:Rational> != <:Rational>"(%Rational %0, %Rational %1) !dbg
   %4 = load %Rational, ptr %y, align 8, !dbg !57
   %5 = call i1 @rational_eq_rational(%Rational %3, %Rational %4), !dbg !57
   %6 = call i1 @"not <:Bool>"(i1 %5), !dbg !57
-  %"$tmp@776" = alloca i1, align 1, !dbg !57
-  store i1 %6, ptr %"$tmp@776", align 1, !dbg !57
-  %7 = load i1, ptr %"$tmp@776", align 1, !dbg !57
+  %"$tmp@719" = alloca i1, align 1, !dbg !57
+  store i1 %6, ptr %"$tmp@719", align 1, !dbg !57
+  %7 = load i1, ptr %"$tmp@719", align 1, !dbg !57
   store i1 %7, ptr %return_value, align 1, !dbg !57
   br label %return, !dbg !57
 
@@ -267,9 +267,9 @@ define private i1 @"<:Rational> > <:Rational>"(%Rational %0, %Rational %1) !dbg 
   %3 = load %Rational, ptr %y, align 8, !dbg !59
   %4 = load %Rational, ptr %x, align 8, !dbg !59
   %5 = call i1 @rational_less_rational(%Rational %3, %Rational %4), !dbg !59
-  %"$tmp@1032" = alloca i1, align 1, !dbg !59
-  store i1 %5, ptr %"$tmp@1032", align 1, !dbg !59
-  %6 = load i1, ptr %"$tmp@1032", align 1, !dbg !59
+  %"$tmp@847" = alloca i1, align 1, !dbg !59
+  store i1 %5, ptr %"$tmp@847", align 1, !dbg !59
+  %6 = load i1, ptr %"$tmp@847", align 1, !dbg !59
   store i1 %6, ptr %return_value, align 1, !dbg !59
   br label %return, !dbg !59
 
@@ -288,9 +288,9 @@ define private i1 @"<:Rational> <= <:Rational>"(%Rational %0, %Rational %1) !dbg
   %4 = load %Rational, ptr %y, align 8, !dbg !61
   %5 = call i1 @"<:Rational> > <:Rational>"(%Rational %3, %Rational %4), !dbg !61
   %6 = call i1 @"not <:Bool>"(i1 %5), !dbg !61
-  %"$tmp@1068" = alloca i1, align 1, !dbg !61
-  store i1 %6, ptr %"$tmp@1068", align 1, !dbg !61
-  %7 = load i1, ptr %"$tmp@1068", align 1, !dbg !61
+  %"$tmp@883" = alloca i1, align 1, !dbg !61
+  store i1 %6, ptr %"$tmp@883", align 1, !dbg !61
+  %7 = load i1, ptr %"$tmp@883", align 1, !dbg !61
   store i1 %7, ptr %return_value, align 1, !dbg !61
   br label %return, !dbg !61
 
@@ -309,9 +309,9 @@ define private i1 @"<:Rational> >= <:Rational>"(%Rational %0, %Rational %1) !dbg
   %4 = load %Rational, ptr %y, align 8, !dbg !63
   %5 = call i1 @rational_less_rational(%Rational %3, %Rational %4), !dbg !63
   %6 = call i1 @"not <:Bool>"(i1 %5), !dbg !63
-  %"$tmp@1110" = alloca i1, align 1, !dbg !63
-  store i1 %6, ptr %"$tmp@1110", align 1, !dbg !63
-  %7 = load i1, ptr %"$tmp@1110", align 1, !dbg !63
+  %"$tmp@925" = alloca i1, align 1, !dbg !63
+  store i1 %6, ptr %"$tmp@925", align 1, !dbg !63
+  %7 = load i1, ptr %"$tmp@925", align 1, !dbg !63
   store i1 %7, ptr %return_value, align 1, !dbg !63
   br label %return, !dbg !63
 

@@ -1,0 +1,8 @@
+type RefWrapper:
+	x: &Integer
+
+fn wrap <x: &Integer> => RefWrapper { x }
+
+let x = 5
+let y = wrap x
+println y.x

@@ -314,6 +314,9 @@ impl ConversionRequest {
         }
 
         if !from.is_any_reference() && !to.is_any_reference() {
+            if self.from.value.is_reference() {
+                return Ok(self.from.value.copy());
+            }
             return Ok(self.from.value);
         }
 

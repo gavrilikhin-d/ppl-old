@@ -23,8 +23,11 @@ let x: Integer = 0
 
 
 fn foo <$arg0: Reference<Integer>> -> None:
-	return `println <:String>`("foo integer")
+	let $tmp@51: None = `println <:String>`("foo integer")
+	return ($tmp@51:None)
+
 
 
 fn<Integer> bar <x: Reference<Integer>> -> None:
-	return `foo <:Reference<Integer>>`((x:Reference<Integer>))
+	let $tmp@100: None = `foo <:Reference<Integer>>`((x:Reference<Integer>))
+	return ($tmp@100:None)

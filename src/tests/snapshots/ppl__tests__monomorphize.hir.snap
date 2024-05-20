@@ -16,13 +16,11 @@ let x: Integer = `clone <:Reference<Integer>>`((p:Point<Integer>).x)
 
 fn String from <x: Bool> -> String:
 	if (x:Bool):
-		let $tmp@1314: String = "true"
-		return ($tmp@1314:String)
+		return "true"
 
-	let $tmp@1329: String = "false"
-	return ($tmp@1329:String)
+	return "false"
 
 
 fn println <x: Bool> -> None:
-	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((x:Bool)))
+	let $tmp@176: None = `println <:String>`(`String from <:Bool>`((copy x:Bool)))
 	return ($tmp@176:None)
