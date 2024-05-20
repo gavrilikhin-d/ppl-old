@@ -119,6 +119,10 @@ fn <x: Integer> % <y: Integer> -> Integer
 @mangle_as("integer_as_string")
 fn String from <:Integer> -> String
 
+/// Parse `Integer` from `String`
+@mangle_as("integer_from_string")
+fn Integer from <str: &String> -> Integer
+
 @mangle_as("destroy_integer")
 fn destroy <:&mut Integer>
 

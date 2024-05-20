@@ -273,3 +273,15 @@ pub extern "C" fn integer_as_i32(x: Integer) -> i32 {
         .to_i32()
         .expect(&format!("Integer `{integer}` is too big to fit into i32"))
 }
+
+/// # PPL
+/// ```no_run
+/// /// Parse `Integer` from `String`
+/// @mangle_as("integer_from_string")
+/// fn Integer from <str: &String> -> Integer
+/// ```
+#[no_mangle]
+pub extern "C" fn integer_from_string(str: &String) -> Integer {
+    let str = str.as_ref();
+    str.parse::<rug::Integer>().unwrap().into()
+}
