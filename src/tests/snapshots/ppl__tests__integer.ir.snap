@@ -24,6 +24,7 @@ source_filename = "src/main.ppl"
 @3 = private unnamed_addr constant [4 x i8] c"F64\00", align 1
 @"Type<Integer>" = private global %"Type<Integer>" zeroinitializer
 @4 = private unnamed_addr constant [8 x i8] c"Integer\00", align 1
+@"$tmp@35" = global %Integer zeroinitializer
 
 define private void @initialize() !dbg !3 {
   %1 = alloca %"Type<String>", align 8, !dbg !7
@@ -118,8 +119,9 @@ define void @main.execute() !dbg !21 {
   %1 = load %"Type<Integer>", ptr @"Type<Integer>", align 8, !dbg !25
   %2 = call %Integer @"default <:Type<Integer>>"(%"Type<Integer>" %1), !dbg !25
   call void @"println <:Integer>"(%Integer %2), !dbg !25
-  %3 = call %Integer @integer_from_i64(i64 1), !dbg !26
-  %4 = call %Integer @"+ <:Integer>"(%Integer %3), !dbg !26
+  call void @initialize.5(), !dbg !26
+  %3 = call ptr @"+ <:Reference<Integer>>"(ptr @"$tmp@35"), !dbg !26
+  %4 = call %Integer @clone_integer(ptr %3), !dbg !26
   call void @"println <:Integer>"(%Integer %4), !dbg !26
   %5 = call %Integer @integer_from_i64(i64 2), !dbg !27
   %6 = call %Integer @minus_integer(%Integer %5), !dbg !27
@@ -144,7 +146,8 @@ define void @main.execute() !dbg !21 {
   %20 = call %Integer @integer_from_i64(i64 2), !dbg !37
   %21 = call %Rational @integer_slash_integer(%Integer %19, %Integer %20), !dbg !37
   call void @"println <:Rational>"(%Rational %21), !dbg !37
-  br label %return, !dbg !37
+  call void @destroy_integer(ptr @"$tmp@35"), !dbg !26
+  br label %return, !dbg !26
 
 return:                                           ; preds = %0
   ret void
@@ -170,7 +173,18 @@ declare void @"println <:Reference<String>>"(ptr)
 
 declare %Integer @"default <:Type<Integer>>"(%"Type<Integer>")
 
-declare %Integer @"+ <:Integer>"(%Integer)
+define private void @initialize.5() !dbg !40 {
+  %1 = call %Integer @integer_from_i64(i64 1), !dbg !41
+  store %Integer %1, ptr @"$tmp@35", align 8, !dbg !41
+  br label %return, !dbg !41
+
+return:                                           ; preds = %0
+  ret void
+}
+
+declare %Integer @clone_integer(ptr)
+
+declare ptr @"+ <:Reference<Integer>>"(ptr)
 
 declare %Integer @minus_integer(%Integer)
 
@@ -182,15 +196,15 @@ declare %Integer @"<:Integer> - <:Integer>"(%Integer, %Integer)
 
 declare %Integer @integer_star_integer(%Integer, %Integer)
 
-define private void @"println <:Rational>"(%Rational %0) !dbg !40 {
+define private void @"println <:Rational>"(%Rational %0) !dbg !42 {
   %x = alloca %Rational, align 8
   store %Rational %0, ptr %x, align 8
-  %2 = load %Rational, ptr %x, align 8, !dbg !41
-  %3 = call %String @rational_as_string(%Rational %2), !dbg !41
-  %"$tmp@185" = alloca %String, align 8, !dbg !41
-  store %String %3, ptr %"$tmp@185", align 8, !dbg !41
-  call void @"println <:Reference<String>>"(ptr %"$tmp@185"), !dbg !41
-  br label %return, !dbg !41
+  %2 = load %Rational, ptr %x, align 8, !dbg !43
+  %3 = call %String @rational_as_string(%Rational %2), !dbg !43
+  %"$tmp@185" = alloca %String, align 8, !dbg !43
+  store %String %3, ptr %"$tmp@185", align 8, !dbg !43
+  call void @"println <:Reference<String>>"(ptr %"$tmp@185"), !dbg !43
+  br label %return, !dbg !43
 
 return:                                           ; preds = %1
   ret void
@@ -199,6 +213,8 @@ return:                                           ; preds = %1
 declare %String @rational_as_string(%Rational)
 
 declare %Rational @integer_slash_integer(%Integer, %Integer)
+
+declare void @destroy_integer(ptr)
 
 !llvm.module.flags = !{!0}
 !llvm.dbg.cu = !{!1}
@@ -243,5 +259,7 @@ declare %Rational @integer_slash_integer(%Integer, %Integer)
 !37 = !DILocation(line: 7, column: 13, scope: !21)
 !38 = distinct !DISubprogram(name: "println <:Integer>", linkageName: "println <:Integer>", scope: !21, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
 !39 = !DILocation(line: 7, column: 14, scope: !38)
-!40 = distinct !DISubprogram(name: "println <:Rational>", linkageName: "println <:Rational>", scope: !21, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
-!41 = !DILocation(line: 7, column: 14, scope: !40)
+!40 = distinct !DISubprogram(name: "initialize.5", linkageName: "initialize.5", scope: !21, file: !2, line: 1, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!41 = !DILocation(line: 1, column: 9, scope: !40)
+!42 = distinct !DISubprogram(name: "println <:Rational>", linkageName: "println <:Rational>", scope: !21, file: !2, line: 7, type: !4, spFlags: DISPFlagDefinition, unit: !1)
+!43 = !DILocation(line: 7, column: 14, scope: !42)

@@ -31,10 +31,10 @@ let $tmp@204: String = `String from <:Type<Array<Integer>>>`((copy Type<Array<In
 
 
 fn<Integer> String from <ty: Type<Integer>> -> String:
-	let $tmp@4516: String = `clone <:Reference<String>>`((ty:Type<Integer>).name)
-	return ($tmp@4516:String)
+	let $tmp@4518: String = `clone <:Reference<String>>`((ty:Type<Integer>).name)
+	return ($tmp@4518:String)
 
 
 fn<Array<Integer>> String from <ty: Type<Array<Integer>>> -> String:
-	let $tmp@4516: String = `clone <:Reference<String>>`((ty:Type<Array<Integer>>).name)
-	return ($tmp@4516:String)
+	let $tmp@4518: String = `clone <:Reference<String>>`((ty:Type<Array<Integer>>).name)
+	return ($tmp@4518:String)

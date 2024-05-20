@@ -3,13 +3,15 @@ source: src/tests/mod.rs
 expression: hir
 ---
 `println <:Integer>`(`default <:Type<Integer>>`((copy Type<Integer>:Type<Integer>)))
-`println <:Integer>`(`+ <:Integer>`(1))
+let $tmp@35: Integer = 1
+`println <:Integer>`(`clone <:Reference<Integer>>`((*`+ <:Reference<Integer>>`((&$tmp@35:Reference<Integer>)):Integer)))
 `println <:Integer>`(`- <:Integer>`(2))
 `println <:Integer>`(`<:Integer> + <:Integer>`(2, 1))
 `println <:Integer>`(`<:Integer> ^ <:Integer>`(2, 2))
 `println <:Integer>`(`<:Integer> - <:Integer>`(5, 0))
 `println <:Integer>`(`<:Integer> * <:Integer>`(2, 3))
 `println <:Rational>`(`<:Integer> / <:Integer>`(14, 2))
+`destroy <:ReferenceMut<Integer>>`(($tmp@35:Integer))
 
 ==MONOMORPHIZED==
 
