@@ -310,14 +310,13 @@ impl Declare for ast::VariableDeclaration {
         initializer.monomorphize(context);
 
         let range = declaration.read().unwrap().name.range();
-        let ty = declaration.read().unwrap().ty();
-        if ty != Type::Unknown {
-            let initializer = initializer.convert_to(ty.at(range)).within(context)?;
-            declaration.write().unwrap().initializer = Some(initializer)
-        } else {
-            declaration.write().unwrap().ty = initializer.ty();
-            declaration.write().unwrap().initializer = Some(initializer);
+        let mut ty = declaration.read().unwrap().ty();
+        if ty == Type::Unknown {
+            ty = initializer.ty();
+            declaration.write().unwrap().ty = ty.clone();
         }
+        let initializer = initializer.convert_to(ty.at(range)).within(context)?;
+        declaration.write().unwrap().initializer = Some(initializer);
 
         Ok(declaration)
     }

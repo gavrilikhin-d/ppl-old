@@ -12,6 +12,9 @@ pub trait Implicit {
 
     /// Implicitly reference this with mutable reference
     fn reference_mut(self, context: &impl Context) -> Self;
+
+    /// Implicitly copy this expression
+    fn copy(self) -> Self;
 }
 
 impl Implicit for Expression {
@@ -41,6 +44,15 @@ impl Implicit for Expression {
         ImplicitConversion {
             kind: Reference,
             ty: context.builtin().types().reference_mut_to(self.ty()),
+            expression: Box::new(self),
+        }
+        .into()
+    }
+
+    fn copy(self) -> Self {
+        ImplicitConversion {
+            kind: Copy,
+            ty: self.ty().clone(),
             expression: Box::new(self),
         }
         .into()

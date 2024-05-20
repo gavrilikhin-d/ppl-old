@@ -6,6 +6,7 @@ use crate::{
         Return, Typed, VariableData,
     },
     syntax::Ranged,
+    DataHolder,
 };
 
 use super::Context;
@@ -28,19 +29,26 @@ impl<'ctx, C: Context> Clonner<'ctx, C> {
     }
 
     fn clone_expr(&mut self, expr: &mut Expression) -> Option<()> {
-        if !matches!(
-            expr,
-            Expression::VariableReference(_)
-                | Expression::MemberReference(_)
-                | Expression::ImplicitConversion(ImplicitConversion {
-                    kind: ImplicitConversionKind::Dereference,
+        if expr.ty().is_any_reference()
+            || !matches!(
+                expr,
+                Expression::ImplicitConversion(ImplicitConversion {
+                    kind: ImplicitConversionKind::Dereference | ImplicitConversionKind::Copy,
                     ..
                 })
-        ) {
+            )
+        {
             return None;
         }
 
         let clone = self.context.clone_for(expr.ty())?;
+        // Fully replace copy with clone
+        if let Expression::ImplicitConversion(conv) = expr
+            && conv.kind == ImplicitConversionKind::Copy
+        {
+            *expr = conv.expression.as_ref().clone();
+        }
+
         let mut expr_new: Expression = Call {
             range: expr.range(),
             function: clone,

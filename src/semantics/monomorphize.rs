@@ -144,6 +144,7 @@ impl Monomorphize for ImplicitConversion {
                 }
             }
             Dereference => ty.without_ref(),
+            Copy => ty,
         };
     }
 }

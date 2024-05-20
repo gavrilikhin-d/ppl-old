@@ -15,6 +15,8 @@ pub enum ImplicitConversionKind {
     Reference,
     /// Dereference a reference
     Dereference,
+    /// Copy or clone a value
+    Copy,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, DriveMut)]
@@ -33,8 +35,9 @@ impl Display for ImplicitConversion {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use ImplicitConversionKind::*;
         let op = match self.kind {
-            Reference => '&',
-            Dereference => '*',
+            Reference => "&",
+            Dereference => "*",
+            Copy => "copy ",
         };
         write!(
             f,

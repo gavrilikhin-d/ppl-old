@@ -966,8 +966,8 @@ impl ToHIR for ast::Module {
         trace!(target: "steps", "Running passes on `{}`", module.source_file.path().display());
         module.drive_mut(&mut ParameterNamer::new());
         module.drive_mut(&mut TraitFunctionsLinker::new(context));
-        module.drive_mut(&mut Clonner::new(context));
         module.drive_mut(&mut TemporariesInserter::new());
+        module.drive_mut(&mut Clonner::new(context));
         module.insert_destructors(context);
         debug!(target: &format!("hir-after-passes-{name}"), "\n{:#}", module);
 

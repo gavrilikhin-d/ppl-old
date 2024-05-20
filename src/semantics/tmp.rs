@@ -1,11 +1,11 @@
 use std::iter;
 
-use derive_visitor::VisitorMut;
+use derive_visitor::{DriveMut, VisitorMut};
 
 use crate::{
     hir::{
-        Block, Declaration, Expression, ImplicitConversion, ImplicitConversionKind, Return,
-        Statement, Typed, Variable, VariableData, VariableReference,
+        Block, Declaration, Expression, ImplicitConversion, ImplicitConversionKind, ModuleData,
+        Return, Statement, Typed, Variable, VariableData, VariableReference,
     },
     mutability::Mutable,
     syntax::{Identifier, Keyword, Ranged},
@@ -13,7 +13,12 @@ use crate::{
 };
 
 #[derive(VisitorMut)]
-#[visitor(Statement(exit), Return(exit), ImplicitConversion(exit))]
+#[visitor(
+    Statement(exit),
+    Return(exit),
+    ImplicitConversion(exit),
+    ModuleData(exit)
+)]
 pub struct TemporariesInserter {
     temporaries: Vec<Variable>,
 }
@@ -43,21 +48,28 @@ impl<'ctx> TemporariesInserter {
         self.temporaries.push(tmp);
     }
 
-    fn exit_implicit_conversion(&mut self, conv: &mut ImplicitConversion) {
-        if conv.kind != ImplicitConversionKind::Reference
-            || matches!(
-                *conv.expression,
-                Expression::VariableReference(_) | Expression::MemberReference(_)
-            )
-        {
-            return;
-        }
+    fn exit_module_data(&mut self, module: &mut ModuleData) {
+        module
+            .monomorphized_functions
+            .iter_mut()
+            .for_each(|f| f.drive_mut(self))
+    }
 
-        self.replace_with_tmp(&mut conv.expression)
+    fn exit_implicit_conversion(&mut self, conv: &mut ImplicitConversion) {
+        match conv.kind {
+            ImplicitConversionKind::Reference if !conv.expression.is_reference() => {
+                self.replace_with_tmp(&mut conv.expression)
+            }
+            _ => {}
+        }
     }
 
     fn exit_return(&mut self, ret: &mut Return) {
-        ret.value_mut().map(|expr| self.replace_with_tmp(expr));
+        ret.value_mut().map(|expr| {
+            if !matches!(expr, Expression::Literal(_)) {
+                self.replace_with_tmp(expr)
+            }
+        });
     }
 
     fn exit_statement(&mut self, stmt: &mut Statement) {
