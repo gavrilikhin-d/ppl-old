@@ -266,9 +266,9 @@ define private %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !5
   store %"Type<Integer>" %0, ptr %ty, align 8
   %size = getelementptr inbounds %"Type<Integer>", ptr %ty, i32 0, i32 1, !dbg !51
   %2 = call %Integer @clone_integer(ptr %size), !dbg !51
-  %"$tmp@4582" = alloca %Integer, align 8, !dbg !51
-  store %Integer %2, ptr %"$tmp@4582", align 8, !dbg !51
-  %3 = load %Integer, ptr %"$tmp@4582", align 8, !dbg !51
+  %"$tmp@4583" = alloca %Integer, align 8, !dbg !51
+  store %Integer %2, ptr %"$tmp@4583", align 8, !dbg !51
+  %3 = load %Integer, ptr %"$tmp@4583", align 8, !dbg !51
   store %Integer %3, ptr %return_value, align 8, !dbg !51
   br label %return, !dbg !51
 

@@ -105,14 +105,19 @@ return:                                           ; preds = %0
 
 define void @"foo <:None>"() !dbg !24 {
   %1 = call %String @string_from_c_string_and_length(ptr @4, i64 3), !dbg !25
-  call void @print_string(%String %1), !dbg !25
+  %"$tmp@105" = alloca %String, align 8, !dbg !25
+  store %String %1, ptr %"$tmp@105", align 8, !dbg !25
+  call void @print_string(ptr %"$tmp@105"), !dbg !25
+  call void @destroy_string(ptr %"$tmp@105"), !dbg !25
   br label %return, !dbg !26
 
 return:                                           ; preds = %0
   ret void
 }
 
-declare void @print_string(%String)
+declare void @print_string(ptr)
+
+declare void @destroy_string(ptr)
 
 define void @"bar <:None>"() !dbg !27 {
   %1 = call %String @string_from_c_string_and_length(ptr @5, i64 3), !dbg !28

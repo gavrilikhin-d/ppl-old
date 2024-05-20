@@ -12,7 +12,9 @@ trait FooBar:
 
 
 fn foo <$arg0: None> -> None:
-	let $tmp@99: None = `print <:String>`("foo")
+	let $tmp@105: String = "foo"
+	let $tmp@99: None = `print <:Reference<String>>`((&$tmp@105:Reference<String>))
+	`destroy <:ReferenceMut<String>>`(($tmp@105:String))
 	return ($tmp@99:None)
 
 
@@ -31,7 +33,8 @@ fn<T: FooBar> foobar <x: T> -> None:
 
 
 fn foo <$arg0: None> -> None:
-	let $tmp@99: None = `print <:String>`("foo")
+	let $tmp@105: String = "foo"
+	let $tmp@99: None = `print <:Reference<String>>`((&$tmp@105:Reference<String>))
 	return ($tmp@99:None)
 
 

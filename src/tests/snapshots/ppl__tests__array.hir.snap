@@ -25,8 +25,8 @@ while `<:Integer> <= <:Integer>`(`clone <:Reference<Integer>>`((i:Integer)), 10)
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4582:Integer)
+	let $tmp@4583: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4583:Integer)
 
 
 fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:
@@ -71,13 +71,13 @@ fn<Integer> <array: Reference<Array<Integer>>> is empty -> Bool:
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4582:Integer)
+	let $tmp@4583: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4583:Integer)
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4582:Integer)
+	let $tmp@4583: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4583:Integer)
 
 
 fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:
@@ -145,8 +145,8 @@ fn<Integer> <array: Reference<Array<Integer>>> is not empty -> Bool:
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4582:Integer)
+	let $tmp@4583: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4583:Integer)
 
 
 @mangle_as("read_memory")
@@ -190,13 +190,13 @@ fn <x: Integer> <= <y: Integer> -> Bool:
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4582:Integer)
+	let $tmp@4583: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4583:Integer)
 
 
 fn<Integer> size of <ty: Type<Integer>> -> Integer:
-	let $tmp@4582: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
-	return ($tmp@4582:Integer)
+	let $tmp@4583: Integer = `clone <:Reference<Integer>>`((ty:Type<Integer>).size)
+	return ($tmp@4583:Integer)
 
 
 fn<Integer> allocate <n: Integer> <$arg1: Type<Integer>> -> MemoryAddress:

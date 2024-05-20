@@ -232,9 +232,9 @@ define private %Integer @"size of <:Type<None>>"(%"Type<None>" %0) !dbg !50 {
   store %"Type<None>" %0, ptr %ty, align 8
   %size = getelementptr inbounds %"Type<None>", ptr %ty, i32 0, i32 1, !dbg !51
   %2 = call %Integer @clone_integer(ptr %size), !dbg !51
-  %"$tmp@4582" = alloca %Integer, align 8, !dbg !51
-  store %Integer %2, ptr %"$tmp@4582", align 8, !dbg !51
-  %3 = load %Integer, ptr %"$tmp@4582", align 8, !dbg !51
+  %"$tmp@4583" = alloca %Integer, align 8, !dbg !51
+  store %Integer %2, ptr %"$tmp@4583", align 8, !dbg !51
+  %3 = load %Integer, ptr %"$tmp@4583", align 8, !dbg !51
   store %Integer %3, ptr %return_value, align 8, !dbg !51
   br label %return, !dbg !51
 
@@ -251,9 +251,9 @@ define private %Integer @"size of <:Type<Bool>>"(%"Type<Bool>" %0) !dbg !52 {
   store %"Type<Bool>" %0, ptr %ty, align 8
   %size = getelementptr inbounds %"Type<Bool>", ptr %ty, i32 0, i32 1, !dbg !53
   %2 = call %Integer @clone_integer(ptr %size), !dbg !53
-  %"$tmp@4582" = alloca %Integer, align 8, !dbg !53
-  store %Integer %2, ptr %"$tmp@4582", align 8, !dbg !53
-  %3 = load %Integer, ptr %"$tmp@4582", align 8, !dbg !53
+  %"$tmp@4583" = alloca %Integer, align 8, !dbg !53
+  store %Integer %2, ptr %"$tmp@4583", align 8, !dbg !53
+  %3 = load %Integer, ptr %"$tmp@4583", align 8, !dbg !53
   store %Integer %3, ptr %return_value, align 8, !dbg !53
   br label %return, !dbg !53
 
@@ -268,9 +268,9 @@ define private %String @"String from <:Type<None>>"(%"Type<None>" %0) !dbg !54 {
   store %"Type<None>" %0, ptr %ty, align 8
   %name = getelementptr inbounds %"Type<None>", ptr %ty, i32 0, i32 0, !dbg !55
   %2 = call %String @clone_string(ptr %name), !dbg !55
-  %"$tmp@4514" = alloca %String, align 8, !dbg !55
-  store %String %2, ptr %"$tmp@4514", align 8, !dbg !55
-  %3 = load %String, ptr %"$tmp@4514", align 8, !dbg !55
+  %"$tmp@4515" = alloca %String, align 8, !dbg !55
+  store %String %2, ptr %"$tmp@4515", align 8, !dbg !55
+  %3 = load %String, ptr %"$tmp@4515", align 8, !dbg !55
   store %String %3, ptr %return_value, align 8, !dbg !55
   br label %return, !dbg !55
 
@@ -287,9 +287,9 @@ define private %String @"String from <:Type<Type<Integer>>>"(%"Type<Type<Integer
   store %"Type<Type<Integer>>" %0, ptr %ty, align 8
   %name = getelementptr inbounds %"Type<Type<Integer>>", ptr %ty, i32 0, i32 0, !dbg !57
   %2 = call %String @clone_string(ptr %name), !dbg !57
-  %"$tmp@4514" = alloca %String, align 8, !dbg !57
-  store %String %2, ptr %"$tmp@4514", align 8, !dbg !57
-  %3 = load %String, ptr %"$tmp@4514", align 8, !dbg !57
+  %"$tmp@4515" = alloca %String, align 8, !dbg !57
+  store %String %2, ptr %"$tmp@4515", align 8, !dbg !57
+  %3 = load %String, ptr %"$tmp@4515", align 8, !dbg !57
   store %String %3, ptr %return_value, align 8, !dbg !57
   br label %return, !dbg !57
 
@@ -322,9 +322,9 @@ define private %Integer @"size of <:Type<Integer>>"(%"Type<Integer>" %0) !dbg !6
   store %"Type<Integer>" %0, ptr %ty, align 8
   %size = getelementptr inbounds %"Type<Integer>", ptr %ty, i32 0, i32 1, !dbg !63
   %2 = call %Integer @clone_integer(ptr %size), !dbg !63
-  %"$tmp@4582" = alloca %Integer, align 8, !dbg !63
-  store %Integer %2, ptr %"$tmp@4582", align 8, !dbg !63
-  %3 = load %Integer, ptr %"$tmp@4582", align 8, !dbg !63
+  %"$tmp@4583" = alloca %Integer, align 8, !dbg !63
+  store %Integer %2, ptr %"$tmp@4583", align 8, !dbg !63
+  %3 = load %Integer, ptr %"$tmp@4583", align 8, !dbg !63
   store %Integer %3, ptr %return_value, align 8, !dbg !63
   br label %return, !dbg !63
 
@@ -351,9 +351,9 @@ define private %String @"String from <:Type<Integer>>"(%"Type<Integer>" %0) !dbg
   store %"Type<Integer>" %0, ptr %ty, align 8
   %name = getelementptr inbounds %"Type<Integer>", ptr %ty, i32 0, i32 0, !dbg !68
   %2 = call %String @clone_string(ptr %name), !dbg !68
-  %"$tmp@4514" = alloca %String, align 8, !dbg !68
-  store %String %2, ptr %"$tmp@4514", align 8, !dbg !68
-  %3 = load %String, ptr %"$tmp@4514", align 8, !dbg !68
+  %"$tmp@4515" = alloca %String, align 8, !dbg !68
+  store %String %2, ptr %"$tmp@4515", align 8, !dbg !68
+  %3 = load %String, ptr %"$tmp@4515", align 8, !dbg !68
   store %String %3, ptr %return_value, align 8, !dbg !68
   br label %return, !dbg !68
 

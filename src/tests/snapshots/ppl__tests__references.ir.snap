@@ -139,9 +139,9 @@ define private %Integer @"size of <:Type<I32>>"(%"Type<I32>" %0) !dbg !36 {
   store %"Type<I32>" %0, ptr %ty, align 8
   %size = getelementptr inbounds %"Type<I32>", ptr %ty, i32 0, i32 1, !dbg !37
   %2 = call %Integer @clone_integer(ptr %size), !dbg !37
-  %"$tmp@4582" = alloca %Integer, align 8, !dbg !37
-  store %Integer %2, ptr %"$tmp@4582", align 8, !dbg !37
-  %3 = load %Integer, ptr %"$tmp@4582", align 8, !dbg !37
+  %"$tmp@4583" = alloca %Integer, align 8, !dbg !37
+  store %Integer %2, ptr %"$tmp@4583", align 8, !dbg !37
+  %3 = load %Integer, ptr %"$tmp@4583", align 8, !dbg !37
   store %Integer %3, ptr %return_value, align 8, !dbg !37
   br label %return, !dbg !37
 

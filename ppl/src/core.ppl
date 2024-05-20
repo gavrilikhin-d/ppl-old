@@ -188,7 +188,7 @@ fn <:String> + <:String> -> String
 
 /// Prints string to stdout
 @mangle_as("print_string")
-fn print <:String>
+fn print <:&String>
 
 /// Print string with a newline at the end
 fn println <str: String> => print (str + "\n")
