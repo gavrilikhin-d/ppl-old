@@ -1,6 +1,6 @@
 println "Solutions to n! + 1 = x^2"
 
-let limit = 10000
+let limit = 100000
 let mut n = 1
 let mut factorial = n
 while n <= limit:
