@@ -22,21 +22,11 @@
 * Metaprogramming
 * Documentation
 
-* [x] Split builtin module into several files
-* [x] Fix crash in diagnostics due-to wrong source file
-* [x] Check result of the program itself in `test_compiler_result`
-* [x] Add `Array` type
-* [x] Fix memory leak due to pointers to builtin types
-* [x] Destructors for parameters
-* [x] No tmps for literals inside of constructors
-* [x] Fix recursive trait (AsString with prints)
-* [x] Fix references in traits test
-* [x] Fix self mapping
 ---
 ### Current task
 * [ ] Printable trait should take references
 ---
-* [ ] mutable parameters
+* [x] mutable parameters
 * [ ] migrate to pass-by-ref (branch `arc`)
 * [ ] Prefer candidates with mutable references, when possible
 * [ ] Fix problems with to_ir and loading references (especially globals). This causes issues in iterator
@@ -83,3 +73,8 @@
 
 ## Important Implementation Details
 * Use `IndexMap` instead of `HashMap` to guarantee order of declarations
+
+
+likj
+
+hhjvkjhlk
